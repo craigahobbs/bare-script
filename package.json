@@ -1,0 +1,33 @@
+{
+    "type": "module",
+    "name": "calc-script",
+    "version": "0.9.0",
+    "description": "calc-script",
+    "keywords": [
+        "calc-script"
+    ],
+    "homepage": "https://github.com/craigahobbs/calc-script#readme",
+    "bugs": "https://github.com/craigahobbs/calc-script/issues",
+    "license": "MIT",
+    "author": {
+        "name": "Craig A. Hobbs",
+        "email": "craigahobbs@gmail.com",
+        "url": "https://github.com/craigahobbs"
+    },
+    "files": [
+        "lib/**/*"
+    ],
+    "scripts": {
+        "test": "ava -v test/"
+    },
+    "dependencies": {
+        "schema-markdown": "~1.1"
+    },
+    "devDependencies": {
+        "ava": "~4.0",
+        "c8": "~7.11",
+        "eslint": "~8.7",
+        "jsdoc": "~3.6",
+        "jsdom": "~19.0"
+    }
+}
