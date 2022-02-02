@@ -3,8 +3,9 @@
 
 /* eslint-disable id-length */
 
-import {evaluateExpression, executeScript, validateExpression, validateScript} from '../lib/runtime.js';
+import {evaluateExpression, executeScript} from '../lib/runtime.js';
 import {parseExpression, parseScript} from '../lib/parser.js';
+import {validateExpression, validateScript} from '../lib/model.js';
 import test from 'ava';
 test('parseScript, jumpif', (t) => {
     const script = validateScript(parseScript(`
