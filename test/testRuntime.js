@@ -28,7 +28,8 @@ test('executeScript, function', (t) => {
                     'name': 'multiplyNumbers',
                     'arguments': ['a', 'b'],
                     'statements': [
-                        {'return': {'binary': {'operator': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}
+                        {'assignment': {'name': 'c', 'expression': {'variable': 'b'}}},
+                        {'return': {'binary': {'operator': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}}
                     ]
                 }
             },
