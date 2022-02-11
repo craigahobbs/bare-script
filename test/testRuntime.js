@@ -13,7 +13,10 @@ test('executeScript', (t) => {
         'statements': [
             {'assignment': {'name': 'a', 'expression': {'number': 5}}},
             {'assignment': {'name': 'b', 'expression': {'number': 7}}},
-            {'return': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}
+            {'expression': {
+                'expression': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+                'return': true
+            }}
         ]
     });
     t.is(executeScript(script), 12);
@@ -29,11 +32,17 @@ test('executeScript, function', (t) => {
                     'arguments': ['a', 'b'],
                     'statements': [
                         {'assignment': {'name': 'c', 'expression': {'variable': 'b'}}},
-                        {'return': {'binary': {'operator': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}}
+                        {'expression': {
+                            'expression': {'binary': {'operator': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}},
+                            'return': true
+                        }}
                     ]
                 }
             },
-            {'return': {'function': {'name': 'multiplyNumbers', 'arguments': [{'number': 5}, {'number': 7}]}}}
+            {'expression': {
+                'expression': {'function': {'name': 'multiplyNumbers', 'arguments': [{'number': 5}, {'number': 7}]}},
+                'return': true
+            }}
         ]
     });
     t.is(executeScript(script), 35);
@@ -52,7 +61,7 @@ test('executeScript, jump', (t) => {
             {'assignment': {'name': 'a', 'expression': {'number': 7}}},
             {'jump': {'label': 'lab'}},
             {'label': 'lab3'},
-            {'return': {'variable': 'a'}}
+            {'expression': {'expression': {'variable': 'a'}, 'return': true}}
         ]
     });
     t.is(executeScript(script), 6);
@@ -80,7 +89,7 @@ test('executeScript, jumpif', (t) => {
             {'assignment': {'name': 'i', 'expression': {'binary': {'operator': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
-            {'return': {'variable': 'a'}}
+            {'expression': {'expression': {'variable': 'a'}, 'return': true}}
         ]
     });
     t.is(executeScript(script), 55);
@@ -94,12 +103,12 @@ test('executeScript, maxStatements', (t) => {
                 'function': {
                     'name': 'fn',
                     'statements': [
-                        {'expression': {'variable': 'a'}},
-                        {'expression': {'variable': 'b'}}
+                        {'expression': {'expression': {'variable': 'a'}}},
+                        {'expression': {'expression': {'variable': 'b'}}}
                     ]
                 }
             },
-            {'expression': {'function': {'name': 'fn'}}}
+            {'expression': {'expression': {'function': {'name': 'fn'}}}}
         ]
     });
     let errorMessage = null;
