@@ -104,13 +104,13 @@ test('executeScript, maxStatements', (t) => {
     });
     let errorMessage = null;
     try {
-        executeScript(script, {}, 3);
+        executeScript(script, {}, {'maxStatements': 3});
     } catch ({message}) {
         errorMessage = message;
     }
     t.is(errorMessage, 'Exceeded maximum script statements (3)');
-    t.is(executeScript(script, {}, 4), null);
-    t.is(executeScript(script, {}, 0), null);
+    t.is(executeScript(script, {}, {'maxStatements': 4}), null);
+    t.is(executeScript(script, {}, {'maxStatements': 0}), null);
 });
 
 
