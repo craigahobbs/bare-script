@@ -170,11 +170,9 @@ test('evaluateExpression, function unknown', (t) => {
             'arguments': []
         }
     });
-    const variables = {};
-    const getVariable = (name) => (name in variables ? variables[name] : null);
     let errorMessage = null;
     try {
-        evaluateExpression(calc, getVariable);
+        evaluateExpression(calc);
     } catch ({message}) {
         errorMessage = message;
     }
