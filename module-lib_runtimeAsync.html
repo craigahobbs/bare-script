@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: lib/runtime</title>
+    <title>JSDoc: Module: lib/runtimeAsync</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: lib/runtime</h1>
+    <h1 class="page-title">Module: lib/runtimeAsync</h1>
 
     
 
@@ -64,7 +64,7 @@
     
 
     
-    <h4 class="name" id=".evaluateExpression"><span class="type-signature">(static) </span>evaluateExpression<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".evaluateExpressionAsync"><span class="type-signature">(async, static) </span>evaluateExpressionAsync<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -73,6 +73,9 @@
 
 <div class="description">
     Evaluate a calculation language expression model.
+
+The asynchronous form of the <a href="module-lib_runtime.html#.evaluateExpression">executeScript function</a>.
+Use this form of the function if you have any global asynchronous functions.
 </div>
 
 
@@ -259,7 +262,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line115">line 115</a>
+        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line152">line 152</a>
     </li></ul></dd>
     
 
@@ -305,7 +308,7 @@
     
 
     
-    <h4 class="name" id=".executeScript"><span class="type-signature">(static) </span>executeScript<span class="signature">(script, globals<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".executeScriptAsync"><span class="type-signature">(async, static) </span>executeScriptAsync<span class="signature">(script, globals<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -314,6 +317,9 @@
 
 <div class="description">
     Execute a calculation language script.
+
+This is the asynchronous form of the <a href="module-lib_runtime.html#.executeScript">executeScript function</a>.
+Use this form of the function if you have any global asynchronous functions.
 </div>
 
 
@@ -500,7 +506,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line15">line 15</a>
+        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -543,514 +549,6 @@
         
     
 
-    
-        <h3 class="subsection-title">Type Definitions</h3>
-
-        
-                
-<h4 class="name" id="~ExecuteScriptOptions">ExecuteScriptOptions</h4>
-
-
-
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fetchFn</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-lib_runtime.html#~FetchFn">module:lib/runtime~FetchFn</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The URL fetch function</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>logFn</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-lib_runtime.html#~LogFn">module:lib/runtime~LogFn</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last">The log function</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>maxStatements</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    1e7
-                
-                </td>
-            
-
-            <td class="description last">The maximum number of statements, 0 for no maximum</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line241">line 241</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-                
-
-    
-
-    
-    <h4 class="name" id="~FetchFn"><span class="type-signature"></span>FetchFn<span class="signature">(url)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    The URL fetch function
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>url</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The URL to fetch</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line248">line 248</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    The fetch promise
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Promise</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-            
-                
-
-    
-
-    
-    <h4 class="name" id="~LogFn"><span class="type-signature"></span>LogFn<span class="signature">(text)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    A log function
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>text</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The log text</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line256">line 256</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
     
 
     

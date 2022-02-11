@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: runtime.js</title>
+    <title>JSDoc: Source: runtimeAsync.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: runtime.js</h1>
+    <h1 class="page-title">Source: runtimeAsync.js</h1>
 
     
 
@@ -29,18 +29,24 @@
             <pre class="prettyprint source linenums"><code>// Licensed under the MIT License
 // https://github.com/craigahobbs/markdown-charts/blob/main/LICENSE
 
-/** @module lib/runtime */
+/** @module lib/runtimeAsync */
+
+import {calcFunctions, defaultMaxStatements, evaluateExpression, executeScriptHelper, scriptFunctions} from './runtime.js';
 
 
 /**
  * Execute a calculation language script.
  *
+ * This is the asynchronous form of the [executeScript function]{@link module:lib/runtime.executeScript}.
+ * Use this form of the function if you have any global asynchronous functions.
+ *
+ * @async
  * @param {Object} script - The calculation script model
  * @param {Object} [globals = {}] - The global variables
  * @param {module:lib/runtime~ExecuteScriptOptions} [options = null] - The script execution options
  * @returns The calculation script result
  */
-export function executeScript(script, globals = {}, options = null) {
+export async function executeScriptAsync(script, globals = {}, options = null) {
     // The statement counter
     let statementCount = 0;
     const maxStatements = (options !== null &amp;&amp; 'maxStatements' in options ? options.maxStatements : defaultMaxStatements);
@@ -57,7 +63,7 @@ export function executeScript(script, globals = {}, options = null) {
             globals[scriptFuncName] = scriptFunctions[scriptFuncName];
         }
     }
-    const result = executeScriptHelper(script.statements, globals, null, options, statementCounter);
+    const result = await executeScriptHelperAsync(script.statements, globals, null, options, statementCounter);
 
     // Report script duration
     if (options !== null &amp;&amp; 'logFn' in options) {
@@ -69,7 +75,7 @@ export function executeScript(script, globals = {}, options = null) {
 }
 
 
-export function executeScriptHelper(statements, globals, locals, options, statementCounter) {
+async function executeScriptHelperAsync(statements, globals, locals, options, statementCounter) {
     // Iterate each script statement
     const labelIndexes = {};
     const statementsLength = statements.length;
@@ -82,25 +88,46 @@ export function executeScriptHelper(statements, globals, locals, options, statem
 
         // Assignment?
         if (statementKey === 'assignment') {
-            const exprValue = evaluateExpression(statement.assignment.expression, globals, locals, options);
+            let exprValue;
+            if (statement.assignment.await) {
+                // eslint-disable-next-line no-await-in-loop
+                exprValue = await evaluateExpressionAsync(statement.assignment.expression, globals, locals, options);
+            } else {
+                exprValue = evaluateExpression(statement.assignment.expression, globals, locals, options);
+            }
             if (locals !== null) {
                 locals[statement.assignment.name] = exprValue;
             } else {
+                // eslint-disable-next-line require-atomic-updates
                 globals[statement.assignment.name] = exprValue;
             }
 
         // Function?
         } else if (statementKey === 'function') {
-            globals[statement.function.name] = (args) => {
-                const funcLocals = {};
-                if ('arguments' in statement.function) {
-                    const argsLength = args.length;
-                    for (let ixArg = 0; ixArg &lt; statement.function.arguments.length; ixArg++) {
-                        funcLocals[statement.function.arguments[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+            if (statement.function.async) {
+                // eslint-disable-next-line require-await
+                globals[statement.function.name] = async (args) => {
+                    const funcLocals = {};
+                    if ('arguments' in statement.function) {
+                        const argsLength = args.length;
+                        for (let ixArg = 0; ixArg &lt; statement.function.arguments.length; ixArg++) {
+                            funcLocals[statement.function.arguments[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+                        }
                     }
-                }
-                return executeScriptHelper(statement.function.statements, globals, funcLocals, options, statementCounter);
-            };
+                    return executeScriptHelperAsync(statement.function.statements, globals, funcLocals, options, statementCounter);
+                };
+            } else {
+                globals[statement.function.name] = (args) => {
+                    const funcLocals = {};
+                    if ('arguments' in statement.function) {
+                        const argsLength = args.length;
+                        for (let ixArg = 0; ixArg &lt; statement.function.arguments.length; ixArg++) {
+                            funcLocals[statement.function.arguments[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+                        }
+                    }
+                    return executeScriptHelper(statement.function.statements, globals, funcLocals, options, statementCounter);
+                };
+            }
 
         // Jump?
         } else if (statementKey === 'jump') {
@@ -121,7 +148,13 @@ export function executeScriptHelper(statements, globals, locals, options, statem
 
         // Expression
         } else if (statementKey === 'expression') {
-            const value = evaluateExpression(statement.expression.expression, globals, locals, options);
+            let value;
+            if (statement.expression.await) {
+                // eslint-disable-next-line no-await-in-loop
+                value = await evaluateExpressionAsync(statement.expression.expression, globals, locals, options);
+            } else {
+                value = evaluateExpression(statement.expression.expression, globals, locals, options);
+            }
             if (statement.expression.return) {
                 return value;
             }
@@ -135,12 +168,16 @@ export function executeScriptHelper(statements, globals, locals, options, statem
 /**
  * Evaluate a calculation language expression model.
  *
+ * The asynchronous form of the [executeScript function]{@link module:lib/runtime.evaluateExpression}.
+ * Use this form of the function if you have any global asynchronous functions.
+ *
+ * @async
  * @param {Object} expr - The calculation expression model
  * @param {Object} [globals = {}] - The global variables
  * @param {Object} [locals = null] - The local variables
  * @returns The calculation expression result
  */
-export function evaluateExpression(expr, globals = {}, locals = null, options = null) {
+export async function evaluateExpressionAsync(expr, globals = {}, locals = null, options = null) {
     const [exprKey] = Object.keys(expr);
 
     // Number
@@ -174,14 +211,14 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
         const funcName = expr.function.name;
         if (funcName === 'if') {
             const [valueExpr = null, trueExpr = null, falseExpr = null] = expr.function.arguments;
-            const value = (valueExpr !== null ? evaluateExpression(valueExpr, globals, locals, options) : false);
+            const value = (valueExpr !== null ? await evaluateExpressionAsync(valueExpr, globals, locals, options) : false);
             const resultExpr = (value ? trueExpr : falseExpr);
-            return resultExpr !== null ? evaluateExpression(resultExpr, globals, locals, options) : null;
+            return resultExpr !== null ? evaluateExpressionAsync(resultExpr, globals, locals, options) : null;
         }
 
         // Compute the function arguments
         const funcArgs = 'arguments' in expr.function
-            ? expr.function.arguments.map((arg) => evaluateExpression(arg, globals, locals, options))
+            ? await Promise.all(expr.function.arguments.map((arg) => evaluateExpressionAsync(arg, globals, locals, options)))
             : null;
 
         // Global/local function?
@@ -215,14 +252,14 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
     // Binary expression
     } else if (exprKey === 'binary') {
         const binOp = expr.binary.operator;
-        const leftValue = evaluateExpression(expr.binary.left, globals, locals);
+        const leftValue = await evaluateExpressionAsync(expr.binary.left, globals, locals);
         if (binOp === '&amp;&amp;') {
-            return leftValue &amp;&amp; evaluateExpression(expr.binary.right, globals, locals);
+            return leftValue &amp;&amp; evaluateExpressionAsync(expr.binary.right, globals, locals);
         } else if (binOp === '||') {
-            return leftValue || evaluateExpression(expr.binary.right, globals, locals);
+            return leftValue || evaluateExpressionAsync(expr.binary.right, globals, locals);
         }
 
-        const rightValue = evaluateExpression(expr.binary.right, globals, locals);
+        const rightValue = await evaluateExpressionAsync(expr.binary.right, globals, locals);
         if (binOp === '**') {
             return leftValue ** rightValue;
         } else if (binOp === '*') {
@@ -252,7 +289,7 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
     // Unary expression
     } else if (exprKey === 'unary') {
         const unaryOp = expr.unary.operator;
-        const value = evaluateExpression(expr.unary.expr, globals, locals);
+        const value = await evaluateExpressionAsync(expr.unary.expr, globals, locals);
         if (unaryOp === '!') {
             return !value;
         }
@@ -262,142 +299,8 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
 
     // Expression group
     // else if (exprKey === 'group')
-    return evaluateExpression(expr.group, globals, locals);
+    return evaluateExpressionAsync(expr.group, globals, locals);
 }
-
-
-/**
- * @typedef {Object} ExecuteScriptOptions
- * @property {module:lib/runtime~FetchFn} [fetchFn] - The URL fetch function
- * @property {module:lib/runtime~LogFn} [logFn] - The log function
- * @property {number} [maxStatements = 1e7] - The maximum number of statements, 0 for no maximum
- */
-
-/**
- * The URL fetch function
- *
- * @callback FetchFn
- * @param {string} url - The URL to fetch
- * @returns {Promise} The fetch promise
- */
-
-/**
- * A log function
- *
- * @callback LogFn
- * @param {string} text - The log text
- */
-
-
-// executeScript options defaults
-export const defaultMaxStatements = 1e7;
-
-
-// Function map (name => fn)
-export const calcFunctions = {
-    'abs': ([number]) => Math.abs(number),
-    'acos': ([number]) => Math.acos(number),
-    'asin': ([number]) => Math.asin(number),
-    'atan': ([number]) => Math.atan(number),
-    'atan2': ([number]) => Math.atan2(number),
-    'ceil': ([number]) => Math.ceil(number),
-    'cos': ([number]) => Math.cos(number),
-    'date': ([year, month, day]) => new Date(year, month - 1, day),
-    'day': ([datetime]) => datetime.getDate(),
-    'encodeURIComponent': ([text]) => encodeURIComponent(text),
-    'indexOf': ([text, findText, index = 0]) => text.indexOf(findText, index),
-    'fixed': ([number, decimals = 2]) => number.toFixed(decimals),
-    'floor': ([number]) => Math.floor(number),
-    'hour': ([datetime]) => datetime.getHours(),
-    'len': ([text]) => text.length,
-    'lower': ([text]) => text.toLowerCase(),
-    'ln': ([number]) => Math.log(number),
-    'log': ([number, base = 10]) => Math.log(number) / Math.log(base),
-    'log10': ([number]) => Math.log10(number),
-    'max': (args) => Math.max(...args),
-    'min': (args) => Math.min(...args),
-    'minute': ([datetime]) => datetime.getMinutes(),
-    'month': ([datetime]) => datetime.getMonth() + 1,
-    'now': () => new Date(),
-    'pi': () => Math.PI,
-    'rand': () => Math.random(),
-    'replace': ([text, oldText, newText]) => text.replaceAll(oldText, newText),
-    'rept': ([text, count]) => text.repeat(count),
-    'round': ([number, digits]) => {
-        const multiplier = 10 ** digits;
-        return Math.round(number * multiplier) / multiplier;
-    },
-    'second': ([datetime]) => datetime.getSeconds(),
-    'sign': ([number]) => Math.sign(number),
-    'sin': ([number]) => Math.sin(number),
-    'slice': ([text, beginIndex, endIndex]) => text.slice(beginIndex, endIndex),
-    'sqrt': ([number]) => Math.sqrt(number),
-    'text': ([value]) => `${value}`,
-    'tan': ([number]) => Math.tan(number),
-    'today': () => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    },
-    'trim': ([text]) => text.trim(),
-    'upper': ([text]) => text.toUpperCase(),
-    'value': ([text]) => parseFloat(text),
-    'year': ([datetime]) => datetime.getFullYear()
-};
-
-
-// Script function map (name => fn)
-export const scriptFunctions = {
-    // Array functions
-    'arrayCopy': ([array]) => [...array],
-    'arrayGet': ([array, index]) => array[index],
-    'arrayIndexOf': ([array, value, index = 0]) => array.indexOf(value, index),
-    'arrayJoin': ([array, sep]) => array.join(sep),
-    'arrayLength': ([array]) => array.length,
-    'arrayNew': ([size = 0, value = 0]) => {
-        const array = [];
-        for (let ix = 0; ix &lt; size; ix++) {
-            array.push(value);
-        }
-        return array;
-    },
-    'arrayPush': ([array, ...values]) => array.push(...values),
-    'arraySet': ([array, index, value]) => {
-        array[index] = value;
-    },
-    'arraySize': ([size = 0, value = 0]) => new Array(size).fill(value),
-    'arraySplit': ([text, sep]) => text.split(sep),
-
-    // Object functions
-    'objectCopy': ([obj]) => ({...obj}),
-    'objectDelete': ([obj, key]) => {
-        delete obj[key];
-    },
-    'objectGet': ([obj, key]) => obj[key],
-    'objectKeys': ([obj]) => Object.keys(obj),
-    'objectNew': () => ({}),
-    'objectSet': ([obj, key, value]) => {
-        obj[key] = value;
-    },
-
-    // Debug functions
-    'debugLog': ([text], options) => {
-        if (options !== null &amp;&amp; 'logFn' in options) {
-            options.logFn(text);
-        }
-    },
-
-    // Fetch functions
-    'fetchJSON': async ([url], options) => {
-        if (options === null || !('fetchFn' in options)) {
-            return null;
-        }
-        const response = await options.fetchFn(url);
-        if (!response.ok) {
-            return null;
-        }
-        return response.json();
-    }
-};
 </code></pre>
         </article>
     </section>

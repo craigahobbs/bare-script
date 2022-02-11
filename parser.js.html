@@ -31,20 +31,19 @@
 
 /** @module lib/parser */
 
-import {binaryOperators, unaryOperators} from './runtime.js';
-
 
 // Calculation script regex
 const rScriptLineSplit = /\r?\n/;
 const rScriptContinuation = /\\\s*$/;
 const rScriptComment = /^\s*(?:\/\/.*)?$/;
-const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.*)$/;
-const rScriptFunctionBegin = /^function\s+(?&lt;name>[A-Za-z_]\w*)\s*\(\s*(?&lt;args>[A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)?\s*\)\s*$/;
+const rScriptAssignment = /^\s*(?:(?&lt;await>await)\s+)?(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.*)$/;
+const rScriptFunctionBegin =
+    /^\s*(?:(?&lt;async>async)\s+)?function\s+(?&lt;name>[A-Za-z_]\w*)\s*\(\s*(?&lt;args>[A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)?\s*\)\s*$/;
 const rScriptFunctionArgSplit = /\s*,\s*/;
 const rScriptFunctionEnd = /^endfunction\s*$/;
 const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
 const rScriptJump = /^\s*jump(?:if\s*\((?&lt;expr>.+)\))?\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
-const rScriptReturn = /^\s*return\s+(?&lt;expr>.+)\s*$/;
+const rScriptExpr = /^\s*(?:(?&lt;await>await)\s+)?(?:(?&lt;return>return)\s+)?(?&lt;expr>.*?)\s*$/;
 
 
 /**
@@ -87,12 +86,16 @@ export function parseScript(scriptText) {
         // Assignment?
         const matchAssignment = line.match(rScriptAssignment);
         if (matchAssignment !== null) {
-            statements.push({
+            const assignStatement = {
                 'assignment': {
                     'name': matchAssignment.groups.name,
                     'expression': parseExpression(matchAssignment.groups.expr)
                 }
-            });
+            };
+            if (matchAssignment.groups.await === 'await') {
+                assignStatement.assignment.await = true;
+            }
+            statements.push(assignStatement);
             continue;
         }
 
@@ -113,6 +116,9 @@ export function parseScript(scriptText) {
                     'statements': []
                 }
             };
+            if (matchFunctionBegin.groups.async === 'async') {
+                functionDef.function.async = true;
+            }
             statements.push(functionDef);
             continue;
         }
@@ -145,17 +151,16 @@ export function parseScript(scriptText) {
             continue;
         }
 
-        // Return?
-        const matchReturn = line.match(rScriptReturn);
-        if (matchReturn !== null) {
-            statements.push({
-                'return': parseExpression(matchReturn.groups.expr)
-            });
-            continue;
-        }
-
         // Expression
-        statements.push({'expression': parseExpression(line)});
+        const matchExpr = line.match(rScriptExpr);
+        const exprStatement = {'expression': {'expression': parseExpression(matchExpr.groups.expr)}};
+        if (matchExpr.groups.await === 'await') {
+            exprStatement.expression.await = true;
+        }
+        if (matchExpr.groups.return === 'return') {
+            exprStatement.expression.return = true;
+        }
+        statements.push(exprStatement);
     }
 
     return script;
@@ -163,10 +168,8 @@ export function parseScript(scriptText) {
 
 
 // Calculation language expression regex
-const rCalcBinaryOp = new RegExp(
-    `^\\s*(${Object.keys(binaryOperators).map((op) => op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&amp;')).join('|')})`
-);
-const rCalcUnaryOp = new RegExp(`^\\s*(${Object.keys(unaryOperators).join('|')})`);
+const rCalcBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\|)/;
+const rCalcUnaryOp = /^\s*(!|-)/;
 const rCalcFunctionOpen = /^\s*([A-Za-z_]\w+)\s*\(/;
 const rCalcFunctionSeparator = /^\s*,/;
 const rCalcFunctionClose = /^\s*\)/;
@@ -241,11 +244,12 @@ function parseBinaryExpression(exprText, binLeftExpr = null) {
 
     // Create the binary expression - re-order for binary operators as necessary
     let binExpr;
-    if ('binary' in leftExpr &amp;&amp; binaryReorder[binOp].has(leftExpr.binary.operator)) {
+    if (Object.keys(leftExpr)[0] === 'binary' &amp;&amp; binaryReorder[binOp].has(leftExpr.binary.operator)) {
         // Left expression has lower precendence - find where to put this expression within the left expression
         binExpr = leftExpr;
         let reorderExpr = leftExpr;
-        while ('binary' in reorderExpr.binary.right &amp;&amp; binaryReorder[binOp].has(reorderExpr.binary.right.binary.operator)) {
+        while (Object.keys(reorderExpr.binary.right)[0] === 'binary' &amp;&amp;
+               binaryReorder[binOp].has(reorderExpr.binary.right.binary.operator)) {
             reorderExpr = reorderExpr.binary.right;
         }
         reorderExpr.binary.right = {'binary': {'operator': binOp, 'left': reorderExpr.binary.right, 'right': rightExpr}};
@@ -375,7 +379,7 @@ function parseUnaryExpression(exprText) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul>
 </nav>
 
 <br class="clear">
