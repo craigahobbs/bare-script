@@ -11,10 +11,10 @@ import test from 'ava';
 test('executeScript', (t) => {
     const script = validateScript({
         'statements': [
-            {'assignment': {'name': 'a', 'expression': {'number': 5}}},
-            {'assignment': {'name': 'b', 'expression': {'number': 7}}},
-            {'expression': {
-                'expression': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+            {'assign': {'name': 'a', 'expr': {'number': 5}}},
+            {'assign': {'name': 'b', 'expr': {'number': 7}}},
+            {'expr': {
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
                 'return': true
             }}
         ]
@@ -29,18 +29,18 @@ test('executeScript, function', (t) => {
             {
                 'function': {
                     'name': 'multiplyNumbers',
-                    'arguments': ['a', 'b'],
+                    'args': ['a', 'b'],
                     'statements': [
-                        {'assignment': {'name': 'c', 'expression': {'variable': 'b'}}},
-                        {'expression': {
-                            'expression': {'binary': {'operator': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}},
+                        {'assign': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'expr': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}},
                             'return': true
                         }}
                     ]
                 }
             },
-            {'expression': {
-                'expression': {'function': {'name': 'multiplyNumbers', 'arguments': [{'number': 5}, {'number': 7}]}},
+            {'expr': {
+                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}},
                 'return': true
             }}
         ]
@@ -52,16 +52,16 @@ test('executeScript, function', (t) => {
 test('executeScript, jump', (t) => {
     const script = validateScript({
         'statements': [
-            {'assignment': {'name': 'a', 'expression': {'number': 5}}},
+            {'assign': {'name': 'a', 'expr': {'number': 5}}},
             {'jump': {'label': 'lab2'}},
             {'label': 'lab'},
-            {'assignment': {'name': 'a', 'expression': {'number': 6}}},
+            {'assign': {'name': 'a', 'expr': {'number': 6}}},
             {'jump': {'label': 'lab3'}},
             {'label': 'lab2'},
-            {'assignment': {'name': 'a', 'expression': {'number': 7}}},
+            {'assign': {'name': 'a', 'expr': {'number': 7}}},
             {'jump': {'label': 'lab'}},
             {'label': 'lab3'},
-            {'expression': {'expression': {'variable': 'a'}, 'return': true}}
+            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
         ]
     });
     t.is(executeScript(script), 6);
@@ -71,25 +71,25 @@ test('executeScript, jump', (t) => {
 test('executeScript, jumpif', (t) => {
     const script = validateScript({
         'statements': [
-            {'assignment': {'name': 'n', 'expression': {'number': 10}}},
-            {'assignment': {'name': 'i', 'expression': {'number': 0}}},
-            {'assignment': {'name': 'a', 'expression': {'number': 0}}},
-            {'assignment': {'name': 'b', 'expression': {'number': 1}}},
+            {'assign': {'name': 'n', 'expr': {'number': 10}}},
+            {'assign': {'name': 'i', 'expr': {'number': 0}}},
+            {'assign': {'name': 'a', 'expr': {'number': 0}}},
+            {'assign': {'name': 'b', 'expr': {'number': 1}}},
             {'label': 'fib'},
             {'jump': {
                 'label': 'fibend',
-                'expression': {'binary': {'operator': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
+                'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
             }},
-            {'assignment': {'name': 'tmp', 'expression': {'variable': 'b'}}},
-            {'assignment': {
+            {'assign': {'name': 'tmp', 'expr': {'variable': 'b'}}},
+            {'assign': {
                 'name': 'b',
-                'expression': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
             }},
-            {'assignment': {'name': 'a', 'expression': {'variable': 'tmp'}}},
-            {'assignment': {'name': 'i', 'expression': {'binary': {'operator': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'assign': {'name': 'a', 'expr': {'variable': 'tmp'}}},
+            {'assign': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
-            {'expression': {'expression': {'variable': 'a'}, 'return': true}}
+            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
         ]
     });
     t.is(executeScript(script), 55);
@@ -103,12 +103,12 @@ test('executeScript, maxStatements', (t) => {
                 'function': {
                     'name': 'fn',
                     'statements': [
-                        {'expression': {'expression': {'variable': 'a'}}},
-                        {'expression': {'expression': {'variable': 'b'}}}
+                        {'expr': {'expr': {'variable': 'a'}}},
+                        {'expr': {'expr': {'variable': 'b'}}}
                     ]
                 }
             },
-            {'expression': {'expression': {'function': {'name': 'fn'}}}}
+            {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
     let errorMessage = null;
@@ -126,16 +126,16 @@ test('executeScript, maxStatements', (t) => {
 test('evaluateExpression', (t) => {
     const calc = validateExpression({
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 7},
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {'number': 3},
                     'right': {
                         'function': {
                             'name': 'ceil',
-                            'arguments': [
+                            'args': [
                                 {'variable': 'varName'}
                             ]
                         }
@@ -153,7 +153,7 @@ test('evaluateExpression, function variable', (t) => {
     const calc = validateExpression({
         'function': {
             'name': 'fnName',
-            'arguments': [
+            'args': [
                 {'number': 3}
             ]
         }
@@ -167,7 +167,7 @@ test('evaluateExpression, function unknown', (t) => {
     const calc = validateExpression({
         'function': {
             'name': 'fnUnknown',
-            'arguments': []
+            'args': []
         }
     });
     let errorMessage = null;

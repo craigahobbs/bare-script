@@ -11,10 +11,10 @@ import test from 'ava';
 test('executeScriptAsync', async (t) => {
     const script = validateScript({
         'statements': [
-            {'assignment': {'name': 'a', 'expression': {'number': 5}}},
-            {'assignment': {'name': 'b', 'expression': {'number': 7}}},
-            {'expression': {
-                'expression': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+            {'assign': {'name': 'a', 'expr': {'number': 5}}},
+            {'assign': {'name': 'b', 'expr': {'number': 7}}},
+            {'expr': {
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
                 'return': true
             }}
         ]
@@ -26,16 +26,16 @@ test('executeScriptAsync', async (t) => {
 test('evaluateExpressionAsync', async (t) => {
     const calc = validateExpression({
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 7},
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {'number': 3},
                     'right': {
                         'function': {
                             'name': 'ceil',
-                            'arguments': [
+                            'args': [
                                 {'variable': 'varName'}
                             ]
                         }

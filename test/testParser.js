@@ -27,34 +27,34 @@ return a
 `));
     t.deepEqual(script, {
         'statements': [
-            {'assignment': {'name': 'n', 'expression': {'number': 10}}},
-            {'assignment': {'name': 'i', 'expression': {'number': 0}}},
-            {'assignment': {'name': 'a', 'expression': {'number': 0}}},
-            {'assignment': {'name': 'b', 'expression': {'number': 1}}},
+            {'assign': {'name': 'n', 'expr': {'number': 10}}},
+            {'assign': {'name': 'i', 'expr': {'number': 0}}},
+            {'assign': {'name': 'a', 'expr': {'number': 0}}},
+            {'assign': {'name': 'b', 'expr': {'number': 1}}},
             {'label': 'fib'},
             {
                 'jump': {
                     'label': 'fibend',
-                    'expression': {'binary': {'operator': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
+                    'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
                 }
             },
-            {'assignment': {'name': 'tmp', 'expression': {'variable': 'b'}}},
+            {'assign': {'name': 'tmp', 'expr': {'variable': 'b'}}},
             {
-                'assignment': {
+                'assign': {
                     'name': 'b',
-                    'expression': {'binary': {'operator': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
                 }
             },
-            {'assignment': {'name': 'a', 'expression': {'variable': 'tmp'}}},
+            {'assign': {'name': 'a', 'expr': {'variable': 'tmp'}}},
             {
-                'assignment': {
+                'assign': {
                     'name': 'i',
-                    'expression': {'binary': {'operator': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}
                 }
             },
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
-            {'expression': {'expression': {'variable': 'a'}, 'return': true}}
+            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
         ]
     });
     t.is(executeScript(script), 55);
@@ -65,11 +65,11 @@ test('parseExpression', (t) => {
     const expr = parseExpression('7 + 3 * 5');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 7},
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {'number': 3},
                     'right': {'number': 5}
                 }
@@ -84,10 +84,10 @@ test('parseExpression, operator precedence', (t) => {
     const expr = parseExpression('7 * 3 + 5');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {'number': 7},
                     'right': {'number': 3}
                 }
@@ -103,13 +103,13 @@ test('parseExpression, operator precedence 2', (t) => {
     const expr = parseExpression('2 * 3 + 4 - 1');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '-',
+            'op': '-',
             'left': {
                 'binary': {
-                    'operator': '+',
+                    'op': '+',
                     'left': {
                         'binary': {
-                            'operator': '*',
+                            'op': '*',
                             'left': {'number': 2},
                             'right': {'number': 3}
                         }
@@ -128,13 +128,13 @@ test('parseExpression, operator precedence 3', (t) => {
     const expr = parseExpression('2 + 3 + 4 - 1');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '-',
+            'op': '-',
             'left': {
                 'binary': {
-                    'operator': '+',
+                    'op': '+',
                     'left': {
                         'binary': {
-                            'operator': '+',
+                            'op': '+',
                             'left': {'number': 2},
                             'right': {'number': 3}
                         }
@@ -153,16 +153,16 @@ test('parseExpression, operator precedence 4', (t) => {
     const expr = parseExpression('1 - 2 + 3 + 4 + 5 * 6');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {
                 'binary': {
-                    'operator': '+',
+                    'op': '+',
                     'left': {
                         'binary': {
-                            'operator': '+',
+                            'op': '+',
                             'left': {
                                 'binary': {
-                                    'operator': '-',
+                                    'op': '-',
                                     'left': {'number': 1},
                                     'right': {'number': 2}
                                 }
@@ -175,7 +175,7 @@ test('parseExpression, operator precedence 4', (t) => {
             },
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {'number': 5},
                     'right': {'number': 6}
                 }
@@ -190,14 +190,14 @@ test('parseExpression, operator precedence 5', (t) => {
     const expr = parseExpression('1 + 2 * 5 / 2');
     t.deepEqual(expr, {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 1},
             'right': {
                 'binary': {
-                    'operator': '/',
+                    'op': '/',
                     'left': {
                         'binary': {
-                            'operator': '*',
+                            'op': '*',
                             'left': {'number': 2},
                             'right': {'number': 5}
                         }
@@ -215,14 +215,14 @@ test('parseExpression, operator precedence 6', (t) => {
     const expr = parseExpression('1 + 2 / 5 * 2');
     t.deepEqual(expr, {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 1},
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {
                         'binary': {
-                            'operator': '/',
+                            'op': '/',
                             'left': {'number': 2},
                             'right': {'number': 5}
                         }
@@ -240,17 +240,17 @@ test('parseExpression, operator precedence 7', (t) => {
     const expr = parseExpression('1 + 2 / 3 / 4 * 5');
     t.deepEqual(expr, {
         'binary': {
-            'operator': '+',
+            'op': '+',
             'left': {'number': 1},
             'right': {
                 'binary': {
-                    'operator': '*',
+                    'op': '*',
                     'left': {
                         'binary': {
-                            'operator': '/',
+                            'op': '/',
                             'left': {
                                 'binary': {
-                                    'operator': '/',
+                                    'op': '/',
                                     'left': {'number': 2},
                                     'right': {'number': 3}
                                 }
@@ -271,21 +271,21 @@ test('parseExpression, operator precedence 8', (t) => {
     const expr = parseExpression('1 >= 2 && 3 < 4 - 5');
     t.deepEqual(expr, {
         'binary': {
-            'operator': '&&',
+            'op': '&&',
             'left': {
                 'binary': {
-                    'operator': '>=',
+                    'op': '>=',
                     'left': {'number': 1},
                     'right': {'number': 2}
                 }
             },
             'right': {
                 'binary': {
-                    'operator': '<',
+                    'op': '<',
                     'left': {'number': 3},
                     'right': {
                         'binary': {
-                            'operator': '-',
+                            'op': '-',
                             'left': {'number': 4},
                             'right': {'number': 5}
                         }
@@ -302,11 +302,11 @@ test('parseExpression, group', (t) => {
     const expr = parseExpression('(7 + 3) * 5');
     t.deepEqual(validateExpression(expr), {
         'binary': {
-            'operator': '*',
+            'op': '*',
             'left': {
                 'group': {
                     'binary': {
-                        'operator': '+',
+                        'op': '+',
                         'left': {'number': 7},
                         'right': {'number': 3}
                     }
@@ -324,7 +324,7 @@ test('parseExpression, group nested', (t) => {
     t.deepEqual(validateExpression(expr), {
         'group': {
             'binary': {
-                'operator': '+',
+                'op': '+',
                 'left': {'number': 1},
                 'right': {'group': {'number': 2}}
             }
