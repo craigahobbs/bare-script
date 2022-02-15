@@ -31,6 +31,33 @@
 
 /** @module lib/runtime */
 
+import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './library.js';
+
+
+/**
+ * @typedef {Object} ExecuteScriptOptions
+ * @property {module:lib/runtime~FetchFn} [fetchFn] - The URL fetch function
+ * @property {module:lib/runtime~LogFn} [logFn] - The log function
+ * @property {number} [maxStatements = 1e7] - The maximum number of statements, 0 for no maximum
+ * @property {string} [url] - The URL used for resolving relative URLs
+ */
+
+/**
+ * The URL fetch function
+ *
+ * @callback FetchFn
+ * @param {string} url - The URL to fetch
+ * @param {?Object} [init] - The fetch options
+ * @returns {Promise} The fetch promise
+ */
+
+/**
+ * A log function
+ *
+ * @callback LogFn
+ * @param {string} text - The log text
+ */
+
 
 /**
  * Execute a calculation language script.
@@ -81,22 +108,22 @@ export function executeScriptHelper(statements, globals, locals, options, statem
         statementCounter();
 
         // Assignment?
-        if (statementKey === 'assignment') {
-            const exprValue = evaluateExpression(statement.assignment.expression, globals, locals, options);
+        if (statementKey === 'assign') {
+            const exprValue = evaluateExpression(statement.assign.expr, globals, locals, options);
             if (locals !== null) {
-                locals[statement.assignment.name] = exprValue;
+                locals[statement.assign.name] = exprValue;
             } else {
-                globals[statement.assignment.name] = exprValue;
+                globals[statement.assign.name] = exprValue;
             }
 
         // Function?
         } else if (statementKey === 'function') {
             globals[statement.function.name] = (args) => {
                 const funcLocals = {};
-                if ('arguments' in statement.function) {
+                if ('args' in statement.function) {
                     const argsLength = args.length;
-                    for (let ixArg = 0; ixArg &lt; statement.function.arguments.length; ixArg++) {
-                        funcLocals[statement.function.arguments[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+                    for (let ixArg = 0; ixArg &lt; statement.function.args.length; ixArg++) {
+                        funcLocals[statement.function.args[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
                     }
                 }
                 return executeScriptHelper(statement.function.statements, globals, funcLocals, options, statementCounter);
@@ -105,7 +132,7 @@ export function executeScriptHelper(statements, globals, locals, options, statem
         // Jump?
         } else if (statementKey === 'jump') {
             // Evaluate the expression (if any)
-            if (!('expression' in statement.jump) || evaluateExpression(statement.jump.expression, globals, locals, options)) {
+            if (!('expr' in statement.jump) || evaluateExpression(statement.jump.expr, globals, locals, options)) {
                 // Find the label
                 if (statement.jump.label in labelIndexes) {
                     ixStatement = labelIndexes[statement.jump.label];
@@ -120,9 +147,9 @@ export function executeScriptHelper(statements, globals, locals, options, statem
             }
 
         // Expression
-        } else if (statementKey === 'expression') {
-            const value = evaluateExpression(statement.expression.expression, globals, locals, options);
-            if (statement.expression.return) {
+        } else if (statementKey === 'expr') {
+            const value = evaluateExpression(statement.expr.expr, globals, locals, options);
+            if (statement.expr.return) {
                 return value;
             }
         }
@@ -173,15 +200,15 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
         // "if" built-in function?
         const funcName = expr.function.name;
         if (funcName === 'if') {
-            const [valueExpr = null, trueExpr = null, falseExpr = null] = expr.function.arguments;
+            const [valueExpr = null, trueExpr = null, falseExpr = null] = expr.function.args;
             const value = (valueExpr !== null ? evaluateExpression(valueExpr, globals, locals, options) : false);
             const resultExpr = (value ? trueExpr : falseExpr);
             return resultExpr !== null ? evaluateExpression(resultExpr, globals, locals, options) : null;
         }
 
         // Compute the function arguments
-        const funcArgs = 'arguments' in expr.function
-            ? expr.function.arguments.map((arg) => evaluateExpression(arg, globals, locals, options))
+        const funcArgs = 'args' in expr.function
+            ? expr.function.args.map((arg) => evaluateExpression(arg, globals, locals, options))
             : null;
 
         // Global/local function?
@@ -205,16 +232,16 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
         }
 
         // Built-in function?
-        funcValue = calcFunctions[funcName];
+        funcValue = expressionFunctions[funcName];
         if (typeof funcValue !== 'undefined') {
-            return calcFunctions[funcName](funcArgs);
+            return expressionFunctions[funcName](funcArgs);
         }
 
         throw new Error(`Undefined function "${funcName}"`);
 
     // Binary expression
     } else if (exprKey === 'binary') {
-        const binOp = expr.binary.operator;
+        const binOp = expr.binary.op;
         const leftValue = evaluateExpression(expr.binary.left, globals, locals);
         if (binOp === '&amp;&amp;') {
             return leftValue &amp;&amp; evaluateExpression(expr.binary.right, globals, locals);
@@ -251,7 +278,7 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
 
     // Unary expression
     } else if (exprKey === 'unary') {
-        const unaryOp = expr.unary.operator;
+        const unaryOp = expr.unary.op;
         const value = evaluateExpression(expr.unary.expr, globals, locals);
         if (unaryOp === '!') {
             return !value;
@@ -264,140 +291,6 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
     // else if (exprKey === 'group')
     return evaluateExpression(expr.group, globals, locals);
 }
-
-
-/**
- * @typedef {Object} ExecuteScriptOptions
- * @property {module:lib/runtime~FetchFn} [fetchFn] - The URL fetch function
- * @property {module:lib/runtime~LogFn} [logFn] - The log function
- * @property {number} [maxStatements = 1e7] - The maximum number of statements, 0 for no maximum
- */
-
-/**
- * The URL fetch function
- *
- * @callback FetchFn
- * @param {string} url - The URL to fetch
- * @returns {Promise} The fetch promise
- */
-
-/**
- * A log function
- *
- * @callback LogFn
- * @param {string} text - The log text
- */
-
-
-// executeScript options defaults
-export const defaultMaxStatements = 1e7;
-
-
-// Function map (name => fn)
-export const calcFunctions = {
-    'abs': ([number]) => Math.abs(number),
-    'acos': ([number]) => Math.acos(number),
-    'asin': ([number]) => Math.asin(number),
-    'atan': ([number]) => Math.atan(number),
-    'atan2': ([number]) => Math.atan2(number),
-    'ceil': ([number]) => Math.ceil(number),
-    'cos': ([number]) => Math.cos(number),
-    'date': ([year, month, day]) => new Date(year, month - 1, day),
-    'day': ([datetime]) => datetime.getDate(),
-    'encodeURIComponent': ([text]) => encodeURIComponent(text),
-    'indexOf': ([text, findText, index = 0]) => text.indexOf(findText, index),
-    'fixed': ([number, decimals = 2]) => number.toFixed(decimals),
-    'floor': ([number]) => Math.floor(number),
-    'hour': ([datetime]) => datetime.getHours(),
-    'len': ([text]) => text.length,
-    'lower': ([text]) => text.toLowerCase(),
-    'ln': ([number]) => Math.log(number),
-    'log': ([number, base = 10]) => Math.log(number) / Math.log(base),
-    'log10': ([number]) => Math.log10(number),
-    'max': (args) => Math.max(...args),
-    'min': (args) => Math.min(...args),
-    'minute': ([datetime]) => datetime.getMinutes(),
-    'month': ([datetime]) => datetime.getMonth() + 1,
-    'now': () => new Date(),
-    'pi': () => Math.PI,
-    'rand': () => Math.random(),
-    'replace': ([text, oldText, newText]) => text.replaceAll(oldText, newText),
-    'rept': ([text, count]) => text.repeat(count),
-    'round': ([number, digits]) => {
-        const multiplier = 10 ** digits;
-        return Math.round(number * multiplier) / multiplier;
-    },
-    'second': ([datetime]) => datetime.getSeconds(),
-    'sign': ([number]) => Math.sign(number),
-    'sin': ([number]) => Math.sin(number),
-    'slice': ([text, beginIndex, endIndex]) => text.slice(beginIndex, endIndex),
-    'sqrt': ([number]) => Math.sqrt(number),
-    'text': ([value]) => `${value}`,
-    'tan': ([number]) => Math.tan(number),
-    'today': () => {
-        const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    },
-    'trim': ([text]) => text.trim(),
-    'upper': ([text]) => text.toUpperCase(),
-    'value': ([text]) => parseFloat(text),
-    'year': ([datetime]) => datetime.getFullYear()
-};
-
-
-// Script function map (name => fn)
-export const scriptFunctions = {
-    // Array functions
-    'arrayCopy': ([array]) => [...array],
-    'arrayGet': ([array, index]) => array[index],
-    'arrayIndexOf': ([array, value, index = 0]) => array.indexOf(value, index),
-    'arrayJoin': ([array, sep]) => array.join(sep),
-    'arrayLength': ([array]) => array.length,
-    'arrayNew': ([size = 0, value = 0]) => {
-        const array = [];
-        for (let ix = 0; ix &lt; size; ix++) {
-            array.push(value);
-        }
-        return array;
-    },
-    'arrayPush': ([array, ...values]) => array.push(...values),
-    'arraySet': ([array, index, value]) => {
-        array[index] = value;
-    },
-    'arraySize': ([size = 0, value = 0]) => new Array(size).fill(value),
-    'arraySplit': ([text, sep]) => text.split(sep),
-
-    // Object functions
-    'objectCopy': ([obj]) => ({...obj}),
-    'objectDelete': ([obj, key]) => {
-        delete obj[key];
-    },
-    'objectGet': ([obj, key]) => obj[key],
-    'objectKeys': ([obj]) => Object.keys(obj),
-    'objectNew': () => ({}),
-    'objectSet': ([obj, key, value]) => {
-        obj[key] = value;
-    },
-
-    // Debug functions
-    'debugLog': ([text], options) => {
-        if (options !== null &amp;&amp; 'logFn' in options) {
-            options.logFn(text);
-        }
-    },
-
-    // Fetch functions
-    'fetchJSON': async ([url], options) => {
-        if (options === null || !('fetchFn' in options)) {
-            return null;
-        }
-        const response = await options.fetchFn(url);
-        if (!response.ok) {
-            return null;
-        }
-        return response.json();
-    }
-};
 </code></pre>
         </article>
     </section>
@@ -408,7 +301,7 @@ export const scriptFunctions = {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_library.html">lib/library</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul>
 </nav>
 
 <br class="clear">
