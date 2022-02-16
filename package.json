@@ -1,7 +1,7 @@
 {
     "type": "module",
     "name": "calc-script",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "description": "calc-script",
     "keywords": [
         "calc-script"
