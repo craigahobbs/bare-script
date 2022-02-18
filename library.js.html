@@ -94,7 +94,7 @@ export const expressionFunctions = {
 export const scriptFunctions = {
     // Array functions
     'arrayCopy': ([array]) => [...array],
-    'arrayGet': ([array, index]) => array.at(index),
+    'arrayGet': ([array, index]) => array[index],
     'arrayIndexOf': ([array, value, index = 0]) => array.indexOf(value, index),
     'arrayJoin': ([array, sep]) => array.join(sep),
     'arrayLastIndexOf': ([array, value, index = 0]) => array.lastIndexOf(value, index),
@@ -120,11 +120,6 @@ export const scriptFunctions = {
         const fetchFn = (options !== null &amp;&amp; 'fetchFn' in options ? options.fetchFn : null);
         const isText = (init !== null &amp;&amp; init.type === 'text');
 
-        // If URL is relative, resolve it against the base URL, if any
-        const resolveURL = (rURL) => (
-            isRelativeURL(rURL) &amp;&amp; options !== null &amp;&amp; 'url' in options ? `${getBaseURL(options.url)}${rURL}` : rURL
-        );
-
         // Response helper function
         const responseFn = (response) => (
             response !== null &amp;&amp; response.ok ? (isText ? response.text() : response.json()) : null
@@ -132,12 +127,12 @@ export const scriptFunctions = {
 
         // Array of URLs?
         if (Array.isArray(url)) {
-            const responses = await Promise.all(url.map((fURL) => (fetchFn !== null ? fetchFn(resolveURL(fURL), init) : null)));
+            const responses = await Promise.all(url.map((fURL) => (fetchFn !== null ? fetchFn(fURL, init) : null)));
             return Promise.all(responses.map(responseFn));
         }
 
         // Single URL
-        const response = (fetchFn !== null ? await fetchFn(resolveURL(url), init) : null);
+        const response = (fetchFn !== null ? await fetchFn(url, init) : null);
         return (response !== null ? responseFn(response) : null);
     },
 
@@ -164,20 +159,6 @@ export const scriptFunctions = {
     // String functions
     'split': ([text, sep]) => text.split(sep)
 };
-
-
-// Helper function to test if a URL is relative
-function isRelativeURL(url) {
-    return !rNotRelativeURL.test(url);
-}
-
-const rNotRelativeURL = /^(?:[a-z]+:|\/|\?|#)/;
-
-
-// Helper function to get a URL's base URL
-function getBaseURL(url) {
-    return url.slice(0, url.lastIndexOf('/') + 1);
-}
 </code></pre>
         </article>
     </section>

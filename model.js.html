@@ -62,6 +62,9 @@ union ScriptStatement
     # A jump statement
     JumpStatement jump
 
+    # An include statement
+    IncludeStatement include
+
 
 # A script expression statement
 struct ExpressionStatement
@@ -113,6 +116,13 @@ struct JumpStatement
 
     # The test expression
     optional Expression expr
+
+
+# An include statement
+struct IncludeStatement
+
+    # The resource URL
+    string url
 
 
 # An expression
