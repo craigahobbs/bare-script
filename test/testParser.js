@@ -54,7 +54,7 @@ return a
             },
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
-            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
+            {'return': {'expr': {'variable': 'a'}}}
         ]
     });
     t.is(executeScript(script), 55);

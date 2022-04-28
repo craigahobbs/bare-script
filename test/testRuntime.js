@@ -13,9 +13,8 @@ test('executeScript', (t) => {
         'statements': [
             {'assign': {'name': 'a', 'expr': {'number': 5}}},
             {'assign': {'name': 'b', 'expr': {'number': 7}}},
-            {'expr': {
-                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
-                'return': true
+            {'return': {
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
             }}
         ]
     });
@@ -32,16 +31,14 @@ test('executeScript, function', (t) => {
                     'args': ['a', 'b'],
                     'statements': [
                         {'assign': {'name': 'c', 'expr': {'variable': 'b'}}},
-                        {'expr': {
-                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}},
-                            'return': true
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
                         }}
                     ]
                 }
             },
-            {'expr': {
-                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}},
-                'return': true
+            {'return': {
+                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}}
             }}
         ]
     });
@@ -61,7 +58,7 @@ test('executeScript, jump', (t) => {
             {'assign': {'name': 'a', 'expr': {'number': 7}}},
             {'jump': {'label': 'lab'}},
             {'label': 'lab3'},
-            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
+            {'return': {'expr': {'variable': 'a'}}}
         ]
     });
     t.is(executeScript(script), 6);
@@ -89,7 +86,7 @@ test('executeScript, jumpif', (t) => {
             {'assign': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
-            {'expr': {'expr': {'variable': 'a'}, 'return': true}}
+            {'return': {'expr': {'variable': 'a'}}}
         ]
     });
     t.is(executeScript(script), 55);

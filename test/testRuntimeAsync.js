@@ -13,9 +13,8 @@ test('executeScriptAsync', async (t) => {
         'statements': [
             {'assign': {'name': 'a', 'expr': {'number': 5}}},
             {'assign': {'name': 'b', 'expr': {'number': 7}}},
-            {'expr': {
-                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
-                'return': true
+            {'return': {
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
             }}
         ]
     });
