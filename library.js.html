@@ -48,6 +48,7 @@ export const expressionFunctions = {
     'date': ([year, month, day]) => new Date(year, month - 1, day),
     'day': ([datetime]) => datetime.getDate(),
     'encodeURIComponent': ([text]) => encodeURIComponent(text),
+    'endsWith': ([text, searchText]) => text.endsWith(searchText),
     'indexOf': ([text, findText, index]) => text.indexOf(findText, index),
     'fixed': ([number, decimals = 2]) => number.toFixed(decimals),
     'floor': ([number]) => Math.floor(number),
@@ -76,6 +77,7 @@ export const expressionFunctions = {
     'sin': ([number]) => Math.sin(number),
     'slice': ([text, beginIndex, endIndex]) => text.slice(beginIndex, endIndex),
     'sqrt': ([number]) => Math.sqrt(number),
+    'startsWith': ([text, searchText]) => text.startsWith(searchText),
     'text': ([value]) => `${value}`,
     'tan': ([number]) => Math.tan(number),
     'today': () => {
@@ -143,7 +145,7 @@ export const scriptFunctions = {
     // Object functions
     'objectCopy': ([obj]) => ({...obj}),
     'objectDelete': ([obj, key]) => delete obj[key],
-    'objectGet': ([obj, key]) => obj[key],
+    'objectGet': ([obj, key]) => obj[key] ?? null,
     'objectKeys': ([obj]) => Object.keys(obj),
     'objectNew': (args) => {
         const obj = {};

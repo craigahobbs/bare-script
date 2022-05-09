@@ -148,17 +148,27 @@ async function executeScriptHelperAsync(statements, globals, locals, options, st
                 }
             }
 
+        // Return?
+        } else if (statementKey === 'return') {
+            if ('expr' in statement.return) {
+                let value;
+                if (statement.return.await) {
+                    // eslint-disable-next-line no-await-in-loop
+                    value = await evaluateExpressionAsync(statement.return.expr, globals, locals, options);
+                } else {
+                    value = evaluateExpression(statement.return.expr, globals, locals, options);
+                }
+                return value;
+            }
+            return null;
+
         // Expression
         } else if (statementKey === 'expr') {
-            let value;
             if (statement.expr.await) {
                 // eslint-disable-next-line no-await-in-loop
-                value = await evaluateExpressionAsync(statement.expr.expr, globals, locals, options);
+                await evaluateExpressionAsync(statement.expr.expr, globals, locals, options);
             } else {
-                value = evaluateExpression(statement.expr.expr, globals, locals, options);
-            }
-            if (statement.expr.return) {
-                return value;
+                evaluateExpression(statement.expr.expr, globals, locals, options);
             }
 
         // Include?
@@ -204,9 +214,13 @@ export async function evaluateExpressionAsync(expr, globals = {}, locals = null,
 
     // Variable
     } else if (exprKey === 'variable') {
-        // "null" is a keyword
+        // Keywords
         if (expr.variable === 'null') {
             return null;
+        } else if (expr.variable === 'false') {
+            return false;
+        } else if (expr.variable === 'true') {
+            return true;
         }
 
         // Get the local or global variable value or null if undefined
