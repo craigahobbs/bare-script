@@ -36,15 +36,15 @@
 const rScriptLineSplit = /\r?\n/;
 const rScriptContinuation = /\\\s*$/;
 const rScriptComment = /^\s*(?:#.*)?$/;
-const rScriptAssignment = /^\s*(?:(?&lt;await>await)\s+)?(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.*)$/;
+const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.*)$/;
 const rScriptFunctionBegin =
     /^\s*(?:(?&lt;async>async)\s+)?function\s+(?&lt;name>[A-Za-z_]\w*)\s*\(\s*(?&lt;args>[A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)?\s*\)\s*$/;
 const rScriptFunctionArgSplit = /\s*,\s*/;
 const rScriptFunctionEnd = /^endfunction\s*$/;
 const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
 const rScriptJump = /^\s*jump(?:if\s*\((?&lt;expr>.+)\))?\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
-const rScriptReturn = /^\s*return(?:\s+(?:(?&lt;await>await)\s+)?(?&lt;expr>.+?))?\s*$/;
-const rScriptExpr = /^\s*(?:(?&lt;await>await)\s+)?(?&lt;expr>.+?)\s*$/;
+const rScriptReturn = /^\s*return(?:\s+(?&lt;expr>.+?))?\s*$/;
+const rScriptExpr = /^\s*(?&lt;expr>.+?)\s*$/;
 const rScriptInclude = /^\s*include\s+'(?&lt;url>(?:\\'|[^'])*)'/;
 const rScriptIncludeDouble = /^\s*include\s+"(?&lt;url>(?:\\"|[^"])*)"/;
 
@@ -95,9 +95,6 @@ export function parseScript(scriptText) {
                     'expr': parseExpression(matchAssignment.groups.expr)
                 }
             };
-            if (matchAssignment.groups.await === 'await') {
-                assignStatement.assign.await = true;
-            }
             statements.push(assignStatement);
             continue;
         }
@@ -158,9 +155,6 @@ export function parseScript(scriptText) {
         const matchReturn = line.match(rScriptReturn);
         if (matchReturn !== null) {
             const returnStatement = {'return': {}};
-            if (matchReturn.groups.await === 'await') {
-                returnStatement.return.await = true;
-            }
             if (typeof matchReturn.groups.expr !== 'undefined') {
                 returnStatement.return.expr = parseExpression(matchReturn.groups.expr);
             }
@@ -185,9 +179,6 @@ export function parseScript(scriptText) {
         // Expression
         const matchExpr = line.match(rScriptExpr);
         const exprStatement = {'expr': {'expr': parseExpression(matchExpr.groups.expr)}};
-        if (matchExpr.groups.await === 'await') {
-            exprStatement.expr.await = true;
-        }
         statements.push(exprStatement);
     }
 
