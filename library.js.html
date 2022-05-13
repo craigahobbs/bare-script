@@ -120,9 +120,8 @@ export const scriptFunctions = {
     },
 
     // Fetch
-    'fetch': async ([url, init = null], options) => {
+    'fetch': async ([url, init = null, isText = false], options) => {
         const fetchFn = (options !== null &amp;&amp; 'fetchFn' in options ? options.fetchFn : null);
-        const isText = (init !== null &amp;&amp; init.type === 'text');
 
         // Response helper function
         const responseFn = (response) => (
