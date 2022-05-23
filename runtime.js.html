@@ -36,9 +36,10 @@ import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './libr
 
 /**
  * @typedef {Object} ExecuteScriptOptions
- * @property {module:lib/runtime~FetchFn} [fetchFn] - The URL fetch function
- * @property {module:lib/runtime~LogFn} [logFn] - The log function
+ * @property {function} [fetchFn] - The [URL fetch function]{@link module:lib/runtime~FetchFn}
+ * @property {function} [logFn] - The [log function]{@link module:lib/runtime~LogFn}
  * @property {number} [maxStatements = 1e7] - The maximum number of statements, 0 for no maximum
+ * @property {function} [urlFn] - The [URL modifier function]{@link module:lib/runtime~URLFn}
  */
 
 /**
@@ -57,13 +58,21 @@ import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './libr
  * @param {string} text - The log text
  */
 
+/**
+ * A URL modifier function
+ *
+ * @callback URLFn
+ * @param {string} url - The URL
+ * @returns {string} The modified URL
+ */
+
 
 /**
  * Execute a calculation language script.
  *
  * @param {Object} script - The calculation script model
  * @param {Object} [globals = {}] - The global variables
- * @param {module:lib/runtime~ExecuteScriptOptions} [options = null] - The script execution options
+ * @param {Object} [options = null] - The [script execution options]{@link module:lib/runtime~ExecuteScriptOptions}
  * @returns The calculation script result
  */
 export function executeScript(script, globals = {}, options = null) {
@@ -219,12 +228,9 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
             : null;
 
         // Global/local function?
-        let funcValue = locals !== null ? locals[funcName] : undefined;
-        if (typeof funcValue === 'undefined') {
-            funcValue = globals[funcName];
-        }
-        if (typeof funcValue !== 'undefined') {
-            if (isAsyncExpr(expr, globals, locals)) {
+        let funcValue = (locals !== null ? (locals[funcName] ?? globals[funcName]) : globals[funcName]) ?? null;
+        if (funcValue !== null) {
+            if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor.name === 'AsyncFunction') {
                 throw new Error(`Async function "${funcName}" called within non-async scope`);
             }
             return funcValue(funcArgs, options);
@@ -301,32 +307,6 @@ export function evaluateExpression(expr, globals = {}, locals = null, options = 
     // else if (exprKey === 'group')
     return evaluateExpression(expr.group, globals, locals);
 }
-
-
-export function isAsyncExpr(expr, globals, locals) {
-    const [exprKey] = Object.keys(expr);
-    if (exprKey === 'function') {
-        // Is the global/local function async?
-        const funcName = expr.function.name;
-        let funcValue = locals !== null ? locals[funcName] : undefined;
-        if (typeof funcValue === 'undefined') {
-            funcValue = globals[funcName];
-        }
-        if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor.name === 'AsyncFunction') {
-            return true;
-        }
-
-        // Are any of the function argument expressions async?
-        return 'args' in expr.function &amp;&amp; expr.function.args.some((exprArg) => isAsyncExpr(exprArg, globals, locals));
-    } else if (exprKey === 'binary') {
-        return isAsyncExpr(expr.binary.left, globals, locals) &amp;&amp; isAsyncExpr(expr.binary.right, globals, locals);
-    } else if (exprKey === 'unary') {
-        return isAsyncExpr(expr.unary.expr, globals, locals);
-    } else if (exprKey === 'group') {
-        return isAsyncExpr(expr.group, globals, locals);
-    }
-    return false;
-}
 </code></pre>
         </article>
     </section>
@@ -337,7 +317,7 @@ export function isAsyncExpr(expr, globals, locals) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_library.html">lib/library</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul>
 </nav>
 
 <br class="clear">
