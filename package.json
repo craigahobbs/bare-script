@@ -24,9 +24,9 @@
         "schema-markdown": "~1.1"
     },
     "devDependencies": {
-        "ava": "~4.2",
+        "ava": "~4.3",
         "c8": "~7.11",
-        "eslint": "~8.14",
+        "eslint": "~8.17",
         "jsdoc": "~3.6",
         "jsdom": "~19.0"
     }
