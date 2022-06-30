@@ -7,6 +7,11 @@ import {expressionFunctions, scriptFunctions} from '../lib/library.js';
 import test from 'ava';
 
 
+//
+// Expression functions
+//
+
+
 test('library, abs', (t) => {
     t.is(expressionFunctions.abs([-3]), 3);
 });
@@ -389,6 +394,11 @@ test('library, year non-datetime', (t) => {
 });
 
 
+//
+// Array functions
+//
+
+
 test('library, arrayCopy', (t) => {
     const array = [1, 2, 3];
     t.deepEqual(scriptFunctions.arrayCopy([array]), [1, 2, 3]);
@@ -558,6 +568,11 @@ test('library, arraySort compare function', (t) => {
 });
 
 
+//
+// Debug functions
+//
+
+
 test('library, debugLog', (t) => {
     const logs = [];
     const logFn = (string) => {
@@ -579,8 +594,97 @@ test('library, debugLog no log function', (t) => {
 });
 
 
+//
+// fetch
+//
+
+
+test('library, fetch', async (t) => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const options = {fetchFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), jsonObject);
+});
+
+
+test('library, fetch text', async (t) => {
+    const text = 'asdf';
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.txt');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'text': async () => text
+        };
+    };
+    const options = {fetchFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), text);
+});
+
+
+test('library, fetch array', async (t) => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url === 'test.json' || url === 'test2.json', true);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const options = {fetchFn};
+    t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
+});
+
+
+test('library, fetch urlFn', async (t) => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'urlFn-test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const urlFn = (url) => `urlFn-${url}`;
+    const options = {fetchFn, urlFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), jsonObject);
+});
+
+
+test('library, fetch array urlFn', async (t) => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url === 'urlFn-test.json' || url === 'urlFn-test2.json', true);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'urlFn-test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const urlFn = (url) => `urlFn-${url}`;
+    const options = {fetchFn, urlFn};
+    t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
+});
+
+
 test('library, fetch null options', async (t) => {
-    t.is(await scriptFunctions.fetch([''], null), null);
+    t.is(await scriptFunctions.fetch(['test.json'], null), null);
 });
 
 
@@ -590,19 +694,100 @@ test('library, fetch null options log', async (t) => {
         logs.push(string);
     };
     const options = {'logFn': logFn};
-    t.is(await scriptFunctions.fetch(['https://example.com'], options), null);
-    t.deepEqual(logs, ['Error: fetch failed for JSON resource "https://example.com"']);
+    t.is(await scriptFunctions.fetch(['test.json'], options), null);
+    t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json"']);
 });
 
 
 test('library, fetch options no fetchFn', async (t) => {
-    t.is(await scriptFunctions.fetch([''], {}), null);
+    t.is(await scriptFunctions.fetch(['test.json'], {}), null);
 });
 
 
 test('library, fetch array null options', async (t) => {
-    t.deepEqual(await scriptFunctions.fetch([['foo.local', 'bar.local']], null), [null, null]);
+    t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], null), [null, null]);
 });
+
+
+test('library, fetch response not-ok', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.json');
+        return {'ok': false, 'statusText': 'Not Found'};
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), null);
+    t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json" with error: Not Found']);
+});
+
+
+test('library, fetch response json error', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => {
+                throw new Error('invalid json');
+            }
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), null);
+    t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json" with error: invalid json']);
+});
+
+
+test('library, fetch text response not-ok', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.txt');
+        return {'ok': false, 'statusText': 'Not Found'};
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), null);
+    t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: Not Found']);
+});
+
+
+test('library, fetch response text error', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.txt');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'text': async () => {
+                throw new Error('invalid text');
+            }
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), null);
+    t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: invalid text']);
+});
+
+
+//
+// JSON functions
+//
 
 
 test('library, jsonParse', (t) => {
@@ -638,6 +823,11 @@ test('library, jsonStringify indent', (t) => {
     "b": 2
 }`);
 });
+
+
+//
+// Object functions
+//
 
 
 test('library, objectCopy', (t) => {
@@ -750,6 +940,10 @@ test('library, objectSet non-object', (t) => {
 });
 
 
+//
+// Regex functions
+
+
 test('library, regexEscape', (t) => {
     t.is(scriptFunctions.regexEscape(['a*b']), 'a\\*b');
 });
@@ -800,6 +994,11 @@ test('library, regexTest', (t) => {
 test('library, regexTest non-regexp', (t) => {
     t.is(scriptFunctions.regexTest([null, 'caaabc']), null);
 });
+
+
+//
+// String functions
+//
 
 
 test('library, split', (t) => {
