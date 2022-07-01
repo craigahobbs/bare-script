@@ -64,7 +64,7 @@
     
 
     
-    <h4 class="name" id=".evaluateExpressionAsync"><span class="type-signature">(async, static) </span>evaluateExpressionAsync<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".evaluateExpressionAsync"><span class="type-signature">(async, static) </span>evaluateExpressionAsync<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>, builtins<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -225,6 +225,45 @@ Use this form of the function if you have any global asynchronous functions.
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>builtins</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">If true, allow use of built-in expression functions</td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -262,7 +301,7 @@ Use this form of the function if you have any global asynchronous functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line160">line 160</a>
+        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line163">line 163</a>
     </li></ul></dd>
     
 
@@ -285,6 +324,18 @@ Use this form of the function if you have any global asynchronous functions.
 
 
 
+<h5>Throws:</h5>
+
+        
+
+    <div class="param-desc">
+    
+        <a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a>
+    
+    </div>
+
+
+    
 
 
 <h5>Returns:</h5>
@@ -506,7 +557,7 @@ Use this form of the function if you have any global asynchronous functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line23">line 23</a>
+        <a href="runtimeAsync.js.html">runtimeAsync.js</a>, <a href="runtimeAsync.js.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -529,6 +580,18 @@ Use this form of the function if you have any global asynchronous functions.
 
 
 
+<h5>Throws:</h5>
+
+        
+
+    <div class="param-desc">
+    
+        <a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a>
+    
+    </div>
+
+
+    
 
 
 <h5>Returns:</h5>
@@ -562,7 +625,7 @@ Use this form of the function if you have any global asynchronous functions.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser-CalcScriptError.html">CalcScriptError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.CalcScriptParserError.html">CalcScriptParserError</a></li><li><a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

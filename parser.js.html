@@ -54,7 +54,7 @@ const rScriptIncludeDouble = /^\s*include\s+"(?&lt;url>(?:\\"|[^"])*)"/;
  *
  * @param {string|string[]} scriptText - The calculation script text
  * @returns {Object} The calculation script model
- * @throws [CalcScriptError]{@link module:lib/parser~CalcScriptError}
+ * @throws [CalcScriptParserError]{@link module:lib/parser.CalcScriptParserError}
  */
 export function parseScript(scriptText, startLineNumber = 1) {
     const script = {'statements': []};
@@ -119,7 +119,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
                 continue;
             } catch (error) {
                 const columnNumber = line.length - matchAssignment.groups.expr.length + error.columnNumber;
-                throw new CalcScriptError(error.error, line, columnNumber, startLineNumber + ixLine);
+                throw new CalcScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine);
             }
         }
 
@@ -128,7 +128,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
         if (matchFunctionBegin !== null) {
             // Nested function definitions are not allowed
             if (functionDef !== null) {
-                throw new CalcScriptError('Nested function definition', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('Nested function definition', line, 1, startLineNumber + ixLine);
             }
 
             // Add the function definition statement
@@ -151,7 +151,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
         const matchFunctionEnd = line.match(rScriptFunctionEnd);
         if (matchFunctionEnd !== null) {
             if (functionDef === null) {
-                throw new CalcScriptError('No matching function definition', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching function definition', line, 1, startLineNumber + ixLine);
             }
             functionDef = null;
             continue;
@@ -173,7 +173,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
                     jumpStatement.jump.expr = parseExpression(matchJump.groups.expr);
                 } catch (error) {
                     const columnNumber = matchJump.groups.jump.length - matchJump.groups.expr.length - 1 + error.columnNumber;
-                    throw new CalcScriptError(error.error, line, columnNumber, startLineNumber + ixLine);
+                    throw new CalcScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine);
                 }
             }
             statements.push(jumpStatement);
@@ -189,7 +189,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
                     returnStatement.return.expr = parseExpression(matchReturn.groups.expr);
                 } catch (error) {
                     const columnNumber = matchReturn.groups.return.length - matchReturn.groups.expr.length + error.columnNumber;
-                    throw new CalcScriptError(error.error, line, columnNumber, startLineNumber + ixLine);
+                    throw new CalcScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine);
                 }
             }
             statements.push(returnStatement);
@@ -216,7 +216,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
             const exprStatement = {'expr': {'expr': parseExpression(matchExpr.groups.expr)}};
             statements.push(exprStatement);
         } catch (error) {
-            throw new CalcScriptError(error.error, line, error.columnNumber, startLineNumber + ixLine);
+            throw new CalcScriptParserError(error.error, line, error.columnNumber, startLineNumber + ixLine);
         }
     }
 
@@ -266,18 +266,18 @@ const binaryReorder = {
  *
  * @param {string} exprText - The calculation language expression
  * @returns {Object} The calculation expression model
- * @throws [CalcScriptError]{@link module:lib/parser~CalcScriptError}
+ * @throws [CalcScriptParserError]{@link module:lib/parser.CalcScriptParserError}
  */
 export function parseExpression(exprText) {
     try {
         const [expr, nextText] = parseBinaryExpression(exprText);
         if (nextText.trim() !== '') {
-            throw new CalcScriptError('Syntax error', nextText);
+            throw new CalcScriptParserError('Syntax error', nextText);
         }
         return expr;
     } catch (error) {
         const columnNumber = exprText.length - error.line.length + 1;
-        throw new CalcScriptError(error.error, exprText, columnNumber);
+        throw new CalcScriptParserError(error.error, exprText, columnNumber);
     }
 }
 
@@ -334,7 +334,7 @@ function parseUnaryExpression(exprText) {
         const [expr, nextText] = parseBinaryExpression(groupText);
         const matchGroupClose = nextText.match(rCalcGroupClose);
         if (matchGroupClose === null) {
-            throw new CalcScriptError('Unmatched parenthesis', exprText);
+            throw new CalcScriptParserError('Unmatched parenthesis', exprText);
         }
         return [{'group': expr}, nextText.slice(matchGroupClose[0].length)];
     }
@@ -371,7 +371,7 @@ function parseUnaryExpression(exprText) {
             if (args.length !== 0) {
                 const matchFunctionSeparator = argText.match(rCalcFunctionSeparator);
                 if (matchFunctionSeparator === null) {
-                    throw new CalcScriptError('Syntax error', argText);
+                    throw new CalcScriptParserError('Syntax error', argText);
                 }
                 argText = argText.slice(matchFunctionSeparator[0].length);
             }
@@ -430,7 +430,7 @@ function parseUnaryExpression(exprText) {
         return [expr, exprText.slice(matchVariableEx[0].length)];
     }
 
-    throw new CalcScriptError('Syntax error', exprText);
+    throw new CalcScriptParserError('Syntax error', exprText);
 }
 
 
@@ -442,7 +442,7 @@ function parseUnaryExpression(exprText) {
  * @property {number} columnNumber - The error column number
  * @property {?number} lineNumber - The error line number
  */
-class CalcScriptError extends Error {
+export class CalcScriptParserError extends Error {
     /**
      * Create a calc-script error
      *
@@ -474,7 +474,7 @@ ${' '.repeat(columnNumber - 1)}^
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser-CalcScriptError.html">CalcScriptError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.CalcScriptParserError.html">CalcScriptParserError</a></li><li><a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">
