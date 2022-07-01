@@ -46,6 +46,43 @@ test('executeScript, function', (t) => {
 });
 
 
+test('executeScript, function error', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = () => {
+        throw Error('unexpected error');
+    };
+    t.is(executeScript(script, {errorFunction}), null);
+});
+
+
+test('executeScript, function error log', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = () => {
+        throw Error('unexpected error');
+    };
+    const logs = [];
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {logFn};
+    t.is(executeScript(script, {errorFunction}, options), null);
+    t.is(logs.length, 2);
+    t.is(logs[0], 'Error: Function "errorFunction" failed with error: unexpected error');
+});
+
+
 test('executeScript, jump', (t) => {
     const script = validateScript({
         'statements': [

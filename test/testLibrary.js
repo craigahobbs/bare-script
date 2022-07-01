@@ -7,390 +7,60 @@ import {expressionFunctions, scriptFunctions} from '../lib/library.js';
 import test from 'ava';
 
 
-//
-// Expression functions
-//
-
-
-test('library, abs', (t) => {
-    t.is(expressionFunctions.abs([-3]), 3);
-});
-
-
-test('library, acos', (t) => {
-    t.is(expressionFunctions.acos([1]), 0);
-});
-
-
-test('library, asin', (t) => {
-    t.is(expressionFunctions.asin([0]), 0);
-});
-
-
-test('library, atan', (t) => {
-    t.is(expressionFunctions.atan([0]), 0);
-});
-
-
-test('library, atan2', (t) => {
-    t.is(expressionFunctions.atan2([0, 1]), 0);
-});
-
-
-test('library, ceil', (t) => {
-    t.is(expressionFunctions.ceil([0.25]), 1);
-});
-
-
-test('library, charCodeAt', (t) => {
-    t.is(expressionFunctions.charCodeAt(['A', 0]), 65);
-});
-
-
-test('library, charCodeAt non-string', (t) => {
-    t.is(expressionFunctions.charCodeAt([null, 0]), null);
-});
-
-
-test('library, cos', (t) => {
-    t.is(expressionFunctions.cos([0]), 1);
-});
-
-
-test('library, date', (t) => {
-    t.deepEqual(expressionFunctions.date([2022, 6, 21]), new Date(2022, 5, 21));
-});
-
-
-test('library, day', (t) => {
-    t.is(expressionFunctions.day([new Date(2022, 5, 21)]), 21);
-});
-
-
-test('library, day non-datetime', (t) => {
-    t.is(expressionFunctions.day([null]), null);
-});
-
-
-test('library, encodeURIComponent', (t) => {
-    t.is(expressionFunctions.encodeURIComponent(['foo bar']), 'foo%20bar');
-});
-
-
-test('library, endsWith', (t) => {
-    t.is(expressionFunctions.endsWith(['foo bar', 'bar']), true);
-});
-
-
-test('library, endsWith non-string', (t) => {
-    t.is(expressionFunctions.endsWith([null, 'bar']), null);
-});
-
-
-test('library, indexOf', (t) => {
-    t.is(expressionFunctions.indexOf(['foo bar', 'bar']), 4);
-});
-
-
-test('library, indexOf non-string', (t) => {
-    t.is(expressionFunctions.indexOf([null, 'bar']), null);
-});
-
-
-test('library, indexOf position', (t) => {
-    t.is(expressionFunctions.indexOf(['foo bar bar', 'bar', 5]), 8);
-});
-
-
-test('library, fixed', (t) => {
-    t.is(expressionFunctions.fixed([1.125, 1]), '1.1');
-});
-
-
-test('library, fixed non-number', (t) => {
-    t.is(expressionFunctions.fixed([null, 1]), null);
-});
-
-
-test('library, fixed default digits', (t) => {
-    t.is(expressionFunctions.fixed([1.125]), '1.13');
-});
-
-
-test('library, floor', (t) => {
-    t.is(expressionFunctions.floor([1.125]), 1);
-});
-
-
-test('library, fromCharCode', (t) => {
-    t.is(expressionFunctions.fromCharCode([65, 66, 67]), 'ABC');
-});
-
-
-test('library, hour', (t) => {
-    t.is(expressionFunctions.hour([new Date(2022, 5, 21, 7)]), 7);
-});
-
-
-test('library, hour non-datetime', (t) => {
-    t.is(expressionFunctions.hour([null]), null);
-});
-
-
-test('library, lastIndexOf', (t) => {
-    t.is(expressionFunctions.lastIndexOf(['foo bar bar', 'bar']), 8);
-});
-
-
-test('library, lastIndexOf non-string', (t) => {
-    t.is(expressionFunctions.lastIndexOf([null, 'bar']), null);
-});
-
-
-test('library, len', (t) => {
-    t.is(expressionFunctions.len(['foo']), 3);
-});
-
-
-test('library, len non-string', (t) => {
-    t.is(expressionFunctions.len([null]), null);
-});
-
-
-test('library, lower', (t) => {
-    t.is(expressionFunctions.lower(['Foo']), 'foo');
-});
-
-
-test('library, lower non-string', (t) => {
-    t.is(expressionFunctions.lower([null]), null);
-});
-
-
-test('library, ln', (t) => {
-    t.is(expressionFunctions.ln([Math.E]), 1);
-});
-
-
-test('library, log', (t) => {
-    t.is(expressionFunctions.log([10]), 1);
-});
-
-
-test('library, log base', (t) => {
-    t.is(expressionFunctions.log([8, 2]), 3);
-});
-
-
-test('library, max', (t) => {
-    t.is(expressionFunctions.max([1, 2, 3]), 3);
-});
-
-
-test('library, min', (t) => {
-    t.is(expressionFunctions.min([1, 2, 3]), 1);
-});
-
-
-test('library, minute', (t) => {
-    t.is(expressionFunctions.minute([new Date(2022, 5, 21, 7, 15)]), 15);
-});
-
-
-test('library, minute non-datetime', (t) => {
-    t.is(expressionFunctions.minute([null]), null);
-});
-
-
-test('library, month', (t) => {
-    t.is(expressionFunctions.month([new Date(2022, 5, 21, 7, 15)]), 6);
-});
-
-
-test('library, month non-datetime', (t) => {
-    t.is(expressionFunctions.month([null]), null);
-});
-
-
-test('library, now', (t) => {
-    t.is(expressionFunctions.now([]) instanceof Date, true);
-});
-
-
-test('library, parseInt', (t) => {
-    t.is(expressionFunctions.parseInt(['123']), 123);
-});
-
-
-test('library, parseInt radix', (t) => {
-    t.is(expressionFunctions.parseInt(['10', 2]), 2);
-});
-
-
-test('library, parseFloat', (t) => {
-    t.is(expressionFunctions.parseFloat(['123.45']), 123.45);
-});
-
-
-test('library, pi', (t) => {
-    t.is(expressionFunctions.pi([]), Math.PI);
-});
-
-
-test('library, rand', (t) => {
-    t.is(typeof expressionFunctions.rand([]), 'number');
-});
-
-
-test('library, replace', (t) => {
-    t.is(expressionFunctions.replace(['foo bar', 'bar', 'bonk']), 'foo bonk');
-});
-
-
-test('library, replace non-string', (t) => {
-    t.is(expressionFunctions.replace([null, 'bar', 'bonk']), null);
-});
-
-
-test('library, replace regex', (t) => {
-    t.is(expressionFunctions.replace(['foo bar', /\s+bar/g, ' bonk']), 'foo bonk');
-});
-
-
-test('library, replace regex replacer function', (t) => {
-    const replacerFunction = (args, options) => {
-        t.deepEqual(args, [' bar', 3, 'foo bar']);
-        t.deepEqual(options, {});
-        return ' bonk';
-    };
-    t.is(expressionFunctions.replace(['foo bar', /\s+bar/g, replacerFunction], {}), 'foo bonk');
-});
-
-
-test('library, replace replacer function', (t) => {
-    const replacerFunction = (args, options) => {
-        t.deepEqual(args, ['bar', 4, 'foo bar']);
-        t.deepEqual(options, {});
-        return 'bonk';
-    };
-    t.is(expressionFunctions.replace(['foo bar', 'bar', replacerFunction], {}), 'foo bonk');
-});
-
-
-test('library, rept', (t) => {
-    t.is(expressionFunctions.rept(['*', 3]), '***');
-});
-
-
-test('library, rept non-string', (t) => {
-    t.is(expressionFunctions.rept([null, 3]), null);
-});
-
-
-test('library, round', (t) => {
-    t.is(expressionFunctions.round([5.125]), 5);
-});
-
-
-test('library, round digits', (t) => {
-    t.is(expressionFunctions.round([5.125, 2]), 5.13);
-});
-
-
-test('library, second', (t) => {
-    t.is(expressionFunctions.second([new Date(2022, 5, 21, 7, 15, 30)]), 30);
-});
-
-
-test('library, second non-datetime', (t) => {
-    t.is(expressionFunctions.second([null]), null);
-});
-
-
-test('library, sign', (t) => {
-    t.is(expressionFunctions.sign([5.125]), 1);
-});
-
-
-test('library, sin', (t) => {
-    t.is(expressionFunctions.sin([0]), 0);
-});
-
-
-test('library, slice', (t) => {
-    t.is(expressionFunctions.slice(['foo bar', 1, 5]), 'oo b');
-});
-
-
-test('library, slice non-string', (t) => {
-    t.is(expressionFunctions.slice([null, 1, 5]), null);
-});
-
-
-test('library, sqrt', (t) => {
-    t.is(expressionFunctions.sqrt([4]), 2);
-});
-
-
-test('library, startsWith', (t) => {
-    t.is(expressionFunctions.startsWith(['foo bar', 'foo']), true);
-});
-
-
-test('library, startsWith non-string', (t) => {
-    t.is(expressionFunctions.startsWith([null, 'foo']), null);
-});
-
-
-test('library, text', (t) => {
-    t.is(expressionFunctions.text([123]), '123');
-});
-
-
-test('library, tan', (t) => {
-    t.is(expressionFunctions.tan([0]), 0);
-});
-
-
-test('library, today', (t) => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    t.deepEqual(expressionFunctions.today([]), today);
-});
-
-
-test('library, trim', (t) => {
-    t.is(expressionFunctions.trim([' abc ']), 'abc');
-});
-
-
-test('library, trim non-string', (t) => {
-    t.is(expressionFunctions.trim([null]), null);
-});
-
-
-test('library, typeof', (t) => {
-    t.is(expressionFunctions.typeof(['abc']), 'string');
-});
-
-
-test('library, upper', (t) => {
-    t.is(expressionFunctions.upper(['Foo']), 'FOO');
-});
-
-
-test('library, upper non-string', (t) => {
-    t.is(expressionFunctions.upper([null]), null);
-});
-
-
-test('library, year', (t) => {
-    t.is(expressionFunctions.year([new Date(2022, 5, 21)]), 2022);
-});
-
-
-test('library, year non-datetime', (t) => {
-    t.is(expressionFunctions.year([null]), null);
+// Check the built-in expression functions
+test('library, built-in expression functions', (t) => {
+    t.deepEqual(
+        Object.entries(expressionFunctions).map(([fnName, fn]) => [fnName, typeof fn === 'function']),
+        [
+            ['abs', true],
+            ['acos', true],
+            ['asin', true],
+            ['atan', true],
+            ['atan2', true],
+            ['ceil', true],
+            ['charCodeAt', true],
+            ['cos', true],
+            ['date', true],
+            ['day', true],
+            ['encodeURL', true],
+            ['endsWith', true],
+            ['indexOf', true],
+            ['fixed', true],
+            ['floor', true],
+            ['fromCharCode', true],
+            ['hour', true],
+            ['lastIndexOf', true],
+            ['len', true],
+            ['lower', true],
+            ['ln', true],
+            ['log', true],
+            ['max', true],
+            ['min', true],
+            ['minute', true],
+            ['month', true],
+            ['now', true],
+            ['parseInt', true],
+            ['parseFloat', true],
+            ['pi', true],
+            ['rand', true],
+            ['replace', true],
+            ['rept', true],
+            ['round', true],
+            ['second', true],
+            ['sign', true],
+            ['sin', true],
+            ['slice', true],
+            ['sqrt', true],
+            ['startsWith', true],
+            ['text', true],
+            ['tan', true],
+            ['today', true],
+            ['trim', true],
+            ['typeof', true],
+            ['upper', true],
+            ['year', true]
+        ]
+    );
 });
 
 
@@ -561,10 +231,94 @@ test('library, arraySort compare function', (t) => {
     const array = [1, 2, 3];
     const compareFn = ([a, b], options) => {
         t.deepEqual(options, {});
+
+        /* c8 ignore next */
         return a < b ? 1 : (a === b ? 0 : -1);
     };
     t.deepEqual(scriptFunctions.arraySort([array, compareFn], {}), [3, 2, 1]);
     t.deepEqual(array, [3, 2, 1]);
+});
+
+
+//
+// Datetime functions
+//
+
+
+test('library, datetimeDate', (t) => {
+    t.deepEqual(scriptFunctions.datetimeDate([2022, 6, 21]), new Date(2022, 5, 21));
+});
+
+
+test('library, datetimeDay', (t) => {
+    t.is(scriptFunctions.datetimeDay([new Date(2022, 5, 21)]), 21);
+});
+
+
+test('library, datetimeDay non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeDay([null]), null);
+});
+
+
+test('library, datetimeHour', (t) => {
+    t.is(scriptFunctions.datetimeHour([new Date(2022, 5, 21, 7)]), 7);
+});
+
+
+test('library, datetimeHour non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeHour([null]), null);
+});
+
+
+test('library, datetimeMinute', (t) => {
+    t.is(scriptFunctions.datetimeMinute([new Date(2022, 5, 21, 7, 15)]), 15);
+});
+
+
+test('library, datetimeMinute non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeMinute([null]), null);
+});
+
+
+test('library, datetimeMonth', (t) => {
+    t.is(scriptFunctions.datetimeMonth([new Date(2022, 5, 21, 7, 15)]), 6);
+});
+
+
+test('library, datetimeMonth non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeMonth([null]), null);
+});
+
+
+test('library, datetimeNow', (t) => {
+    t.is(scriptFunctions.datetimeNow([]) instanceof Date, true);
+});
+
+
+test('library, datetimeSecond', (t) => {
+    t.is(scriptFunctions.datetimeSecond([new Date(2022, 5, 21, 7, 15, 30)]), 30);
+});
+
+
+test('library, datetimeSecond non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeSecond([null]), null);
+});
+
+
+test('library, datetimeToday', (t) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    t.deepEqual(scriptFunctions.datetimeToday([]), today);
+});
+
+
+test('library, datetimeYear', (t) => {
+    t.is(scriptFunctions.datetimeYear([new Date(2022, 5, 21)]), 2022);
+});
+
+
+test('library, datetimeYear non-datetime', (t) => {
+    t.is(scriptFunctions.datetimeYear([null]), null);
 });
 
 
@@ -826,6 +580,151 @@ test('library, jsonStringify indent', (t) => {
 
 
 //
+// Math functions
+//
+
+
+test('library, mathAbs', (t) => {
+    t.is(scriptFunctions.mathAbs([-3]), 3);
+});
+
+
+test('library, mathAcos', (t) => {
+    t.is(scriptFunctions.mathAcos([1]), 0);
+});
+
+
+test('library, mathAsin', (t) => {
+    t.is(scriptFunctions.mathAsin([0]), 0);
+});
+
+
+test('library, mathAtan', (t) => {
+    t.is(scriptFunctions.mathAtan([0]), 0);
+});
+
+
+test('library, mathAtan2', (t) => {
+    t.is(scriptFunctions.mathAtan2([0, 1]), 0);
+});
+
+
+test('library, mathCeil', (t) => {
+    t.is(scriptFunctions.mathCeil([0.25]), 1);
+});
+
+
+test('library, mathCos', (t) => {
+    t.is(scriptFunctions.mathCos([0]), 1);
+});
+
+
+test('library, mathFloor', (t) => {
+    t.is(scriptFunctions.mathFloor([1.125]), 1);
+});
+
+
+test('library, mathLn', (t) => {
+    t.is(scriptFunctions.mathLn([Math.E]), 1);
+});
+
+
+test('library, mathLog', (t) => {
+    t.is(scriptFunctions.mathLog([10]), 1);
+});
+
+
+test('library, mathLog base', (t) => {
+    t.is(scriptFunctions.mathLog([8, 2]), 3);
+});
+
+
+test('library, mathMax', (t) => {
+    t.is(scriptFunctions.mathMax([1, 2, 3]), 3);
+});
+
+
+test('library, mathMin', (t) => {
+    t.is(scriptFunctions.mathMin([1, 2, 3]), 1);
+});
+
+
+test('library, mathPi', (t) => {
+    t.is(scriptFunctions.mathPi([]), Math.PI);
+});
+
+
+test('library, mathRandom', (t) => {
+    t.is(typeof scriptFunctions.mathRandom([]), 'number');
+});
+
+
+test('library, mathRound', (t) => {
+    t.is(scriptFunctions.mathRound([5.125]), 5);
+});
+
+
+test('library, mathRound digits', (t) => {
+    t.is(scriptFunctions.mathRound([5.125, 2]), 5.13);
+});
+
+
+test('library, mathSign', (t) => {
+    t.is(scriptFunctions.mathSign([5.125]), 1);
+});
+
+
+test('library, mathSin', (t) => {
+    t.is(scriptFunctions.mathSin([0]), 0);
+});
+
+
+test('library, mathSqrt', (t) => {
+    t.is(scriptFunctions.mathSqrt([4]), 2);
+});
+
+
+test('library, mathTan', (t) => {
+    t.is(scriptFunctions.mathTan([0]), 0);
+});
+
+
+//
+// Number functions
+//
+
+
+test('library, numberToFixed', (t) => {
+    t.is(scriptFunctions.numberToFixed([1.125, 1]), '1.1');
+});
+
+
+test('library, numberToFixed non-number', (t) => {
+    t.is(scriptFunctions.numberToFixed([null, 1]), null);
+});
+
+
+test('library, numberToFixed default digits', (t) => {
+    t.is(scriptFunctions.numberToFixed([1.125]), '1.13');
+});
+
+
+test('library, numberParseInt', (t) => {
+    t.is(scriptFunctions.numberParseInt(['123']), 123);
+});
+
+
+test('library, numberParseInt radix', (t) => {
+    t.is(scriptFunctions.numberParseInt(['10', 2]), 2);
+});
+
+
+test('library, numberParseFloat', (t) => {
+    t.is(scriptFunctions.numberParseFloat(['123.45']), 123.45);
+});
+
+
+//
 // Object functions
 //
 
@@ -942,6 +841,7 @@ test('library, objectSet non-object', (t) => {
 
 //
 // Regex functions
+//
 
 
 test('library, regexEscape', (t) => {
@@ -1001,21 +901,196 @@ test('library, regexTest non-regexp', (t) => {
 //
 
 
-test('library, split', (t) => {
-    t.deepEqual(scriptFunctions.split(['foo, bar', ', ']), ['foo', 'bar']);
+test('library, stringCharCodeAt', (t) => {
+    t.is(scriptFunctions.stringCharCodeAt(['A', 0]), 65);
 });
 
 
-test('library, split non-string', (t) => {
-    t.is(scriptFunctions.split([null, ', ']), null);
+test('library, stringCharCodeAt non-string', (t) => {
+    t.is(scriptFunctions.stringCharCodeAt([null, 0]), null);
 });
 
 
-test('library, split regex', (t) => {
-    t.deepEqual(scriptFunctions.split(['foo, bar', /,\s*/]), ['foo', 'bar']);
+test('library, stringEncodeURL', (t) => {
+    t.is(scriptFunctions.stringEncodeURL(['foo bar']), 'foo%20bar');
 });
 
 
-test('library, split limit', (t) => {
-    t.deepEqual(scriptFunctions.split(['foo, bar, bonk', /,\s*/, 2]), ['foo', 'bar']);
+test('library, stringEndsWith', (t) => {
+    t.is(scriptFunctions.stringEndsWith(['foo bar', 'bar']), true);
+});
+
+
+test('library, stringEndsWith non-string', (t) => {
+    t.is(scriptFunctions.stringEndsWith([null, 'bar']), null);
+});
+
+
+test('library, stringIndexOf', (t) => {
+    t.is(scriptFunctions.stringIndexOf(['foo bar', 'bar']), 4);
+});
+
+
+test('library, stringIndexOf non-string', (t) => {
+    t.is(scriptFunctions.stringIndexOf([null, 'bar']), null);
+});
+
+
+test('library, stringIndexOf position', (t) => {
+    t.is(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 5]), 8);
+});
+
+
+test('library, stringFromCharCode', (t) => {
+    t.is(scriptFunctions.stringFromCharCode([65, 66, 67]), 'ABC');
+});
+
+
+test('library, stringLastIndexOf', (t) => {
+    t.is(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar']), 8);
+});
+
+
+test('library, stringLastIndexOf non-string', (t) => {
+    t.is(scriptFunctions.stringLastIndexOf([null, 'bar']), null);
+});
+
+
+test('library, stringLength', (t) => {
+    t.is(scriptFunctions.stringLength(['foo']), 3);
+});
+
+
+test('library, stringLength non-string', (t) => {
+    t.is(scriptFunctions.stringLength([null]), null);
+});
+
+
+test('library, stringLower', (t) => {
+    t.is(scriptFunctions.stringLower(['Foo']), 'foo');
+});
+
+
+test('library, stringLower non-string', (t) => {
+    t.is(scriptFunctions.stringLower([null]), null);
+});
+
+
+test('library, stringNew', (t) => {
+    t.is(scriptFunctions.stringNew([123]), '123');
+});
+
+
+test('library, stringRepeat', (t) => {
+    t.is(scriptFunctions.stringRepeat(['*', 3]), '***');
+});
+
+
+test('library, stringRepeat non-string', (t) => {
+    t.is(scriptFunctions.stringRepeat([null, 3]), null);
+});
+
+
+test('library, stringReplace', (t) => {
+    t.is(scriptFunctions.stringReplace(['foo bar', 'bar', 'bonk']), 'foo bonk');
+});
+
+
+test('library, stringReplace non-string', (t) => {
+    t.is(scriptFunctions.stringReplace([null, 'bar', 'bonk']), null);
+});
+
+
+test('library, stringReplace regex', (t) => {
+    t.is(scriptFunctions.stringReplace(['foo bar', /\s+bar/g, ' bonk']), 'foo bonk');
+});
+
+
+test('library, stringReplace regex replacer function', (t) => {
+    const replacerFunction = (args, options) => {
+        t.deepEqual(args, [' bar', 3, 'foo bar']);
+        t.deepEqual(options, {});
+        return ' bonk';
+    };
+    t.is(scriptFunctions.stringReplace(['foo bar', /\s+bar/g, replacerFunction], {}), 'foo bonk');
+});
+
+
+test('library, stringReplace replacer function', (t) => {
+    const replacerFunction = (args, options) => {
+        t.deepEqual(args, ['bar', 4, 'foo bar']);
+        t.deepEqual(options, {});
+        return 'bonk';
+    };
+    t.is(scriptFunctions.stringReplace(['foo bar', 'bar', replacerFunction], {}), 'foo bonk');
+});
+
+
+test('library, stringSlice', (t) => {
+    t.is(scriptFunctions.stringSlice(['foo bar', 1, 5]), 'oo b');
+});
+
+
+test('library, stringSlice non-string', (t) => {
+    t.is(scriptFunctions.stringSlice([null, 1, 5]), null);
+});
+
+
+test('library, stringSplit', (t) => {
+    t.deepEqual(scriptFunctions.stringSplit(['foo, bar', ', ']), ['foo', 'bar']);
+});
+
+
+test('library, stringSplit non-string', (t) => {
+    t.is(scriptFunctions.stringSplit([null, ', ']), null);
+});
+
+
+test('library, stringSplit regex', (t) => {
+    t.deepEqual(scriptFunctions.stringSplit(['foo, bar', /,\s*/]), ['foo', 'bar']);
+});
+
+
+test('library, stringSplit limit', (t) => {
+    t.deepEqual(scriptFunctions.stringSplit(['foo, bar, bonk', /,\s*/, 2]), ['foo', 'bar']);
+});
+
+
+test('library, stringStartsWith', (t) => {
+    t.is(scriptFunctions.stringStartsWith(['foo bar', 'foo']), true);
+});
+
+
+test('library, stringStartsWith non-string', (t) => {
+    t.is(scriptFunctions.stringStartsWith([null, 'foo']), null);
+});
+
+
+test('library, stringTrim', (t) => {
+    t.is(scriptFunctions.stringTrim([' abc ']), 'abc');
+});
+
+
+test('library, stringTrim non-string', (t) => {
+    t.is(scriptFunctions.stringTrim([null]), null);
+});
+
+
+test('library, stringUpper', (t) => {
+    t.is(scriptFunctions.stringUpper(['Foo']), 'FOO');
+});
+
+
+test('library, stringUpper non-string', (t) => {
+    t.is(scriptFunctions.stringUpper([null]), null);
+});
+
+
+//
+// Type functions
+//
+
+
+test('library, typeof', (t) => {
+    t.is(scriptFunctions.typeof(['abc']), 'string');
 });
