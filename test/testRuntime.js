@@ -130,7 +130,7 @@ test('executeScript, jumpif', (t) => {
 });
 
 
-test('executeScript, maxStatements', (t) => {
+test('executeScript, error maxStatements', (t) => {
     const script = validateScript({
         'statements': [
             {
