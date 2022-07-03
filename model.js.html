@@ -35,8 +35,8 @@ import {SchemaMarkdownParser} from 'schema-markdown/lib/parser.js';
 import {validateType} from 'schema-markdown/lib/schema.js';
 
 
-// The calc model's Schema Markdown
-const calcScriptModelSmd = `\
+// The calc-script model's Schema Markdown
+const calcScriptSmd = `\
 # The calc-script model
 struct CalcScript
 
@@ -211,14 +211,8 @@ struct FunctionExpression
 
 /**
  * The calc-script model
- *
- * @property {string} title - The model's title
- * @property {Object} types - The model's referenced types dictionary
  */
-export const calcScriptModel = {
-    'title': 'The Calculation Language Model',
-    'types': new SchemaMarkdownParser(calcScriptModelSmd).types
-};
+export const calcScriptTypes = (new SchemaMarkdownParser(calcScriptSmd)).types;
 
 
 /**
@@ -228,7 +222,7 @@ export const calcScriptModel = {
  * @returns {Object} The validated calc-script model
  */
 export function validateScript(script) {
-    return validateType(calcScriptModel.types, 'CalcScript', script);
+    return validateType(calcScriptTypes, 'CalcScript', script);
 }
 
 
@@ -239,7 +233,7 @@ export function validateScript(script) {
  * @returns {Object} The validated calculation expression model
  */
 export function validateExpression(expr) {
-    return validateType(calcScriptModel.types, 'Expression', expr);
+    return validateType(calcScriptTypes, 'Expression', expr);
 }
 </code></pre>
         </article>
