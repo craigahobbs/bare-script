@@ -231,9 +231,9 @@ test('evaluateExpression', (t) => {
             }
         }
     });
-    const variables = {'varName': 4};
-    t.is(evaluateExpression(calc, variables), 19);
-    t.deepEqual(variables, {'varName': 4});
+    const globals = {'varName': 4};
+    t.is(evaluateExpression(calc, globals), 19);
+    t.deepEqual(globals, {'varName': 4});
 });
 
 
@@ -245,9 +245,9 @@ test('evaluateExpression, string', (t) => {
 
 test('evaluateExpression, variable', (t) => {
     const calc = validateExpression({'variable': 'varName'});
-    const variables = {'varName': 4};
-    t.is(evaluateExpression(calc, variables), 4);
-    t.deepEqual(variables, {'varName': 4});
+    const globals = {'varName': 4};
+    t.is(evaluateExpression(calc, globals), 4);
+    t.deepEqual(globals, {'varName': 4});
 });
 
 
@@ -301,17 +301,54 @@ test('evaluateExpression, function if', (t) => {
             'name': 'if',
             'args': [
                 {'variable': 'test'},
-                {'number': 1},
-                {'function': {'name': 'setGlobal', 'args': [{'string': 'a'}, {'number': 1}]}}
+                {'function': {'name': 'setGlobal', 'args': [{'string': 'a'}, {'number': 1}]}},
+                {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
             ]
         }
     });
-    const globals = {'test': true};
+    let globals = {'test': true};
     t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'test': true});
-    globals.test = false;
+    t.deepEqual(globals, {'test': true, 'a': 1});
+    globals = {'test': false};
     t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'test': false, 'a': 1});
+    t.deepEqual(globals, {'test': false, 'b': 1});
+});
+
+
+test('evaluateExpression, function if no value expression', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'if'
+        }
+    });
+    t.is(evaluateExpression(calc), null);
+});
+
+
+test('evaluateExpression, function if no true expression', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'if',
+            'args': [
+                {'variable': 'true'}
+            ]
+        }
+    });
+    t.is(evaluateExpression(calc), null);
+});
+
+
+test('evaluateExpression, function if no false expression', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'if',
+            'args': [
+                {'variable': 'false'},
+                {'number': 1}
+            ]
+        }
+    });
+    t.is(evaluateExpression(calc), null);
 });
 
 
@@ -361,7 +398,36 @@ test('evaluateExpression, function getGlobal setGlobal unknown', (t) => {
 });
 
 
-test('evaluateExpression, function variable', (t) => {
+test('evaluateExpression, function builtin', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'abs',
+            'args': [
+                {'number': -1}
+            ]
+        }
+    });
+    t.is(evaluateExpression(calc), 1);
+});
+
+
+test('evaluateExpression, function no-builtins', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'abs',
+            'args': [
+                {'number': -1}
+            ]
+        }
+    });
+    const error = t.throws(() => {
+        evaluateExpression(calc, {}, null, null, false);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Undefined function "abs"');
+});
+
+
+test('evaluateExpression, function global', (t) => {
     const calc = validateExpression({
         'function': {
             'name': 'fnName',
@@ -370,8 +436,65 @@ test('evaluateExpression, function variable', (t) => {
             ]
         }
     });
-    const variables = {'fnName': ([number]) => 2 * number};
-    t.is(evaluateExpression(calc, variables), 6);
+    const globals = {'fnName': ([number]) => 2 * number};
+    t.is(evaluateExpression(calc, globals), 6);
+});
+
+
+test('evaluateExpression, function local', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'fnLocal',
+            'args': [
+                {'number': 3}
+            ]
+        }
+    });
+    const locals = {'fnLocal': ([number]) => 2 * number};
+    t.is(evaluateExpression(calc, {}, locals), 6);
+});
+
+
+test('evaluateExpression, function local null', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'fnLocal'
+        }
+    });
+    const globals = {'fnLocal': ([number]) => 2 * number};
+    const locals = {'fnLocal': null};
+    const error = t.throws(() => {
+        evaluateExpression(calc, globals, locals);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Undefined function "fnLocal"');
+});
+
+
+test('evaluateExpression, function non-function', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'fnLocal'
+        }
+    });
+    const globals = {'fnLocal': 'abc'};
+    t.is(evaluateExpression(calc, globals), null);
+});
+
+
+test('evaluateExpression, function non-function logFn', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'fnLocal'
+        }
+    });
+    const globals = {'fnLocal': 'abc'};
+    const logs = [];
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {logFn};
+    t.is(evaluateExpression(calc, globals, null, options), null);
+    t.deepEqual(logs, ['Error: Function "fnLocal" failed with error: funcValue is not a function']);
 });
 
 
@@ -384,8 +507,149 @@ test('evaluateExpression, function unknown', (t) => {
     });
     const error = t.throws(() => {
         evaluateExpression(calc);
-    });
+    }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Undefined function "fnUnknown"');
+});
+
+
+test('evaluateExpression, function async', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'fnAsync',
+            'args': []
+        }
+    });
+    // eslint-disable-next-line require-await
+    const globals = {'fnAsync': async () => null};
+    const error = t.throws(() => {
+        evaluateExpression(calc, globals);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Async function "fnAsync" called within non-async scope');
+});
+
+
+test('evaluateExpression, function runtime error', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'test'
+        }
+    });
+    // eslint-disable-next-line require-await
+    const globals = {
+        'test': () => {
+            throw new CalcScriptRuntimeError('Test error');
+        }
+    };
+    const error = t.throws(() => {
+        evaluateExpression(calc, globals);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Test error');
+});
+
+
+test('evaluateExpression, binary logical and', (t) => {
+    const globals = {};
+    const calc = validateExpression({
+        'binary': {
+            'op': '&&',
+            'left': {'variable': 'a'},
+            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
+        }
+    });
+    t.is(evaluateExpression(calc, globals), null);
+    t.deepEqual(globals, {});
+    globals.a = true;
+    t.is(evaluateExpression(calc, globals), 1);
+    t.deepEqual(globals, {'a': true, 'b': 1});
+});
+
+
+test('evaluateExpression, binary logical or', (t) => {
+    const globals = {'a': true};
+    const calc = validateExpression({
+        'binary': {
+            'op': '||',
+            'left': {'variable': 'a'},
+            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
+        }
+    });
+    t.is(evaluateExpression(calc, globals), true);
+    t.deepEqual(globals, {'a': true});
+    globals.a = false;
+    t.is(evaluateExpression(calc, globals), 1);
+    t.deepEqual(globals, {'a': false, 'b': 1});
+});
+
+
+test('evaluateExpression, binary exponentiation', (t) => {
+    const calc = validateExpression({'binary': {'op': '**', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 100);
+});
+
+
+test('evaluateExpression, binary multiplication', (t) => {
+    const calc = validateExpression({'binary': {'op': '*', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 20);
+});
+
+
+test('evaluateExpression, binary division', (t) => {
+    const calc = validateExpression({'binary': {'op': '/', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 5);
+});
+
+
+test('evaluateExpression, binary modulus', (t) => {
+    const calc = validateExpression({'binary': {'op': '%', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 0);
+});
+
+
+test('evaluateExpression, binary addition', (t) => {
+    const calc = validateExpression({'binary': {'op': '+', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 12);
+});
+
+
+test('evaluateExpression, binary subtraction', (t) => {
+    const calc = validateExpression({'binary': {'op': '-', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), 8);
+});
+
+
+test('evaluateExpression, binary less-than or equal-to', (t) => {
+    const calc = validateExpression({'binary': {'op': '<=', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), false);
+});
+
+
+test('evaluateExpression, binary less-than', (t) => {
+    const calc = validateExpression({'binary': {'op': '<', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), false);
+});
+
+
+test('evaluateExpression, binary greater-than or equal-to', (t) => {
+    const calc = validateExpression({'binary': {'op': '>=', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), true);
+});
+
+
+test('evaluateExpression, binary greater-than', (t) => {
+    const calc = validateExpression({'binary': {'op': '>', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), true);
+});
+
+
+test('evaluateExpression, binary equality', (t) => {
+    const calc = validateExpression({'binary': {'op': '==', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), false);
+});
+
+
+test('evaluateExpression, binary inequality', (t) => {
+    const calc = validateExpression({'binary': {'op': '!=', 'left': {'number': '10'}, 'right': {'number': 2}}});
+    t.is(evaluateExpression(calc), true);
 });
 
 
