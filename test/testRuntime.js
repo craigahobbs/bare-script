@@ -3,7 +3,7 @@
 
 /* eslint-disable id-length */
 
-import {evaluateExpression, executeScript} from '../lib/runtime.js';
+import {CalcScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import test from 'ava';
 
@@ -43,6 +43,29 @@ test('executeScript, function', (t) => {
         ]
     });
     t.is(executeScript(script), 35);
+});
+
+
+test('executeScript, function missing arg', (t) => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'createPair',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'createPair', 'args': [{'number': 5}]}}
+            }}
+        ]
+    });
+    t.deepEqual(executeScript(script), [5, null]);
 });
 
 
@@ -130,6 +153,39 @@ test('executeScript, jumpif', (t) => {
 });
 
 
+test('executeScript, return', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'return': {'expr': {'number': 5}}}
+        ]
+    });
+    t.is(executeScript(script), 5);
+});
+
+
+test('executeScript, return blank', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'return': {}}
+        ]
+    });
+    t.is(executeScript(script), null);
+});
+
+
+test('executeScript, jump error unknown label', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'jump': {'label': 'unknownLabel'}}
+        ]
+    });
+    const error = t.throws(() => {
+        executeScript(script);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Unknown jump label "unknownLabel"');
+});
+
+
 test('executeScript, error maxStatements', (t) => {
     const script = validateScript({
         'statements': [
@@ -145,13 +201,10 @@ test('executeScript, error maxStatements', (t) => {
             {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
-    let errorMessage = null;
-    try {
+    const error = t.throws(() => {
         executeScript(script, {}, {'maxStatements': 3});
-    } catch ({message}) {
-        errorMessage = message;
-    }
-    t.is(errorMessage, 'Exceeded maximum script statements (3)');
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Exceeded maximum script statements (3)');
     t.is(executeScript(script, {}, {'maxStatements': 4}), null);
     t.is(executeScript(script, {}, {'maxStatements': 0}), null);
 });
@@ -180,6 +233,131 @@ test('evaluateExpression', (t) => {
     });
     const variables = {'varName': 4};
     t.is(evaluateExpression(calc, variables), 19);
+    t.deepEqual(variables, {'varName': 4});
+});
+
+
+test('evaluateExpression, string', (t) => {
+    const calc = validateExpression({'string': 'abc'});
+    t.is(evaluateExpression(calc), 'abc');
+});
+
+
+test('evaluateExpression, variable', (t) => {
+    const calc = validateExpression({'variable': 'varName'});
+    const variables = {'varName': 4};
+    t.is(evaluateExpression(calc, variables), 4);
+    t.deepEqual(variables, {'varName': 4});
+});
+
+
+test('evaluateExpression, variable local', (t) => {
+    const calc = validateExpression({'variable': 'varName'});
+    const globals = {};
+    const locals = {'varName': 4};
+    t.is(evaluateExpression(calc, {}, locals), 4);
+    t.deepEqual(globals, {});
+    t.deepEqual(locals, {'varName': 4});
+});
+
+
+test('evaluateExpression, variable null local non-null global', (t) => {
+    const calc = validateExpression({'variable': 'varName'});
+    const globals = {'varName': 4};
+    const locals = {'varName': null};
+    t.is(evaluateExpression(calc, globals, locals), null);
+    t.deepEqual(globals, {'varName': 4});
+    t.deepEqual(locals, {'varName': null});
+});
+
+
+test('evaluateExpression, variable unknown', (t) => {
+    const calc = validateExpression({'variable': 'varName'});
+    t.is(evaluateExpression(calc), null);
+});
+
+
+test('evaluateExpression, variable literal null', (t) => {
+    const calc = validateExpression({'variable': 'null'});
+    t.is(evaluateExpression(calc), null);
+});
+
+
+test('evaluateExpression, variable literal true', (t) => {
+    const calc = validateExpression({'variable': 'true'});
+    t.is(evaluateExpression(calc), true);
+});
+
+
+test('evaluateExpression, variable literal false', (t) => {
+    const calc = validateExpression({'variable': 'false'});
+    t.is(evaluateExpression(calc), false);
+});
+
+
+test('evaluateExpression, function if', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'if',
+            'args': [
+                {'variable': 'test'},
+                {'number': 1},
+                {'function': {'name': 'setGlobal', 'args': [{'string': 'a'}, {'number': 1}]}}
+            ]
+        }
+    });
+    const globals = {'test': true};
+    t.is(evaluateExpression(calc, globals), 1);
+    t.deepEqual(globals, {'test': true});
+    globals.test = false;
+    t.is(evaluateExpression(calc, globals), 1);
+    t.deepEqual(globals, {'test': false, 'a': 1});
+});
+
+
+test('evaluateExpression, function getGlobal setGlobal', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'setGlobal',
+            'args': [
+                {'string': 'b'},
+                {
+                    'function': {
+                        'name': 'getGlobal',
+                        'args': [
+                            {'string': 'a'}
+                        ]
+                    }
+                }
+            ]
+        }
+    });
+    const globals = {'a': 1};
+    t.is(evaluateExpression(calc, globals), 1);
+    t.deepEqual(globals, {'a': 1, 'b': 1});
+});
+
+
+test('evaluateExpression, function getGlobal setGlobal unknown', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'setGlobal',
+            'args': [
+                {'string': 'b'},
+                {
+                    'function': {
+                        'name': 'getGlobal',
+                        'args': [
+                            {'string': 'a'}
+                        ]
+                    }
+                }
+            ]
+        }
+    });
+    const globals = {};
+    t.is(evaluateExpression(calc, globals), null);
+    t.deepEqual(globals, {'b': null});
 });
 
 
@@ -204,11 +382,44 @@ test('evaluateExpression, function unknown', (t) => {
             'args': []
         }
     });
-    let errorMessage = null;
-    try {
+    const error = t.throws(() => {
         evaluateExpression(calc);
-    } catch ({message}) {
-        errorMessage = message;
-    }
-    t.is(errorMessage, 'Undefined function "fnUnknown"');
+    });
+    t.is(error.message, 'Undefined function "fnUnknown"');
+});
+
+
+test('evaluateExpression, unary not', (t) => {
+    const calc = validateExpression({'unary': {'op': '!', 'expr': {'variable': 'false'}}});
+    t.is(evaluateExpression(calc), true);
+});
+
+
+test('evaluateExpression, unary negate', (t) => {
+    const calc = validateExpression({'unary': {'op': '-', 'expr': {'number': 1}}});
+    t.is(evaluateExpression(calc), -1);
+});
+
+
+test('evaluateExpression, group', (t) => {
+    const calc = validateExpression(
+        {
+            'group': {
+                'binary': {
+                    'op': '*',
+                    'left': {'number': 2},
+                    'right': {
+                        'group': {
+                            'binary': {
+                                'op': '+',
+                                'left': {'number': 3},
+                                'right': {'number': 5}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+    t.is(evaluateExpression(calc), 16);
 });

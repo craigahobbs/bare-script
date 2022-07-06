@@ -291,7 +291,7 @@ test('library, datetimeMonth non-datetime', (t) => {
 
 
 test('library, datetimeNow', (t) => {
-    t.is(scriptFunctions.datetimeNow([]) instanceof Date, true);
+    t.true(scriptFunctions.datetimeNow([]) instanceof Date);
 });
 
 
@@ -381,7 +381,7 @@ test('library, fetch text', async (t) => {
         };
     };
     const options = {fetchFn};
-    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), text);
+    t.is(await scriptFunctions.fetch(['test.txt', null, true], options), text);
 });
 
 
@@ -390,7 +390,7 @@ test('library, fetch array', async (t) => {
     const jsonObject2 = {'b': 2};
     // eslint-disable-next-line require-await
     const fetchFn = async (url) => {
-        t.is(url === 'test.json' || url === 'test2.json', true);
+        t.true(url === 'test.json' || url === 'test2.json');
         return {
             'ok': true,
             // eslint-disable-next-line require-await
@@ -424,7 +424,7 @@ test('library, fetch array urlFn', async (t) => {
     const jsonObject2 = {'b': 2};
     // eslint-disable-next-line require-await
     const fetchFn = async (url) => {
-        t.is(url === 'urlFn-test.json' || url === 'urlFn-test2.json', true);
+        t.true(url === 'urlFn-test.json' || url === 'urlFn-test2.json');
         return {
             'ok': true,
             // eslint-disable-next-line require-await
@@ -474,7 +474,7 @@ test('library, fetch response not-ok', async (t) => {
         logs.push(string);
     };
     const options = {fetchFn, logFn};
-    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), null);
+    t.is(await scriptFunctions.fetch(['test.json'], options), null);
     t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json" with error: Not Found']);
 });
 
@@ -496,7 +496,7 @@ test('library, fetch response json error', async (t) => {
         logs.push(string);
     };
     const options = {fetchFn, logFn};
-    t.deepEqual(await scriptFunctions.fetch(['test.json'], options), null);
+    t.is(await scriptFunctions.fetch(['test.json'], options), null);
     t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json" with error: invalid json']);
 });
 
@@ -512,7 +512,7 @@ test('library, fetch text response not-ok', async (t) => {
         logs.push(string);
     };
     const options = {fetchFn, logFn};
-    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), null);
+    t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
     t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: Not Found']);
 });
 
@@ -534,7 +534,7 @@ test('library, fetch response text error', async (t) => {
         logs.push(string);
     };
     const options = {fetchFn, logFn};
-    t.deepEqual(await scriptFunctions.fetch(['test.txt', null, true], options), null);
+    t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
     t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: invalid text']);
 });
 
@@ -747,14 +747,14 @@ test('library, objectCopy non-object', (t) => {
 
 test('library, objectDelete', (t) => {
     const obj = {'a': 1, 'b': 2};
-    t.is(scriptFunctions.objectDelete([obj, 'a']), true);
+    t.true(scriptFunctions.objectDelete([obj, 'a']));
     t.deepEqual(obj, {'b': 2});
 });
 
 
 test('library, objectDelete missing', (t) => {
     const obj = {'b': 2};
-    t.is(scriptFunctions.objectDelete([obj, 'a']), true);
+    t.true(scriptFunctions.objectDelete([obj, 'a']));
     t.deepEqual(obj, {'b': 2});
 });
 
@@ -875,19 +875,19 @@ test('library, regexMatchAll non-string', (t) => {
 
 
 test('library, regexNew', (t) => {
-    t.is(scriptFunctions.regexNew(['a*b']) instanceof RegExp, true);
+    t.true(scriptFunctions.regexNew(['a*b']) instanceof RegExp);
 });
 
 
 test('library, regexNew flags', (t) => {
     const regex = scriptFunctions.regexNew(['a*b', 'g']);
-    t.is(regex instanceof RegExp, true);
+    t.true(regex instanceof RegExp);
     t.is(regex.flags, 'g');
 });
 
 
 test('library, regexTest', (t) => {
-    t.is(scriptFunctions.regexTest([/a*b/, 'caaabc']), true);
+    t.true(scriptFunctions.regexTest([/a*b/, 'caaabc']));
 });
 
 
@@ -917,7 +917,7 @@ test('library, stringEncodeURL', (t) => {
 
 
 test('library, stringEndsWith', (t) => {
-    t.is(scriptFunctions.stringEndsWith(['foo bar', 'bar']), true);
+    t.true(scriptFunctions.stringEndsWith(['foo bar', 'bar']));
 });
 
 
@@ -1057,7 +1057,7 @@ test('library, stringSplit limit', (t) => {
 
 
 test('library, stringStartsWith', (t) => {
-    t.is(scriptFunctions.stringStartsWith(['foo bar', 'foo']), true);
+    t.true(scriptFunctions.stringStartsWith(['foo bar', 'foo']));
 });
 
 

@@ -177,8 +177,7 @@ include "fi\\"le.mds"
 
 
 test('parseScript, expression statement syntax error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 a = 0
 b = 1
@@ -186,9 +185,7 @@ foo \
 bar
 c = 2
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error, line number 3:
 foo bar
@@ -202,15 +199,12 @@ foo bar
 
 
 test('parseScript, assignment statement expression syntax error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 a = 0
 b = 1 + foo bar
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error, line number 2:
 b = 1 + foo bar
@@ -224,14 +218,11 @@ b = 1 + foo bar
 
 
 test('parseScript, jump statement expression syntax error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 jumpif (@#$) label
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error, line number 1:
 jumpif (@#$) label
@@ -245,14 +236,11 @@ jumpif (@#$) label
 
 
 test('parseScript, return statement expression syntax error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 return @#$
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error, line number 1:
 return @#$
@@ -266,17 +254,14 @@ return @#$
 
 
 test('parseScript, nested function statement error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 function foo()
     function bar()
     endfunction
 endfunction
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Nested function definition, line number 2:
     function bar()
@@ -290,15 +275,12 @@ Nested function definition, line number 2:
 
 
 test('parseScript, endfunction statement error', (t) => {
-    let error = null;
-    try {
+    const error = t.throws(() => {
         validateScript(parseScript(`\
 a = 1
 endfunction
 `));
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 No matching function definition, line number 2:
 endfunction
@@ -341,13 +323,10 @@ test('parseExpression, unary', (t) => {
 
 
 test('parseExpression, syntax error', (t) => {
-    let error = null;
     const exprText = ' @#$';
-    try {
+    const error = t.throws(() => {
         parseExpression(exprText);
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error:
 ${exprText}
@@ -360,13 +339,10 @@ ${exprText}
 
 
 test('parseExpression, nextText syntax error', (t) => {
-    let error = null;
     const exprText = 'foo bar';
-    try {
+    const error = t.throws(() => {
         parseExpression(exprText);
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error:
 ${exprText}
@@ -379,13 +355,10 @@ ${exprText}
 
 
 test('parseExpression, syntax error, unmatched parenthesis', (t) => {
-    let error = null;
     const exprText = '10 * (1 + 2';
-    try {
+    const error = t.throws(() => {
         parseExpression(exprText);
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Unmatched parenthesis:
 ${exprText}
@@ -398,13 +371,10 @@ ${exprText}
 
 
 test('parseExpression, function argument syntax error', (t) => {
-    let error = null;
     const exprText = 'foo(1, 2 3)';
-    try {
+    const error = t.throws(() => {
         parseExpression(exprText);
-    } catch (errorTest) {
-        error = errorTest;
-    }
+    });
     t.is(error.message, `\
 Syntax error:
 foo(1, 2 3)
