@@ -46,11 +46,60 @@ test('executeScript, function', (t) => {
 });
 
 
+test('executeScript, function async', (t) => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'multiplyNumbers',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'assign': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}}
+            }}
+        ]
+    });
+    t.is(executeScript(script), 35);
+});
+
+
 test('executeScript, function missing arg', (t) => {
     const script = validateScript({
         'statements': [
             {
                 'function': {
+                    'name': 'createPair',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'createPair', 'args': [{'number': 5}]}}
+            }}
+        ]
+    });
+    t.deepEqual(executeScript(script), [5, null]);
+});
+
+
+test('executeScript, function async missing arg', (t) => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
                     'name': 'createPair',
                     'args': ['a', 'b'],
                     'statements': [
@@ -501,8 +550,7 @@ test('evaluateExpression, function non-function logFn', (t) => {
 test('evaluateExpression, function unknown', (t) => {
     const calc = validateExpression({
         'function': {
-            'name': 'fnUnknown',
-            'args': []
+            'name': 'fnUnknown'
         }
     });
     const error = t.throws(() => {
@@ -515,8 +563,7 @@ test('evaluateExpression, function unknown', (t) => {
 test('evaluateExpression, function async', (t) => {
     const calc = validateExpression({
         'function': {
-            'name': 'fnAsync',
-            'args': []
+            'name': 'fnAsync'
         }
     });
     // eslint-disable-next-line require-await
@@ -548,7 +595,6 @@ test('evaluateExpression, function runtime error', (t) => {
 
 
 test('evaluateExpression, binary logical and', (t) => {
-    const globals = {};
     const calc = validateExpression({
         'binary': {
             'op': '&&',
@@ -556,6 +602,7 @@ test('evaluateExpression, binary logical and', (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
         }
     });
+    const globals = {};
     t.is(evaluateExpression(calc, globals), null);
     t.deepEqual(globals, {});
     globals.a = true;
@@ -565,7 +612,6 @@ test('evaluateExpression, binary logical and', (t) => {
 
 
 test('evaluateExpression, binary logical or', (t) => {
-    const globals = {'a': true};
     const calc = validateExpression({
         'binary': {
             'op': '||',
@@ -573,6 +619,7 @@ test('evaluateExpression, binary logical or', (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
         }
     });
+    const globals = {'a': true};
     t.is(evaluateExpression(calc, globals), true);
     t.deepEqual(globals, {'a': true});
     globals.a = false;
