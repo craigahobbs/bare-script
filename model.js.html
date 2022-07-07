@@ -66,7 +66,7 @@ union ScriptStatement
     ReturnStatement return
 
     # An include statement
-    IncludeStatement include
+    string include
 
 
 # A return statement
@@ -117,13 +117,6 @@ struct JumpStatement
 
     # The test expression
     optional Expression expr
-
-
-# An include statement
-struct IncludeStatement
-
-    # The resource URL
-    string url
 
 
 # An expression
