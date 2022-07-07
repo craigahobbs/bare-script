@@ -15,9 +15,6 @@ $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-bui
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/.eslintrc.cjs))
 
 
-# This project is alpha so don't check coverage
-C8_ARGS ?= --all --allowExternal --src lib/ --src test/
-
 # Include javascript-build
 include Makefile.base
 

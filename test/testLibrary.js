@@ -1,10 +1,11 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-/* eslint-disable id-length */
-
 import {expressionFunctions, scriptFunctions} from '../lib/library.js';
 import test from 'ava';
+
+
+/* eslint-disable id-length */
 
 
 // Check the built-in expression functions

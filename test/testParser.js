@@ -1,11 +1,12 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-/* eslint-disable id-length */
-
 import {parseExpression, parseScript} from '../lib/parser.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import test from 'ava';
+
+
+/* eslint-disable id-length */
 
 
 test('parseScript, array input', (t) => {
@@ -158,7 +159,7 @@ include 'fi\\'le.mds'
 `));
     t.deepEqual(script, {
         'statements': [
-            {'include': {'url': "fi'le.mds"}}
+            {'include': "fi'le.mds"}
         ]
     });
 });
@@ -170,7 +171,7 @@ include "fi\\"le.mds"
 `));
     t.deepEqual(script, {
         'statements': [
-            {'include': {'url': 'fi"le.mds'}}
+            {'include': 'fi"le.mds'}
         ]
     });
 });

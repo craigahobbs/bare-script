@@ -1,12 +1,14 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-/* eslint-disable id-length */
-
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
 import {validateExpression, validateScript} from '../lib/model.js';
+import {CalcScriptParserError} from '../lib/parser.js';
 import {CalcScriptRuntimeError} from '../lib/runtime.js';
 import test from 'ava';
+
+
+/* eslint-disable id-length, require-await */
 
 
 test('executeScriptAsync', async (t) => {
@@ -127,7 +129,6 @@ test('executeScriptAsync, function error', async (t) => {
             }}
         ]
     });
-    // eslint-disable-next-line require-await
     const errorFunction = async () => {
         throw Error('unexpected error');
     };
@@ -143,7 +144,6 @@ test('executeScriptAsync, function error log', async (t) => {
             }}
         ]
     });
-    // eslint-disable-next-line require-await
     const errorFunction = async () => {
         throw Error('unexpected error');
     };
@@ -205,6 +205,20 @@ test('executeScriptAsync, jumpif', async (t) => {
 });
 
 
+test('executeScriptAsync, jump error unknown label', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'jump': {'label': 'unknownLabel'}}
+        ]
+    });
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
+    t.is(error.message, 'Unknown jump label "unknownLabel"');
+});
+
+
 test('executeScriptAsync, return', async (t) => {
     const script = validateScript({
         'statements': [
@@ -225,16 +239,161 @@ test('executeScriptAsync, return blank', async (t) => {
 });
 
 
-test('executeScriptAsync, jump error unknown label', async (t) => {
+test('executeScriptAsync, include', async (t) => {
     const script = validateScript({
         'statements': [
-            {'jump': {'label': 'unknownLabel'}}
+            {'include': 'test.mds'}
         ]
     });
-    const error = await t.throwsAsync(async () => {
-        await executeScriptAsync(script);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Unknown jump label "unknownLabel"');
+    const globals = {};
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds' || url === 'test2.mds');
+        return {
+            'ok': true,
+            'text': () => (url.endsWith('test2.mds') ? 'b = 1' : `\
+include 'test2.mds'
+a = 1
+`)
+        };
+    };
+    const options = {fetchFn};
+    t.is(await executeScriptAsync(script, globals, options), null);
+    t.is(globals.a, 1);
+    t.is(globals.b, 1);
+});
+
+
+test('executeScriptAsync, include no fetchFn', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
+    t.is(error.message, 'Include of "test.mds" failed');
+});
+
+
+test('executeScriptAsync, include fetchFn subdir', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'lib/test.mds'}
+        ]
+    });
+    const globals = {};
+    const fetchFn = (url) => {
+        t.true(url === 'lib/test.mds' || url === 'lib/test2.mds');
+        return {
+            'ok': true,
+            'text': () => (url.endsWith('test2.mds') ? 'b = 1' : `\
+include 'test2.mds'
+a = 1
+`)
+        };
+    };
+    const options = {fetchFn};
+    t.is(await executeScriptAsync(script, globals, options), null);
+    t.is(globals.a, 1);
+    t.is(globals.b, 1);
+});
+
+
+test('executeScriptAsync, include fetchFn absolute', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const globals = {};
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds' || url === 'http://foo.local/test2.mds');
+        return {
+            'ok': true,
+            'text': () => (url.endsWith('test2.mds') ? 'b = 1' : `\
+include 'http://foo.local/test2.mds'
+a = 1
+`)
+        };
+    };
+    const options = {fetchFn};
+    t.is(await executeScriptAsync(script, globals, options), null);
+    t.is(globals.a, 1);
+    t.is(globals.b, 1);
+});
+
+
+test('executeScriptAsync, include fetchFn not-ok', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds');
+        return {
+            'ok': false,
+            'statusText': 'Not Found'
+        };
+    };
+    const options = {fetchFn};
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script, {}, options),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
+    t.is(error.message, 'Include of "test.mds" failed with error: Not Found');
+});
+
+
+test('executeScriptAsync, include fetchFn text error', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds');
+        return {
+            'ok': true,
+            'text': () => {
+                throw new Error('text error');
+            }
+        };
+    };
+    const options = {fetchFn};
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script, {}, options),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
+    t.is(error.message, 'Include of "test.mds" failed with error: text error');
+});
+
+
+test('executeScriptAsync, include fetchFn parser error', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds');
+        return {
+            'ok': true,
+            'text': () => 'foo bar'
+        };
+    };
+    const options = {fetchFn};
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script, {}, options),
+        {'instanceOf': CalcScriptParserError}
+    );
+    t.is(error.message, `\
+Syntax error, line number 1:
+foo bar
+   ^
+`);
 });
 
 
@@ -254,9 +413,10 @@ test('executeScriptAsync, error maxStatements', async (t) => {
             {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
-    const error = await t.throwsAsync(async () => {
-        await executeScriptAsync(script, {}, {'maxStatements': 3});
-    }, {'instanceOf': CalcScriptRuntimeError});
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script, {}, {'maxStatements': 3}),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
     t.is(error.message, 'Exceeded maximum script statements (3)');
     t.is(await executeScriptAsync(script, {}, {'maxStatements': 4}), null);
     t.is(await executeScriptAsync(script, {}, {'maxStatements': 0}), null);
@@ -284,11 +444,9 @@ test('evaluateExpressionAsync', async (t) => {
             }
         }
     });
-    // eslint-disable-next-line require-await
     const asyncCeil = async ([x]) => Math.ceil(x);
     const globals = {asyncCeil, 'varName': 4};
     t.is(await evaluateExpressionAsync(calc, globals), 19);
-    t.deepEqual(globals, {asyncCeil, 'varName': 4});
 });
 
 
@@ -302,16 +460,13 @@ test('evaluateExpressionAsync, variable', async (t) => {
     const calc = validateExpression({'variable': 'varName'});
     const globals = {'varName': 4};
     t.is(await evaluateExpressionAsync(calc, globals), 4);
-    t.deepEqual(globals, {'varName': 4});
 });
 
 
 test('evaluateExpressionAsync, variable local', async (t) => {
     const calc = validateExpression({'variable': 'varName'});
-    const globals = {};
     const locals = {'varName': 4};
     t.is(await evaluateExpressionAsync(calc, {}, locals), 4);
-    t.deepEqual(globals, {});
     t.deepEqual(locals, {'varName': 4});
 });
 
@@ -321,8 +476,6 @@ test('evaluateExpressionAsync, variable null local non-null global', async (t) =
     const globals = {'varName': 4};
     const locals = {'varName': null};
     t.is(await evaluateExpressionAsync(calc, globals, locals), null);
-    t.deepEqual(globals, {'varName': 4});
-    t.deepEqual(locals, {'varName': null});
 });
 
 
@@ -361,7 +514,6 @@ test('evaluateExpressionAsync, function if', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncOne = async () => 1;
     let globals = {asyncOne, 'test': true};
     t.is(await evaluateExpressionAsync(calc, globals), 1);
@@ -391,7 +543,6 @@ test('evaluateExpressionAsync, function if no true expression', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncTrue = async () => true;
     t.is(await evaluateExpressionAsync(calc, {asyncTrue}), null);
 });
@@ -407,7 +558,6 @@ test('evaluateExpressionAsync, function if no false expression', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncFalse = async () => false;
     t.is(await evaluateExpressionAsync(calc, {asyncFalse}), null);
 });
@@ -430,7 +580,6 @@ test('evaluateExpressionAsync, function getGlobal setGlobal', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncA = async () => 'a';
     const globals = {asyncA, 'a': 1};
     t.is(await evaluateExpressionAsync(calc, globals), 1);
@@ -455,7 +604,6 @@ test('evaluateExpressionAsync, function getGlobal setGlobal unknown', async (t) 
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncA = async () => 'a';
     const globals = {asyncA};
     t.is(await evaluateExpressionAsync(calc, globals), null);
@@ -472,7 +620,6 @@ test('evaluateExpressionAsync, function builtin', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncOne = async () => -1;
     t.is(await evaluateExpressionAsync(calc, {asyncOne}), 1);
 });
@@ -487,11 +634,11 @@ test('evaluateExpressionAsync, function no-builtins', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncOne = async () => -1;
-    const error = await t.throwsAsync(async () => {
-        await evaluateExpressionAsync(calc, {asyncOne}, null, null, false);
-    }, {'instanceOf': CalcScriptRuntimeError});
+    const error = await t.throwsAsync(
+        async () => evaluateExpressionAsync(calc, {asyncOne}, null, null, false),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
     t.is(error.message, 'Undefined function "abs"');
 });
 
@@ -505,7 +652,6 @@ test('evaluateExpressionAsync, function global', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncThree = async () => 3;
     const globals = {asyncThree, 'fnName': ([number]) => 2 * number};
     t.is(await evaluateExpressionAsync(calc, globals), 6);
@@ -521,7 +667,6 @@ test('evaluateExpressionAsync, function local', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncThree = async () => 3;
     const locals = {'fnLocal': ([number]) => 2 * number};
     t.is(await evaluateExpressionAsync(calc, {asyncThree}, locals), 6);
@@ -537,13 +682,13 @@ test('evaluateExpressionAsync, function local null', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncNull = async () => null;
-    const globals = {asyncNull, 'fnLocal': ([number]) => 2 * number};
+    const globals = {asyncNull, 'fnLocal': 'abc'};
     const locals = {'fnLocal': null};
-    const error = await t.throwsAsync(async () => {
-        await evaluateExpressionAsync(calc, globals, locals);
-    }, {'instanceOf': CalcScriptRuntimeError});
+    const error = await t.throwsAsync(
+        async () => evaluateExpressionAsync(calc, globals, locals),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
     t.is(error.message, 'Undefined function "fnLocal"');
 });
 
@@ -557,7 +702,6 @@ test('evaluateExpressionAsync, function non-function', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncNull = async () => null;
     const globals = {asyncNull, 'fnLocal': 'abc'};
     t.is(await evaluateExpressionAsync(calc, globals), null);
@@ -573,7 +717,6 @@ test('evaluateExpressionAsync, function non-function logFn', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncNull = async () => null;
     const globals = {asyncNull, 'fnLocal': 'abc'};
     const logs = [];
@@ -595,11 +738,11 @@ test('evaluateExpressionAsync, function unknown', async (t) => {
             ]
         }
     });
-    // eslint-disable-next-line require-await
     const asyncNull = async () => null;
-    const error = await t.throwsAsync(async () => {
-        await evaluateExpressionAsync(calc, {asyncNull});
-    }, {'instanceOf': CalcScriptRuntimeError});
+    const error = await t.throwsAsync(
+        async () => evaluateExpressionAsync(calc, {asyncNull}),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
     t.is(error.message, 'Undefined function "fnUnknown"');
 });
 
@@ -610,7 +753,6 @@ test('evaluateExpressionAsync, function async', async (t) => {
             'name': 'fnAsync'
         }
     });
-    // eslint-disable-next-line require-await
     const globals = {'fnAsync': async () => null};
     t.is(await evaluateExpressionAsync(calc, globals), null);
 });
@@ -622,16 +764,15 @@ test('evaluateExpressionAsync, function runtime error', async (t) => {
             'name': 'test'
         }
     });
-    // eslint-disable-next-line require-await
     const globals = {
-        // eslint-disable-next-line require-await
         'test': async () => {
             throw new CalcScriptRuntimeError('Test error');
         }
     };
-    const error = await t.throwsAsync(async () => {
-        await evaluateExpressionAsync(calc, globals);
-    }, {'instanceOf': CalcScriptRuntimeError});
+    const error = await t.throwsAsync(
+        async () => evaluateExpressionAsync(calc, globals),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
     t.is(error.message, 'Test error');
 });
 
@@ -644,7 +785,6 @@ test('evaluateExpressionAsync, binary logical and', async (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'function': {'name': 'asyncOne'}}]}}
         }
     });
-    // eslint-disable-next-line require-await
     const asyncOne = async () => 1;
     const globals = {asyncOne};
     t.is(await evaluateExpressionAsync(calc, globals), null);
@@ -663,7 +803,6 @@ test('evaluateExpressionAsync, binary logical or', async (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'function': {'name': 'asyncOne'}}]}}
         }
     });
-    // eslint-disable-next-line require-await
     const asyncOne = async () => 1;
     const globals = {asyncOne, 'a': true};
     t.is(await evaluateExpressionAsync(calc, globals), true);
@@ -676,7 +815,6 @@ test('evaluateExpressionAsync, binary logical or', async (t) => {
 
 test('evaluateExpressionAsync, binary exponentiation', async (t) => {
     const calc = validateExpression({'binary': {'op': '**', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 100);
 });
@@ -684,7 +822,6 @@ test('evaluateExpressionAsync, binary exponentiation', async (t) => {
 
 test('evaluateExpressionAsync, binary multiplication', async (t) => {
     const calc = validateExpression({'binary': {'op': '*', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 20);
 });
@@ -692,7 +829,6 @@ test('evaluateExpressionAsync, binary multiplication', async (t) => {
 
 test('evaluateExpressionAsync, binary division', async (t) => {
     const calc = validateExpression({'binary': {'op': '/', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 5);
 });
@@ -700,7 +836,6 @@ test('evaluateExpressionAsync, binary division', async (t) => {
 
 test('evaluateExpressionAsync, binary modulus', async (t) => {
     const calc = validateExpression({'binary': {'op': '%', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 0);
 });
@@ -708,7 +843,6 @@ test('evaluateExpressionAsync, binary modulus', async (t) => {
 
 test('evaluateExpressionAsync, binary addition', async (t) => {
     const calc = validateExpression({'binary': {'op': '+', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 12);
 });
@@ -716,7 +850,6 @@ test('evaluateExpressionAsync, binary addition', async (t) => {
 
 test('evaluateExpressionAsync, binary subtraction', async (t) => {
     const calc = validateExpression({'binary': {'op': '-', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 8);
 });
@@ -724,7 +857,6 @@ test('evaluateExpressionAsync, binary subtraction', async (t) => {
 
 test('evaluateExpressionAsync, binary less-than or equal-to', async (t) => {
     const calc = validateExpression({'binary': {'op': '<=', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), false);
 });
@@ -732,7 +864,6 @@ test('evaluateExpressionAsync, binary less-than or equal-to', async (t) => {
 
 test('evaluateExpressionAsync, binary less-than', async (t) => {
     const calc = validateExpression({'binary': {'op': '<', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), false);
 });
@@ -740,7 +871,6 @@ test('evaluateExpressionAsync, binary less-than', async (t) => {
 
 test('evaluateExpressionAsync, binary greater-than or equal-to', async (t) => {
     const calc = validateExpression({'binary': {'op': '>=', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), true);
 });
@@ -748,7 +878,6 @@ test('evaluateExpressionAsync, binary greater-than or equal-to', async (t) => {
 
 test('evaluateExpressionAsync, binary greater-than', async (t) => {
     const calc = validateExpression({'binary': {'op': '>', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), true);
 });
@@ -756,7 +885,6 @@ test('evaluateExpressionAsync, binary greater-than', async (t) => {
 
 test('evaluateExpressionAsync, binary equality', async (t) => {
     const calc = validateExpression({'binary': {'op': '==', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), false);
 });
@@ -764,7 +892,6 @@ test('evaluateExpressionAsync, binary equality', async (t) => {
 
 test('evaluateExpressionAsync, binary inequality', async (t) => {
     const calc = validateExpression({'binary': {'op': '!=', 'left': {'number': '10'}, 'right': {'function': {'name': 'asyncTwo'}}}});
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), true);
 });
@@ -772,7 +899,6 @@ test('evaluateExpressionAsync, binary inequality', async (t) => {
 
 test('evaluateExpressionAsync, unary not', async (t) => {
     const calc = validateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'asyncFalse'}}}});
-    // eslint-disable-next-line require-await
     const asyncFalse = async () => false;
     t.is(await evaluateExpressionAsync(calc, {asyncFalse}), true);
 });
@@ -780,7 +906,6 @@ test('evaluateExpressionAsync, unary not', async (t) => {
 
 test('evaluateExpressionAsync, unary negate', async (t) => {
     const calc = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'asyncOne'}}}});
-    // eslint-disable-next-line require-await
     const asyncOne = async () => 1;
     t.is(await evaluateExpressionAsync(calc, {asyncOne}), -1);
 });
@@ -806,7 +931,6 @@ test('evaluateExpressionAsync, group', async (t) => {
             }
         }
     );
-    // eslint-disable-next-line require-await
     const asyncTwo = async () => 2;
     t.is(await evaluateExpressionAsync(calc, {asyncTwo}), 16);
 });

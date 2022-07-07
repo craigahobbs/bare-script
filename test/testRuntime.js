@@ -1,11 +1,12 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-/* eslint-disable id-length */
-
 import {CalcScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import test from 'ava';
+
+
+/* eslint-disable id-length */
 
 
 test('executeScript', (t) => {
@@ -202,6 +203,19 @@ test('executeScript, jumpif', (t) => {
 });
 
 
+test('executeScript, jump error unknown label', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'jump': {'label': 'unknownLabel'}}
+        ]
+    });
+    const error = t.throws(() => {
+        executeScript(script);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Unknown jump label "unknownLabel"');
+});
+
+
 test('executeScript, return', (t) => {
     const script = validateScript({
         'statements': [
@@ -222,16 +236,33 @@ test('executeScript, return blank', (t) => {
 });
 
 
-test('executeScript, jump error unknown label', (t) => {
+test('executeScript, include', (t) => {
     const script = validateScript({
         'statements': [
-            {'jump': {'label': 'unknownLabel'}}
+            {'include': 'test.mds'}
+        ]
+    });
+
+    /* c8 ignore next */
+    const fetchFn = () => ({'ok': true, 'text': () => ''});
+    const options = {fetchFn};
+    const error = t.throws(() => {
+        executeScript(script, options);
+    }, {'instanceOf': CalcScriptRuntimeError});
+    t.is(error.message, 'Include of "test.mds" within non-async scope');
+});
+
+
+test('executeScript, include no fetchFn', (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
         ]
     });
     const error = t.throws(() => {
         executeScript(script);
     }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Unknown jump label "unknownLabel"');
+    t.is(error.message, 'Include of "test.mds" within non-async scope');
 });
 
 
@@ -282,7 +313,6 @@ test('evaluateExpression', (t) => {
     });
     const globals = {'varName': 4};
     t.is(evaluateExpression(calc, globals), 19);
-    t.deepEqual(globals, {'varName': 4});
 });
 
 
@@ -296,16 +326,13 @@ test('evaluateExpression, variable', (t) => {
     const calc = validateExpression({'variable': 'varName'});
     const globals = {'varName': 4};
     t.is(evaluateExpression(calc, globals), 4);
-    t.deepEqual(globals, {'varName': 4});
 });
 
 
 test('evaluateExpression, variable local', (t) => {
     const calc = validateExpression({'variable': 'varName'});
-    const globals = {};
     const locals = {'varName': 4};
     t.is(evaluateExpression(calc, {}, locals), 4);
-    t.deepEqual(globals, {});
     t.deepEqual(locals, {'varName': 4});
 });
 
@@ -315,8 +342,6 @@ test('evaluateExpression, variable null local non-null global', (t) => {
     const globals = {'varName': 4};
     const locals = {'varName': null};
     t.is(evaluateExpression(calc, globals, locals), null);
-    t.deepEqual(globals, {'varName': 4});
-    t.deepEqual(locals, {'varName': null});
 });
 
 
@@ -510,7 +535,7 @@ test('evaluateExpression, function local null', (t) => {
             'name': 'fnLocal'
         }
     });
-    const globals = {'fnLocal': ([number]) => 2 * number};
+    const globals = {'fnLocal': 'abc'};
     const locals = {'fnLocal': null};
     const error = t.throws(() => {
         evaluateExpression(calc, globals, locals);
@@ -566,6 +591,8 @@ test('evaluateExpression, function async', (t) => {
             'name': 'fnAsync'
         }
     });
+
+    /* c8 ignore next 2 */
     // eslint-disable-next-line require-await
     const globals = {'fnAsync': async () => null};
     const error = t.throws(() => {
