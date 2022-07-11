@@ -1,7 +1,7 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-import {parseExpression, parseScript} from '../lib/parser.js';
+import {CalcScriptParserError, parseExpression, parseScript} from '../lib/parser.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import test from 'ava';
 
@@ -33,9 +33,9 @@ test('parseScript, array input', (t) => {
 
 test('parseScript, line continuation', (t) => {
     const script = validateScript(parseScript(`\
-a = arrayNew( \
-    1, \
-    2 \
+a = arrayNew( \\
+    1, \\
+    2 \\
 )
 `));
     t.deepEqual(script, {
@@ -48,6 +48,22 @@ a = arrayNew( \
             }
         ]
     });
+});
+
+
+test('parseScript, line continuation error', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+    fn1(arg1, \\
+    fn2(), 
+    null))
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Syntax error, line number 1:
+    fn1(arg1, fn2(),
+                    ^
+`);
 });
 
 
@@ -179,14 +195,14 @@ include "fi\\"le.mds"
 
 test('parseScript, expression statement syntax error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 a = 0
 b = 1
 foo \
 bar
 c = 2
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error, line number 3:
 foo bar
@@ -201,11 +217,11 @@ foo bar
 
 test('parseScript, assignment statement expression syntax error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 a = 0
 b = 1 + foo bar
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error, line number 2:
 b = 1 + foo bar
@@ -220,10 +236,10 @@ b = 1 + foo bar
 
 test('parseScript, jump statement expression syntax error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 jumpif (@#$) label
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error, line number 1:
 jumpif (@#$) label
@@ -238,10 +254,10 @@ jumpif (@#$) label
 
 test('parseScript, return statement expression syntax error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 return @#$
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error, line number 1:
 return @#$
@@ -256,13 +272,13 @@ return @#$
 
 test('parseScript, nested function statement error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 function foo()
     function bar()
     endfunction
 endfunction
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Nested function definition, line number 2:
     function bar()
@@ -277,11 +293,11 @@ Nested function definition, line number 2:
 
 test('parseScript, endfunction statement error', (t) => {
     const error = t.throws(() => {
-        validateScript(parseScript(`\
+        parseScript(`\
 a = 1
 endfunction
-`));
-    });
+`);
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 No matching function definition, line number 2:
 endfunction
@@ -327,7 +343,7 @@ test('parseExpression, syntax error', (t) => {
     const exprText = ' @#$';
     const error = t.throws(() => {
         parseExpression(exprText);
-    });
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error:
 ${exprText}
@@ -343,7 +359,7 @@ test('parseExpression, nextText syntax error', (t) => {
     const exprText = 'foo bar';
     const error = t.throws(() => {
         parseExpression(exprText);
-    });
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error:
 ${exprText}
@@ -359,7 +375,7 @@ test('parseExpression, syntax error, unmatched parenthesis', (t) => {
     const exprText = '10 * (1 + 2';
     const error = t.throws(() => {
         parseExpression(exprText);
-    });
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Unmatched parenthesis:
 ${exprText}
@@ -375,7 +391,7 @@ test('parseExpression, function argument syntax error', (t) => {
     const exprText = 'foo(1, 2 3)';
     const error = t.throws(() => {
         parseExpression(exprText);
-    });
+    }, {'instanceOf': CalcScriptParserError});
     t.is(error.message, `\
 Syntax error:
 foo(1, 2 3)
