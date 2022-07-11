@@ -1,0 +1,1390 @@
+{
+    "functions": [
+        {
+            "name": "arrayCopy",
+            "group": "Array",
+            "doc": [
+                "Create a copy of an array"
+            ],
+            "args": [
+                {
+                    "name": "array",
+                    "doc": [
+                        "The array to copy"
+                    ]
+                }
+            ],
+            "return": [
+                "A copy of the array"
+            ]
+        },
+        {
+            "name": "arrayGet",
+            "group": "Array",
+            "doc": [
+                "Get an array element"
+            ],
+            "args": [
+                {
+                    "name": "array",
+                    "doc": [
+                        "The array"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "The array element's index"
+                    ]
+                }
+            ],
+            "return": [
+                "The array element"
+            ]
+        },
+        {
+            "name": "arrayIndexOf",
+            "group": "Array",
+            "doc": [
+                "Find the index of a value in the array"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayJoin",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayLastIndexOf",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayLength",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayNew",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayNewSize",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayPop",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arrayPush",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arraySet",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arraySlice",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "arraySort",
+            "group": "Array",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeDate",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeDay",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeHour",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeMinute",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeMonth",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeNow",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeSecond",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeToday",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "datetimeYear",
+            "group": "Datetime",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "debugLog",
+            "group": "Debug",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "fetch",
+            "group": "Fetch",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "jsonParse",
+            "group": "JSON",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "jsonStringify",
+            "group": "JSON",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathAbs",
+            "group": "Math",
+            "doc": [
+                "Compute the absolute value of a number"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "The absolute value of the number"
+            ]
+        },
+        {
+            "name": "mathAcos",
+            "group": "Math",
+            "doc": [
+                "Compute the arccosine (in radians) of a number"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "The arccosine (in radians) of the number"
+            ]
+        },
+        {
+            "name": "mathAsin",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathAtan",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathAtan2",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathCeil",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathCos",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathFloor",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathLn",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathLog",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathMax",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathMin",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathPi",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathRandom",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathRound",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathSign",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathSin",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathSqrt",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "mathTan",
+            "group": "Math",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "numberParseFloat",
+            "group": "Number",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "numberParseInt",
+            "group": "Number",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "string",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "radix",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "numberToFixed",
+            "group": "Number",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "x",
+                    "doc": [
+                        "A number"
+                    ]
+                },
+                {
+                    "name": "digits",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectCopy",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectDelete",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectGet",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectKeys",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectNew",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "objectSet",
+            "group": "Object",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "regexEscape",
+            "group": "Regex",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "regexMatch",
+            "group": "Regex",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "regexMatchAll",
+            "group": "Regex",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "regexNew",
+            "group": "Regex",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "regexTest",
+            "group": "Regex",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringCharCodeAt",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringEncodeURL",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringEndsWith",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringFromCharCode",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringIndexOf",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringLastIndexOf",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringLength",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringLower",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringNew",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringRepeat",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringReplace",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringSlice",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringSplit",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringStartsWith",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringTrim",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "stringUpper",
+            "group": "String",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        },
+        {
+            "name": "typeof",
+            "group": "Type",
+            "doc": [
+                "TODO"
+            ],
+            "args": [
+                {
+                    "name": "TODO",
+                    "doc": [
+                        "TODO"
+                    ]
+                }
+            ],
+            "return": [
+                "TODO"
+            ]
+        }
+    ]
+}
