@@ -1,0 +1,167 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+
+
+#
+# The calc-script library documentation application
+#
+
+
+#
+# url - The calc-script library documentation JSON resource URL
+# title - The library title
+#
+async function calcScriptLibraryDoc(url, title)
+    # URL override?
+    url = if(vURL != null, vURL, url)
+    title = if(title != null && vURL == null, title, url)
+
+    # Fetch and validate the library documentation resource
+    library = schemaValidate(libraryTypes, 'Library', fetch(url))
+    jumpif (library != null) libraryDone
+        markdownPrint('**Error:** Failed to fetch library documentation resource "' + url + '"')
+        return
+    libraryDone:
+
+    # Render the page
+    if(vDoc, calcScriptLibrarySchemaPage(title), \
+    if(vName != null, calcScriptLibraryFunctionPage(library, title, vName), \
+    calcScriptLibraryIndexPage(library, title)))
+endfunction
+
+
+function calcScriptLibraryIndexPage(library, title)
+    # Set the page title
+    setDocumentTitle(title)
+    markdownPrint('# ' + title)
+
+    # Group the function documentation
+    groups = objectNew()
+    functions = objectGet(library, 'functions')
+    ixFunction = 0
+    functionLoop:
+        function = arrayGet(functions, ixFunction)
+        group = objectGet(function, 'group')
+        groupFunctions = objectGet(groups, group)
+        jumpif (groupFunctions != null) groupFunctionsDone
+            groupFunctions = arrayNew()
+            objectSet(groups, group, groupFunctions)
+        groupFunctionsDone:
+        arrayPush(groupFunctions, objectGet(function, 'name'))
+        ixFunction = ixFunction + 1
+    jumpif (ixFunction < arrayLength(functions)) functionLoop
+
+    # Render the library function index
+    groupKeys = arraySort(objectKeys(groups))
+    ixGroupKey = 0
+    groupKeyLoop:
+        groupKey = arrayGet(groupKeys, ixGroupKey)
+
+        # Render the group key link
+        if(vGroup == groupKey, \
+        markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
+        markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')'))
+
+        # Render the group's function links
+        jumpif (vGroup != groupKey) functionsDone
+            functionNames = arraySort(objectGet(groups, groupKey))
+            ixFunctionName = 0
+            functionNameLoop:
+                functionName = arrayGet(functionNames, ixFunctionName)
+                markdownPrint('', '[' + markdownEncode(functionName) + '](' + calcScriptLibraryLink(functionName) + ')')
+                ixFunctionName = ixFunctionName + 1
+            jumpif (ixFunctionName < arrayLength(functionNames)) functionNameLoop
+        functionsDone:
+
+        ixGroupKey = ixGroupKey + 1
+    jumpif (ixGroupKey < arrayLength(groupKeys)) groupKeyLoop
+endfunction
+
+
+function calcScriptLibraryFunctionPage(libDoc, title, functionName)
+    # Set the document title
+    setDocumentTitle(title + ' - ' + functionName)
+
+    # Function exist?
+    function = null
+    functions = objectGet(libDoc, 'functions')
+    ixFunction = 0
+    functionLoop:
+        function = arrayGet(functions, ixFunction)
+        jumpif (functionName == objectGet(function, 'name')) functionDone
+        ixFunction = ixFunction + 1
+    jumpif (ixFunction < arrayLength(functions)) functionLoop
+    markdownPrint('', '**Error:** Unknown function "' + functionName + '"')
+    return
+    functionDone:
+
+    # Render the page title and menu
+    markdownPrint('# ' + title)
+    markdownPrint('', '[Index](' + calcScriptLibraryLink(null, objectGet(function, 'group')) + ')')
+
+    # Render the functions's documentation
+    markdownPrint('## ' + functionName, '', objectGet(function, 'doc'))
+    arguments = objectGet(function, 'args')
+    jumpif (arguments == null) argumentsDone
+        markdownPrint('', '### Arguments')
+        ixArgument = 0
+        argumentLoop:
+            argument = arrayGet(arguments, ixArgument)
+            markdownPrint('', '#### ' + objectGet(argument, 'name'), '', objectGet(argument, 'doc'))
+            ixArgument = ixArgument + 1
+        jumpif (ixArgument < arrayLength(arguments)) argumentLoop
+    argumentsDone:
+    if(objectGet(function, 'return') != null, markdownPrint('', '### Returns', '', objectGet(function, 'return')))
+endfunction
+
+
+function calcScriptLibraryLink(name, group)
+    parts = arrayNew()
+    if(vURL != null, arrayPush(parts, "var.vURL='" + stringEncodeURL(vURL) + "'"))
+    if(name != null, arrayPush(parts, "var.vName='" + stringEncodeURL(name) + "'"))
+    if(group != null, arrayPush(parts, "var.vGroup='" + stringEncodeURL(group) + "'"))
+    return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=')
+endfunction
+
+
+function calcScriptLibrarySchemaPage(title)
+    setDocumentTitle(title + ' - Library')
+    schemaPrint(libraryTypes, 'Library')
+endfunction
+
+
+# The library documentation schema
+libraryTypes = schemaParse( \
+    '# calc-script library documentation model', \
+    'struct Library', \
+    '', \
+    '    # The library functions', \
+    '    Function[len > 0] functions', \
+    '', \
+    '# A library function', \
+    'struct Function', \
+    '', \
+    '    # The function name', \
+    '    string name', \
+    '', \
+    '    # The function group (e.g. "Math")', \
+    '    string group', \
+    '', \
+    "    # The function's documentation Markdown lines", \
+    '    string[len > 0] doc', \
+    '', \
+    '    # The function arguments', \
+    '    optional FunctionArgument[len > 0] args', \
+    '', \
+    "    # The function return's documentation Markdown lines", \
+    '    optional string[len > 0] return', \
+    '', \
+    '# A function argument', \
+    'struct FunctionArgument', \
+    '', \
+    '    # The argument name', \
+    '    string name', \
+    '', \
+    "    # The argument's documentation Markdown lines", \
+    '    string[len > 0] doc' \
+)

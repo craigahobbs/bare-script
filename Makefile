@@ -21,3 +21,8 @@ include Makefile.base
 
 clean:
 	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
+
+
+doc:
+	cp -R static/* build/doc/
+	python3 bin/calcScriptDoc.py lib/library.js > build/doc/library/library.json
