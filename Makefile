@@ -25,4 +25,4 @@ clean:
 
 doc:
 	cp -R static/* build/doc/
-	python3 bin/calcScriptDoc.py lib/library.js > build/doc/library/library.json
+	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js > build/doc/library/library.json

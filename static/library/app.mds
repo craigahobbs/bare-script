@@ -155,10 +155,10 @@ libraryTypes = schemaParse( \
     'struct Function', \
     '', \
     '    # The function name', \
-    '    string name', \
+    '    string(len > 0) name', \
     '', \
     '    # The function group (e.g. "Math")', \
-    '    string group', \
+    '    string(len > 0) group', \
     '', \
     "    # The function's documentation Markdown lines", \
     '    string[len > 0] doc', \
@@ -173,7 +173,7 @@ libraryTypes = schemaParse( \
     'struct FunctionArgument', \
     '', \
     '    # The argument name', \
-    '    string name', \
+    '    string(len > 0) name', \
     '', \
     "    # The argument's documentation Markdown lines", \
     '    string[len > 0] doc' \

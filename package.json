@@ -14,6 +14,9 @@
         "email": "craigahobbs@gmail.com",
         "url": "https://github.com/craigahobbs"
     },
+    "bin": {
+        "calcScriptDoc": "./bin/calcScriptDoc.js"
+    },
     "files": [
         "lib/**/*"
     ],
