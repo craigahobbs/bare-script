@@ -50,9 +50,21 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
                     "doc": [
                         "TODO"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "TODO = 0"
                     ]
                 }
             ],
@@ -68,7 +80,13 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "sep",
                     "doc": [
                         "TODO"
                     ]
@@ -86,9 +104,21 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
                     "doc": [
                         "TODO"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "TODO = null"
                     ]
                 }
             ],
@@ -104,7 +134,7 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
                     "doc": [
                         "TODO"
                     ]
@@ -122,7 +152,7 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "...args",
                     "doc": [
                         "TODO"
                     ]
@@ -140,9 +170,15 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "size",
                     "doc": [
-                        "TODO"
+                        "TODO = 0"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "TODO = 0"
                     ]
                 }
             ],
@@ -158,7 +194,7 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
                     "doc": [
                         "TODO"
                     ]
@@ -176,7 +212,13 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "...values",
                     "doc": [
                         "TODO"
                     ]
@@ -194,7 +236,19 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "value",
                     "doc": [
                         "TODO"
                     ]
@@ -212,7 +266,19 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "start",
+                    "doc": [
+                        "TODO"
+                    ]
+                },
+                {
+                    "name": "end",
                     "doc": [
                         "TODO"
                     ]
@@ -230,9 +296,15 @@
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "array",
                     "doc": [
                         "TODO"
+                    ]
+                },
+                {
+                    "name": "compareFn",
+                    "doc": [
+                        "TODO = null"
                     ]
                 }
             ],
