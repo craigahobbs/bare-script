@@ -14,8 +14,8 @@ def main():
     args = parser.parse_args()
 
     # Documentation regular expressions
-    re_key = re.compile(r'^\s*(?://|#)\s*\$(?P<key>function|group|doc|return):\s*(?P<text>.+?)\s*$')
-    re_arg = re.compile(r'^\s*(?://|#)\s*\$arg\s+(?P<arg>.+?):\s*(?P<text>.+?)\s*$')
+    re_key = re.compile(r'^\s*(?://|#)\s*\$(?P<key>function|group|doc|return):\s?(?P<text>.*)$')
+    re_arg = re.compile(r'^\s*(?://|#)\s*\$arg\s+(?P<arg>.+?):\s?(?P<text>.*)$')
 
     # Parse each source file line-by-line
     function = None
@@ -58,6 +58,7 @@ def main():
                 if match_arg is not None:
                     name = match_arg.group('arg')
                     text = match_arg.group('text')
+                    isTextEmpty = (text.strip() == '')
 
                     # Keyword used outside of function scope?
                     if function is None:
@@ -65,16 +66,19 @@ def main():
 
                     # Add the function arg
                     args = function.get('args')
-                    if args is None:
+                    arg = None
+                    if args is None and not isTextEmpty:
                         args = function['args'] = []
-                    if len(args) != 0 and args[-1]['name'] == name:
+                    if args is not None and len(args) != 0 and args[-1]['name'] == name:
                         arg = args[-1]
                     else:
-                        if any(arg['name'] == name for arg in args):
+                        if args is not None and any(arg['name'] == name for arg in args):
                             raise Exception(f'{file_}:{line_ix + 1}: arg "{name}" redefined')
-                        arg = {'name': name, 'doc': []}
-                        args.append(arg)
-                    arg['doc'].append(text)
+                        if not isTextEmpty:
+                            arg = {'name': name, 'doc': []}
+                            args.append(arg)
+                    if arg is not None:
+                        arg['doc'].append(text)
 
     # Output the library documentation model to stdout
     output = {
