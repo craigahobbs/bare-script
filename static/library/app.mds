@@ -97,7 +97,7 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
 
     # Render the page title and menu
     markdownPrint('# ' + title)
-    markdownPrint('', '[Index](' + calcScriptLibraryLink(null, objectGet(function, 'group')) + ')')
+    markdownPrint('', '[Index](' + calcScriptLibraryLink(null, objectGet(function, 'group'), true) + ')')
 
     # Render the functions's documentation
     markdownPrint('## ' + functionName, '', objectGet(function, 'doc'))
@@ -115,12 +115,13 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
 endfunction
 
 
-function calcScriptLibraryLink(name, group)
+function calcScriptLibraryLink(name, group, addGroupHeaderId)
     parts = arrayNew()
     if(vURL != null, arrayPush(parts, "var.vURL='" + stringEncodeURL(vURL) + "'"))
     if(name != null, arrayPush(parts, "var.vName='" + stringEncodeURL(name) + "'"))
     if(group != null, arrayPush(parts, "var.vGroup='" + stringEncodeURL(group) + "'"))
-    return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=')
+    return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=') + \
+        if(addGroupHeaderId && group != null, '&' + markdownHeaderId(group), '')
 endfunction
 
 
