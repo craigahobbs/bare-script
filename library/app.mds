@@ -35,6 +35,12 @@ function calcScriptLibraryIndexPage(library, title)
     setDocumentTitle(title)
     markdownPrint('# ' + title)
 
+    # Render the index menu
+    if(vExpand, \
+        markdownPrint('[Collapse](#var=)'), \
+        markdownPrint('[Expand](#var.vExpand=1)') \
+    )
+
     # Group the function documentation
     groups = objectNew()
     functions = objectGet(library, 'functions')
@@ -58,12 +64,16 @@ function calcScriptLibraryIndexPage(library, title)
         groupKey = arrayGet(groupKeys, ixGroupKey)
 
         # Render the group key link
-        if(vGroup == groupKey, \
-        markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
-        markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')'))
+        if(vExpand, \
+            markdownPrint('## ' + markdownEncode(groupKey)), \
+            if(vGroup == groupKey, \
+                markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
+                markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')') \
+            ) \
+        )
 
         # Render the group's function links
-        jumpif (vGroup != groupKey) functionsDone
+        jumpif (!(vExpand || vGroup == groupKey)) functionsDone
             functionNames = arraySort(objectGet(groups, groupKey))
             ixFunctionName = 0
             functionNameLoop:
@@ -121,6 +131,7 @@ function calcScriptLibraryLink(name, group, addGroupHeaderId)
     if(vURL != null, arrayPush(parts, "var.vURL='" + stringEncodeURL(vURL) + "'"))
     if(name != null, arrayPush(parts, "var.vName='" + stringEncodeURL(name) + "'"))
     if(group != null, arrayPush(parts, "var.vGroup='" + stringEncodeURL(group) + "'"))
+    if(vExpand, arrayPush(parts, 'var.vExpand=1'))
     return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=') + \
         if(addGroupHeaderId && group != null, '&' + markdownHeaderId(group), '')
 endfunction
