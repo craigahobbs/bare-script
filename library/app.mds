@@ -107,7 +107,8 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
         ixArgument = 0
         argumentLoop:
             argument = arrayGet(arguments, ixArgument)
-            markdownPrint('', '#### ' + objectGet(argument, 'name'), '', objectGet(argument, 'doc'))
+            markdownPrint('', stringFromCharCode(160) + '**' + objectGet(argument, 'name') + ' -**' + \
+                stringFromCharCode(160), objectGet(argument, 'doc'))
             ixArgument = ixArgument + 1
         jumpif (ixArgument < arrayLength(arguments)) argumentLoop
     argumentsDone:
