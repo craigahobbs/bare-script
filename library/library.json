@@ -476,7 +476,7 @@
         },
         {
             "name": "debugLog",
-            "group": "Debug",
+            "group": "Miscellaneous",
             "doc": [
                 "TODO"
             ],
@@ -494,7 +494,7 @@
         },
         {
             "name": "fetch",
-            "group": "Fetch",
+            "group": "Miscellaneous",
             "doc": [
                 "TODO"
             ],
@@ -1442,7 +1442,7 @@
         },
         {
             "name": "typeof",
-            "group": "Type",
+            "group": "Miscellaneous",
             "doc": [
                 "TODO"
             ],
