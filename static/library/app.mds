@@ -3,12 +3,12 @@
 
 
 #
-# The calc-script library documentation application
+# The CalcScript library documentation application
 #
 
 
 #
-# url - The calc-script library documentation JSON resource URL
+# url - The library documentation JSON resource URL
 # title - The library title
 #
 async function calcScriptLibraryDoc(url, title)
@@ -145,7 +145,7 @@ endfunction
 
 # The library documentation schema
 libraryTypes = schemaParse( \
-    '# calc-script library documentation model', \
+    '# A library documentation model', \
     'struct Library', \
     '', \
     '    # The library functions', \
