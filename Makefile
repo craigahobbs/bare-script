@@ -19,6 +19,9 @@ $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-bui
 include Makefile.base
 
 
+ESLINT_ARGS := $(ESLINT_ARGS) bin/
+
+
 clean:
 	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
 
