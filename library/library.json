@@ -152,7 +152,7 @@
             ],
             "args": [
                 {
-                    "name": "...args",
+                    "name": "args",
                     "doc": [
                         "TODO"
                     ]
@@ -218,7 +218,7 @@
                     ]
                 },
                 {
-                    "name": "...values",
+                    "name": "values",
                     "doc": [
                         "TODO"
                     ]
