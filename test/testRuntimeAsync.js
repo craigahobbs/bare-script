@@ -390,6 +390,7 @@ test('executeScriptAsync, include fetchFn parser error', async (t) => {
         {'instanceOf': CalcScriptParserError}
     );
     t.is(error.message, `\
+Included from "test.mds"
 Syntax error, line number 1:
 foo bar
    ^
