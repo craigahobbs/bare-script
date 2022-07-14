@@ -55,7 +55,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
     # Group the function documentation
     groups = objectNew()
     functions = objectGet(library, 'functions')
-    debugLog('Library contains ' + arrayLength(functions) + ' functions')
+    debugLog('Library has ' + arrayLength(functions) + ' functions')
     ixFunction = 0
     functionLoop:
         function = arrayGet(functions, ixFunction)
