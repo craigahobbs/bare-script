@@ -176,6 +176,13 @@ test('library, arrayPop', (t) => {
 });
 
 
+test('library, arrayPop empty', (t) => {
+    const array = [];
+    t.is(scriptFunctions.arrayPop([array]), null);
+    t.deepEqual(array, []);
+});
+
+
 test('library, arrayPop non-array', (t) => {
     t.is(scriptFunctions.arrayPop([null]), null);
 });
@@ -183,8 +190,8 @@ test('library, arrayPop non-array', (t) => {
 
 test('library, arrayPush', (t) => {
     const array = [1, 2, 3];
-    t.is(scriptFunctions.arrayPush([array, 4]), 4);
-    t.deepEqual(array, [1, 2, 3, 4]);
+    t.is(scriptFunctions.arrayPush([array, 5]), 4);
+    t.deepEqual(array, [1, 2, 3, 5]);
 });
 
 
@@ -195,13 +202,13 @@ test('library, arrayPush non-array', (t) => {
 
 test('library, arraySet', (t) => {
     const array = [1, 2, 3];
-    t.is(typeof scriptFunctions.arraySet([array, 1, 5]), 'undefined');
+    t.is(scriptFunctions.arraySet([array, 1, 5]), 5);
     t.deepEqual(array, [1, 5, 3]);
 });
 
 
 test('library, arraySet non-array', (t) => {
-    t.is(typeof scriptFunctions.arraySet([null, 1, 5]), 'undefined');
+    t.is(scriptFunctions.arraySet([null, 1, 5]), null);
 });
 
 
