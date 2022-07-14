@@ -42,13 +42,12 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
         markdownPrint('[Expand](#var.vExpand=1)') \
     )
     jumpif (menuLinks == null || arrayLength(menuLinks) == 0) menuLinksDone
-        markdownPrint('|')
         ixMenuLink = 0
         menuLinkLoop:
             menuLink = arrayGet(menuLinks, ixMenuLink)
             menuLinkText = arrayGet(menuLink, 0)
             menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint('[' + markdownEncode(menuLinkText) + '](' + menuLinkURL + ')')
+            markdownPrint('| [' + markdownEncode(menuLinkText) + '](' + menuLinkURL + ')')
             ixMenuLink = ixMenuLink + 1
         jumpif (ixMenuLink < arrayLength(menuLinks)) menuLinkLoop
     menuLinksDone:
