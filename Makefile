@@ -26,6 +26,26 @@ clean:
 	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
 
 
+define LIBRARY_EXPR
+import {expressionFunctionMap} from "./lib/library.js";
+import {readFileSync} from 'node:fs';
+
+// Load the script library documentation
+const library = JSON.parse(readFileSync('build/doc/library/library.json'));
+const libraryFunctionMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
+
+// Output the expression library documentation
+const libraryExpr = {'functions': []};
+for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) {
+    libraryExpr.functions.push({...libraryFunctionMap[scriptFnName], 'name': exprFnName});
+}
+console.log(JSON.stringify(libraryExpr, null, 4));
+endef
+
+export LIBRARY_EXPR
+
+
 doc:
 	cp -R static/* build/doc/
 	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js > build/doc/library/library.json
+	$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library-expr/library.json
