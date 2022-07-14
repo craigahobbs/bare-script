@@ -10,8 +10,9 @@
 #
 # url - The library documentation JSON resource URL
 # title - The library title
+# menuLinks - The array of text/URL menu link tuples
 #
-async function calcScriptLibraryDoc(url, title)
+async function calcScriptLibraryDoc(url, title, menuLinks)
     # URL override?
     url = if(vURL != null, vURL, url)
     title = if(title != null && vURL == null, title, url)
@@ -26,11 +27,11 @@ async function calcScriptLibraryDoc(url, title)
     # Render the page
     if(vDoc, calcScriptLibrarySchemaPage(title), \
     if(vName != null, calcScriptLibraryFunctionPage(library, title, vName), \
-    calcScriptLibraryIndexPage(library, title)))
+    calcScriptLibraryIndexPage(library, title, menuLinks)))
 endfunction
 
 
-function calcScriptLibraryIndexPage(library, title)
+function calcScriptLibraryIndexPage(library, title, menuLinks)
     # Set the page title
     setDocumentTitle(title)
     markdownPrint('# ' + title)
@@ -40,6 +41,17 @@ function calcScriptLibraryIndexPage(library, title)
         markdownPrint('[Collapse](#var=)'), \
         markdownPrint('[Expand](#var.vExpand=1)') \
     )
+    jumpif (menuLinks == null || arrayLength(menuLinks) == 0) menuLinksDone
+        markdownPrint('|')
+        ixMenuLink = 0
+        menuLinkLoop:
+            menuLink = arrayGet(menuLinks, ixMenuLink)
+            menuLinkText = arrayGet(menuLink, 0)
+            menuLinkURL = arrayGet(menuLink, 1)
+            markdownPrint('[' + markdownEncode(menuLinkText) + '](' + menuLinkURL + ')')
+            ixMenuLink = ixMenuLink + 1
+        jumpif (ixMenuLink < arrayLength(menuLinks)) menuLinkLoop
+    menuLinksDone:
 
     # Group the function documentation
     groups = objectNew()

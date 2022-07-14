@@ -16,7 +16,9 @@
             'markdownText': `\
 ~~~ markdown-script
 include 'app.mds'
-calcScriptLibraryDoc('library.json', 'The CalcScript Library')
+calcScriptLibraryDoc('library.json', 'The CalcScript Library', arrayNew( \
+    arrayNew('CalcScript', 'https://craigahobbs.github.io/calc-script/') \
+))
 ~~~
 `});
         app.run();
