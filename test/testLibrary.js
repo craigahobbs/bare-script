@@ -253,11 +253,6 @@ test('library, arraySort compare function', (t) => {
 //
 
 
-test('library, datetimeDate', (t) => {
-    t.deepEqual(scriptFunctions.datetimeDate([2022, 6, 21]), new Date(2022, 5, 21));
-});
-
-
 test('library, datetimeDay', (t) => {
     t.is(scriptFunctions.datetimeDay([new Date(2022, 5, 21)]), 21);
 });
@@ -295,6 +290,16 @@ test('library, datetimeMonth', (t) => {
 
 test('library, datetimeMonth non-datetime', (t) => {
     t.is(scriptFunctions.datetimeMonth([null]), null);
+});
+
+
+test('library, datetimeNew', (t) => {
+    t.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21]), new Date(2022, 5, 21));
+});
+
+
+test('library, datetimeNew complete', (t) => {
+    t.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100]), new Date(2022, 5, 21, 12, 30, 15, 100));
 });
 
 
