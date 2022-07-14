@@ -1119,90 +1119,114 @@
             "name": "regexEscape",
             "group": "Regex",
             "doc": [
-                "TODO"
+                "Escape a string for use in a regular expression"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string to escape"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The escaped string"
             ]
         },
         {
             "name": "regexMatch",
             "group": "Regex",
             "doc": [
-                "TODO"
+                "Find the first match of a regular expression in a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "regex",
                     "doc": [
-                        "TODO"
+                        "The regular expression"
+                    ]
+                },
+                {
+                    "name": "string",
+                    "doc": [
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The match object or null"
             ]
         },
         {
             "name": "regexMatchAll",
             "group": "Regex",
             "doc": [
-                "TODO"
+                "Find all matches of regular expression in a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "regex",
                     "doc": [
-                        "TODO"
+                        "The regular expression"
+                    ]
+                },
+                {
+                    "name": "string",
+                    "doc": [
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The match object array"
             ]
         },
         {
             "name": "regexNew",
             "group": "Regex",
             "doc": [
-                "TODO"
+                "Create a regular expression"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "pattern",
                     "doc": [
-                        "TODO"
+                        "The regular expression pattern string"
+                    ]
+                },
+                {
+                    "name": "flags",
+                    "doc": [
+                        "The [regular expression flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The regular expression or null if the pattern is invalid"
             ]
         },
         {
             "name": "regexTest",
             "group": "Regex",
             "doc": [
-                "TODO"
+                "Test if a regular expression matches a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "regex",
                     "doc": [
-                        "TODO"
+                        "The regular expression"
+                    ]
+                },
+                {
+                    "name": "string",
+                    "doc": [
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "true if the regular expression matches, false otherwise"
             ]
         },
         {
