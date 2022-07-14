@@ -120,19 +120,21 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     # Render the page title and menu
     markdownPrint('# ' + title)
     markdownPrint('', '[Index](' + calcScriptLibraryLink(null, objectGet(function, 'group'), true) + ')')
+    markdownPrint('', '## ' + functionName, '', objectGet(function, 'doc'))
 
     # Render the functions's documentation
-    markdownPrint('## ' + functionName, '', objectGet(function, 'doc'))
+    markdownPrint('', '### Arguments')
     arguments = objectGet(function, 'args')
-    jumpif (arguments == null) argumentsDone
-        markdownPrint('', '### Arguments')
+    jumpif (arguments == null) argumentsNone
         ixArgument = 0
         argumentLoop:
             argument = arrayGet(arguments, ixArgument)
-            markdownPrint('', stringFromCharCode(160) + '**' + objectGet(argument, 'name') + ' -**' + \
-                stringFromCharCode(160), objectGet(argument, 'doc'))
+            markdownPrint('', '**' + objectGet(argument, 'name') + ' -**' + stringFromCharCode(160), objectGet(argument, 'doc'))
             ixArgument = ixArgument + 1
         jumpif (ixArgument < arrayLength(arguments)) argumentLoop
+        jump argumentsDone
+    argumentsNone:
+        markdownPrint('None')
     argumentsDone:
     if(objectGet(function, 'return') != null, markdownPrint('', '### Returns', '', objectGet(function, 'return')))
 endfunction

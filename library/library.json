@@ -313,165 +313,185 @@
             ]
         },
         {
-            "name": "datetimeDate",
-            "group": "Datetime",
-            "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "TODO",
-                    "doc": [
-                        "TODO"
-                    ]
-                }
-            ],
-            "return": [
-                "TODO"
-            ]
-        },
-        {
             "name": "datetimeDay",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the day of the month of the datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The day of the month"
             ]
         },
         {
             "name": "datetimeHour",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the hour of the datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The hour"
             ]
         },
         {
             "name": "datetimeMinute",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the number of minutes of a datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The number of minutes"
             ]
         },
         {
             "name": "datetimeMonth",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the number of the month of a datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The number of the month"
+            ]
+        },
+        {
+            "name": "datetimeNew",
+            "group": "Datetime",
+            "doc": [
+                "Create a new datetime"
+            ],
+            "args": [
+                {
+                    "name": "year",
+                    "doc": [
+                        "The full year"
+                    ]
+                },
+                {
+                    "name": "month",
+                    "doc": [
+                        "The month (1-12)"
+                    ]
+                },
+                {
+                    "name": "day",
+                    "doc": [
+                        "The day of the month"
+                    ]
+                },
+                {
+                    "name": "hours",
+                    "doc": [
+                        "Optional (default is 0). The hour (0-23)"
+                    ]
+                },
+                {
+                    "name": "minutes",
+                    "doc": [
+                        "Optional (default is 0). The number of minutes."
+                    ]
+                },
+                {
+                    "name": "seconds",
+                    "doc": [
+                        "Optional (default is 0). The number of seconds."
+                    ]
+                },
+                {
+                    "name": "milliseconds",
+                    "doc": [
+                        "Optional (default is 0). The number of milliseconds."
+                    ]
+                }
+            ],
+            "return": [
+                "The new datetime"
             ]
         },
         {
             "name": "datetimeNow",
             "group": "Datetime",
             "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "TODO",
-                    "doc": [
-                        "TODO"
-                    ]
-                }
+                "Get the current datetime"
             ],
             "return": [
-                "TODO"
+                "The current datetime"
             ]
         },
         {
             "name": "datetimeSecond",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the number of seconds of a datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The number of seconds"
             ]
         },
         {
             "name": "datetimeToday",
             "group": "Datetime",
             "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "TODO",
-                    "doc": [
-                        "TODO"
-                    ]
-                }
+                "Get today's datetime"
             ],
             "return": [
-                "TODO"
+                "Today's datetime"
             ]
         },
         {
             "name": "datetimeYear",
             "group": "Datetime",
             "doc": [
-                "TODO"
+                "Get the full year of a datetime"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "datetime",
                     "doc": [
-                        "TODO"
+                        "The datetime"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The full year"
             ]
         },
         {
