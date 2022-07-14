@@ -15,7 +15,7 @@
                 }
             ],
             "return": [
-                "A copy of the array"
+                "The array copy"
             ]
         },
         {
@@ -52,264 +52,264 @@
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "value",
                     "doc": [
-                        "TODO"
+                        "The value to find in the array"
                     ]
                 },
                 {
                     "name": "index",
                     "doc": [
-                        "TODO = 0"
+                        "Optional (default is 0). The index at which to start the search."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The first index of the value in the array; -1 if not found."
             ]
         },
         {
             "name": "arrayJoin",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Join an array with a separator string"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
-                    "name": "sep",
+                    "name": "separator",
                     "doc": [
-                        "TODO"
+                        "The separator string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The joined string"
             ]
         },
         {
             "name": "arrayLastIndexOf",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Find the last index of a value in the array"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "value",
                     "doc": [
-                        "TODO"
+                        "The value to find in the array"
                     ]
                 },
                 {
                     "name": "index",
                     "doc": [
-                        "TODO = null"
+                        "Optional (default is the end of the string). The index at which to start the search."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The last index of the value in the array; -1 if not found."
             ]
         },
         {
             "name": "arrayLength",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Get the length of an array"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The array's length"
             ]
         },
         {
             "name": "arrayNew",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Create a new array"
             ],
             "args": [
                 {
                     "name": "args",
                     "doc": [
-                        "TODO"
+                        "The new array's values"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new array"
             ]
         },
         {
             "name": "arrayNewSize",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Create a new array of a specific size"
             ],
             "args": [
                 {
                     "name": "size",
                     "doc": [
-                        "TODO = 0"
+                        "Optional (default is 0). The new array's size."
                     ]
                 },
                 {
                     "name": "value",
                     "doc": [
-                        "TODO = 0"
+                        "Optional (default is 0). The value with which to fill the new array."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new array"
             ]
         },
         {
             "name": "arrayPop",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Remove the last element of the array and return it"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The last element of the array; null if the array is empty."
             ]
         },
         {
             "name": "arrayPush",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Add one or more values to the end of the array"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "values",
                     "doc": [
-                        "TODO"
+                        "The values to add to the end of the array"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new length of the array"
             ]
         },
         {
             "name": "arraySet",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Set an array element value"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "index",
                     "doc": [
-                        "TODO"
+                        "The index of the element to set"
                     ]
                 },
                 {
                     "name": "value",
                     "doc": [
-                        "TODO"
+                        "The value to set"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The value to set"
             ]
         },
         {
             "name": "arraySlice",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Copy a portion of an array"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "start",
                     "doc": [
-                        "TODO"
+                        "Optional (default is 0). The start index of the slice."
                     ]
                 },
                 {
                     "name": "end",
                     "doc": [
-                        "TODO"
+                        "Optional (default is the end of the string). The end index of the slice."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new array slice"
             ]
         },
         {
             "name": "arraySort",
             "group": "Array",
             "doc": [
-                "TODO"
+                "Sort an array"
             ],
             "args": [
                 {
                     "name": "array",
                     "doc": [
-                        "TODO"
+                        "The array"
                     ]
                 },
                 {
                     "name": "compareFn",
                     "doc": [
-                        "TODO = null"
+                        "Optional (default is null). The comparison function."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The sorted array"
             ]
         },
         {
