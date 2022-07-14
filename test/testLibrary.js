@@ -495,18 +495,18 @@ test('library, debugLog', (t) => {
         logs.push(string);
     };
     const options = {'logFn': logFn};
-    t.is(typeof scriptFunctions.debugLog(['Hello'], options), 'undefined');
+    t.is(scriptFunctions.debugLog(['Hello'], options), undefined);
     t.deepEqual(logs, ['Hello']);
 });
 
 
 test('library, debugLog null options', (t) => {
-    t.is(typeof scriptFunctions.debugLog(['Hello'], null), 'undefined');
+    t.is(scriptFunctions.debugLog(['Hello'], null), undefined);
 });
 
 
 test('library, debugLog no log function', (t) => {
-    t.is(typeof scriptFunctions.debugLog(['Hello'], {}), 'undefined');
+    t.is(scriptFunctions.debugLog(['Hello'], {}), undefined);
 });
 
 
@@ -754,25 +754,25 @@ test('library, objectCopy non-object', (t) => {
 
 test('library, objectDelete', (t) => {
     const obj = {'a': 1, 'b': 2};
-    t.true(scriptFunctions.objectDelete([obj, 'a']));
+    t.is(scriptFunctions.objectDelete([obj, 'a']), undefined);
     t.deepEqual(obj, {'b': 2});
 });
 
 
 test('library, objectDelete missing', (t) => {
     const obj = {'b': 2};
-    t.true(scriptFunctions.objectDelete([obj, 'a']));
+    t.is(scriptFunctions.objectDelete([obj, 'a']), undefined);
     t.deepEqual(obj, {'b': 2});
 });
 
 
 test('library, objectDelete null', (t) => {
-    t.is(scriptFunctions.objectDelete([null, 'a']), null);
+    t.is(scriptFunctions.objectDelete([null, 'a']), undefined);
 });
 
 
 test('library, objectDelete non-object', (t) => {
-    t.is(scriptFunctions.objectDelete([0, 'a']), null);
+    t.is(scriptFunctions.objectDelete([0, 'a']), undefined);
 });
 
 
@@ -831,18 +831,18 @@ test('library, objectNew odd', (t) => {
 
 test('library, objectSet missing', (t) => {
     const obj = {'a': 1, 'b': 2};
-    t.is(typeof scriptFunctions.objectSet([obj, 'c', 3]), 'undefined');
+    t.is(scriptFunctions.objectSet([obj, 'c', 3]), 3);
     t.deepEqual(obj, {'a': 1, 'b': 2, 'c': 3});
 });
 
 
 test('library, objectSet null', (t) => {
-    t.is(typeof scriptFunctions.objectSet([null, 'c', 3]), 'undefined');
+    t.is(scriptFunctions.objectSet([null, 'c', 3]), null);
 });
 
 
 test('library, objectSet non-object', (t) => {
-    t.is(typeof scriptFunctions.objectSet([0, 'c', 3]), 'undefined');
+    t.is(scriptFunctions.objectSet([0, 'c', 3]), null);
 });
 
 
