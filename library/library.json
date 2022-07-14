@@ -534,36 +534,42 @@
             "name": "jsonParse",
             "group": "JSON",
             "doc": [
-                "TODO"
+                "Convert a JSON string to an object"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The JSON string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The object"
             ]
         },
         {
             "name": "jsonStringify",
             "group": "JSON",
             "doc": [
-                "TODO"
+                "Convert an object to a JSON string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "value",
                     "doc": [
-                        "TODO"
+                        "The object"
+                    ]
+                },
+                {
+                    "name": "space",
+                    "doc": [
+                        "Optional (default is null). The indentation string or number."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The JSON string"
             ]
         },
         {
