@@ -118,7 +118,7 @@
                 {
                     "name": "index",
                     "doc": [
-                        "Optional (default is the end of the string). The index at which to start the search."
+                        "Optional (default is the end of the array). The index at which to start the search."
                     ]
                 }
             ],
@@ -280,7 +280,7 @@
                 {
                     "name": "end",
                     "doc": [
-                        "Optional (default is the end of the string). The end index of the slice."
+                        "Optional (default is the end of the array). The end index of the slice."
                     ]
                 }
             ],
@@ -1233,288 +1233,372 @@
             "name": "stringCharCodeAt",
             "group": "String",
             "doc": [
-                "TODO"
+                "Get the character code for the character at a specific string index"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "The character index"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The character code"
             ]
         },
         {
             "name": "stringEncodeURL",
             "group": "String",
             "doc": [
-                "TODO"
+                "Encode a string for use in a URL"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "uriComponent",
                     "doc": [
-                        "TODO"
+                        "The URI component string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The encoded string"
             ]
         },
         {
             "name": "stringEndsWith",
             "group": "String",
             "doc": [
-                "TODO"
+                "Determine if a string ends with a search string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "searchString",
+                    "doc": [
+                        "The search string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "true if the string ends with the search string, false otherwise"
             ]
         },
         {
             "name": "stringFromCharCode",
             "group": "String",
             "doc": [
-                "TODO"
+                "Create a string from the character code arguments"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "charCodes",
                     "doc": [
-                        "TODO"
+                        "The character codes"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The string created from the character codes"
             ]
         },
         {
             "name": "stringIndexOf",
             "group": "String",
             "doc": [
-                "TODO"
+                "Find the first index of a search string in a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "searchString",
+                    "doc": [
+                        "The search string"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "Optional (default is 0). The index at which to start the search."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The first index of the search string; -1 if not found."
             ]
         },
         {
             "name": "stringLastIndexOf",
             "group": "String",
             "doc": [
-                "TODO"
+                "Find the last index of a search string in a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "searchString",
+                    "doc": [
+                        "The search string"
+                    ]
+                },
+                {
+                    "name": "index",
+                    "doc": [
+                        "Optional (default is the end of the string). The index at which to start the search."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The last index of the search string; -1 if not found."
             ]
         },
         {
             "name": "stringLength",
             "group": "String",
             "doc": [
-                "TODO"
+                "Get the length of a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The string's length"
             ]
         },
         {
             "name": "stringLower",
             "group": "String",
             "doc": [
-                "TODO"
+                "Convert a string to lower-case"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The lower-case string"
             ]
         },
         {
             "name": "stringNew",
             "group": "String",
             "doc": [
-                "TODO"
+                "Create a new string from a value"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "value",
                     "doc": [
-                        "TODO"
+                        "The value"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The value string"
             ]
         },
         {
             "name": "stringRepeat",
             "group": "String",
             "doc": [
-                "TODO"
+                "Repeat a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string to repeat"
+                    ]
+                },
+                {
+                    "name": "count",
+                    "doc": [
+                        "The number of times to repeat the string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The repeated string"
             ]
         },
         {
             "name": "stringReplace",
             "group": "String",
             "doc": [
-                "TODO"
+                "Replace all instances of a string with another string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string to update"
+                    ]
+                },
+                {
+                    "name": "substr",
+                    "doc": [
+                        "The string to replace"
+                    ]
+                },
+                {
+                    "name": "newSubstr",
+                    "doc": [
+                        "The replacement string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The updated string"
             ]
         },
         {
             "name": "stringSlice",
             "group": "String",
             "doc": [
-                "TODO"
+                "Copy a portion of a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "start",
+                    "doc": [
+                        "Optional (default is 0). The start index of the slice."
+                    ]
+                },
+                {
+                    "name": "end",
+                    "doc": [
+                        "Optional (default is the end of the string). The end index of the slice."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new string slice"
             ]
         },
         {
             "name": "stringSplit",
             "group": "String",
             "doc": [
-                "TODO"
+                "Split a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string to split"
+                    ]
+                },
+                {
+                    "name": "separator",
+                    "doc": [
+                        "The separator string or regular expression"
+                    ]
+                },
+                {
+                    "name": "limit",
+                    "doc": [
+                        "The maximum number of strings to split into"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The array of split-out strings"
             ]
         },
         {
             "name": "stringStartsWith",
             "group": "String",
             "doc": [
-                "TODO"
+                "Determine if a string starts with a search string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "searchString",
+                    "doc": [
+                        "The search string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "true if the string starts with the search string, false otherwise"
             ]
         },
         {
             "name": "stringTrim",
             "group": "String",
             "doc": [
-                "TODO"
+                "Trim the whitespace from the beginning and end of a string"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The trimmed string"
             ]
         },
         {
             "name": "stringUpper",
-            "group": "String",
+            "group": "doc",
             "doc": [
-                "TODO"
+                "Convert a string to upper-case"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The upper-case string"
             ]
         }
     ]
