@@ -876,6 +876,11 @@ test('library, regexMatchAll', (t) => {
 });
 
 
+test('library, regexMatchAll no matches', (t) => {
+    t.deepEqual(scriptFunctions.regexMatchAll([/foo/g, 'boo boo bar']).map((m) => m[0]), []);
+});
+
+
 test('library, regexMatchAll non-string', (t) => {
     t.is(scriptFunctions.regexMatchAll([/foo/g, null]), null);
 });
