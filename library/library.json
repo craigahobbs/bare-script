@@ -582,7 +582,7 @@
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
@@ -594,324 +594,320 @@
             "name": "mathAcos",
             "group": "Math",
             "doc": [
-                "Compute the arccosine (in radians) of a number"
+                "Compute the arccosine, in radians, of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "The arccosine (in radians) of the number"
+                "The arccosine, in radians, of the number"
             ]
         },
         {
             "name": "mathAsin",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the arcsine, in radians, of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The arcsine, in radians, of the number"
             ]
         },
         {
             "name": "mathAtan",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the arctangent, in radians, of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The arctangent, in radians, of the number"
             ]
         },
         {
             "name": "mathAtan2",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the angle, in radians, between (0, 0) and a point"
             ],
             "args": [
                 {
+                    "name": "y",
+                    "doc": [
+                        "The Y-coordinate of the point"
+                    ]
+                },
+                {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The X-coordinate of the point"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The angle, in radians"
             ]
         },
         {
             "name": "mathCeil",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the ceiling of a number (round up to the next highest integer)"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The ceiling of the number"
             ]
         },
         {
             "name": "mathCos",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the cosine of the angle, in radians"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The angle, in radians"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The cosine of the angle"
             ]
         },
         {
             "name": "mathFloor",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the floor of a number (round down to the next lowest integer)"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The floor of the number"
             ]
         },
         {
             "name": "mathLn",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the natural logarithm (base e) of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The natural logarithm of the number"
             ]
         },
         {
             "name": "mathLog",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the logarithm (base 10) of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The logarithm of the number"
             ]
         },
         {
             "name": "mathMax",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the maximum value of all arguments"
             ],
             "args": [
                 {
-                    "name": "x",
+                    "name": "values",
                     "doc": [
-                        "A number"
+                        "All arguments"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The maximum value"
             ]
         },
         {
             "name": "mathMin",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the minimum value of all arguments"
             ],
             "args": [
                 {
-                    "name": "x",
+                    "name": "values",
                     "doc": [
-                        "A number"
+                        "All arguments"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The minimum value"
             ]
         },
         {
             "name": "mathPi",
             "group": "Math",
             "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "x",
-                    "doc": [
-                        "A number"
-                    ]
-                }
+                "Return the number pi"
             ],
             "return": [
-                "TODO"
+                "The number pi"
             ]
         },
         {
             "name": "mathRandom",
             "group": "Math",
             "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "x",
-                    "doc": [
-                        "A number"
-                    ]
-                }
+                "Return a random number between 0 and 1, inclusive"
             ],
             "return": [
-                "TODO"
+                "A random number"
             ]
         },
         {
             "name": "mathRound",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Round a number to a certain number of decimal places"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
+                    ]
+                },
+                {
+                    "name": "digits",
+                    "doc": [
+                        "Optional (default is 0). The number of decimal digits to round to."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The rounded number"
             ]
         },
         {
             "name": "mathSign",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the sign of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "-1 for a negative number, 1 for a positive number, and 0 for zero"
             ]
         },
         {
             "name": "mathSin",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the sine of the angle, in radians"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The angle, in radians"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The sine of the angle"
             ]
         },
         {
             "name": "mathSqrt",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the square root of a number"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The square root of the number"
             ]
         },
         {
             "name": "mathTan",
             "group": "Math",
             "doc": [
-                "TODO"
+                "Compute the tangent of the angle, in radians"
             ],
             "args": [
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The angle, in radians"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The tangent of the angle"
             ]
         },
         {
@@ -922,9 +918,9 @@
             ],
             "args": [
                 {
-                    "name": "x",
+                    "name": "string",
                     "doc": [
-                        "A number"
+                        "The string"
                     ]
                 }
             ],
@@ -966,7 +962,7 @@
                 {
                     "name": "x",
                     "doc": [
-                        "A number"
+                        "The number"
                     ]
                 },
                 {
