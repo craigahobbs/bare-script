@@ -122,7 +122,7 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     markdownPrint('', '[Index](' + calcScriptLibraryLink(null, objectGet(function, 'group'), true) + ')')
     markdownPrint('', '## ' + functionName, '', objectGet(function, 'doc'))
 
-    # Render the functions's documentation
+    # Render the functions's argument documentation
     markdownPrint('', '### Arguments')
     arguments = objectGet(function, 'args')
     jumpif (arguments == null) argumentsNone
@@ -136,7 +136,11 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     argumentsNone:
         markdownPrint('None')
     argumentsDone:
-    if(objectGet(function, 'return') != null, markdownPrint('', '### Returns', '', objectGet(function, 'return')))
+
+    # Render the function's return documentation
+    markdownPrint('', '### Returns')
+    returnDoc = objectGet(function, 'return')
+    markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
 endfunction
 
 

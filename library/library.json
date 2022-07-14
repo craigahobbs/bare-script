@@ -498,36 +498,46 @@
             "name": "debugLog",
             "group": "Miscellaneous",
             "doc": [
-                "TODO"
+                "Log a debug message"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "string",
                     "doc": [
-                        "TODO"
+                        "The message"
                     ]
                 }
-            ],
-            "return": [
-                "TODO"
             ]
         },
         {
             "name": "fetch",
             "group": "Miscellaneous",
             "doc": [
-                "TODO"
+                "Retrieve a remote JSON or text resource"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "url",
                     "doc": [
-                        "TODO"
+                        "The resource URL or array of URLs"
+                    ]
+                },
+                {
+                    "name": "init",
+                    "doc": [
+                        "Optional (default is null). [Custom settings](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)",
+                        "to apply to the request."
+                    ]
+                },
+                {
+                    "name": "isText",
+                    "doc": [
+                        "Optional (default is false). If true, retrieve the resource as text."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The resource object/string or array of objects/strings; null if an error occured."
             ]
         },
         {
@@ -1447,24 +1457,6 @@
         {
             "name": "stringUpper",
             "group": "String",
-            "doc": [
-                "TODO"
-            ],
-            "args": [
-                {
-                    "name": "TODO",
-                    "doc": [
-                        "TODO"
-                    ]
-                }
-            ],
-            "return": [
-                "TODO"
-            ]
-        },
-        {
-            "name": "typeof",
-            "group": "Miscellaneous",
             "doc": [
                 "TODO"
             ],
