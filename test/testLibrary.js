@@ -57,7 +57,6 @@ test('library, built-in expression functions', (t) => {
             ['tan', true],
             ['today', true],
             ['trim', true],
-            ['typeof', true],
             ['upper', true],
             ['year', true]
         ]
@@ -336,7 +335,157 @@ test('library, datetimeYear non-datetime', (t) => {
 
 
 //
-// Debug functions
+// JSON functions
+//
+
+
+test('library, jsonParse', (t) => {
+    t.deepEqual(scriptFunctions.jsonParse(['{"a": 1, "b": 2}'], null), {'a': 1, 'b': 2});
+});
+
+
+test('library, jsonParse error', (t) => {
+    t.is(scriptFunctions.jsonParse(['asdf'], null), null);
+});
+
+
+test('library, jsonParse error log', (t) => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {'logFn': logFn};
+    t.is(scriptFunctions.jsonParse(['asdf'], options), null);
+    t.deepEqual(logs, ['Error: jsonParse failed with error: Unexpected token a in JSON at position 0']);
+});
+
+
+test('library, jsonStringify', (t) => {
+    t.is(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}]), '{"a":1,"b":2}');
+});
+
+
+test('library, jsonStringify indent', (t) => {
+    t.is(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 4]), `\
+{
+    "a": 1,
+    "b": 2
+}`);
+});
+
+
+//
+// Math functions
+//
+
+
+test('library, mathAbs', (t) => {
+    t.is(scriptFunctions.mathAbs([-3]), 3);
+});
+
+
+test('library, mathAcos', (t) => {
+    t.is(scriptFunctions.mathAcos([1]), 0);
+});
+
+
+test('library, mathAsin', (t) => {
+    t.is(scriptFunctions.mathAsin([0]), 0);
+});
+
+
+test('library, mathAtan', (t) => {
+    t.is(scriptFunctions.mathAtan([0]), 0);
+});
+
+
+test('library, mathAtan2', (t) => {
+    t.is(scriptFunctions.mathAtan2([0, 1]), 0);
+});
+
+
+test('library, mathCeil', (t) => {
+    t.is(scriptFunctions.mathCeil([0.25]), 1);
+});
+
+
+test('library, mathCos', (t) => {
+    t.is(scriptFunctions.mathCos([0]), 1);
+});
+
+
+test('library, mathFloor', (t) => {
+    t.is(scriptFunctions.mathFloor([1.125]), 1);
+});
+
+
+test('library, mathLn', (t) => {
+    t.is(scriptFunctions.mathLn([Math.E]), 1);
+});
+
+
+test('library, mathLog', (t) => {
+    t.is(scriptFunctions.mathLog([10]), 1);
+});
+
+
+test('library, mathLog base', (t) => {
+    t.is(scriptFunctions.mathLog([8, 2]), 3);
+});
+
+
+test('library, mathMax', (t) => {
+    t.is(scriptFunctions.mathMax([1, 2, 3]), 3);
+});
+
+
+test('library, mathMin', (t) => {
+    t.is(scriptFunctions.mathMin([1, 2, 3]), 1);
+});
+
+
+test('library, mathPi', (t) => {
+    t.is(scriptFunctions.mathPi([]), Math.PI);
+});
+
+
+test('library, mathRandom', (t) => {
+    t.is(typeof scriptFunctions.mathRandom([]), 'number');
+});
+
+
+test('library, mathRound', (t) => {
+    t.is(scriptFunctions.mathRound([5.125]), 5);
+});
+
+
+test('library, mathRound digits', (t) => {
+    t.is(scriptFunctions.mathRound([5.125, 2]), 5.13);
+});
+
+
+test('library, mathSign', (t) => {
+    t.is(scriptFunctions.mathSign([5.125]), 1);
+});
+
+
+test('library, mathSin', (t) => {
+    t.is(scriptFunctions.mathSin([0]), 0);
+});
+
+
+test('library, mathSqrt', (t) => {
+    t.is(scriptFunctions.mathSqrt([4]), 2);
+});
+
+
+test('library, mathTan', (t) => {
+    t.is(scriptFunctions.mathTan([0]), 0);
+});
+
+
+//
+// Miscellaneous functions
 //
 
 
@@ -359,11 +508,6 @@ test('library, debugLog null options', (t) => {
 test('library, debugLog no log function', (t) => {
     t.is(typeof scriptFunctions.debugLog(['Hello'], {}), 'undefined');
 });
-
-
-//
-// fetch
-//
 
 
 test('library, fetch', async (t) => {
@@ -549,156 +693,6 @@ test('library, fetch response text error', async (t) => {
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
     t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: invalid text']);
-});
-
-
-//
-// JSON functions
-//
-
-
-test('library, jsonParse', (t) => {
-    t.deepEqual(scriptFunctions.jsonParse(['{"a": 1, "b": 2}'], null), {'a': 1, 'b': 2});
-});
-
-
-test('library, jsonParse error', (t) => {
-    t.is(scriptFunctions.jsonParse(['asdf'], null), null);
-});
-
-
-test('library, jsonParse error log', (t) => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {'logFn': logFn};
-    t.is(scriptFunctions.jsonParse(['asdf'], options), null);
-    t.deepEqual(logs, ['Error: jsonParse failed with error: Unexpected token a in JSON at position 0']);
-});
-
-
-test('library, jsonStringify', (t) => {
-    t.is(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}]), '{"a":1,"b":2}');
-});
-
-
-test('library, jsonStringify indent', (t) => {
-    t.is(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 4]), `\
-{
-    "a": 1,
-    "b": 2
-}`);
-});
-
-
-//
-// Math functions
-//
-
-
-test('library, mathAbs', (t) => {
-    t.is(scriptFunctions.mathAbs([-3]), 3);
-});
-
-
-test('library, mathAcos', (t) => {
-    t.is(scriptFunctions.mathAcos([1]), 0);
-});
-
-
-test('library, mathAsin', (t) => {
-    t.is(scriptFunctions.mathAsin([0]), 0);
-});
-
-
-test('library, mathAtan', (t) => {
-    t.is(scriptFunctions.mathAtan([0]), 0);
-});
-
-
-test('library, mathAtan2', (t) => {
-    t.is(scriptFunctions.mathAtan2([0, 1]), 0);
-});
-
-
-test('library, mathCeil', (t) => {
-    t.is(scriptFunctions.mathCeil([0.25]), 1);
-});
-
-
-test('library, mathCos', (t) => {
-    t.is(scriptFunctions.mathCos([0]), 1);
-});
-
-
-test('library, mathFloor', (t) => {
-    t.is(scriptFunctions.mathFloor([1.125]), 1);
-});
-
-
-test('library, mathLn', (t) => {
-    t.is(scriptFunctions.mathLn([Math.E]), 1);
-});
-
-
-test('library, mathLog', (t) => {
-    t.is(scriptFunctions.mathLog([10]), 1);
-});
-
-
-test('library, mathLog base', (t) => {
-    t.is(scriptFunctions.mathLog([8, 2]), 3);
-});
-
-
-test('library, mathMax', (t) => {
-    t.is(scriptFunctions.mathMax([1, 2, 3]), 3);
-});
-
-
-test('library, mathMin', (t) => {
-    t.is(scriptFunctions.mathMin([1, 2, 3]), 1);
-});
-
-
-test('library, mathPi', (t) => {
-    t.is(scriptFunctions.mathPi([]), Math.PI);
-});
-
-
-test('library, mathRandom', (t) => {
-    t.is(typeof scriptFunctions.mathRandom([]), 'number');
-});
-
-
-test('library, mathRound', (t) => {
-    t.is(scriptFunctions.mathRound([5.125]), 5);
-});
-
-
-test('library, mathRound digits', (t) => {
-    t.is(scriptFunctions.mathRound([5.125, 2]), 5.13);
-});
-
-
-test('library, mathSign', (t) => {
-    t.is(scriptFunctions.mathSign([5.125]), 1);
-});
-
-
-test('library, mathSin', (t) => {
-    t.is(scriptFunctions.mathSin([0]), 0);
-});
-
-
-test('library, mathSqrt', (t) => {
-    t.is(scriptFunctions.mathSqrt([4]), 2);
-});
-
-
-test('library, mathTan', (t) => {
-    t.is(scriptFunctions.mathTan([0]), 0);
 });
 
 
@@ -1096,14 +1090,4 @@ test('library, stringUpper', (t) => {
 
 test('library, stringUpper non-string', (t) => {
     t.is(scriptFunctions.stringUpper([null]), null);
-});
-
-
-//
-// Type functions
-//
-
-
-test('library, typeof', (t) => {
-    t.is(scriptFunctions.typeof(['abc']), 'string');
 });
