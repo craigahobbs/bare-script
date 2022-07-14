@@ -924,7 +924,7 @@
             "name": "numberParseFloat",
             "group": "Number",
             "doc": [
-                "TODO"
+                "Parse a string as a floating point number"
             ],
             "args": [
                 {
@@ -935,38 +935,38 @@
                 }
             ],
             "return": [
-                "TODO"
+                "The number"
             ]
         },
         {
             "name": "numberParseInt",
             "group": "Number",
             "doc": [
-                "TODO"
+                "Parse a string as an integer"
             ],
             "args": [
                 {
                     "name": "string",
                     "doc": [
-                        "TODO"
+                        "The string"
                     ]
                 },
                 {
                     "name": "radix",
                     "doc": [
-                        "TODO"
+                        "Optional (default is 10). The number base."
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The integer"
             ]
         },
         {
             "name": "numberToFixed",
             "group": "Number",
             "doc": [
-                "TODO"
+                "Format a number using fixed-point notation"
             ],
             "args": [
                 {
@@ -978,120 +978,141 @@
                 {
                     "name": "digits",
                     "doc": [
-                        "TODO"
+                        "The number of digits to appear after the decimal point"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The fixed-point notation string"
             ]
         },
         {
             "name": "objectCopy",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Create a copy of an object"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "object",
                     "doc": [
-                        "TODO"
+                        "The object to copy"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The object copy"
             ]
         },
         {
             "name": "objectDelete",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Delete an object key"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "object",
                     "doc": [
-                        "TODO"
+                        "The object"
+                    ]
+                },
+                {
+                    "name": "key",
+                    "doc": [
+                        "The key to delete"
                     ]
                 }
-            ],
-            "return": [
-                "TODO"
             ]
         },
         {
             "name": "objectGet",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Get an object key's value"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "object",
                     "doc": [
-                        "TODO"
+                        "The object"
+                    ]
+                },
+                {
+                    "name": "key",
+                    "doc": [
+                        "The value's key"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The value or null if the key does not exist"
             ]
         },
         {
             "name": "objectKeys",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Get an object's keys"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "object",
                     "doc": [
-                        "TODO"
+                        "The object"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The array of keys"
             ]
         },
         {
             "name": "objectNew",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Create a new object"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "keyValues",
                     "doc": [
-                        "TODO"
+                        "The object's initial key and value arguments"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The new object"
             ]
         },
         {
             "name": "objectSet",
             "group": "Object",
             "doc": [
-                "TODO"
+                "Set an object key's value"
             ],
             "args": [
                 {
-                    "name": "TODO",
+                    "name": "object",
                     "doc": [
-                        "TODO"
+                        "The object"
+                    ]
+                },
+                {
+                    "name": "key",
+                    "doc": [
+                        "The key"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "The value to set"
                     ]
                 }
             ],
             "return": [
-                "TODO"
+                "The value to set"
             ]
         },
         {

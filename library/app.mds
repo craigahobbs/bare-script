@@ -10,7 +10,7 @@
 #
 # url - The library documentation JSON resource URL
 # title - The library title
-# menuLinks - The array of text/URL menu link tuples
+# menuLinks - Optional array of text/URL menu link tuples
 #
 async function calcScriptLibraryDoc(url, title, menuLinks)
     # URL override?
