@@ -369,6 +369,35 @@ test('evaluateExpression, variable literal false', (t) => {
 });
 
 
+test('evaluateExpression, function', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'myFunc',
+            'args': [{'number': 1}, {'number': 2}]
+        }
+    });
+    const globals = {
+        'myFunc': ([a, b]) => a + b
+    };
+    t.is(evaluateExpression(calc, globals), 3);
+});
+
+
+test('evaluateExpression, function no return', (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'myFunc'
+        }
+    });
+    const globals = {
+        'myFunc': () => {
+            // no return
+        }
+    };
+    t.is(evaluateExpression(calc, globals), null);
+});
+
+
 test('evaluateExpression, function if', (t) => {
     const calc = validateExpression({
         'function': {

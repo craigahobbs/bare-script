@@ -504,6 +504,35 @@ test('evaluateExpressionAsync, variable literal false', async (t) => {
 });
 
 
+test('evaluateExpressionAsync, function', async (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'myFunc',
+            'args': [{'number': 1}, {'number': 2}]
+        }
+    });
+    const globals = {
+        'myFunc': async ([a, b]) => a + b
+    };
+    t.is(await evaluateExpressionAsync(calc, globals), 3);
+});
+
+
+test('evaluateExpressionAsync, function no return', async (t) => {
+    const calc = validateExpression({
+        'function': {
+            'name': 'myFunc'
+        }
+    });
+    const globals = {
+        'myFunc': async () => {
+            // no return
+        }
+    };
+    t.is(await evaluateExpressionAsync(calc, globals), null);
+});
+
+
 test('evaluateExpressionAsync, function if', async (t) => {
     const calc = validateExpression({
         'function': {
