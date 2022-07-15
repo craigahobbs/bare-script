@@ -523,10 +523,9 @@
                     ]
                 },
                 {
-                    "name": "init",
+                    "name": "options",
                     "doc": [
-                        "Optional (default is null). [Custom settings](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)",
-                        "to apply to the request."
+                        "Optional (default is null). [The fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)."
                     ]
                 },
                 {

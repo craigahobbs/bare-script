@@ -71,7 +71,7 @@
     
 
     
-    <h4 class="name" id=".evaluateExpression"><span class="type-signature">(static) </span>evaluateExpression<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>, builtins<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".evaluateExpression"><span class="type-signature">(static) </span>evaluateExpression<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt</span>, builtins<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -232,6 +232,45 @@
 
         <tr>
             
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">The <a href="module-lib_runtime.html#~ExecuteScriptOptions">script execution options</a></td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>builtins</code></td>
             
 
@@ -305,7 +344,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line157">line 157</a>
+        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line158">line 158</a>
     </li></ul></dd>
     
 
@@ -900,7 +939,7 @@
     
 
     
-    <h4 class="name" id="~FetchFn"><span class="type-signature"></span>FetchFn<span class="signature">(url, init<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    <h4 class="name" id="~FetchFn"><span class="type-signature"></span>FetchFn<span class="signature">(url, options<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
     
 
     
@@ -977,7 +1016,7 @@
 
         <tr>
             
-                <td class="name"><code>init</code></td>
+                <td class="name"><code>options</code></td>
             
 
             <td class="type">
