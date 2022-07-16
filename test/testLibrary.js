@@ -703,6 +703,13 @@ test('library, fetch response text error', async (t) => {
 
 test('library, numberToFixed', (t) => {
     t.is(scriptFunctions.numberToFixed([1.125, 1]), '1.1');
+    t.is(scriptFunctions.numberToFixed([1, 1]), '1.0');
+});
+
+
+test('library, numberToFixed trim', (t) => {
+    t.is(scriptFunctions.numberToFixed([1.125, 1, true]), '1.1');
+    t.is(scriptFunctions.numberToFixed([1, 1, true]), '1');
 });
 
 
