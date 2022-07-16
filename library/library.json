@@ -977,7 +977,13 @@
                 {
                     "name": "digits",
                     "doc": [
-                        "The number of digits to appear after the decimal point"
+                        "Optional (default is 2). The number of digits to appear after the decimal point."
+                    ]
+                },
+                {
+                    "name": "trim",
+                    "doc": [
+                        "Optional (default is false). If true, trim trailing decimal point and zeroes."
                     ]
                 }
             ],
