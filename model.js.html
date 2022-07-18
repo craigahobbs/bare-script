@@ -35,7 +35,7 @@ import {SchemaMarkdownParser} from 'schema-markdown/lib/parser.js';
 import {validateType} from 'schema-markdown/lib/schema.js';
 
 
-// The CalcScript runtime model's Schema Markdown
+// The CalcScript model's Schema Markdown
 const calcScriptSmd = `\
 # A CalcScript script
 struct CalcScript
@@ -203,16 +203,17 @@ struct FunctionExpression
 
 
 /**
- * The CalcScript runtime model
+ * The CalcScript type model
  */
 export const calcScriptTypes = (new SchemaMarkdownParser(calcScriptSmd)).types;
 
 
 /**
- * Validate a CalcScript runtime model
+ * Validate a CalcScript script model
  *
- * @param {Object} script - The runtime model
- * @returns {Object} The validated runtime model
+ * @param {Object} script - The  model
+ * @returns {Object} The validated script model
+ * @throws [ValidationError]{@link https://craigahobbs.github.io/schema-markdown-js/module-lib_schema.ValidationError.html}
  */
 export function validateScript(script) {
     return validateType(calcScriptTypes, 'CalcScript', script);
@@ -224,6 +225,7 @@ export function validateScript(script) {
  *
  * @param {Object} expr - The calculation expression model
  * @returns {Object} The validated calculation expression model
+ * @throws [ValidationError]{@link https://craigahobbs.github.io/schema-markdown-js/module-lib_schema.ValidationError.html}
  */
 export function validateExpression(expr) {
     return validateType(calcScriptTypes, 'Expression', expr);
