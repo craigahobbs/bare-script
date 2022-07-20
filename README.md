@@ -8,6 +8,24 @@
 Coming soon!
 
 
+## Evaluating Expressions
+
+Coming soon!
+
+[The CalcScript Expression Reference](reference/#Expressions)
+
+[The CalcScript Expression Model](https://craigahobbs.github.io/calc-script/model/#var.vName='Expression')
+
+
+## Evaluating Scripts
+
+Coming soon!
+
+[The CalcScript Language Reference](reference/)
+
+[The CalcScript Model](https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript')
+
+
 ## Development
 
 calc-script is developed using [javascript-build](https://github.com/craigahobbs/javascript-build#readme)
