@@ -1,8 +1,3 @@
-# CalcScript
-
-Coming soon!
-
-
-## Expressions
+# CalcScript Language Reference
 
 Coming soon!
