@@ -118,7 +118,7 @@
             "name": "charCodeAt",
             "group": "String",
             "doc": [
-                "Get the character code for the character at a specific string index"
+                "Get a string index's character code"
             ],
             "args": [
                 {
@@ -142,7 +142,7 @@
             "name": "cos",
             "group": "Math",
             "doc": [
-                "Compute the cosine of the angle, in radians"
+                "Compute the cosine of an angle, in radians"
             ],
             "args": [
                 {
@@ -214,7 +214,7 @@
             "name": "day",
             "group": "Datetime",
             "doc": [
-                "Get the day of the month of the datetime"
+                "Get the day of the month of a datetime"
             ],
             "args": [
                 {
@@ -322,7 +322,7 @@
                 {
                     "name": "trim",
                     "doc": [
-                        "Optional (default is false). If true, trim trailing decimal point and zeroes."
+                        "Optional (default is false). If true, trim trailing zeroes and decimal point."
                     ]
                 }
             ],
@@ -363,14 +363,14 @@
                 }
             ],
             "return": [
-                "The string created from the character codes"
+                "The new string"
             ]
         },
         {
             "name": "hour",
             "group": "Datetime",
             "doc": [
-                "Get the hour of the datetime"
+                "Get the hour of a datetime"
             ],
             "args": [
                 {
@@ -480,6 +480,12 @@
                     "doc": [
                         "The number"
                     ]
+                },
+                {
+                    "name": "base",
+                    "doc": [
+                        "Optional (default is 10). The logarithm base."
+                    ]
                 }
             ],
             "return": [
@@ -544,7 +550,7 @@
             "name": "month",
             "group": "Datetime",
             "doc": [
-                "Get the number of the month of a datetime"
+                "Get the number of the month (1-12) of a datetime"
             ],
             "args": [
                 {
@@ -624,7 +630,7 @@
             "name": "rand",
             "group": "Math",
             "doc": [
-                "Return a random number between 0 and 1, inclusive"
+                "Compute a random number between 0 and 1, inclusive"
             ],
             "return": [
                 "A random number"
@@ -748,7 +754,7 @@
             "name": "sin",
             "group": "Math",
             "doc": [
-                "Compute the sine of the angle, in radians"
+                "Compute the sine of an angle, in radians"
             ],
             "args": [
                 {
@@ -849,14 +855,14 @@
                 }
             ],
             "return": [
-                "The value string"
+                "The new string"
             ]
         },
         {
             "name": "tan",
             "group": "Math",
             "doc": [
-                "Compute the tangent of the angle, in radians"
+                "Compute the tangent of an angle, in radians"
             ],
             "args": [
                 {

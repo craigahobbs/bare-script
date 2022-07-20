@@ -46,7 +46,7 @@
             "name": "arrayIndexOf",
             "group": "Array",
             "doc": [
-                "Find the index of a value in the array"
+                "Find the index of a value in an array"
             ],
             "args": [
                 {
@@ -100,7 +100,7 @@
             "name": "arrayLastIndexOf",
             "group": "Array",
             "doc": [
-                "Find the last index of a value in the array"
+                "Find the last index of a value in an array"
             ],
             "args": [
                 {
@@ -255,7 +255,7 @@
                 }
             ],
             "return": [
-                "The value to set"
+                "The value"
             ]
         },
         {
@@ -316,7 +316,7 @@
             "name": "datetimeDay",
             "group": "Datetime",
             "doc": [
-                "Get the day of the month of the datetime"
+                "Get the day of the month of a datetime"
             ],
             "args": [
                 {
@@ -334,7 +334,7 @@
             "name": "datetimeHour",
             "group": "Datetime",
             "doc": [
-                "Get the hour of the datetime"
+                "Get the hour of a datetime"
             ],
             "args": [
                 {
@@ -370,7 +370,7 @@
             "name": "datetimeMonth",
             "group": "Datetime",
             "doc": [
-                "Get the number of the month of a datetime"
+                "Get the number of the month (1-12) of a datetime"
             ],
             "args": [
                 {
@@ -525,7 +525,7 @@
                 {
                     "name": "options",
                     "doc": [
-                        "Optional (default is null). [The fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)."
+                        "Optional (default is null). The [fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)."
                     ]
                 },
                 {
@@ -699,7 +699,7 @@
             "name": "mathCos",
             "group": "Math",
             "doc": [
-                "Compute the cosine of the angle, in radians"
+                "Compute the cosine of an angle, in radians"
             ],
             "args": [
                 {
@@ -761,6 +761,12 @@
                     "doc": [
                         "The number"
                     ]
+                },
+                {
+                    "name": "base",
+                    "doc": [
+                        "Optional (default is 10). The logarithm base."
+                    ]
                 }
             ],
             "return": [
@@ -817,7 +823,7 @@
             "name": "mathRandom",
             "group": "Math",
             "doc": [
-                "Return a random number between 0 and 1, inclusive"
+                "Compute a random number between 0 and 1, inclusive"
             ],
             "return": [
                 "A random number"
@@ -869,7 +875,7 @@
             "name": "mathSin",
             "group": "Math",
             "doc": [
-                "Compute the sine of the angle, in radians"
+                "Compute the sine of an angle, in radians"
             ],
             "args": [
                 {
@@ -905,7 +911,7 @@
             "name": "mathTan",
             "group": "Math",
             "doc": [
-                "Compute the tangent of the angle, in radians"
+                "Compute the tangent of an angle, in radians"
             ],
             "args": [
                 {
@@ -983,7 +989,7 @@
                 {
                     "name": "trim",
                     "doc": [
-                        "Optional (default is false). If true, trim trailing decimal point and zeroes."
+                        "Optional (default is false). If true, trim trailing zeroes and decimal point."
                     ]
                 }
             ],
@@ -1046,7 +1052,7 @@
                 {
                     "name": "key",
                     "doc": [
-                        "The value's key"
+                        "The key"
                     ]
                 }
             ],
@@ -1159,7 +1165,8 @@
                 }
             ],
             "return": [
-                "The match object or null"
+                "The [match object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
+                "or null if no matches are found"
             ]
         },
         {
@@ -1183,7 +1190,8 @@
                 }
             ],
             "return": [
-                "The match object array"
+                "The [match object array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
+                "or null if no matches are found"
             ]
         },
         {
@@ -1238,7 +1246,7 @@
             "name": "stringCharCodeAt",
             "group": "String",
             "doc": [
-                "Get the character code for the character at a specific string index"
+                "Get a string index's character code"
             ],
             "args": [
                 {
@@ -1315,7 +1323,7 @@
                 }
             ],
             "return": [
-                "The string created from the character codes"
+                "The new string"
             ]
         },
         {
@@ -1429,7 +1437,7 @@
                 }
             ],
             "return": [
-                "The value string"
+                "The new string"
             ]
         },
         {
