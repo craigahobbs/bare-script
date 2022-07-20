@@ -12,7 +12,7 @@ Coming soon!
 
 Coming soon!
 
-[The CalcScript Expression Reference](reference/#Expressions)
+[The CalcScript Expression Reference](https://craigahobbs.github.io/calc-script/reference/#Expressions)
 
 [The CalcScript Expression Model](https://craigahobbs.github.io/calc-script/model/#var.vName='Expression')
 
@@ -21,7 +21,7 @@ Coming soon!
 
 Coming soon!
 
-[The CalcScript Language Reference](reference/)
+[The CalcScript Language Reference](https://craigahobbs.github.io/calc-script/reference/)
 
 [The CalcScript Model](https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript')
 
