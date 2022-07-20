@@ -46,7 +46,7 @@ endef
 export LIBRARY_EXPR
 
 
-TITLE := The CalcScript Runtime Model
+TITLE := The CalcScript Model
 
 doc:
     # Copy statics underneath the package documentation
