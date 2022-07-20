@@ -8,7 +8,7 @@
 Coming soon!
 
 
-## Evaluating Scripts
+## Executing Scripts
 
 Coming soon!
 
