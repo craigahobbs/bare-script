@@ -271,6 +271,18 @@ include "fi\\"le.mds"
 });
 
 
+test('parseScript, expression statement', (t) => {
+    const script = validateScript(parseScript(`\
+foo()
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {'function': {'name': 'foo', 'args': []}}}
+        ]
+    });
+});
+
+
 test('parseScript, expression statement syntax error', (t) => {
     const error = t.throws(() => {
         parseScript(`\

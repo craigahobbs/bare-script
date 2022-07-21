@@ -406,12 +406,12 @@ test('executeScriptAsync, error maxStatements', async (t) => {
                     'async': true,
                     'name': 'fn',
                     'statements': [
-                        {'expr': {'expr': {'variable': 'a'}}},
-                        {'expr': {'expr': {'variable': 'b'}}}
+                        {'expr': {'variable': 'a'}},
+                        {'expr': {'variable': 'b'}}
                     ]
                 }
             },
-            {'expr': {'expr': {'function': {'name': 'fn'}}}}
+            {'expr': {'function': {'name': 'fn'}}}
         ]
     });
     const error = await t.throwsAsync(
