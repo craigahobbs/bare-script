@@ -1,10 +1,12 @@
 {
     "type": "module",
     "name": "calc-script",
-    "version": "1.0.0",
-    "description": "calc-script",
+    "version": "1.0.1",
+    "description": "CalcScript; a lightweight scripting and expression language",
     "keywords": [
-        "calc-script"
+        "expression",
+        "language",
+        "script"
     ],
     "homepage": "https://github.com/craigahobbs/calc-script#readme",
     "bugs": "https://github.com/craigahobbs/calc-script/issues",
