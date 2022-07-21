@@ -50,6 +50,7 @@ TITLE := The CalcScript Model
 
 doc:
     # Copy statics underneath the package documentation
+	mkdir -p build/doc/
 	cp -R static/* build/doc/
 
     # Generate the library documentation
