@@ -47,15 +47,74 @@
 <p><a href="https://www.npmjs.com/package/calc-script"><img src="https://img.shields.io/npm/v/calc-script" alt="npm"></a>
 <a href="https://github.com/craigahobbs/calc-script/blob/main/LICENSE"><img src="https://img.shields.io/github/license/craigahobbs/calc-script" alt="GitHub"></a></p>
 <p><a href="https://craigahobbs.github.io/calc-script/">calc-script API Documentation</a></p>
-<p>Coming soon!</p>
-<h2>Executing Scripts</h2>
-<p>Coming soon!</p>
-<p><a href="https://craigahobbs.github.io/calc-script/reference/">The CalcScript Language Reference</a></p>
-<p><a href="https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript'">The CalcScript Model</a></p>
-<h2>Evaluating Expressions</h2>
-<p>Coming soon!</p>
-<p><a href="https://craigahobbs.github.io/calc-script/reference/#Expressions">The CalcScript Expression Reference</a></p>
-<p><a href="https://craigahobbs.github.io/calc-script/model/#var.vName='Expression'">The CalcScript Expression Model</a></p>
+<p>The calc-script package is a JavaScript implementation of the
+<a href="https://craigahobbs.github.io/calc-script/reference/">CalcScript language</a>.</p>
+<h2>Executing CalcScript Scripts</h2>
+<p>To execute a CalcScript script, parse the script using the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_parser.html#.parseScript">parseScript</a>
+function. Then execute the script using the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_runtime.html#.executeScript">executeScript</a>
+function or the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_runtimeAsync.html#.executeScriptAsync">executeScriptAsync</a>
+function. For example:</p>
+<pre class="prettyprint source lang-javascript"><code>import {executeScript} from 'calc-script/lib/runtime.js';
+import {parseScript} from 'calc-script/lib/parser.js';
+
+// Parse the script
+const script = parseScript(`\
+# Double a number
+function double(n)
+    return n * 2
+endfunction
+
+return double(N)
+`);
+
+// Execute the script
+const globals = {'N': 10};
+const result = executeScript(script, globals);
+
+console.log(`${globals.N} times 2 is ${result}`);
+</code></pre>
+<p>This yields the following log output:</p>
+<pre class="prettyprint source"><code>10 times 2 is 20
+</code></pre>
+<h3>The CalcScript Library</h3>
+<p>CalcScript includes a set of built-in functions for mathematical operations, object manipulation,
+array manipulation, regular expressions,
+<a href="https://craigahobbs.github.io/calc-script/library/#var.vName='fetch'">fetch</a>,
+and more. The CalcScript library
+documentation is available at the following link:</p>
+<p><a href="https://craigahobbs.github.io/calc-script/library/">The CalcScript Library</a></p>
+<h2>Evaluating CalcScript Expressions</h2>
+<p>To evaluate a
+<a href="https://craigahobbs.github.io/calc-script/reference/#Expressions">CalcScript expression</a>,
+parse the expression using the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_parser.html#.parseExpression">parseExpression</a>
+function. Then evaluate the expression using the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_runtime.html#.evaluateExpression">evaluateExpression</a>
+function or the
+<a href="https://craigahobbs.github.io/calc-script/module-lib_runtimeAsync.html#.evaluateExpressionAsync">evaluateExpressionAsync</a>
+function. For example:</p>
+<pre class="prettyprint source lang-javascript"><code>import {evaluateExpression} from 'calc-script/lib/runtime.js';
+import {parseExpression} from 'calc-script/lib/parser.js';
+
+// Parse the expression
+const expr = parseExpression('n * 2');
+
+// Evaluate the expression
+const globals = {'n': 10};
+const result = evaluateExpression(expr, globals);
+
+console.log(`${globals.n} times 2 = ${result}`);
+</code></pre>
+<p>This yields the following log output:</p>
+<pre class="prettyprint source"><code>10 times 2 = 20
+</code></pre>
+<h3>The CalcScript Expression Library</h3>
+<p>CalcScript expressions have access to a set of built-in, spreadsheet-like functions. The CalcScript
+expression library documentation is available at the following link:</p>
+<p><a href="https://craigahobbs.github.io/calc-script/library-expr/">The CalcScript Expression Library</a></p>
 <h2>Development</h2>
 <p>calc-script is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>
 and it was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a>:</p>
