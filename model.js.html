@@ -48,7 +48,7 @@ struct CalcScript
 union ScriptStatement
 
     # An expression
-    ExpressionStatement expr
+    Expression expr
 
     # A variable assignment
     AssignmentStatement assign
@@ -74,13 +74,6 @@ struct ReturnStatement
 
     # The expression to return
     optional Expression expr
-
-
-# A script expression statement
-struct ExpressionStatement
-
-    # The expression to evaluate
-    Expression expr
 
 
 # A script variable assignment statement
