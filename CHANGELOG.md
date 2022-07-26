@@ -1,3 +1,7 @@
+## 1.1.1 (2022-07-25)
+
+- [87e1356](https://github.com/craigahobbs/calc-script/commit/87e1356) - remove get/setGlobal from expression library
+
 ## 1.1.0 (2022-07-26)
 
 - [71d1cc3](https://github.com/craigahobbs/calc-script/commit/71d1cc3) - move globals to runtime options
