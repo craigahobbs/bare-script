@@ -29,6 +29,7 @@ test('library, built-in expression functions', (t) => {
             ['fixed', true],
             ['floor', true],
             ['fromCharCode', true],
+            ['getGlobal', true],
             ['hour', true],
             ['lastIndexOf', true],
             ['len', true],
@@ -48,6 +49,7 @@ test('library, built-in expression functions', (t) => {
             ['rept', true],
             ['round', true],
             ['second', true],
+            ['setGlobal', true],
             ['sign', true],
             ['sin', true],
             ['slice', true],
@@ -510,6 +512,29 @@ test('library, debugLog no log function', (t) => {
 });
 
 
+test('library, getGlobal', (t) => {
+    const options = {'globals': {'a': 1}};
+    t.is(scriptFunctions.getGlobal(['a'], options), 1);
+});
+
+
+test('library, getGlobal unknown', (t) => {
+    const options = {'globals': {}};
+    t.is(scriptFunctions.getGlobal(['a'], options), null);
+});
+
+
+test('library, getGlobal no globals', (t) => {
+    const options = {};
+    t.is(scriptFunctions.getGlobal(['a'], options), null);
+});
+
+
+test('library, getGlobal no options', (t) => {
+    t.is(scriptFunctions.getGlobal(['a'], null), null);
+});
+
+
 test('library, fetch', async (t) => {
     const jsonObject = {'a': 1, 'b': 2};
     // eslint-disable-next-line require-await
@@ -693,6 +718,24 @@ test('library, fetch response text error', async (t) => {
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
     t.deepEqual(logs, ['Error: fetch failed for text resource "test.txt" with error: invalid text']);
+});
+
+
+test('library, setGlobal', (t) => {
+    const options = {'globals': {}};
+    t.is(scriptFunctions.setGlobal(['a', 1], options), 1);
+    t.deepEqual(options.globals, {'a': 1});
+});
+
+
+test('library, setGlobal no globals', (t) => {
+    const options = {};
+    t.is(scriptFunctions.setGlobal(['a', 1], options), 1);
+});
+
+
+test('library, setGlobal no options', (t) => {
+    t.is(scriptFunctions.setGlobal(['a', 1], null), 1);
 });
 
 

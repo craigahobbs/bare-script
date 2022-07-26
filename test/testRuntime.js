@@ -130,7 +130,8 @@ test('executeScript, function error', (t) => {
     const errorFunction = () => {
         throw Error('unexpected error');
     };
-    t.is(executeScript(script, {errorFunction}), null);
+    const options = {'globals': {errorFunction}};
+    t.is(executeScript(script, options), null);
 });
 
 
@@ -149,8 +150,8 @@ test('executeScript, function error log', (t) => {
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {logFn};
-    t.is(executeScript(script, {errorFunction}, options), null);
+    const options = {'globals': {errorFunction}, logFn};
+    t.is(executeScript(script, options), null);
     t.is(logs.length, 2);
     t.is(logs[0], 'Error: Function "errorFunction" failed with error: unexpected error');
 });
@@ -282,7 +283,7 @@ test('executeScript, error maxStatements', (t) => {
         ]
     });
     const error = t.throws(() => {
-        executeScript(script, {}, {'maxStatements': 3});
+        executeScript(script, {'maxStatements': 3});
     }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Exceeded maximum script statements (3)');
     t.is(executeScript(script, {}, {'maxStatements': 4}), null);
@@ -311,8 +312,15 @@ test('evaluateExpression', (t) => {
             }
         }
     });
-    const globals = {'varName': 4};
-    t.is(evaluateExpression(calc, globals), 19);
+    const options = {'globals': {'varName': 4}};
+    t.is(evaluateExpression(calc, options), 19);
+});
+
+
+test('evaluateExpression, no globals', (t) => {
+    const calc = validateExpression({'string': 'abc'});
+    const options = {};
+    t.is(evaluateExpression(calc, options), 'abc');
 });
 
 
@@ -324,24 +332,24 @@ test('evaluateExpression, string', (t) => {
 
 test('evaluateExpression, variable', (t) => {
     const calc = validateExpression({'variable': 'varName'});
-    const globals = {'varName': 4};
-    t.is(evaluateExpression(calc, globals), 4);
+    const options = {'globals': {'varName': 4}};
+    t.is(evaluateExpression(calc, options), 4);
 });
 
 
 test('evaluateExpression, variable local', (t) => {
     const calc = validateExpression({'variable': 'varName'});
     const locals = {'varName': 4};
-    t.is(evaluateExpression(calc, {}, locals), 4);
+    t.is(evaluateExpression(calc, null, locals), 4);
     t.deepEqual(locals, {'varName': 4});
 });
 
 
 test('evaluateExpression, variable null local non-null global', (t) => {
     const calc = validateExpression({'variable': 'varName'});
-    const globals = {'varName': 4};
+    const options = {'globals': {'varName': 4}};
     const locals = {'varName': null};
-    t.is(evaluateExpression(calc, globals, locals), null);
+    t.is(evaluateExpression(calc, options, locals), null);
 });
 
 
@@ -376,10 +384,12 @@ test('evaluateExpression, function', (t) => {
             'args': [{'number': 1}, {'number': 2}]
         }
     });
-    const globals = {
-        'myFunc': ([a, b]) => a + b
+    const options = {
+        'globals': {
+            'myFunc': ([a, b]) => a + b
+        }
     };
-    t.is(evaluateExpression(calc, globals), 3);
+    t.is(evaluateExpression(calc, options), 3);
 });
 
 
@@ -389,12 +399,14 @@ test('evaluateExpression, function no return', (t) => {
             'name': 'myFunc'
         }
     });
-    const globals = {
-        'myFunc': () => {
-            // no return
+    const options = {
+        'globals': {
+            'myFunc': () => {
+                // no return
+            }
         }
     };
-    t.is(evaluateExpression(calc, globals), null);
+    t.is(evaluateExpression(calc, options), null);
 });
 
 
@@ -409,12 +421,12 @@ test('evaluateExpression, function if', (t) => {
             ]
         }
     });
-    let globals = {'test': true};
-    t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'test': true, 'a': 1});
-    globals = {'test': false};
-    t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'test': false, 'b': 1});
+    const options = {'globals': {'test': true}};
+    t.is(evaluateExpression(calc, options), 1);
+    t.deepEqual(options.globals, {'test': true, 'a': 1});
+    options.globals = {'test': false};
+    t.is(evaluateExpression(calc, options), 1);
+    t.deepEqual(options.globals, {'test': false, 'b': 1});
 });
 
 
@@ -455,52 +467,6 @@ test('evaluateExpression, function if no false expression', (t) => {
 });
 
 
-test('evaluateExpression, function getGlobal setGlobal', (t) => {
-    const calc = validateExpression({
-        'function': {
-            'name': 'setGlobal',
-            'args': [
-                {'string': 'b'},
-                {
-                    'function': {
-                        'name': 'getGlobal',
-                        'args': [
-                            {'string': 'a'}
-                        ]
-                    }
-                }
-            ]
-        }
-    });
-    const globals = {'a': 1};
-    t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'a': 1, 'b': 1});
-});
-
-
-test('evaluateExpression, function getGlobal setGlobal unknown', (t) => {
-    const calc = validateExpression({
-        'function': {
-            'name': 'setGlobal',
-            'args': [
-                {'string': 'b'},
-                {
-                    'function': {
-                        'name': 'getGlobal',
-                        'args': [
-                            {'string': 'a'}
-                        ]
-                    }
-                }
-            ]
-        }
-    });
-    const globals = {};
-    t.is(evaluateExpression(calc, globals), null);
-    t.deepEqual(globals, {'b': null});
-});
-
-
 test('evaluateExpression, function builtin', (t) => {
     const calc = validateExpression({
         'function': {
@@ -524,7 +490,7 @@ test('evaluateExpression, function no-builtins', (t) => {
         }
     });
     const error = t.throws(() => {
-        evaluateExpression(calc, {}, null, null, false);
+        evaluateExpression(calc, null, null, false);
     }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Undefined function "abs"');
 });
@@ -539,8 +505,8 @@ test('evaluateExpression, function global', (t) => {
             ]
         }
     });
-    const globals = {'fnName': ([number]) => 2 * number};
-    t.is(evaluateExpression(calc, globals), 6);
+    const options = {'globals': {'fnName': ([number]) => 2 * number}};
+    t.is(evaluateExpression(calc, options), 6);
 });
 
 
@@ -554,7 +520,7 @@ test('evaluateExpression, function local', (t) => {
         }
     });
     const locals = {'fnLocal': ([number]) => 2 * number};
-    t.is(evaluateExpression(calc, {}, locals), 6);
+    t.is(evaluateExpression(calc, null, locals), 6);
 });
 
 
@@ -564,10 +530,10 @@ test('evaluateExpression, function local null', (t) => {
             'name': 'fnLocal'
         }
     });
-    const globals = {'fnLocal': 'abc'};
+    const options = {'globals': {'fnLocal': 'abc'}};
     const locals = {'fnLocal': null};
     const error = t.throws(() => {
-        evaluateExpression(calc, globals, locals);
+        evaluateExpression(calc, options, locals);
     }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Undefined function "fnLocal"');
 });
@@ -579,8 +545,8 @@ test('evaluateExpression, function non-function', (t) => {
             'name': 'fnLocal'
         }
     });
-    const globals = {'fnLocal': 'abc'};
-    t.is(evaluateExpression(calc, globals), null);
+    const options = {'globals': {'fnLocal': 'abc'}};
+    t.is(evaluateExpression(calc, options), null);
 });
 
 
@@ -590,13 +556,12 @@ test('evaluateExpression, function non-function logFn', (t) => {
             'name': 'fnLocal'
         }
     });
-    const globals = {'fnLocal': 'abc'};
     const logs = [];
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {logFn};
-    t.is(evaluateExpression(calc, globals, null, options), null);
+    const options = {'globals': {'fnLocal': 'abc'}, logFn};
+    t.is(evaluateExpression(calc, options), null);
     t.deepEqual(logs, ['Error: Function "fnLocal" failed with error: funcValue is not a function']);
 });
 
@@ -623,9 +588,9 @@ test('evaluateExpression, function async', (t) => {
 
     /* c8 ignore next 2 */
     // eslint-disable-next-line require-await
-    const globals = {'fnAsync': async () => null};
+    const options = {'globals': {'fnAsync': async () => null}};
     const error = t.throws(() => {
-        evaluateExpression(calc, globals);
+        evaluateExpression(calc, options);
     }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Async function "fnAsync" called within non-async scope');
 });
@@ -638,13 +603,15 @@ test('evaluateExpression, function runtime error', (t) => {
         }
     });
     // eslint-disable-next-line require-await
-    const globals = {
-        'test': () => {
-            throw new CalcScriptRuntimeError('Test error');
+    const options = {
+        'globals': {
+            'test': () => {
+                throw new CalcScriptRuntimeError('Test error');
+            }
         }
     };
     const error = t.throws(() => {
-        evaluateExpression(calc, globals);
+        evaluateExpression(calc, options);
     }, {'instanceOf': CalcScriptRuntimeError});
     t.is(error.message, 'Test error');
 });
@@ -658,12 +625,12 @@ test('evaluateExpression, binary logical and', (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
         }
     });
-    const globals = {};
-    t.is(evaluateExpression(calc, globals), null);
-    t.deepEqual(globals, {});
-    globals.a = true;
-    t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'a': true, 'b': 1});
+    const options = {'globals': {}};
+    t.is(evaluateExpression(calc, options), null);
+    t.deepEqual(options.globals, {});
+    options.globals.a = true;
+    t.is(evaluateExpression(calc, options), 1);
+    t.deepEqual(options.globals, {'a': true, 'b': 1});
 });
 
 
@@ -675,12 +642,12 @@ test('evaluateExpression, binary logical or', (t) => {
             'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
         }
     });
-    const globals = {'a': true};
-    t.is(evaluateExpression(calc, globals), true);
-    t.deepEqual(globals, {'a': true});
-    globals.a = false;
-    t.is(evaluateExpression(calc, globals), 1);
-    t.deepEqual(globals, {'a': false, 'b': 1});
+    const options = {'globals': {'a': true}};
+    t.is(evaluateExpression(calc, options), true);
+    t.deepEqual(options.globals, {'a': true});
+    options.globals.a = false;
+    t.is(evaluateExpression(calc, options), 1);
+    t.deepEqual(options.globals, {'a': false, 'b': 1});
 });
 
 
