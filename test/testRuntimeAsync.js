@@ -548,18 +548,28 @@ test('evaluateExpressionAsync, function if', async (t) => {
             'name': 'if',
             'args': [
                 {'variable': 'test'},
-                {'function': {'name': 'setGlobal', 'args': [{'string': 'a'}, {'function': {'name': 'asyncOne'}}]}},
-                {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'function': {'name': 'asyncOne'}}]}}
+                {'function': {'name': 'testValue', 'args': [{'string': 'a'}]}},
+                {'function': {'name': 'testValue', 'args': [{'function': {'name': 'asyncB'}}]}}
             ]
         }
     });
-    const asyncOne = async () => 1;
-    const options = {'globals': {asyncOne, 'test': true}};
-    t.is(await evaluateExpressionAsync(calc, options), 1);
-    t.deepEqual(options.globals, {asyncOne, 'test': true, 'a': 1});
-    options.globals = {asyncOne, 'test': false};
-    t.is(await evaluateExpressionAsync(calc, options), 1);
-    t.deepEqual(options.globals, {asyncOne, 'test': false, 'b': 1});
+    const asyncB = async () => 'b';
+    const testValues = [];
+    const options = {
+        'globals': {
+            asyncB,
+            'test': true,
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
+    t.is(await evaluateExpressionAsync(calc, options), 'a');
+    t.deepEqual(testValues, ['a']);
+    options.globals.test = false;
+    t.is(await evaluateExpressionAsync(calc, options), 'b');
+    t.deepEqual(testValues, ['a', 'b']);
 });
 
 
@@ -780,16 +790,25 @@ test('evaluateExpressionAsync, binary logical and', async (t) => {
         'binary': {
             'op': '&&',
             'left': {'variable': 'a'},
-            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'function': {'name': 'asyncOne'}}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'function': {'name': 'asyncB'}}]}}
         }
     });
-    const asyncOne = async () => 1;
-    const options = {'globals': {asyncOne}};
+    const asyncB = async () => 'b';
+    const testValues = [];
+    const options = {
+        'globals': {
+            asyncB,
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
     t.is(await evaluateExpressionAsync(calc, options), null);
-    t.deepEqual(options.globals, {asyncOne});
+    t.deepEqual(testValues, []);
     options.globals.a = true;
-    t.is(await evaluateExpressionAsync(calc, options), 1);
-    t.deepEqual(options.globals, {asyncOne, 'a': true, 'b': 1});
+    t.is(await evaluateExpressionAsync(calc, options), 'b');
+    t.deepEqual(testValues, ['b']);
 });
 
 
@@ -798,16 +817,26 @@ test('evaluateExpressionAsync, binary logical or', async (t) => {
         'binary': {
             'op': '||',
             'left': {'variable': 'a'},
-            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'function': {'name': 'asyncOne'}}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'function': {'name': 'asyncB'}}]}}
         }
     });
-    const asyncOne = async () => 1;
-    const options = {'globals': {asyncOne, 'a': true}};
+    const asyncB = async () => 'b';
+    const testValues = [];
+    const options = {
+        'globals': {
+            asyncB,
+            'a': true,
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
     t.is(await evaluateExpressionAsync(calc, options), true);
-    t.deepEqual(options.globals, {asyncOne, 'a': true});
+    t.deepEqual(testValues, []);
     options.globals.a = false;
-    t.is(await evaluateExpressionAsync(calc, options), 1);
-    t.deepEqual(options.globals, {asyncOne, 'a': false, 'b': 1});
+    t.is(await evaluateExpressionAsync(calc, options), 'b');
+    t.deepEqual(testValues, ['b']);
 });
 
 

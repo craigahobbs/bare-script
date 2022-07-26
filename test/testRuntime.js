@@ -416,17 +416,26 @@ test('evaluateExpression, function if', (t) => {
             'name': 'if',
             'args': [
                 {'variable': 'test'},
-                {'function': {'name': 'setGlobal', 'args': [{'string': 'a'}, {'number': 1}]}},
-                {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
+                {'function': {'name': 'testValue', 'args': [{'string': 'a'}]}},
+                {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
             ]
         }
     });
-    const options = {'globals': {'test': true}};
-    t.is(evaluateExpression(calc, options), 1);
-    t.deepEqual(options.globals, {'test': true, 'a': 1});
-    options.globals = {'test': false};
-    t.is(evaluateExpression(calc, options), 1);
-    t.deepEqual(options.globals, {'test': false, 'b': 1});
+    const testValues = [];
+    const options = {
+        'globals': {
+            'test': true,
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
+    t.is(evaluateExpression(calc, options), 'a');
+    t.deepEqual(testValues, ['a']);
+    options.globals.test = false;
+    t.is(evaluateExpression(calc, options), 'b');
+    t.deepEqual(testValues, ['a', 'b']);
 });
 
 
@@ -622,15 +631,23 @@ test('evaluateExpression, binary logical and', (t) => {
         'binary': {
             'op': '&&',
             'left': {'variable': 'a'},
-            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
         }
     });
-    const options = {'globals': {}};
+    const testValues = [];
+    const options = {
+        'globals': {
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
     t.is(evaluateExpression(calc, options), null);
-    t.deepEqual(options.globals, {});
+    t.deepEqual(testValues, []);
     options.globals.a = true;
-    t.is(evaluateExpression(calc, options), 1);
-    t.deepEqual(options.globals, {'a': true, 'b': 1});
+    t.is(evaluateExpression(calc, options), 'b');
+    t.deepEqual(testValues, ['b']);
 });
 
 
@@ -639,15 +656,24 @@ test('evaluateExpression, binary logical or', (t) => {
         'binary': {
             'op': '||',
             'left': {'variable': 'a'},
-            'right': {'function': {'name': 'setGlobal', 'args': [{'string': 'b'}, {'number': 1}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
         }
     });
-    const options = {'globals': {'a': true}};
+    const testValues = [];
+    const options = {
+        'globals': {
+            'a': true,
+            'testValue': ([value]) => {
+                testValues.push(value);
+                return value;
+            }
+        }
+    };
     t.is(evaluateExpression(calc, options), true);
-    t.deepEqual(options.globals, {'a': true});
+    t.deepEqual(testValues, []);
     options.globals.a = false;
-    t.is(evaluateExpression(calc, options), 1);
-    t.deepEqual(options.globals, {'a': false, 'b': 1});
+    t.is(evaluateExpression(calc, options), 'b');
+    t.deepEqual(testValues, ['b']);
 });
 
 
