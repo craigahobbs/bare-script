@@ -271,6 +271,36 @@
             ]
         },
         {
+            "name": "if",
+            "group": "Miscellaneous",
+            "doc": [
+                "Conditionally evaluate expressions"
+            ],
+            "args": [
+                {
+                    "name": "testExpr",
+                    "doc": [
+                        "The test expression"
+                    ]
+                },
+                {
+                    "name": "trueExpr",
+                    "doc": [
+                        "The expression to evaluate if the test expression is true"
+                    ]
+                },
+                {
+                    "name": "falseExpr",
+                    "doc": [
+                        "The expression to evaluate if the test expression is false"
+                    ]
+                }
+            ],
+            "return": [
+                "If testExpr is true, evaluates trueExpr; otherwise evaluates falseExpr"
+            ]
+        },
+        {
             "name": "indexOf",
             "group": "String",
             "doc": [
@@ -364,6 +394,24 @@
             ],
             "return": [
                 "The new string"
+            ]
+        },
+        {
+            "name": "getGlobal",
+            "group": "Miscellaneous",
+            "doc": [
+                "Get a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value or null if it does not exist"
             ]
         },
         {
@@ -730,6 +778,24 @@
             ],
             "return": [
                 "The number of seconds"
+            ]
+        },
+        {
+            "name": "setGlobal",
+            "group": "Miscellaneous",
+            "doc": [
+                "Set a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value or null if it does not exist"
             ]
         },
         {

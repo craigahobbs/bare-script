@@ -71,7 +71,7 @@
     
 
     
-    <h4 class="name" id=".evaluateExpression"><span class="type-signature">(static) </span>evaluateExpression<span class="signature">(expr, globals<span class="signature-attributes">opt</span>, locals<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt, nullable</span>, builtins<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".evaluateExpression"><span class="type-signature">(static) </span>evaluateExpression<span class="signature">(expr, options<span class="signature-attributes">opt, nullable</span>, locals<span class="signature-attributes">opt, nullable</span>, builtins<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -154,84 +154,6 @@
 
         <tr>
             
-                <td class="name"><code>globals</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    {}
-                
-                </td>
-            
-
-            <td class="description last">The global variables</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>locals</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
-
-            <td class="description last">The local variables</td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>options</code></td>
             
 
@@ -267,6 +189,47 @@
             
 
             <td class="description last">The <a href="module-lib_runtime.html#~ExecuteScriptOptions">script execution options</a></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>locals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last">The local variables</td>
         </tr>
 
     
@@ -347,7 +310,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line161">line 161</a>
+        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line168">line 168</a>
     </li></ul></dd>
     
 
@@ -405,7 +368,7 @@
     
 
     
-    <h4 class="name" id=".executeScript"><span class="type-signature">(static) </span>executeScript<span class="signature">(script, globals<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".executeScript"><span class="type-signature">(static) </span>executeScript<span class="signature">(script, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -482,45 +445,6 @@
             
 
             <td class="description last">The <a href="https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript'">CalcScript model</a></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>globals</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    {}
-                
-                </td>
-            
-
-            <td class="description last">The global variables</td>
         </tr>
 
     
@@ -703,8 +627,6 @@
         
 
         
-        <th>Default</th>
-        
 
         <th class="last">Description</th>
     </tr>
@@ -738,12 +660,39 @@
             
 
             
-                <td class="default">
+
+            <td class="description last">The <a href="module-lib_runtime.html#~FetchFn">URL fetch function</a></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
                 
                 </td>
             
 
-            <td class="description last">The <a href="module-lib_runtime.html#~FetchFn">URL fetch function</a></td>
+            
+
+            <td class="description last">The global variables</td>
         </tr>
 
     
@@ -772,10 +721,6 @@
                 </td>
             
 
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last">The <a href="module-lib_runtime.html#~LogFn">log function</a></td>
@@ -808,14 +753,8 @@
             
 
             
-                <td class="default">
-                
-                    1e7
-                
-                </td>
-            
 
-            <td class="description last">The maximum number of statements, 0 for no maximum</td>
+            <td class="description last">The maximum number of statements; default is 1e7; 0 for no maximum</td>
         </tr>
 
     
@@ -844,10 +783,6 @@
                 </td>
             
 
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last">The current statement count</td>
@@ -879,10 +814,6 @@
                 </td>
             
 
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last">The <a href="module-lib_runtime.html#~URLFn">URL modifier function</a></td>
@@ -1092,7 +1023,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line20">line 20</a>
+        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line21">line 21</a>
     </li></ul></dd>
     
 
@@ -1251,7 +1182,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line29">line 29</a>
+        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line30">line 30</a>
     </li></ul></dd>
     
 
@@ -1388,7 +1319,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line36">line 36</a>
+        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line37">line 37</a>
     </li></ul></dd>
     
 
