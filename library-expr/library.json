@@ -397,24 +397,6 @@
             ]
         },
         {
-            "name": "getGlobal",
-            "group": "Miscellaneous",
-            "doc": [
-                "Get a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value or null if it does not exist"
-            ]
-        },
-        {
             "name": "hour",
             "group": "Datetime",
             "doc": [
@@ -778,24 +760,6 @@
             ],
             "return": [
                 "The number of seconds"
-            ]
-        },
-        {
-            "name": "setGlobal",
-            "group": "Miscellaneous",
-            "doc": [
-                "Set a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value or null if it does not exist"
             ]
         },
         {
