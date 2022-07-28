@@ -47,7 +47,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
             menuLink = arrayGet(menuLinks, ixMenuLink)
             menuLinkText = arrayGet(menuLink, 0)
             menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint('| [' + markdownEncode(menuLinkText) + '](' + menuLinkURL + ')')
+            markdownPrint('| [' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
             ixMenuLink = ixMenuLink + 1
         jumpif (ixMenuLink < arrayLength(menuLinks)) menuLinkLoop
     menuLinksDone:
@@ -77,10 +77,10 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
 
         # Render the group key link
         if(vExpand, \
-            markdownPrint('## ' + markdownEncode(groupKey)), \
+            markdownPrint('## ' + markdownEscape(groupKey)), \
             if(vGroup == groupKey, \
-                markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
-                markdownPrint('', '## [' + markdownEncode(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')') \
+                markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
+                markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')') \
             ) \
         )
 
@@ -90,7 +90,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
             ixFunctionName = 0
             functionNameLoop:
                 functionName = arrayGet(functionNames, ixFunctionName)
-                markdownPrint('', '[' + markdownEncode(functionName) + '](' + calcScriptLibraryLink(functionName) + ')')
+                markdownPrint('', '[' + markdownEscape(functionName) + '](' + calcScriptLibraryLink(functionName) + ')')
                 ixFunctionName = ixFunctionName + 1
             jumpif (ixFunctionName < arrayLength(functionNames)) functionNameLoop
         functionsDone:
