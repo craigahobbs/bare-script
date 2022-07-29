@@ -1,3 +1,7 @@
+## 1.1.2 (2022-07-28)
+
+- [0de5bcd](https://github.com/craigahobbs/calc-script/commit/0de5bcd) - update readme
+
 ## 1.1.1 (2022-07-25)
 
 - [87e1356](https://github.com/craigahobbs/calc-script/commit/87e1356) - remove get/setGlobal from expression library
