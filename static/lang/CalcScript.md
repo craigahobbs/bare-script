@@ -1,4 +1,4 @@
-# CalcScript Language Reference
+# CalcScript
 
 Coming soon!
 

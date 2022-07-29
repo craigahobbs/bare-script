@@ -6,7 +6,7 @@
 [calc-script API Documentation](https://craigahobbs.github.io/calc-script/)
 
 The calc-script package is a JavaScript implementation of the
-[CalcScript language](https://craigahobbs.github.io/calc-script/reference/).
+[CalcScript language](https://craigahobbs.github.io/calc-script/lang/).
 
 
 ## Executing CalcScript Scripts
@@ -61,7 +61,7 @@ documentation is available at the following link:
 ## Evaluating CalcScript Expressions
 
 To evaluate a
-[CalcScript expression](https://craigahobbs.github.io/calc-script/reference/#Expressions),
+[CalcScript expression](https://craigahobbs.github.io/calc-script/lang/#Expressions),
 parse the expression using the
 [parseExpression](https://craigahobbs.github.io/calc-script/module-lib_parser.html#.parseExpression)
 function. Then evaluate the expression using the
