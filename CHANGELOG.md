@@ -1,3 +1,7 @@
+## 1.1.3 (2022-08-04)
+
+- [9e789c1](https://github.com/craigahobbs/calc-script/commit/9e789c1) - move language reference to /language/
+
 ## 1.1.2 (2022-07-28)
 
 - [0de5bcd](https://github.com/craigahobbs/calc-script/commit/0de5bcd) - update readme
