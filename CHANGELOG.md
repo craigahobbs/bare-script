@@ -1,3 +1,7 @@
+## 1.1.4 (2022-08-08)
+
+- [744a659](https://github.com/craigahobbs/calc-script/commit/744a659) - create function scope label object on demand
+
 ## 1.1.3 (2022-08-04)
 
 - [9e789c1](https://github.com/craigahobbs/calc-script/commit/9e789c1) - move language reference to /language/
