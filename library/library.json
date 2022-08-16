@@ -1339,24 +1339,6 @@
             ]
         },
         {
-            "name": "stringEncodeURL",
-            "group": "String",
-            "doc": [
-                "Encode a string for use in a URL"
-            ],
-            "args": [
-                {
-                    "name": "uriComponent",
-                    "doc": [
-                        "The URI component string"
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded string"
-            ]
-        },
-        {
             "name": "stringEndsWith",
             "group": "String",
             "doc": [
