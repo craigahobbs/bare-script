@@ -146,9 +146,9 @@ endfunction
 
 function calcScriptLibraryLink(name, group, addGroupHeaderId)
     parts = arrayNew()
-    if(vURL != null, arrayPush(parts, "var.vURL='" + stringEncodeURL(vURL) + "'"))
-    if(name != null, arrayPush(parts, "var.vName='" + stringEncodeURL(name) + "'"))
-    if(group != null, arrayPush(parts, "var.vGroup='" + stringEncodeURL(group) + "'"))
+    if(vURL != null, arrayPush(parts, "var.vURL='" + markdownEscapeLinkURL(vURL) + "'"))
+    if(name != null, arrayPush(parts, "var.vName='" + markdownEscapeLinkURL(name) + "'"))
+    if(group != null, arrayPush(parts, "var.vGroup='" + markdownEscapeLinkURL(group) + "'"))
     if(vExpand, arrayPush(parts, 'var.vExpand=1'))
     return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=') + \
         if(addGroupHeaderId && group != null, '&' + markdownHeaderId(group), '')
