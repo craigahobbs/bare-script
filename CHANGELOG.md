@@ -1,3 +1,7 @@
+## 1.1.5 (2022-08-16)
+
+- [31498b4](https://github.com/craigahobbs/calc-script/commit/31498b4) - remove stringEncodeURL library function
+
 ## 1.1.4 (2022-08-08)
 
 - [744a659](https://github.com/craigahobbs/calc-script/commit/744a659) - create function scope label object on demand
