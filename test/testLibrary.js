@@ -23,7 +23,6 @@ test('library, built-in expression functions', (t) => {
             ['cos', true],
             ['date', true],
             ['day', true],
-            ['encodeURL', true],
             ['endsWith', true],
             ['indexOf', true],
             ['fixed', true],
@@ -968,11 +967,6 @@ test('library, stringCharCodeAt', (t) => {
 
 test('library, stringCharCodeAt non-string', (t) => {
     t.is(scriptFunctions.stringCharCodeAt([null, 0]), null);
-});
-
-
-test('library, stringEncodeURL', (t) => {
-    t.is(scriptFunctions.stringEncodeURL(['foo bar']), 'foo%20bar');
 });
 
 
