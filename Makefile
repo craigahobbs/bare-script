@@ -26,7 +26,23 @@ clean:
 	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
 
 
-# JavaScript to generate the library documentation
+doc:
+    # Copy statics
+	cp -R static/* build/doc/
+
+    # Generate the library documentation
+	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js > build/doc/library/library.json
+
+    # Generate the expression library documentation
+	$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
+
+    # Generate the library model documentation
+	$(NODE_DOCKER) node --input-type=module \
+		-e 'import {calcScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(calcScriptTypes))' \
+		> build/doc/library/model.json
+
+
+# JavaScript to generate the expression library documentation
 define LIBRARY_EXPR
 import {expressionFunctionMap} from "./lib/library.js";
 import {readFileSync} from 'node:fs';
@@ -44,25 +60,3 @@ console.log(JSON.stringify(libraryExpr, null, 4));
 endef
 
 export LIBRARY_EXPR
-
-
-TITLE := The CalcScript Model
-
-doc:
-    # Copy statics underneath the package documentation
-	mkdir -p build/doc/
-	cp -R static/* build/doc/
-
-    # Generate the library documentation
-	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js > build/doc/library/library.json
-	$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library-expr/library.json
-
-    # Generate the runtime model documentation
-	mkdir -p build/doc/model/
-	$(NODE_DOCKER) node --input-type=module \
-		-e 'import {calcScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(calcScriptTypes))' \
-		> build/doc/model/model.json
-	(cd build/doc/model/ && $(call WGET_CMD, https://craigahobbs.github.io/schema-markdown-doc/static/index.html))
-	sed -E 's/>Title</>$(TITLE)</; s/"Description"/"$(TITLE)"/; s/(schemaMarkdownDoc)\(.*\)/\1('\''model.json'\'', '\''$(TITLE)'\'')/' \
-		build/doc/model/index.html > build/doc/model/index.html.tmp
-	mv build/doc/model/index.html.tmp build/doc/model/index.html

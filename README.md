@@ -96,7 +96,7 @@ This yields the following log output:
 CalcScript expressions have access to a set of built-in, spreadsheet-like functions. The CalcScript
 expression library documentation is available at the following link:
 
-[The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library-expr/)
+[The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library/expression.html)
 
 
 ## Development
