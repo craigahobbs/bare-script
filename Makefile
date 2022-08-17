@@ -39,7 +39,7 @@ doc:
     # Generate the model documentation
 	$(NODE_DOCKER) node --input-type=module \
 		-e 'import {calcScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(calcScriptTypes))' \
-		> build/doc/library/model.json
+		> build/doc/model/model.json
 
 
 # JavaScript to generate the expression library documentation
