@@ -36,7 +36,7 @@ doc:
     # Generate the expression library documentation
 	$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
 
-    # Generate the library model documentation
+    # Generate the model documentation
 	$(NODE_DOCKER) node --input-type=module \
 		-e 'import {calcScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(calcScriptTypes))' \
 		> build/doc/library/model.json
