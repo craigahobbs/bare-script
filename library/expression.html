@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>The CalcScript Model</title>
+        <title>The CalcScript Expression Library</title>
         <meta charset="UTF-8">
-        <meta name="description" content="The CalcScript Model">
+        <meta name="description" content="The CalcScript Expression Library">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/markdown-model.css">
         <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">
@@ -15,8 +15,10 @@
         const app = new MarkdownUp(window, {
             'markdownText': `\
 ~~~ markdown-script
-include 'https://craigahobbs.github.io/schema-markdown-doc/doc/app.mds'
-schemaMarkdownDoc('model.json', 'The CalcScript Model')
+include 'app.mds'
+calcScriptLibraryDoc('expression.json', 'The CalcScript Expression Library', arrayNew( \\
+    arrayNew('CalcScript', 'https://craigahobbs.github.io/calc-script/') \\
+))
 ~~~
 `});
         app.run();

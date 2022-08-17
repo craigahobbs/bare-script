@@ -9,4 +9,4 @@ Coming soon!
 
 Coming soon!
 
-[The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library-expr/)
+[The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library/expression.html)
