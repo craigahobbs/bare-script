@@ -1,3 +1,7 @@
+## 1.1.6 (2022-08-17)
+
+- [f0db8fa](https://github.com/craigahobbs/calc-script/commit/f0db8fa) - consolidate library documentation
+
 ## 1.1.5 (2022-08-16)
 
 - [31498b4](https://github.com/craigahobbs/calc-script/commit/31498b4) - remove stringEncodeURL library function
