@@ -510,6 +510,24 @@
             ]
         },
         {
+            "name": "encodeURIComponent",
+            "group": "Miscellaneous",
+            "doc": [
+                "Encode URI component text for inclusion in a URL"
+            ],
+            "args": [
+                {
+                    "name": "uriComponent",
+                    "doc": [
+                        "The URI component text"
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URI component text"
+            ]
+        },
+        {
             "name": "fetch",
             "group": "Miscellaneous",
             "doc": [
