@@ -1,3 +1,7 @@
+## 1.1.7 (2022-08-18)
+
+- [8c2cb97](https://github.com/craigahobbs/calc-script/commit/8c2cb97) - separate model from library
+
 ## 1.1.6 (2022-08-17)
 
 - [f0db8fa](https://github.com/craigahobbs/calc-script/commit/f0db8fa) - consolidate library documentation
