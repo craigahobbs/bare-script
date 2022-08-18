@@ -509,6 +509,11 @@ test('library, debugLog no log function', (t) => {
 });
 
 
+test('library, encodeURIComponent', (t) => {
+    t.is(scriptFunctions.encodeURIComponent(['Hello & Goodbye'], {}), 'Hello%20%26%20Goodbye');
+});
+
+
 test('library, getGlobal', (t) => {
     const options = {'globals': {'a': 1}};
     t.is(scriptFunctions.getGlobal(['a'], options), 1);
