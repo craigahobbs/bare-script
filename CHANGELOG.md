@@ -1,3 +1,7 @@
+## 1.1.8 (2022-08-18)
+
+- [0599f4f](https://github.com/craigahobbs/calc-script/commit/0599f4f) - add encodeURIComponent function
+
 ## 1.1.7 (2022-08-18)
 
 - [8c2cb97](https://github.com/craigahobbs/calc-script/commit/8c2cb97) - separate model from library
