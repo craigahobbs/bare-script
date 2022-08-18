@@ -47,7 +47,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
             menuLink = arrayGet(menuLinks, ixMenuLink)
             menuLinkText = arrayGet(menuLink, 0)
             menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint('| [' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
+            markdownPrint('| [' + markdownEscapeText(menuLinkText) + '](' + menuLinkURL + ')')
             ixMenuLink = ixMenuLink + 1
         jumpif (ixMenuLink < arrayLength(menuLinks)) menuLinkLoop
     menuLinksDone:
@@ -77,10 +77,10 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
 
         # Render the group key link
         if(vExpand, \
-            markdownPrint('## ' + markdownEscape(groupKey)), \
+            markdownPrint('## ' + markdownEscapeText(groupKey)), \
             if(vGroup == groupKey, \
-                markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
-                markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')') \
+                markdownPrint('', '## [' + markdownEscapeText(groupKey) + '](' + calcScriptLibraryLink() + ')'), \
+                markdownPrint('', '## [' + markdownEscapeText(groupKey) + '](' + calcScriptLibraryLink(null, groupKey) + ')') \
             ) \
         )
 
@@ -90,7 +90,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
             ixFunctionName = 0
             functionNameLoop:
                 functionName = arrayGet(functionNames, ixFunctionName)
-                markdownPrint('', '[' + markdownEscape(functionName) + '](' + calcScriptLibraryLink(functionName) + ')')
+                markdownPrint('', '[' + markdownEscapeText(functionName) + '](' + calcScriptLibraryLink(functionName) + ')')
                 ixFunctionName = ixFunctionName + 1
             jumpif (ixFunctionName < arrayLength(functionNames)) functionNameLoop
         functionsDone:
@@ -146,9 +146,9 @@ endfunction
 
 function calcScriptLibraryLink(name, group, addGroupHeaderId)
     parts = arrayNew()
-    if(vURL != null, arrayPush(parts, "var.vURL='" + markdownEscapeLinkURL(vURL) + "'"))
-    if(name != null, arrayPush(parts, "var.vName='" + markdownEscapeLinkURL(name) + "'"))
-    if(group != null, arrayPush(parts, "var.vGroup='" + markdownEscapeLinkURL(group) + "'"))
+    if(vURL != null, arrayPush(parts, "var.vURL='" + markdownEscapeURLComponent(vURL) + "'"))
+    if(name != null, arrayPush(parts, "var.vName='" + markdownEscapeURLComponent(name) + "'"))
+    if(group != null, arrayPush(parts, "var.vGroup='" + markdownEscapeURLComponent(group) + "'"))
     if(vExpand, arrayPush(parts, 'var.vExpand=1'))
     return '#' + if(arrayLength(parts) != 0, arrayJoin(parts, '&'), 'var=') + \
         if(addGroupHeaderId && group != null, '&' + markdownHeaderId(group), '')
