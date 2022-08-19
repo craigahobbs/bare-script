@@ -229,6 +229,54 @@
             ]
         },
         {
+            "name": "encodeURI",
+            "group": "Miscellaneous",
+            "doc": [
+                "Encode a URI"
+            ],
+            "args": [
+                {
+                    "name": "uri",
+                    "doc": [
+                        "The URI string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URI string"
+            ]
+        },
+        {
+            "name": "encodeURIComponent",
+            "group": "Miscellaneous",
+            "doc": [
+                "Encode a URI component"
+            ],
+            "args": [
+                {
+                    "name": "uri",
+                    "doc": [
+                        "The URI component string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URI component string"
+            ]
+        },
+        {
             "name": "endsWith",
             "group": "String",
             "doc": [
