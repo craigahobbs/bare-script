@@ -1,3 +1,7 @@
+## 1.1.10 (2022-08-19)
+
+- [a5d9117](https://github.com/craigahobbs/calc-script/commit/a5d9117) - add encodeURI and encodeURIComponent functions
+
 ## 1.1.9 (2022-08-18)
 
 - [a3f4c0a](https://github.com/craigahobbs/calc-script/commit/a3f4c0a) - remove encodeURIComponent
