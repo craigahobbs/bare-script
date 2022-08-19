@@ -509,6 +509,54 @@ test('library, debugLog no log function', (t) => {
 });
 
 
+test('script library, encodeURI', (t) => {
+    t.is(
+        scriptFunctions.encodeURI(['https://foo.com/this & that'], {}),
+        'https://foo.com/this%20&%20that'
+    );
+    t.is(
+        scriptFunctions.encodeURI(['https://foo.com/this (& that)'], {}),
+        'https://foo.com/this%20(&%20that%29'
+    );
+});
+
+
+test('script library, encodeURI no extra', (t) => {
+    t.is(
+        scriptFunctions.encodeURI(['https://foo.com/this & that', false], {}),
+        'https://foo.com/this%20&%20that'
+    );
+    t.is(
+        scriptFunctions.encodeURI(['https://foo.com/this (& that)', false], {}),
+        'https://foo.com/this%20(&%20that)'
+    );
+});
+
+
+test('script library, encodeURIComponent', (t) => {
+    t.is(
+        scriptFunctions.encodeURIComponent(['https://foo.com/this & that'], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
+    );
+    t.is(
+        scriptFunctions.encodeURIComponent(['https://foo.com/this (& that)'], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that%29'
+    );
+});
+
+
+test('script library, encodeURIComponent no extra', (t) => {
+    t.is(
+        scriptFunctions.encodeURIComponent(['https://foo.com/this & that', false], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
+    );
+    t.is(
+        scriptFunctions.encodeURIComponent(['https://foo.com/this (& that)', false], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
+    );
+});
+
+
 test('library, getGlobal', (t) => {
     const options = {'globals': {'a': 1}};
     t.is(scriptFunctions.getGlobal(['a'], options), 1);
