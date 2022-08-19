@@ -23,6 +23,8 @@ test('library, built-in expression functions', (t) => {
             ['cos', true],
             ['date', true],
             ['day', true],
+            ['encodeURI', true],
+            ['encodeURIComponent', true],
             ['endsWith', true],
             ['indexOf', true],
             ['fixed', true],
