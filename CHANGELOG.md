@@ -1,3 +1,7 @@
+## 1.2.1 (2022-08-19)
+
+- [235b4a8](https://github.com/craigahobbs/calc-script/commit/235b4a8) - schema-markdown 1.2
+
 ## 1.2.0 (2022-08-19)
 
 - [67f24b0](https://github.com/craigahobbs/calc-script/commit/67f24b0) - add encodeURI and encodeURIComponent to expression functions
