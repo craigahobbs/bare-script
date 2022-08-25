@@ -584,7 +584,7 @@
                 }
             ],
             "return": [
-                "The resource object/string or array of objects/strings; null if an error occured."
+                "The resource object/string or array of objects/strings; null if an error occurred."
             ]
         },
         {
