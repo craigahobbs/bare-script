@@ -1,3 +1,5 @@
+[Home](https://github.com/craigahobbs/calc-script#readme)
+
 # CalcScript
 
 Coming soon!
