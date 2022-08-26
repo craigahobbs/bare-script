@@ -259,6 +259,10 @@ test('parseLibraryDoc, error function missing group/doc', (t) => {
                 'library.js',
                 `\
 // $function: myFunc
+
+// $function: myFunc2
+// $group: FuncGroup
+// $doc: My second function
 `
             ]
         ]);
