@@ -1,3 +1,7 @@
+## 1.2.2 (2022-08-26)
+
+- [ab54537](https://github.com/craigahobbs/calc-script/commit/ab54537) - fix library documentation tool error message
+
 ## 1.2.1 (2022-08-19)
 
 - [235b4a8](https://github.com/craigahobbs/calc-script/commit/235b4a8) - schema-markdown 1.2
