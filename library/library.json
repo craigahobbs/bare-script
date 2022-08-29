@@ -349,6 +349,30 @@
             ]
         },
         {
+            "name": "datetimeISOFormat",
+            "group": "Datetime",
+            "doc": [
+                "Format the datetime as an ISO date/time string"
+            ],
+            "args": [
+                {
+                    "name": "datetime",
+                    "doc": [
+                        "The datetime"
+                    ]
+                },
+                {
+                    "name": "isDate",
+                    "doc": [
+                        "If true, format the datetime as an ISO date"
+                    ]
+                }
+            ],
+            "return": [
+                "The formatted datetime string"
+            ]
+        },
+        {
             "name": "datetimeMinute",
             "group": "Datetime",
             "doc": [
