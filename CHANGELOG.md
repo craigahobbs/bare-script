@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3 (2022-08-29)
+
+- [2d8d928](https://github.com/craigahobbs/calc-script/commit/2d8d928) - add datetimeISOFormat
+
 ## 1.2.2 (2022-08-26)
 
 - [ab54537](https://github.com/craigahobbs/calc-script/commit/ab54537) - fix library documentation tool error message
