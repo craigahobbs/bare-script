@@ -273,6 +273,12 @@ test('library, datetimeHour non-datetime', (t) => {
 });
 
 
+test('library, datetimeISOFormat', (t) => {
+    t.is(scriptFunctions.datetimeISOFormat([new Date(2022, 7, 29, 15, 8)]), '2022-08-29T15:08:00.000Z');
+    t.is(scriptFunctions.datetimeISOFormat([new Date(2022, 7, 29, 15, 8), true]), '2022-08-29');
+});
+
+
 test('library, datetimeMinute', (t) => {
     t.is(scriptFunctions.datetimeMinute([new Date(2022, 5, 21, 7, 15)]), 15);
 });
