@@ -81,6 +81,19 @@ test('library, arrayCopy non-array', (t) => {
 });
 
 
+test('library, arrayExtend', (t) => {
+    const array = [1, 2, 3];
+    const array2 = [4, 5, 6];
+    t.deepEqual(scriptFunctions.arrayExtend([array, array2]), [1, 2, 3, 4, 5, 6]);
+    t.deepEqual(array, [1, 2, 3, 4, 5, 6]);
+});
+
+
+test('library, arrayExtend non-array', (t) => {
+    t.is(scriptFunctions.arrayExtend([null]), null);
+});
+
+
 test('library, arrayGet', (t) => {
     const array = [1, 2, 3];
     t.is(scriptFunctions.arrayGet([array, 0]), 1);
@@ -837,6 +850,24 @@ test('library, numberParseFloat', (t) => {
 //
 // Object functions
 //
+
+
+test('library, objectAssign', (t) => {
+    const obj = {'a': 1, 'b': 2};
+    const obj2 = {'b': 3, 'c': 4};
+    t.deepEqual(scriptFunctions.objectAssign([obj, obj2]), {'a': 1, 'b': 3, 'c': 4});
+    t.deepEqual(obj, {'a': 1, 'b': 3, 'c': 4});
+});
+
+
+test('library, objectAssign null', (t) => {
+    t.is(scriptFunctions.objectAssign([null]), null);
+});
+
+
+test('library, objectAssign non-object', (t) => {
+    t.is(scriptFunctions.objectAssign([0]), null);
+});
 
 
 test('library, objectCopy', (t) => {
