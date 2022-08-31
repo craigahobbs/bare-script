@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 (2022-08-31)
+
+- [5f359a6](https://github.com/craigahobbs/calc-script/commit/5f359a6) - add arrayExtend and objectAssign functions
+
 ## 1.2.3 (2022-08-29)
 
 - [2d8d928](https://github.com/craigahobbs/calc-script/commit/2d8d928) - add datetimeISOFormat
