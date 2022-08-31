@@ -19,6 +19,30 @@
             ]
         },
         {
+            "name": "arrayExtend",
+            "group": "Array",
+            "doc": [
+                "Extend one array with another"
+            ],
+            "args": [
+                {
+                    "name": "array",
+                    "doc": [
+                        "The array to extend"
+                    ]
+                },
+                {
+                    "name": "array2",
+                    "doc": [
+                        "The array to extend with"
+                    ]
+                }
+            ],
+            "return": [
+                "The extended array"
+            ]
+        },
+        {
             "name": "arrayGet",
             "group": "Array",
             "doc": [
@@ -1115,6 +1139,30 @@
             ],
             "return": [
                 "The fixed-point notation string"
+            ]
+        },
+        {
+            "name": "objectAssign",
+            "group": "Object",
+            "doc": [
+                "Assign the keys/values of one array to another"
+            ],
+            "args": [
+                {
+                    "name": "object",
+                    "doc": [
+                        "The object to assign to"
+                    ]
+                },
+                {
+                    "name": "object2",
+                    "doc": [
+                        "The object to assign"
+                    ]
+                }
+            ],
+            "return": [
+                "The updated object"
             ]
         },
         {
