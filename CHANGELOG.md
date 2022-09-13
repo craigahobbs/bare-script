@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5 (2022-09-13)
+
+- [9b64feb](https://github.com/craigahobbs/calc-script/commit/9b64feb) - fix fetch function with node's built-in fetch, update README
+
 ## 1.2.4 (2022-08-31)
 
 - [5f359a6](https://github.com/craigahobbs/calc-script/commit/5f359a6) - add arrayExtend and objectAssign functions
