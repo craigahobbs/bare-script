@@ -1,6 +1,6 @@
 [Home](https://github.com/craigahobbs/calc-script#readme)
 
-# CalcScript
+# The CalcScript Language
 
 Coming soon!
 
