@@ -78,7 +78,7 @@ struct ReturnStatement
     optional Expression expr
 
 
-# A script variable assignment statement
+# An assignment statement
 struct AssignmentStatement
 
     # The variable name
@@ -88,7 +88,7 @@ struct AssignmentStatement
     Expression expr
 
 
-# A script function statement
+# A function statement
 struct FunctionStatement
 
     # If true, the function is defined as async
@@ -104,7 +104,7 @@ struct FunctionStatement
     ScriptStatement[] statements
 
 
-# A script jump statement
+# A jump statement
 struct JumpStatement
 
     # The label to jump to
@@ -154,19 +154,47 @@ struct BinaryExpression
 
 # A binary expression operator
 enum BinaryExpressionOperator
+
+    # Exponentiation
     "**"
+
+    # Multiplication
     "*"
+
+    # Division
     "/"
+
+    # Remainder
     "%"
+
+    # Addition
     "+"
+
+    # Subtraction
     "-"
+
+    # Less than or equal
     "&lt;="
+
+    # Less than
     "&lt;"
+
+    # Greater than or equal
     ">="
+
+    # Greater than
     ">"
+
+    # Equal
     "=="
+
+    # Not equal
     "!="
+
+    # Logical AND
     "&amp;&amp;"
+
+    # Logical OR
     "||"
 
 
@@ -182,7 +210,11 @@ struct UnaryExpression
 
 # A unary expression operator
 enum UnaryExpressionOperator
+
+    # Unary negation
     "-"
+
+    # Logical NOT
     "!"
 
 
