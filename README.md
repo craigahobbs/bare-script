@@ -63,7 +63,7 @@ and more. The following example demonstrates the use of the
 [objectGet](https://craigahobbs.github.io/calc-script/library/#var.vName='objectGet'), and
 [arrayLength](https://craigahobbs.github.io/calc-script/library/#var.vName='arrayLength') functions.
 
-~~~
+~~~ javascript
 import {executeScriptAsync} from 'calc-script/lib/runtimeAsync.js';
 import {parseScript} from 'calc-script/lib/parser.js';
 
