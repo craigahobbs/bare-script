@@ -617,6 +617,24 @@ test('library, fetch', async (t) => {
 });
 
 
+test('library, fetch options', async (t) => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url, fetchFnOptions) => {
+        t.is(url, 'test.json');
+        t.is(fetchFnOptions, fetchOptions);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const options = {fetchFn};
+    const fetchOptions = {'method': 'POST'};
+    t.deepEqual(await scriptFunctions.fetch(['test.json', fetchOptions], options), jsonObject);
+});
+
+
 test('library, fetch text', async (t) => {
     const text = 'asdf';
     // eslint-disable-next-line require-await
@@ -647,6 +665,25 @@ test('library, fetch array', async (t) => {
     };
     const options = {fetchFn};
     t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
+});
+
+
+test('library, fetch array options', async (t) => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url, fetchFnOptions) => {
+        t.true(url === 'test.json' || url === 'test2.json');
+        t.is(fetchFnOptions, fetchOptions);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const options = {fetchFn};
+    const fetchOptions = {'method': 'POST'};
+    t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json'], fetchOptions], options), [jsonObject, jsonObject2]);
 });
 
 
@@ -685,7 +722,7 @@ test('library, fetch array urlFn', async (t) => {
 });
 
 
-test('library, fetch null options', async (t) => {
+test('library, fetch null ExecuteScriptOptions', async (t) => {
     t.is(await scriptFunctions.fetch(['test.json'], null), null);
 });
 
@@ -706,7 +743,7 @@ test('library, fetch options no fetchFn', async (t) => {
 });
 
 
-test('library, fetch array null options', async (t) => {
+test('library, fetch array null ExecuteScriptOptions', async (t) => {
     t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], null), [null, null]);
 });
 

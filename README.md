@@ -3,10 +3,17 @@
 [![npm](https://img.shields.io/npm/v/calc-script)](https://www.npmjs.com/package/calc-script)
 [![GitHub](https://img.shields.io/github/license/craigahobbs/calc-script)](https://github.com/craigahobbs/calc-script/blob/main/LICENSE)
 
-[calc-script API Documentation](https://craigahobbs.github.io/calc-script/)
-
-The calc-script package is a JavaScript implementation of the
+The calc-script package is the JavaScript implementation of the
 [CalcScript language](https://craigahobbs.github.io/calc-script/language/).
+
+
+## Links
+
+- [The CalcScript Language](https://craigahobbs.github.io/calc-script/language/)
+- [The CalcScript Library](https://craigahobbs.github.io/calc-script/library/)
+- [The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library/expression.html)
+- [API Documentation](https://craigahobbs.github.io/calc-script/)
+- [Source code](https://github.com/craigahobbs/calc-script)
 
 
 ## Executing CalcScript Scripts
@@ -30,17 +37,15 @@ function double(n)
     return n * 2
 endfunction
 
-return double(N)
+return N + ' times 2 is ' + double(N)
 `);
 
 // Execute the script
 const globals = {'N': 10};
-const result = executeScript(script, globals);
-
-console.log(`${globals.N} times 2 is ${result}`);
+console.log(executeScript(script, {'globals': globals}));
 ~~~
 
-This yields the following log output:
+This outputs:
 
 ~~~
 10 times 2 is 20
@@ -49,54 +54,74 @@ This yields the following log output:
 
 ### The CalcScript Library
 
-CalcScript includes a set of built-in functions for mathematical operations, object manipulation,
-array manipulation, regular expressions,
-[fetch](https://craigahobbs.github.io/calc-script/library/#var.vName='fetch'),
-and more. The CalcScript library
-documentation is available at the following link:
-
 [The CalcScript Library](https://craigahobbs.github.io/calc-script/library/)
+includes a set of built-in functions for mathematical operations, object manipulation, array
+manipulation, regular expressions,
+fetch
+and more. The following example demonstrates the use of the
+[fetch](https://craigahobbs.github.io/calc-script/library/#var.vName='fetch'),
+[objectGet](https://craigahobbs.github.io/calc-script/library/#var.vName='objectGet'), and
+[arrayLength](https://craigahobbs.github.io/calc-script/library/#var.vName='arrayLength') functions.
+
+~~~
+import {executeScriptAsync} from 'calc-script/lib/runtimeAsync.js';
+import {parseScript} from 'calc-script/lib/parser.js';
+
+// Parse the script
+const script = parseScript(`\
+# Fetch the CalcScript library documentation JSON
+libraryDocs = fetch('https://craigahobbs.github.io/calc-script/library/library.json')
+
+# Return the number of library functions
+return 'The CalcScript Library has ' + arrayLength(objectGet(libraryDocs, 'functions')) + ' functions'
+`);
+
+// Execute the script
+console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
+~~~
+
+This outputs:
+
+~~~
+The CalcScript Library has 82 functions
+~~~
 
 
 ## Evaluating CalcScript Expressions
 
 To evaluate a
-[CalcScript expression](https://craigahobbs.github.io/calc-script/language/#Expressions),
+[CalcScript expression](https://craigahobbs.github.io/calc-script/language/#expressions),
 parse the expression using the
 [parseExpression](https://craigahobbs.github.io/calc-script/module-lib_parser.html#.parseExpression)
 function. Then evaluate the expression using the
 [evaluateExpression](https://craigahobbs.github.io/calc-script/module-lib_runtime.html#.evaluateExpression)
 function or the
 [evaluateExpressionAsync](https://craigahobbs.github.io/calc-script/module-lib_runtimeAsync.html#.evaluateExpressionAsync)
-function. For example:
+function.
+
+Expression evaluation includes the
+[CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library/expression.html),
+a set of built-in, spreadsheet-like functions.
+
+For example:
 
 ~~~ javascript
 import {evaluateExpression} from 'calc-script/lib/runtime.js';
 import {parseExpression} from 'calc-script/lib/parser.js';
 
 // Parse the expression
-const expr = parseExpression('n * 2');
+const expr = parseExpression('2 * max(a, b, c)');
 
 // Evaluate the expression
-const globals = {'n': 10};
-const result = evaluateExpression(expr, globals);
-
-console.log(`${globals.n} times 2 = ${result}`);
+const variables = {'a': 1, 'b': 2, 'c': 3};
+console.log(evaluateExpression(expr, null, variables))
 ~~~
 
-This yields the following log output:
+This outputs:
 
 ~~~
-10 times 2 = 20
+6
 ~~~
-
-
-### The CalcScript Expression Library
-
-CalcScript expressions have access to a set of built-in, spreadsheet-like functions. The CalcScript
-expression library documentation is available at the following link:
-
-[The CalcScript Expression Library](https://craigahobbs.github.io/calc-script/library/expression.html)
 
 
 ## Development
