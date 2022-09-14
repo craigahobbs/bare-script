@@ -14,8 +14,8 @@ import test from 'ava';
 test('executeScriptAsync', async (t) => {
     const script = validateScript({
         'statements': [
-            {'assign': {'name': 'a', 'expr': {'number': 5}}},
-            {'assign': {'name': 'b', 'expr': {'number': 7}}},
+            {'expr': {'name': 'a', 'expr': {'number': 5}}},
+            {'expr': {'name': 'b', 'expr': {'number': 7}}},
             {'return': {
                 'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
             }}
@@ -33,7 +33,7 @@ test('executeScriptAsync, function', async (t) => {
                     'name': 'multiplyNumbers',
                     'args': ['a', 'b'],
                     'statements': [
-                        {'assign': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
                         {'return': {
                             'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
                         }}
@@ -58,7 +58,7 @@ test('executeScriptAsync, function async', async (t) => {
                     'name': 'multiplyNumbers',
                     'args': ['a', 'b'],
                     'statements': [
-                        {'assign': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
                         {'return': {
                             'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
                         }}
@@ -162,13 +162,13 @@ test('executeScriptAsync, function error log', async (t) => {
 test('executeScriptAsync, jump', async (t) => {
     const script = validateScript({
         'statements': [
-            {'assign': {'name': 'a', 'expr': {'number': 5}}},
+            {'expr': {'name': 'a', 'expr': {'number': 5}}},
             {'jump': {'label': 'lab2'}},
             {'label': 'lab'},
-            {'assign': {'name': 'a', 'expr': {'number': 6}}},
+            {'expr': {'name': 'a', 'expr': {'number': 6}}},
             {'jump': {'label': 'lab3'}},
             {'label': 'lab2'},
-            {'assign': {'name': 'a', 'expr': {'number': 7}}},
+            {'expr': {'name': 'a', 'expr': {'number': 7}}},
             {'jump': {'label': 'lab'}},
             {'label': 'lab3'},
             {'return': {'expr': {'variable': 'a'}}}
@@ -181,22 +181,22 @@ test('executeScriptAsync, jump', async (t) => {
 test('executeScriptAsync, jumpif', async (t) => {
     const script = validateScript({
         'statements': [
-            {'assign': {'name': 'n', 'expr': {'number': 10}}},
-            {'assign': {'name': 'i', 'expr': {'number': 0}}},
-            {'assign': {'name': 'a', 'expr': {'number': 0}}},
-            {'assign': {'name': 'b', 'expr': {'number': 1}}},
+            {'expr': {'name': 'n', 'expr': {'number': 10}}},
+            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'expr': {'name': 'a', 'expr': {'number': 0}}},
+            {'expr': {'name': 'b', 'expr': {'number': 1}}},
             {'label': 'fib'},
             {'jump': {
                 'label': 'fibend',
                 'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
             }},
-            {'assign': {'name': 'tmp', 'expr': {'variable': 'b'}}},
-            {'assign': {
+            {'expr': {'name': 'tmp', 'expr': {'variable': 'b'}}},
+            {'expr': {
                 'name': 'b',
                 'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
             }},
-            {'assign': {'name': 'a', 'expr': {'variable': 'tmp'}}},
-            {'assign': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'expr': {'name': 'a', 'expr': {'variable': 'tmp'}}},
+            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
             {'jump': {'label': 'fib'}},
             {'label': 'fibend'},
             {'return': {'expr': {'variable': 'a'}}}
@@ -404,12 +404,12 @@ test('executeScriptAsync, error maxStatements', async (t) => {
                     'async': true,
                     'name': 'fn',
                     'statements': [
-                        {'expr': {'variable': 'a'}},
-                        {'expr': {'variable': 'b'}}
+                        {'expr': {'expr': {'variable': 'a'}}},
+                        {'expr': {'expr': {'variable': 'b'}}}
                     ]
                 }
             },
-            {'expr': {'function': {'name': 'fn'}}}
+            {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
     const error = await t.throwsAsync(

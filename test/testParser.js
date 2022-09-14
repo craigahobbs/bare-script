@@ -21,7 +21,7 @@ test('parseScript, array input', (t) => {
     t.deepEqual(script, {
         'statements': [
             {
-                'assign': {
+                'expr': {
                     'name': 'a',
                     'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
                 }
@@ -41,7 +41,7 @@ a = arrayNew( \\
     t.deepEqual(script, {
         'statements': [
             {
-                'assign': {
+                'expr': {
                     'name': 'a',
                     'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
                 }
@@ -165,10 +165,10 @@ return a
 `));
     t.deepEqual(script, {
         'statements': [
-            {'assign': {'name': 'n', 'expr': {'number': 10}}},
-            {'assign': {'name': 'i', 'expr': {'number': 0}}},
-            {'assign': {'name': 'a', 'expr': {'number': 0}}},
-            {'assign': {'name': 'b', 'expr': {'number': 1}}},
+            {'expr': {'name': 'n', 'expr': {'number': 10}}},
+            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'expr': {'name': 'a', 'expr': {'number': 0}}},
+            {'expr': {'name': 'b', 'expr': {'number': 1}}},
             {'label': 'fib'},
             {
                 'jump': {
@@ -176,16 +176,16 @@ return a
                     'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
                 }
             },
-            {'assign': {'name': 'tmp', 'expr': {'variable': 'b'}}},
+            {'expr': {'name': 'tmp', 'expr': {'variable': 'b'}}},
             {
-                'assign': {
+                'expr': {
                     'name': 'b',
                     'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
                 }
             },
-            {'assign': {'name': 'a', 'expr': {'variable': 'tmp'}}},
+            {'expr': {'name': 'a', 'expr': {'variable': 'tmp'}}},
             {
-                'assign': {
+                'expr': {
                     'name': 'i',
                     'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}
                 }
@@ -277,7 +277,7 @@ foo()
 `));
     t.deepEqual(script, {
         'statements': [
-            {'expr': {'function': {'name': 'foo', 'args': []}}}
+            {'expr': {'expr': {'function': {'name': 'foo', 'args': []}}}}
         ]
     });
 });
