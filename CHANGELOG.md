@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6 (2022-09-14)
+
+- [52b048b](https://github.com/craigahobbs/calc-script/commit/52b048b) - simplify the statement model
+
 ## 1.2.5 (2022-09-13)
 
 - [9b64feb](https://github.com/craigahobbs/calc-script/commit/9b64feb) - fix fetch function with node's built-in fetch, update README
