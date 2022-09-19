@@ -34,6 +34,28 @@ return fibonacci(10)
 - [The CalcScript Expression Library](../library/expression.html)
 
 
+## Table of Contents
+
+- [Statements](#statements)
+  - [Expression and Assignment Statements](#expression-and-assignment-statements)
+  - [Jump and Label Statements](#jump-and-label-statements)
+  - [Return Statements](#return-statements)
+  - [Function Definition Statements](#function-definition-statements)
+  - [Include Statements](#include-statements)
+  - [Comments](#comments)
+  - [Multiline Statements](#multiline-statements)
+  - [The CalcScript Library](#the-calcscript-library)
+- [Expressions](#expressions)
+  - [Number Expressions](#number-expressions)
+  - [String Expressions](#string-expressions)
+  - [Variable Lookup Expressions](#variable-lookup-expressions)
+  - [Function Call Expressions](#function-call-expressions)
+  - [Binary Operator Expressions](#binary-operator-expressions)
+  - [Unary Operator Expressions](#unary-operator-expressions)
+  - [Group Expressions](#group-expressions)
+  - [The CalcScript Expression Library](#the-calcscript-expression-library)
+
+
 ## Statements
 
 A CalcScript script consists of one or more statements. The following sections describe the
@@ -62,9 +84,11 @@ c = a + b
 
 ### Jump and Label Statements
 
-A "jump" statement always changes the program flow to the specified label. A "jumpif" statement
-evaluates a test expression and only jumps if it evaluates to true. The example below uses "jump"
-and "jumpif" statements to sum the values of an array:
+A "jump" statement always changes the program flow to a label. A "jumpif" statement jumps only if
+its test expression evaluates to true. Labels are defined by specifying the label name followed by a
+colon.
+
+The example below uses "jump", "jumpif", and label statements to sum the values of an array:
 
 ~~~ calcscript
 values = arrayNew(1, 2, 3, 5, 7)
@@ -168,31 +192,115 @@ return arrayJoin(colors, ', ')
 ~~~
 
 
+### The CalcScript Library
+
+The [CalcScript Library](../library/) is a set of built-in, general-purpose global functions
+available to all CalcScript scripts. The library contains functions for creating and manipulating
+objects, arrays, datetimes, regular expressions, and strings. There are also functions for
+parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
+[fetch](../library/#var.vName='fetch').
+
 ## Expressions
 
-TODO
+CalcScript expressions are similar to spreadsheet formulas. The different expression types are
+described below.
 
 
-### Literal Expressions
+### Number Expressions
 
-TODO
+Number expressions are decimal numbers. For example:
+
+~~~ calcscript
+5
+-1
+3.14159
+~~~
+
+
+### String Expressions
+
+String expressions are specified with single or double quotes. Quotes are escaped using a preceding
+backslash character.
+
+~~~ calcscript
+'abc'
+"def"
+'that\'s a "quote"'
+"that's a \"quote\""
+~~~
+
+Strings are concatenated using the addition operator.
+
+~~~ calcscript
+'abc' + 'def'
+~~~
+
+
+### Variable Lookup Expressions
+
+Variable lookup expressions retrieve the value of a variable. A variable lookup expression is simply
+the variable name, or if the variable name has non-alphanumeric characters, the variable name is
+wrapped in open and close brackets. For example:
+
+~~~ calcscript
+x
+fooBar
+[Height (ft)]
+~~~
 
 
 ### Function Call Expressions
 
-TODO
+Function calls are specified as the function name followed by an open parenthesis, the function
+argument expressions separated by commas, and a close parenthesis. For example:
+
+~~~ calcscript
+max(0, sin(x))
+~~~
+
+The ["if"](../library/#var.vName='if') function has the special behavior that only the true
+expression is evaluated if the test expression is true. Likewise, only the false expression is
+evaluated if the test expression is false.
 
 
 ### Binary Operator Expressions
 
-TODO
+Binary operator expressions perform an operation on the result of two other expressions. For
+example:
+
+~~~ calcscript
+a + 1
+sin(x) / x
+~~~
+
+Click here for the [list of binary operators](../model/#var.vName='BinaryExpressionOperator') in
+order of evaluation precedence.
 
 
 ### Unary Operator Expressions
 
-TODO
+Unary operator expressions perform an operation on the result of another expression. For example:
+
+~~~ calcscript
+!a
+-x
+~~~
+
+Click here for the [list of unary operators](../model/#var.vName='UnaryExpressionOperator') in order
+of evaluation precedence.
 
 
 ### Group Expressions
 
-TODO
+Group expressions provide control over expression evaluation order. For example:
+
+~~~ calcscript
+0.5 * (x + y)
+~~~
+
+
+### The CalcScript Expression Library
+
+The [CalcScript Expression Library](../library/expression.html) is a set of built-in,
+spreadsheet-like global functions available to all expressions. The library contains functions for
+manipulating datetimes, strings, standard math operations, and parsing/formatting numbers.
