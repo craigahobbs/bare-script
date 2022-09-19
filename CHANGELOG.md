@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 (2022-09-19)
+
+- [efafefb](https://github.com/craigahobbs/calc-script/commit/efafefb) - language reference TOC and expressions sections
+
+- [9f418fa](https://github.com/craigahobbs/calc-script/commit/9f418fa) - simplify jump
+
+- [b4989d1](https://github.com/craigahobbs/calc-script/commit/b4989d1) - language reference introduction and statements section
+
 ## 1.2.6 (2022-09-14)
 
 - [52b048b](https://github.com/craigahobbs/calc-script/commit/52b048b) - simplify the statement model
