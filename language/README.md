@@ -5,8 +5,8 @@
 
 CalcScript is a simple, line-based scripting language. Each line of a CalcScript script is either a
 comment or a [statement](#statements). A statement is either an [expression](#expressions), a
-variable assignment, a jump, a return, or an include. Expressions can be a literal (number, string,
-null), a variable lookup, a function call, a binary expression, a unary expression, or a group.
+variable assignment, a jump, a return, or an include. Expressions include numbers, strings, variable
+lookups, function calls, binary expressions, unary expressions, or groups.
 
 For example, the following script computes the first ten Fibonacci numbers and returns them as an
 array.
@@ -64,16 +64,16 @@ different types of statements.
 
 ### Expression and Assignment Statements
 
-Expression statements evaluate an expression and discard the result. In the following example, we
-evaluate a function call expression:
+Expression statements evaluate an [expression](#expressions) and discard the result. In the
+following example, we evaluate a function call expression:
 
 ~~~ calcscript
 debugLog('Hello, World!')
 ~~~
 
 Similarly, a variable assignment statement evaluates an expression and assigns the result to a
-variable. If the statement is in the global scope, the variable is a global variable. Otherwise, the
-variable is a function-local variable. For example:
+variable. If the statement is in the global scope, the variable is global. Otherwise, the variable
+is a function-local variable. For example:
 
 ~~~ calcscript
 a = 5
@@ -84,9 +84,9 @@ c = a + b
 
 ### Jump and Label Statements
 
-A "jump" statement always changes the program flow to a label. A "jumpif" statement jumps only if
-its test expression evaluates to true. Labels are defined by specifying the label name followed by a
-colon.
+A "jump" statement sets the current program statement to a label. A "jumpif" statement jumps only if
+its test [expression](#expressions) evaluates to true. Labels are defined by specifying the label
+name followed by a colon.
 
 The example below uses "jump", "jumpif", and label statements to sum the values of an array:
 
@@ -106,8 +106,8 @@ valueLoopDone:
 
 ### Return Statements
 
-Return statements return from the current program scope. If there is a return expression, it is
-evaluated, and the result is returned. For example:
+Return statements return from the current program scope. If there is a return
+[expression](#expressions), it is evaluated, and the result is returned. For example:
 
 ~~~ calcscript
 function addNumbers(a, b)
