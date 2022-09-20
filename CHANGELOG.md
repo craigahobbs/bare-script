@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2022-09-20)
+
+- [2e36f2e](https://github.com/craigahobbs/calc-script/commit/2e36f2e) - improve jsonParse and fetch
+
 ## 1.3.0 (2022-09-19)
 
 - [efafefb](https://github.com/craigahobbs/calc-script/commit/efafefb) - language reference TOC and expressions sections
