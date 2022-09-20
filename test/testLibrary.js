@@ -365,18 +365,10 @@ test('library, jsonParse', (t) => {
 
 
 test('library, jsonParse error', (t) => {
-    t.is(scriptFunctions.jsonParse(['asdf'], null), null);
-});
-
-
-test('library, jsonParse error log', (t) => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {'logFn': logFn};
-    t.is(scriptFunctions.jsonParse(['asdf'], options), null);
-    t.deepEqual(logs, ['Error: jsonParse failed with error: Unexpected token a in JSON at position 0']);
+    const error = t.throws(() => {
+        scriptFunctions.jsonParse(['asdf'], null);
+    }, {'instanceOf': SyntaxError});
+    t.is(error.message, 'Unexpected token a in JSON at position 0');
 });
 
 
@@ -735,6 +727,20 @@ test('library, fetch null options log', async (t) => {
     const options = {'logFn': logFn};
     t.is(await scriptFunctions.fetch(['test.json'], options), null);
     t.deepEqual(logs, ['Error: fetch failed for JSON resource "test.json"']);
+});
+
+
+test('library, fetch null array options log', async (t) => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {'logFn': logFn};
+    t.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [null, null]);
+    t.deepEqual(logs, [
+        'Error: fetch failed for JSON resource "test.json"',
+        'Error: fetch failed for JSON resource "test2.json"'
+    ]);
 });
 
 
