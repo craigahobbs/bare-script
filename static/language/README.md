@@ -249,6 +249,12 @@ fooBar
 ~~~
 
 
+#### Special Variables
+
+CalcScript has the following special variables: "null", "false", and "true". Special variables
+cannot be overridden.
+
+
 ### Function Call Expressions
 
 Function calls are specified as the function name followed by an open parenthesis, the function
