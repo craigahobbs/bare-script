@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (2022-09-21)
+
+- [2c1e8c1](https://github.com/craigahobbs/calc-script/commit/2c1e8c1) - add lintScript
+
 ## 1.3.1 (2022-09-20)
 
 - [2e36f2e](https://github.com/craigahobbs/calc-script/commit/2e36f2e) - improve jsonParse and fetch
