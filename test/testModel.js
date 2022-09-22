@@ -102,6 +102,24 @@ test('lintScript, function unused argument', (t) => {
 });
 
 
+test('lintScript, function argument function call ok', (t) => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'args': ['a'],
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'a'}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    t.deepEqual(lintScript(validateScript(script)), []);
+});
+
+
 test('lintScript, function unused variable', (t) => {
     const script = {
         'statements': [
@@ -175,6 +193,25 @@ test('lintScript, function variable used before assignment', (t) => {
     t.deepEqual(lintScript(validateScript(script)), [
         'Variable "b" of function "testFn" used (index 0) before assignment (index 1)'
     ]);
+});
+
+
+test('lintScript, function variable used before assignment arg ok', (t) => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'args': ['b'],
+                    'statements': [
+                        {'expr': {'name': 'a', 'expr': {'variable': 'b'}}},
+                        {'expr': {'name': 'b', 'expr': {'variable': 'a'}}}
+                    ]
+                }
+            }
+        ]
+    };
+    t.deepEqual(lintScript(validateScript(script)), []);
 });
 
 
