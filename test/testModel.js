@@ -130,6 +130,24 @@ test('lintScript, function unused variable', (t) => {
 });
 
 
+test('lintScript, function arg used variable ok', (t) => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'expr': {'name': 'a', 'expr': {'number': 1}}},
+                        {'expr': {'expr': {'function': {'name': 'foo', 'args': [{'variable': 'a'}]}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    t.deepEqual(lintScript(validateScript(script)), []);
+});
+
+
 test('lintScript, global unused variable ok', (t) => {
     const script = {
         'statements': [
