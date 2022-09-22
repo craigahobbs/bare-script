@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4 (2022-09-21)
+
+- [f08fdc0](https://github.com/craigahobbs/calc-script/commit/f08fdc0) - fix lintScript function issues
+
 ## 1.3.3 (2022-09-21)
 
 - [e875a2f](https://github.com/craigahobbs/calc-script/commit/e875a2f) - fix lintScript function issues
