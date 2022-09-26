@@ -10,7 +10,7 @@
 ;;
 ;; (unless (package-installed-p 'calcscript-mode)
 ;;   (let ((mode-file (make-temp-file "calcscript-mode")))
-;;     (url-copy-file "https://craigahobbs.github.io/calcscript/language/calcscript-mode.el" mode-file t)
+;;     (url-copy-file "https://craigahobbs.github.io/calc-script/language/calcscript-mode.el" mode-file t)
 ;;     (package-install-file mode-file)
 ;;     (delete-file mode-file)))
 
@@ -39,7 +39,7 @@
       ("^\\(~~~+\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
       )
     '(
-      ".mds?\\'"
+      "\\.mds?\\'"
       )
     nil
     "Major mode for editing CalcScript"))
