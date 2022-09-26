@@ -54,6 +54,7 @@ return fibonacci(10)
   - [Unary Operator Expressions](#unary-operator-expressions)
   - [Group Expressions](#group-expressions)
   - [The CalcScript Expression Library](#the-calcscript-expression-library)
+- [Emacs Mode](#emacs-mode)
 
 
 ## Statements
@@ -310,3 +311,19 @@ Group expressions provide control over expression evaluation order. For example:
 The [CalcScript Expression Library](../library/expression.html) is a set of built-in,
 spreadsheet-like global functions available to all expressions. The library contains functions for
 manipulating datetimes, strings, standard math operations, and parsing/formatting numbers.
+
+
+## Emacs Mode
+
+To install the [Emacs](https://www.gnu.org/software/emacs/) CalcScript mode add the following to
+your .emacs file:
+
+~~~
+(package-initialize)
+
+(unless (package-installed-p 'calcscript-mode)
+  (let ((mode-file (make-temp-file "calcscript-mode")))
+    (url-copy-file "https://craigahobbs.github.io/calc-script/language/calcscript-mode.el" mode-file t)
+    (package-install-file mode-file)
+    (delete-file mode-file)))
+~~~
