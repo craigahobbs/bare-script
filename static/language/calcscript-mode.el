@@ -31,12 +31,12 @@
     "return"
     )
   '(
-    ("\\(null\\|true\\|false\\)"              1 font-lock-constant-face)
-    ("\\('\\(\\\\'\\|[^']\\)+'\\)"            1 font-lock-string-face)
-    ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*=" 1 font-lock-variable-name-face)
-    ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)"       1 font-lock-reference-face)
-    ("^\\s-*\\(#+.-*\\s-*\\)$"                1 font-lock-doc-face)
-    ("^\\(~~~+\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$"     1 font-lock-preprocessor-face)
+    ("\\(null\\|true\\|false\\)"                       1 font-lock-constant-face)
+    ("\\('\\(\\\\'\\|[^']\\)+'\\)"                     1 font-lock-string-face)
+    ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*="          1 font-lock-variable-name-face)
+    ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)"                1 font-lock-reference-face)
+    ("^\\s-*\\(#+.-*\\s-*\\)$"                         1 font-lock-doc-face)
+    ("^\\(~~~+\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
     )
   '(
     ".md\\'"
