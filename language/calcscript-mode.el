@@ -42,5 +42,5 @@
   nil
   "Major mode for editing CalcScript")
 
-(provide 'define-calcscript-mode)
+(provide 'calcscript-mode)
 ;;; calcscript-mode.el ends here
