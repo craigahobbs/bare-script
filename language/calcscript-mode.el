@@ -40,7 +40,7 @@
     ".mds?\\'"
     )
   nil
-  "Major mode for editing CalcScript"))
+  "Major mode for editing CalcScript")
 
 (provide 'define-calcscript-mode)
 ;;; calcscript-mode.el ends here
