@@ -20,28 +20,34 @@
 ;;;###autoload
 (defun define-calcscript-mode()
   (define-generic-mode 'calcscript-mode
-    '(?#)
+    nil
     '(
       "async"
       "endfunction"
+      "false"
       "function"
       "include"
       "jump"
       "jumpif"
+      "null"
       "return"
+      "true"
       )
     '(
-      ("\\(null\\|true\\|false\\)"                       1 font-lock-constant-face)
-      ("\\('\\(\\\\'\\|[^']\\)*'\\)"                     1 font-lock-string-face)
-      ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*="          1 font-lock-variable-name-face)
-      ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)"                1 font-lock-reference-face)
+      ("^\\s-*\\(#.*\\)$"                                1 font-lock-comment-face)
+      ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)\\s-*$"          1 font-lock-reference-face)
       ("^\\s-*\\(#+.-*\\s-*\\)$"                         1 font-lock-doc-face)
       ("^\\(~~~+\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
+      ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*="          1 font-lock-variable-name-face)
+      ("\\('\\(\\\\'\\|[^']\\)*'\\)"                     1 font-lock-string-face)
       )
     '(
       "\\.mds?\\'"
       )
-    nil
+    (list
+     (lambda ()
+       (setq-local comment-start "#")
+       ))
     "Major mode for editing CalcScript"))
 
 ;;;###autoload
