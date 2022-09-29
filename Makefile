@@ -34,7 +34,8 @@ doc:
 	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js > build/doc/library/library.json
 
     # Generate the expression library documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
+	$(NODE_DOCKER) node bin/calcScriptDoc.js lib/library.js | \
+		$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
 
     # Generate the model documentation
 	$(NODE_DOCKER) node --input-type=module \
@@ -47,8 +48,8 @@ define LIBRARY_EXPR
 import {expressionFunctionMap} from "./lib/library.js";
 import {readFileSync} from 'node:fs';
 
-// Load the script library documentation
-const library = JSON.parse(readFileSync('build/doc/library/library.json'));
+// Read the script library documentation JSON from stdin
+const library = JSON.parse(fs.readFileSync(0).toString());
 const libraryFunctionMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
 
 // Output the expression library documentation
@@ -58,5 +59,4 @@ for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) 
 }
 console.log(JSON.stringify(libraryExpr, null, 4));
 endef
-
 export LIBRARY_EXPR
