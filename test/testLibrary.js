@@ -1086,6 +1086,46 @@ test('library, regexTest non-regexp', (t) => {
 
 
 //
+// Schema functions
+//
+
+
+test('script library, schemaParse', (t) => {
+    t.deepEqual(scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], {}), {
+        'MyStruct': {
+            'struct': {
+                'name': 'MyStruct',
+                'doc': ['My struct'],
+                'members': [
+                    {
+                        'name': 'a',
+                        'doc': ['An integer'],
+                        'type': {'builtin': 'int'}
+                    }
+                ]
+            }
+        }
+    });
+});
+
+
+test('script library, schemaTypeModel', (t) => {
+    t.true('Types' in scriptFunctions.schemaTypeModel([], {}));
+});
+
+test('script library, schemaValidate', (t) => {
+    const types = scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], {});
+    t.deepEqual(scriptFunctions.schemaValidate([types, 'MyStruct', {'a': 5}], {}), {'a': 5});
+});
+
+
+test('script library, schemaValidateTypeModel', (t) => {
+    const typeModel = scriptFunctions.schemaTypeModel([], {});
+    t.deepEqual(scriptFunctions.schemaValidateTypeModel([typeModel], {}), typeModel);
+});
+
+
+//
 // String functions
 //
 
