@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.5 (2022-10-28)
+
+- [011d103](https://github.com/craigahobbs/calc-script/commit/011d103) - add schema functions
+
 ## 1.3.4 (2022-09-21)
 
 - [f08fdc0](https://github.com/craigahobbs/calc-script/commit/f08fdc0) - fix lintScript function issues
