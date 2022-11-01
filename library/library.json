@@ -1414,13 +1414,13 @@
             "name": "schemaParse",
             "group": "Schema",
             "doc": [
-                "Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown/schema-markdown.html) text"
+                "Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text"
             ],
             "args": [
                 {
                     "name": "lines",
                     "doc": [
-                        "The [Schema Markdown](https://craigahobbs.github.io/schema-markdown/schema-markdown.html)",
+                        "The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/)",
                         "text lines (may contain nested arrays of un-split lines)"
                     ]
                 }
