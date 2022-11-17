@@ -365,10 +365,9 @@ test('library, jsonParse', (t) => {
 
 
 test('library, jsonParse error', (t) => {
-    const error = t.throws(() => {
+    t.throws(() => {
         scriptFunctions.jsonParse(['asdf'], null);
     }, {'instanceOf': SyntaxError});
-    t.is(error.message, 'Unexpected token a in JSON at position 0');
 });
 
 
