@@ -109,7 +109,7 @@ return 'The CalcScript Library has ' + arrayLength(objectGet(libraryDocs, 'funct
 console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 </code></pre>
 <p>This outputs:</p>
-<pre class="prettyprint source"><code>The CalcScript Library has 82 functions
+<pre class="prettyprint source"><code>The CalcScript Library has 86 functions
 </code></pre>
 <h2>Evaluating CalcScript Expressions</h2>
 <p>To evaluate a
@@ -139,8 +139,8 @@ console.log(evaluateExpression(expr, null, variables))
 <pre class="prettyprint source"><code>6
 </code></pre>
 <h2>Development</h2>
-<p>calc-script is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>
-and it was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a>:</p>
+<p>This package is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>.
+It was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a> as follows:</p>
 <pre class="prettyprint source"><code>template-specialize javascript-template/template/ calc-script/ -k package calc-script -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k noapp 1
 </code></pre></article>
     </section>
