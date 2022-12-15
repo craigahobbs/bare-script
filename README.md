@@ -83,7 +83,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ~~~
-The CalcScript Library has 82 functions
+The CalcScript Library has 86 functions
 ~~~
 
 
