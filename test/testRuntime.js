@@ -152,8 +152,7 @@ test('executeScript, function error log', (t) => {
     };
     const options = {'globals': {errorFunction}, logFn};
     t.is(executeScript(script, options), null);
-    t.is(logs.length, 2);
-    t.is(logs[0], 'Error: Function "errorFunction" failed with error: unexpected error');
+    t.deepEqual(logs, ['CalcScript: Function "errorFunction" failed with error: unexpected error']);
 });
 
 
@@ -571,7 +570,7 @@ test('evaluateExpression, function non-function logFn', (t) => {
     };
     const options = {'globals': {'fnLocal': 'abc'}, logFn};
     t.is(evaluateExpression(calc, options), null);
-    t.deepEqual(logs, ['Error: Function "fnLocal" failed with error: funcValue is not a function']);
+    t.deepEqual(logs, ['CalcScript: Function "fnLocal" failed with error: funcValue is not a function']);
 });
 
 
