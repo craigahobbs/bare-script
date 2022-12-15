@@ -1333,7 +1333,8 @@
                 }
             ],
             "return": [
-                "The [match object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
+                "The [match object",
+                "](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
                 "or null if no matches are found"
             ]
         },
@@ -1358,8 +1359,9 @@
                 }
             ],
             "return": [
-                "The [match object array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
-                "or null if no matches are found"
+                "The [match object",
+                "](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match#return_value)",
+                "array or null if no matches are found"
             ]
         },
         {
@@ -1378,7 +1380,8 @@
                 {
                     "name": "flags",
                     "doc": [
-                        "The [regular expression flags](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)"
+                        "The [regular expression flags",
+                        "](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#advanced_searching_with_flags)"
                     ]
                 }
             ],
