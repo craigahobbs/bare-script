@@ -1,6 +1,6 @@
 ;;; calcscript-mode.el --- major mode for editing CalcScript
 
-;; Version: 0.1
+;; Version: 0.2
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
       ("^\\s-*\\(#.*\\)$"                                1 font-lock-comment-face)
       ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)\\s-*$"          1 font-lock-reference-face)
       ("^\\s-*\\(#+.-*\\s-*\\)$"                         1 font-lock-doc-face)
-      ("^\\(~~~+\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
+      ("^\\(\\(~~~+\\|```+\\)\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
       ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*="          1 font-lock-variable-name-face)
       ("\\('\\(\\\\'\\|[^']\\)*'\\)"                     1 font-lock-string-face)
       )
