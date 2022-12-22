@@ -167,7 +167,7 @@ test('parseLibraryDoc, error empty function name', (t) => {
             [
                 'library.js',
                 `\
-// $function:  
+// $function:${'  '}
 `
             ]
         ]);
