@@ -749,6 +749,15 @@ test('parseExpression, string literal escapes', (t) => {
 });
 
 
+test('parseExpression, string literal backslash end', (t) => {
+    const expr = parseExpression("test('abc \\\\', 'def')");
+    t.deepEqual(validateExpression(expr), {'function': {
+        'name': 'test',
+        'args': [{'string': 'abc \\'}, {'string': 'def'}]
+    }});
+});
+
+
 test('parseExpression, string literal double-quote', (t) => {
     const expr = parseExpression('"abc"');
     t.deepEqual(validateExpression(expr), {'string': 'abc'});
@@ -758,4 +767,13 @@ test('parseExpression, string literal double-quote', (t) => {
 test('parseExpression, string literal double-quote escapes', (t) => {
     const expr = parseExpression('"ab \\"c\\" d\\\\e \\f"');
     t.deepEqual(validateExpression(expr), {'string': 'ab "c" d\\e \\f'});
+});
+
+
+test('parseExpression, string literal double-quote backslash end', (t) => {
+    const expr = parseExpression('test("abc \\\\", "def")');
+    t.deepEqual(validateExpression(expr), {'function': {
+        'name': 'test',
+        'args': [{'string': 'abc \\'}, {'string': 'def'}]
+    }});
 });
