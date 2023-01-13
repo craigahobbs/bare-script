@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.7 (2023-01-13)
+
+- [78c7d4b](https://github.com/craigahobbs/calc-script/commit/78c7d4b) - fix string literal parsing when backslash is final character
+
 ## 1.3.6 (2022-12-15)
 
 - [c774759](https://github.com/craigahobbs/calc-script/commit/c774759) - cleanup logging
