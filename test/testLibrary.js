@@ -372,7 +372,11 @@ test('library, jsonParse error', (t) => {
 
 
 test('library, jsonStringify', (t) => {
-    t.is(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}]), '{"a":1,"b":2}');
+    t.is(scriptFunctions.jsonStringify([{'b': 2, 'a': 1}]), '{"a":1,"b":2}');
+    t.is(scriptFunctions.jsonStringify([[3, 2, 1]]), '[3,2,1]');
+    t.is(scriptFunctions.jsonStringify([123]), '123');
+    t.is(scriptFunctions.jsonStringify(['abc']), '"abc"');
+    t.is(scriptFunctions.jsonStringify([null]), 'null');
 });
 
 
