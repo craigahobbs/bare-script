@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.9 (2023-01-19)
+
+- [07648ce](https://github.com/craigahobbs/calc-script/commit/07648ce) - fix jsonStringify
+
 ## 1.3.8 (2023-01-19)
 
 - [0a9761c](https://github.com/craigahobbs/calc-script/commit/0a9761c) - jsonStringify now sorts keys
