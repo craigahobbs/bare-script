@@ -950,12 +950,30 @@ test('library, objectAssign', (t) => {
 
 
 test('library, objectAssign null', (t) => {
-    t.is(scriptFunctions.objectAssign([null]), null);
+    const obj = {'a': 1, 'b': 2};
+    t.is(scriptFunctions.objectAssign([obj, null]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
+    t.is(scriptFunctions.objectAssign([null, obj]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
 
 test('library, objectAssign non-object', (t) => {
-    t.is(scriptFunctions.objectAssign([0]), null);
+    const obj = {'a': 1, 'b': 2};
+    t.is(scriptFunctions.objectAssign([obj, 0]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
+    t.is(scriptFunctions.objectAssign([0, obj]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
+});
+
+
+test('library, objectAssign array', (t) => {
+    const obj = {'a': 1, 'b': 2};
+    const array = ['c', 'd'];
+    t.is(scriptFunctions.objectAssign([obj, array]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
+    t.is(scriptFunctions.objectAssign([array, obj]), null);
+    t.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
 
@@ -972,6 +990,11 @@ test('library, objectCopy null', (t) => {
 
 test('library, objectCopy non-object', (t) => {
     t.is(scriptFunctions.objectCopy([0]), null);
+});
+
+
+test('library, objectCopy array', (t) => {
+    t.is(scriptFunctions.objectCopy([['a', 'b']]), null);
 });
 
 
@@ -999,6 +1022,11 @@ test('library, objectDelete non-object', (t) => {
 });
 
 
+test('library, objectDelete array', (t) => {
+    t.is(scriptFunctions.objectDelete([['a', 'b'], 'a']), undefined);
+});
+
+
 test('library, objectGet', (t) => {
     const obj = {'a': 1, 'b': 2};
     t.is(scriptFunctions.objectGet([obj, 'a']), 1);
@@ -1021,6 +1049,35 @@ test('library, objectGet non-object', (t) => {
 });
 
 
+test('library, objectGet array', (t) => {
+    t.is(scriptFunctions.objectGet([['a', 'b'], 'a']), null);
+});
+
+
+test('library, objectHas', (t) => {
+    const obj = {'a': 1, 'b': null, 'c': undefined};
+    t.is(scriptFunctions.objectHas([obj, 'a']), true);
+    t.is(scriptFunctions.objectHas([obj, 'b']), true);
+    t.is(scriptFunctions.objectHas([obj, 'c']), true);
+    t.is(scriptFunctions.objectHas([obj, 'd']), false);
+});
+
+
+test('library, objectHas null', (t) => {
+    t.is(scriptFunctions.objectHas([null, 'a']), false);
+});
+
+
+test('library, objectHas non-object', (t) => {
+    t.is(scriptFunctions.objectHas([0, 'a']), false);
+});
+
+
+test('library, objectHas array', (t) => {
+    t.is(scriptFunctions.objectHas([['a', 'b'], 'a']), false);
+});
+
+
 test('library, objectKeys', (t) => {
     const obj = {'a': 1, 'b': 2};
     t.deepEqual(scriptFunctions.objectKeys([obj]), ['a', 'b']);
@@ -1034,6 +1091,11 @@ test('library, objectKeys null', (t) => {
 
 test('library, objectKeys non-object', (t) => {
     t.is(scriptFunctions.objectKeys([0]), null);
+});
+
+
+test('library, objectKeys array', (t) => {
+    t.is(scriptFunctions.objectKeys([['a', 'b']]), null);
 });
 
 
@@ -1066,6 +1128,13 @@ test('library, objectSet null', (t) => {
 
 test('library, objectSet non-object', (t) => {
     t.is(scriptFunctions.objectSet([0, 'c', 3]), null);
+});
+
+
+test('library, objectSet array', (t) => {
+    const array = ['a', 'b'];
+    t.is(scriptFunctions.objectSet([array, 'c', 3]), null);
+    t.deepEqual(array, ['a', 'b']);
 });
 
 
