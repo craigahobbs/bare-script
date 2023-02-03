@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.10 (2023-02-02)
+
+- [e06d518](https://github.com/craigahobbs/calc-script/commit/e06d518) - fix fetch of array of urls with failure
+
 ## 1.3.9 (2023-01-19)
 
 - [07648ce](https://github.com/craigahobbs/calc-script/commit/07648ce) - fix jsonStringify
