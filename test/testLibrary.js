@@ -835,6 +835,47 @@ test('library, fetch response text error', async (t) => {
 });
 
 
+test('library, fetch response error', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        t.is(url, 'test.txt');
+        throw new Error('fetch failed');
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
+});
+
+
+test('library, fetch array response error', async (t) => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        if (url === 'test.txt') {
+            throw new Error('fetch failed');
+        }
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => ({'foo': 'bar'})
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn};
+    t.deepEqual(
+        await scriptFunctions.fetch([['test.txt', 'test2.txt']], options),
+        [null, {'foo': 'bar'}]
+    );
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.txt"']);
+});
+
+
 test('library, setGlobal', (t) => {
     const options = {'globals': {}};
     t.is(scriptFunctions.setGlobal(['a', 1], options), 1);
