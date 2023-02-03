@@ -1145,7 +1145,7 @@
             "name": "objectAssign",
             "group": "Object",
             "doc": [
-                "Assign the keys/values of one array to another"
+                "Assign the keys/values of one object to another"
             ],
             "args": [
                 {
@@ -1226,6 +1226,30 @@
             ],
             "return": [
                 "The value or null if the key does not exist"
+            ]
+        },
+        {
+            "name": "objectHas",
+            "group": "Object",
+            "doc": [
+                "Test if an object contains a key"
+            ],
+            "args": [
+                {
+                    "name": "object",
+                    "doc": [
+                        "The object"
+                    ]
+                },
+                {
+                    "name": "key",
+                    "doc": [
+                        "The key"
+                    ]
+                }
+            ],
+            "return": [
+                "true if the object contains the key, false otherwise"
             ]
         },
         {
