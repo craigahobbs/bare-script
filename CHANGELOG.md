@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.12 (2023-02-06)
+
+- [641a140](https://github.com/craigahobbs/calc-script/commit/641a140) - use jsonStringifySortKeys
+
 ## 1.3.11 (2023-02-03)
 
 - [7da90f8](https://github.com/craigahobbs/calc-script/commit/7da90f8) - add objectHas script library function
