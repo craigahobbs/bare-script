@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.13 (2023-02-06)
+
+- [194fc3e](https://github.com/craigahobbs/calc-script/commit/194fc3e) - don't restrict arrays from objectGet and objectHas
+
 ## 1.3.12 (2023-02-06)
 
 - [641a140](https://github.com/craigahobbs/calc-script/commit/641a140) - use jsonStringifySortKeys
