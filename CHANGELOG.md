@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.17 (2023-02-24)
+
+- [948924d](https://github.com/craigahobbs/calc-script/commit/948924d) - optimize while-do statement generation
+
+- [f6dd84b](https://github.com/craigahobbs/calc-script/commit/f6dd84b) - optimize if-then statement generation
+
 ## 1.3.16 (2023-02-24)
 
 - [27fc701](https://github.com/craigahobbs/calc-script/commit/27fc701) - run linter on included scripts
