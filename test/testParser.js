@@ -513,7 +513,6 @@ endwhile
     t.deepEqual(script, {
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
-            {'label': '__calcScriptLoop0'},
             {'jump': {
                 'label': '__calcScriptDone0',
                 'expr': {'unary': {
@@ -525,8 +524,16 @@ endwhile
                     }}
                 }}
             }},
+            {'label': '__calcScriptLoop0'},
             {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
-            {'jump': {'label': '__calcScriptLoop0'}},
+            {'jump': {
+                'label': '__calcScriptLoop0',
+                'expr': {'binary': {
+                    'op': '<',
+                    'left': {'variable': 'i'},
+                    'right': {'function': {'name': 'arrayLength', 'args': [{'variable': 'values'}]}}
+                }}
+            }},
             {'label': '__calcScriptDone0'}
         ]
     });
@@ -541,10 +548,10 @@ endwhile
 `));
     t.deepEqual(script, {
         'statements': [
-            {'label': '__calcScriptLoop0'},
             {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'label': '__calcScriptLoop0'},
             {'jump': {'label': '__calcScriptDone0'}},
-            {'jump': {'label': '__calcScriptLoop0'}},
+            {'jump': {'label': '__calcScriptLoop0', 'expr': {'variable': 'true'}}},
             {'label': '__calcScriptDone0'}
         ]
     });
@@ -559,10 +566,10 @@ endwhile
 `));
     t.deepEqual(script, {
         'statements': [
-            {'label': '__calcScriptLoop0'},
             {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'label': '__calcScriptLoop0'},
             {'jump': {'label': '__calcScriptLoop0'}},
-            {'jump': {'label': '__calcScriptLoop0'}},
+            {'jump': {'label': '__calcScriptLoop0', 'expr': {'variable': 'true'}}},
             {'label': '__calcScriptDone0'}
         ]
     });
