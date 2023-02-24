@@ -322,6 +322,92 @@ a = 1
 });
 
 
+test('executeScriptAsync, include lint', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.is(url, 'test.mds');
+        return {
+            'ok': true,
+            'text': () => `\
+function test(a)
+endfunction
+`
+        };
+    };
+    const logs = [];
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {}, fetchFn, logFn};
+    t.is(await executeScriptAsync(script, options), null);
+    t.deepEqual(logs, [
+        'CalcScript: Include "test.mds" static analysis... 1 warning:',
+        'CalcScript:     Unused argument "a" of function "test" (index 0)'
+    ]);
+});
+
+
+test('executeScriptAsync, include lint multiple', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.is(url, 'test.mds');
+        return {
+            'ok': true,
+            'text': () => `\
+function test(a, b)
+endfunction
+`
+        };
+    };
+    const logs = [];
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {}, fetchFn, logFn};
+    t.is(await executeScriptAsync(script, options), null);
+    t.deepEqual(logs, [
+        'CalcScript: Include "test.mds" static analysis... 2 warnings:',
+        'CalcScript:     Unused argument "a" of function "test" (index 0)',
+        'CalcScript:     Unused argument "b" of function "test" (index 0)'
+    ]);
+});
+
+
+test('executeScriptAsync, include lint OK', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': 'test.mds'}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.is(url, 'test.mds');
+        return {
+            'ok': true,
+            'text': () => `\
+function test()
+endfunction
+`
+        };
+    };
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {}, fetchFn, logFn};
+    t.is(await executeScriptAsync(script, options), null);
+    t.deepEqual(logs, []);
+});
+
+
 test('executeScriptAsync, include fetchFn not-ok', async (t) => {
     const script = validateScript({
         'statements': [
