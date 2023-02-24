@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.16 (2023-02-24)
+
+- [27fc701](https://github.com/craigahobbs/calc-script/commit/27fc701) - run linter on included scripts
+
 ## 1.3.15 (2023-02-23)
 
 - [9298087](https://github.com/craigahobbs/calc-script/commit/9298087) - add if-then, while-do, and foreach statements
