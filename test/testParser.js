@@ -247,6 +247,717 @@ endfunction
 });
 
 
+test('parseScript, if-then statement', (t) => {
+    const script = validateScript(parseScript(`\
+if i > 0 then
+    a = 1
+else if i < 0 then
+    a = 2
+else then
+    a = 3
+endif
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'jump': {
+                'label': '__calcScriptIf0',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'label': '__calcScriptIf0'},
+            {'jump': {
+                'label': '__calcScriptIf1',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}}
+            },
+            {'expr': {'name': 'a', 'expr': {'number': 2}}},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'label': '__calcScriptIf1'},
+            {'expr': {'name': 'a', 'expr': {'number': 3}}},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, if-then statement only', (t) => {
+    const script = validateScript(parseScript(`\
+if i > 0 then
+    a = 1
+endif
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'jump': {
+                'label': '__calcScriptIf0',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'label': '__calcScriptIf0'},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, if-then statement if-else-if', (t) => {
+    const script = validateScript(parseScript(`\
+if i > 0 then
+    a = 1
+else if i < 0 then
+    a = 2
+endif
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'jump': {
+                'label': '__calcScriptIf0',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'label': '__calcScriptIf0'},
+            {'jump': {
+                'label': '__calcScriptIf1',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 2}}},
+            {'label': '__calcScriptIf1'},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, if-then statement if-else', (t) => {
+    const script = validateScript(parseScript(`\
+if i > 0 then
+    a = 1
+else then
+    a = 2
+endif
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'jump': {
+                'label': '__calcScriptIf0',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'label': '__calcScriptIf0'},
+            {'expr': {'name': 'a', 'expr': {'number': 2}}},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, if-then statement error else-if outside if-then', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+else if i < 0 then
+    a = 3
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 1:
+else if i < 0 then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error else-if outside if-then 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+while true do
+    else if i < 0 then
+        a = 3
+    endif
+endwhile
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 2:
+    else if i < 0 then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error else-then outside if-then', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+else then
+    a = 3
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 1:
+else then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error else-then outside if-then 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+while true do
+    else then
+        a = 3
+    endif
+endwhile
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 2:
+    else then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error endif outside if-then', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 1:
+endif
+^
+`);
+});
+
+
+test('parseScript, if-then statement error endif outside if-then 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+while true do
+    endif
+endwhile
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching if-then statement, line number 2:
+    endif
+^
+`);
+});
+
+
+test('parseScript, if-then statement error else-if after else', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+if i > 0 then
+    a = 1
+else then
+    a = 2
+else if i < 0 then
+    a = 3
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Else-if-then statement following else-then statement, line number 5:
+else if i < 0 then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error multiple else', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+if i > 0 then
+    a = 1
+else then
+    a = 2
+else then
+    a = 3
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Multiple else-then statements, line number 5:
+else then
+^
+`);
+});
+
+
+test('parseScript, if-then statement error no endif', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+if i > 0 then
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Missing endif statement, line number 1:
+if i > 0 then
+^
+`);
+});
+
+
+test('parseScript, while-do statement', (t) => {
+    const script = validateScript(parseScript(`\
+i = 0
+while i < arrayLength(values) do
+    i = i + 1
+endwhile
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'label': '__calcScriptLoop0'},
+            {'jump': {
+                'label': '__calcScriptDone0',
+                'expr': {'unary': {
+                    'op': '!',
+                    'expr': {'binary': {
+                        'op': '<',
+                        'left': {'variable': 'i'},
+                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': 'values'}]}}
+                    }}
+                }}
+            }},
+            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'jump': {'label': '__calcScriptLoop0'}},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, while-do statement break', (t) => {
+    const script = validateScript(parseScript(`\
+while true do
+    break
+endwhile
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'label': '__calcScriptLoop0'},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'jump': {'label': '__calcScriptLoop0'}},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, while-do statement continue', (t) => {
+    const script = validateScript(parseScript(`\
+while true do
+    continue
+endwhile
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'label': '__calcScriptLoop0'},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'jump': {'label': '__calcScriptLoop0'}},
+            {'jump': {'label': '__calcScriptLoop0'}},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, while-do statement error endwhile outside while-do', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+endwhile
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching while-do statement, line number 1:
+endwhile
+^
+`);
+});
+
+
+test('parseScript, while-do statement error endwhile outside while-do 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+foreach value in values do
+endwhile
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching while-do statement, line number 2:
+endwhile
+^
+`);
+});
+
+
+test('parseScript, while-do statement error no endwhile', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+while true do
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Missing endwhile statement, line number 1:
+while true do
+^
+`);
+});
+
+
+test('parseScript, foreach statement', (t) => {
+    const script = validateScript(parseScript(`\
+values = arrayNew(1, 2, 3)
+sum = 0
+foreach value in values do
+    sum = sum + value
+endforeach
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {
+                'name': 'values',
+                'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+            }},
+            {'expr': {'name': 'sum', 'expr': {'number': 0}}},
+            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'jump': {
+                'label': '__calcScriptDone0',
+                'expr': {
+                    'unary': {
+                        'op': '!',
+                        'expr': {
+                            'binary': {
+                                'op': '>',
+                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
+                                'right': {'number': 0}
+                            }
+                        }
+                    }
+                }
+            }},
+            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__calcScriptLoop0'},
+            {'expr': {
+                'name': 'value',
+                'expr': {'function': {
+                    'name': 'arrayGet',
+                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                }}
+            }},
+            {'expr': {
+                'name': 'sum',
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'sum'}, 'right': {'variable': 'value'}}}
+            }},
+            {'expr': {
+                'name': '__calcScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+            }},
+            {'jump': {
+                'label': '__calcScriptLoop0',
+                'expr': {
+                    'binary': {
+                        'op': '<',
+                        'left': {'variable': '__calcScriptIndex0'},
+                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                    }
+                }
+            }},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, foreach statement with index', (t) => {
+    const script = validateScript(parseScript(`\
+foreach value, ixValue in values do
+endforeach
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'jump': {
+                'label': '__calcScriptDone0',
+                'expr': {
+                    'unary': {
+                        'op': '!',
+                        'expr': {
+                            'binary': {
+                                'op': '>',
+                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
+                                'right': {'number': 0}
+                            }
+                        }
+                    }
+                }
+            }},
+            {'expr': {'name': 'ixValue', 'expr': {'number': 0}}},
+            {'label': '__calcScriptLoop0'},
+            {'expr': {
+                'name': 'value',
+                'expr': {'function': {
+                    'name': 'arrayGet',
+                    'args': [{'variable': '__calcScriptValues0'}, {'variable': 'ixValue'}]
+                }}
+            }},
+            {'expr': {
+                'name': 'ixValue',
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'ixValue'}, 'right': {'number': 1}}}
+            }},
+            {'jump': {
+                'label': '__calcScriptLoop0',
+                'expr': {
+                    'binary': {
+                        'op': '<',
+                        'left': {'variable': 'ixValue'},
+                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                    }
+                }
+            }},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, foreach statement break', (t) => {
+    const script = validateScript(parseScript(`\
+foreach value in values do
+    if i > 0 then
+        break
+    endif
+endforeach
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'jump': {
+                'label': '__calcScriptDone0',
+                'expr': {
+                    'unary': {
+                        'op': '!',
+                        'expr': {
+                            'binary': {
+                                'op': '>',
+                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
+                                'right': {'number': 0}
+                            }
+                        }
+                    }
+                }
+            }},
+            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__calcScriptLoop0'},
+            {'expr': {
+                'name': 'value',
+                'expr': {'function': {
+                    'name': 'arrayGet',
+                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                }}
+            }},
+            {'jump': {
+                'label': '__calcScriptIf1',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'jump': {'label': '__calcScriptDone0'}},
+            {'label': '__calcScriptIf1'},
+            {'label': '__calcScriptDone1'},
+            {'expr': {
+                'name': '__calcScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+            }},
+            {'jump': {
+                'label': '__calcScriptLoop0',
+                'expr': {
+                    'binary': {
+                        'op': '<',
+                        'left': {'variable': '__calcScriptIndex0'},
+                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                    }
+                }
+            }},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, foreach statement continue', (t) => {
+    const script = validateScript(parseScript(`\
+foreach value in values do
+    if i > 0 then
+        continue
+    endif
+endforeach
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'jump': {
+                'label': '__calcScriptDone0',
+                'expr': {
+                    'unary': {
+                        'op': '!',
+                        'expr': {
+                            'binary': {
+                                'op': '>',
+                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
+                                'right': {'number': 0}
+                            }
+                        }
+                    }
+                }
+            }},
+            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__calcScriptLoop0'},
+            {'expr': {
+                'name': 'value',
+                'expr': {'function': {
+                    'name': 'arrayGet',
+                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                }}
+            }},
+            {'jump': {
+                'label': '__calcScriptIf1',
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+            }},
+            {'jump': {'label': '__calcScriptContinue0'}},
+            {'label': '__calcScriptIf1'},
+            {'label': '__calcScriptDone1'},
+            {'label': '__calcScriptContinue0'},
+            {'expr': {
+                'name': '__calcScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+            }},
+            {'jump': {
+                'label': '__calcScriptLoop0',
+                'expr': {
+                    'binary': {
+                        'op': '<',
+                        'left': {'variable': '__calcScriptIndex0'},
+                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                    }
+                }
+            }},
+            {'label': '__calcScriptDone0'}
+        ]
+    });
+});
+
+
+test('parseScript, foreach statement error foreach outside foreach', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+endforeach
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching foreach statement, line number 1:
+endforeach
+^
+`);
+});
+
+
+test('parseScript, foreach statement error endforeach outside foreach 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+while true do
+endforeach
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+No matching foreach statement, line number 2:
+endforeach
+^
+`);
+});
+
+
+test('parseScript, foreach statement error no endforeach', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+foreach value in values do
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Missing endforeach statement, line number 1:
+foreach value in values do
+^
+`);
+});
+
+
+test('parseScript, break statement error break outside loop', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+break
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Break statement outside of loop, line number 1:
+break
+^
+`);
+});
+
+
+test('parseScript, break statement error break outside loop 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+if i > 0 then
+    break
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Break statement outside of loop, line number 2:
+    break
+^
+`);
+});
+
+
+test('parseScript, continue statement error continue outside loop', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+continue
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Continue statement outside of loop, line number 1:
+continue
+^
+`);
+});
+
+
+test('parseScript, continue statement error continue outside loop 2', (t) => {
+    const error = t.throws(() => {
+        parseScript(`\
+if i > 0 then
+    continue
+endif
+`);
+    }, {'instanceOf': CalcScriptParserError});
+    t.is(error.message, `\
+Continue statement outside of loop, line number 2:
+    continue
+^
+`);
+});
+
+
 test('parseScript, include statement', (t) => {
     const script = validateScript(parseScript(`\
 include 'fi\\'le.mds'

@@ -23,15 +23,26 @@
     nil
     '(
       "async"
+      "break"
+      "continue"
+      "do"
+      "else"
+      "endforeach"
       "endfunction"
+      "endif"
+      "endwhile"
       "false"
+      "foreach"
       "function"
+      "if"
       "include"
       "jump"
       "jumpif"
       "null"
       "return"
+      "then"
       "true"
+      "while"
       )
     '(
       ("^\\s-*\\(#.*\\)$"                                1 font-lock-comment-face)
