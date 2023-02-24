@@ -1,6 +1,10 @@
 # Changelog
 
-## 2023-02-10
+## 1.3.15 (2023-02-23)
+
+- [9298087](https://github.com/craigahobbs/calc-script/commit/9298087) - add if-then, while-do, and foreach statements
+
+## 1.3.14 (2023-02-10)
 
 - [da4035a](https://github.com/craigahobbs/calc-script/commit/da4035a) - increase defaultMaxStatements to 1e9
 
