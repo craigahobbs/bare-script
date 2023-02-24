@@ -38,11 +38,15 @@ return fibonacci(10)
 
 - [Statements](#statements)
   - [Expression and Assignment Statements](#expression-and-assignment-statements)
-  - [Jump and Label Statements](#jump-and-label-statements)
-  - [Return Statements](#return-statements)
-  - [Function Definition Statements](#function-definition-statements)
-  - [Include Statements](#include-statements)
   - [Comments](#comments)
+  - [Function Definition Statements](#function-definition-statements)
+  - [Return Statements](#return-statements)
+  - [If-Then Statements](#if-then-statements)
+  - [While-Do Statements](#while-do-statements)
+  - [Foreach Statements](#foreach-statements)
+  - [Break and Continue Statements](#break-and-continue-statements)
+  - [Jump and Label Statements](#jump-and-label-statements)
+  - [Include Statements](#include-statements)
   - [Multiline Statements](#multiline-statements)
   - [The CalcScript Library](#the-calcscript-library)
 - [Expressions](#expressions)
@@ -83,39 +87,16 @@ c = a + b
 ~~~
 
 
-### Jump and Label Statements
+### Comments
 
-A "jump" statement sets the current program statement to a label. A "jumpif" statement jumps only if
-its test [expression](#expressions) evaluates to true. Labels are defined by specifying the label
-name followed by a colon.
-
-The example below uses "jump", "jumpif", and label statements to sum the values of an array:
+Comments in CalcScript are any line that begins with the "#" character. For example:
 
 ~~~ calcscript
-values = arrayNew(1, 2, 3, 5, 7)
-sum = 0
-ixValue = 0
-valueLoop:
-    jumpif (ixValue >= arrayLength(values)) valueLoopDone
-    value = arrayGet(values, ixValue)
-    sum = sum + value
-    ixValue = ixValue + 1
-jump valueLoop
-valueLoopDone:
-~~~
+# Initialize the "a" variable
+a = 0
 
-
-### Return Statements
-
-Return statements return from the current program scope. If there is a return
-[expression](#expressions), it is evaluated, and the result is returned. For example:
-
-~~~ calcscript
-function addNumbers(a, b)
-    return a + b
-endfunction
-
-return addNumbers(0, 1)
+# Return the value of "a" plus 1
+return a + 1
 ~~~
 
 
@@ -146,6 +127,124 @@ return getLibraryCount('https://craigahobbs.github.io/calc-script/library/librar
 ~~~
 
 
+### Return Statements
+
+Return statements return from the current program scope. If there is a return
+[expression](#expressions), it is evaluated, and the result is returned. For example:
+
+~~~ calcscript
+function addNumbers(a, b)
+    return a + b
+endfunction
+
+return addNumbers(0, 1)
+~~~
+
+
+### If-Then Statements
+
+If-then statements allow you to execute a sequence of statements conditionally. For example:
+
+~~~ calcscript
+if a < 0 then
+    b = 1
+else if a > 0 then
+    b = 2
+else then
+    b = 3
+endif
+~~~
+
+
+### While-Do Statements
+
+While-do statements allow you to loop over a sequence of statements as long as the loop expression
+is true. For example:
+
+~~~ calcscript
+i = 0
+sum = 0
+while i < 10 do
+    sum = sum + i
+    i = i + 1
+endwhile
+~~~
+
+
+### Foreach Statements
+
+Foreach statements allow you to loop over a sequence of statements for each value in an array.
+For example:
+
+~~~ calcscript
+values = arrayNew(1, 2, 3)
+sum = 0
+foreach value in values do
+    sum = sum + value
+endforeach
+~~~
+
+You can also access the array value index:
+
+~~~ calcscript
+values = arrayNew(1, 2, 3)
+sum = 0
+foreach value, ixValue in values do
+    sum = sum + ixValue * value
+endforeach
+~~~
+
+
+### Break and Continue Statements
+
+To stop a while-do loop or a foreach loop using a break statement. For example:
+
+~~~ calcscript
+i = 0
+while i < 10 do
+    if i > 5 then
+        break
+    endif
+    i = i + 1
+endwhile
+~~~
+
+To skip the remaining statements in an iteration using a continue statement. For example:
+
+~~~ calcscript
+values = arrayNew(1, -2, 3)
+sum = 0
+foreach value, ixValue in values do
+    if value < 0 then
+        continue
+    endif
+    sum = sum + value
+endforeach
+~~~
+
+
+### Jump and Label Statements
+
+A "jump" statement sets the current program statement to a label. A "jumpif" statement jumps only if
+its test [expression](#expressions) evaluates to true. Labels are defined by specifying the label
+name followed by a colon.
+
+The example below uses "jump", "jumpif", and label statements to sum the values of an array:
+
+~~~ calcscript
+values = arrayNew(1, 2, 3, 5, 7)
+sum = 0
+ixValue = 0
+valueLoop:
+    jumpif (ixValue >= arrayLength(values)) valueLoopDone
+    value = arrayGet(values, ixValue)
+    sum = sum + value
+    ixValue = ixValue + 1
+jump valueLoop
+valueLoopDone:
+~~~
+
+
 ### Include Statements
 
 Include statements fetch and evaluate a script resource URL in the global scope. For example:
@@ -162,19 +261,6 @@ The contents of "util.mds" are:
 function concatStrings(a, b)
     return a + b
 endfunction
-~~~
-
-
-### Comments
-
-Comments in CalcScript are any line that begins with the "#" character. For example:
-
-~~~ calcscript
-# Initialize the "a" variable
-a = 0
-
-# Return the value of "a" plus 1
-return a + 1
 ~~~
 
 
