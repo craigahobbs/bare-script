@@ -289,11 +289,10 @@ endif
     t.deepEqual(script, {
         'statements': [
             {'jump': {
-                'label': '__calcScriptIf0',
+                'label': '__calcScriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'label': '__calcScriptIf0'},
             {'label': '__calcScriptDone0'}
         ]
     });
@@ -318,11 +317,10 @@ endif
             {'jump': {'label': '__calcScriptDone0'}},
             {'label': '__calcScriptIf0'},
             {'jump': {
-                'label': '__calcScriptIf1',
+                'label': '__calcScriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'label': '__calcScriptIf1'},
             {'label': '__calcScriptDone0'}
         ]
     });
@@ -766,11 +764,10 @@ endforeach
                 }}
             }},
             {'jump': {
-                'label': '__calcScriptIf1',
+                'label': '__calcScriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptIf1'},
             {'label': '__calcScriptDone1'},
             {'expr': {
                 'name': '__calcScriptIndex0',
@@ -828,11 +825,10 @@ endforeach
                 }}
             }},
             {'jump': {
-                'label': '__calcScriptIf1',
+                'label': '__calcScriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'jump': {'label': '__calcScriptContinue0'}},
-            {'label': '__calcScriptIf1'},
             {'label': '__calcScriptDone1'},
             {'label': '__calcScriptContinue0'},
             {'expr': {
