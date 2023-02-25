@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.18 (2023-02-25)
+
+- [1d1e1ab](https://github.com/craigahobbs/calc-script/commit/1d1e1ab) - add defaultValue argument to objectGet function
+
 ## 1.3.17 (2023-02-24)
 
 - [948924d](https://github.com/craigahobbs/calc-script/commit/948924d) - optimize while-do statement generation
