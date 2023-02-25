@@ -1222,6 +1222,12 @@
                     "doc": [
                         "The key"
                     ]
+                },
+                {
+                    "name": "defaultValue",
+                    "doc": [
+                        "The default value (optional)"
+                    ]
                 }
             ],
             "return": [
