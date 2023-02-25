@@ -1033,6 +1033,13 @@ test('library, objectGet', (t) => {
 });
 
 
+test('library, objectGet default', (t) => {
+    const obj = {};
+    t.is(scriptFunctions.objectGet([obj, 'a']), null);
+    t.is(scriptFunctions.objectGet([obj, 'a', 1]), 1);
+});
+
+
 test('library, objectGet missing', (t) => {
     const obj = {'a': 1, 'b': 2};
     t.is(scriptFunctions.objectGet([obj, 'c']), null);
