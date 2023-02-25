@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.19 (2023-02-25)
+
+- [c254e92](https://github.com/craigahobbs/calc-script/commit/c254e92) - improve foreach statement generation
+
 ## 1.3.18 (2023-02-25)
 
 - [1d1e1ab](https://github.com/craigahobbs/calc-script/commit/1d1e1ab) - add defaultValue argument to objectGet function
