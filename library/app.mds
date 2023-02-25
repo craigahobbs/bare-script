@@ -112,7 +112,7 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     arguments = objectGet(function, 'args')
     if arguments != null then
         foreach argument in arguments do
-            markdownPrint('', '**' + objectGet(argument, 'name') + ' -**' + stringFromCharCode(160), objectGet(argument, 'doc'))
+            markdownPrint('', '**' + objectGet(argument, 'name') + ' -** ', objectGet(argument, 'doc'))
         endforeach
     else then
         markdownPrint('None')
