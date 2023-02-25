@@ -635,21 +635,11 @@ endforeach
             }},
             {'expr': {'name': 'sum', 'expr': {'number': 0}}},
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
-            {'jump': {
-                'label': '__calcScriptDone0',
-                'expr': {
-                    'unary': {
-                        'op': '!',
-                        'expr': {
-                            'binary': {
-                                'op': '>',
-                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
-                                'right': {'number': 0}
-                            }
-                        }
-                    }
-                }
+            {'expr': {
+                'name': '__calcScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
             }},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
             {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
             {'label': '__calcScriptLoop0'},
             {'expr': {
@@ -669,13 +659,7 @@ endforeach
             }},
             {'jump': {
                 'label': '__calcScriptLoop0',
-                'expr': {
-                    'binary': {
-                        'op': '<',
-                        'left': {'variable': '__calcScriptIndex0'},
-                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
-                    }
-                }
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
             }},
             {'label': '__calcScriptDone0'}
         ]
@@ -691,21 +675,11 @@ endforeach
     t.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
-            {'jump': {
-                'label': '__calcScriptDone0',
-                'expr': {
-                    'unary': {
-                        'op': '!',
-                        'expr': {
-                            'binary': {
-                                'op': '>',
-                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
-                                'right': {'number': 0}
-                            }
-                        }
-                    }
-                }
+            {'expr': {
+                'name': '__calcScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
             }},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
             {'expr': {'name': 'ixValue', 'expr': {'number': 0}}},
             {'label': '__calcScriptLoop0'},
             {'expr': {
@@ -721,13 +695,7 @@ endforeach
             }},
             {'jump': {
                 'label': '__calcScriptLoop0',
-                'expr': {
-                    'binary': {
-                        'op': '<',
-                        'left': {'variable': 'ixValue'},
-                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
-                    }
-                }
+                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__calcScriptLength0'}}}
             }},
             {'label': '__calcScriptDone0'}
         ]
@@ -746,21 +714,11 @@ endforeach
     t.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
-            {'jump': {
-                'label': '__calcScriptDone0',
-                'expr': {
-                    'unary': {
-                        'op': '!',
-                        'expr': {
-                            'binary': {
-                                'op': '>',
-                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
-                                'right': {'number': 0}
-                            }
-                        }
-                    }
-                }
+            {'expr': {
+                'name': '__calcScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
             }},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
             {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
             {'label': '__calcScriptLoop0'},
             {'expr': {
@@ -782,13 +740,7 @@ endforeach
             }},
             {'jump': {
                 'label': '__calcScriptLoop0',
-                'expr': {
-                    'binary': {
-                        'op': '<',
-                        'left': {'variable': '__calcScriptIndex0'},
-                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
-                    }
-                }
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
             }},
             {'label': '__calcScriptDone0'}
         ]
@@ -807,21 +759,11 @@ endforeach
     t.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
-            {'jump': {
-                'label': '__calcScriptDone0',
-                'expr': {
-                    'unary': {
-                        'op': '!',
-                        'expr': {
-                            'binary': {
-                                'op': '>',
-                                'left': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}},
-                                'right': {'number': 0}
-                            }
-                        }
-                    }
-                }
+            {'expr': {
+                'name': '__calcScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
             }},
+            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
             {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
             {'label': '__calcScriptLoop0'},
             {'expr': {
@@ -844,13 +786,7 @@ endforeach
             }},
             {'jump': {
                 'label': '__calcScriptLoop0',
-                'expr': {
-                    'binary': {
-                        'op': '<',
-                        'left': {'variable': '__calcScriptIndex0'},
-                        'right': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
-                    }
-                }
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
             }},
             {'label': '__calcScriptDone0'}
         ]
