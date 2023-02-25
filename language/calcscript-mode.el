@@ -35,6 +35,7 @@
       "foreach"
       "function"
       "if"
+      "in"
       "include"
       "jump"
       "jumpif"
