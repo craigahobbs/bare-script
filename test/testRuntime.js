@@ -239,7 +239,7 @@ test('executeScript, return blank', (t) => {
 test('executeScript, include', (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
 
@@ -256,7 +256,7 @@ test('executeScript, include', (t) => {
 test('executeScript, include no fetchFn', (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const error = t.throws(() => {

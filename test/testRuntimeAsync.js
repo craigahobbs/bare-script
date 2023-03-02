@@ -242,7 +242,7 @@ test('executeScriptAsync, return blank', async (t) => {
 test('executeScriptAsync, include', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -262,10 +262,30 @@ a = 1
 });
 
 
+test('executeScriptAsync, include multiple', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'urls': ['test.mds', 'test2.mds']}}
+        ]
+    });
+    const fetchFn = (url) => {
+        t.true(url === 'test.mds' || url === 'test2.mds');
+        return {
+            'ok': true,
+            'text': () => (url.endsWith('test2.mds') ? 'b = a + 1' : 'a = 1')
+        };
+    };
+    const options = {'globals': {}, fetchFn};
+    t.is(await executeScriptAsync(script, options), null);
+    t.is(options.globals.a, 1);
+    t.is(options.globals.b, 2);
+});
+
+
 test('executeScriptAsync, include no fetchFn', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const error = await t.throwsAsync(
@@ -279,7 +299,7 @@ test('executeScriptAsync, include no fetchFn', async (t) => {
 test('executeScriptAsync, include fetchFn subdir', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'lib/test.mds'}
+            {'include': {'urls': ['lib/test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -302,7 +322,7 @@ a = 1
 test('executeScriptAsync, include fetchFn absolute', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -325,7 +345,7 @@ a = 1
 test('executeScriptAsync, include lint', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -354,7 +374,7 @@ endfunction
 test('executeScriptAsync, include lint multiple', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -384,7 +404,7 @@ endfunction
 test('executeScriptAsync, include lint OK', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -411,7 +431,7 @@ endfunction
 test('executeScriptAsync, include fetchFn not-ok', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -426,14 +446,32 @@ test('executeScriptAsync, include fetchFn not-ok', async (t) => {
         async () => executeScriptAsync(script, options),
         {'instanceOf': CalcScriptRuntimeError}
     );
-    t.is(error.message, 'Include of "test.mds" failed with error: Not Found');
+    t.is(error.message, 'Include of "test.mds" failed');
+});
+
+
+test('executeScriptAsync, include fetchFn response error', async (t) => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'urls': ['test.mds']}}
+        ]
+    });
+    const fetchFn = () => {
+        throw new Error('response error');
+    };
+    const options = {fetchFn};
+    const error = await t.throwsAsync(
+        async () => executeScriptAsync(script, options),
+        {'instanceOf': CalcScriptRuntimeError}
+    );
+    t.is(error.message, 'Include of "test.mds" failed');
 });
 
 
 test('executeScriptAsync, include fetchFn text error', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {
@@ -450,14 +488,14 @@ test('executeScriptAsync, include fetchFn text error', async (t) => {
         async () => executeScriptAsync(script, options),
         {'instanceOf': CalcScriptRuntimeError}
     );
-    t.is(error.message, 'Include of "test.mds" failed with error: text error');
+    t.is(error.message, 'Include of "test.mds" failed');
 });
 
 
 test('executeScriptAsync, include fetchFn parser error', async (t) => {
     const script = validateScript({
         'statements': [
-            {'include': 'test.mds'}
+            {'include': {'urls': ['test.mds']}}
         ]
     });
     const fetchFn = (url) => {

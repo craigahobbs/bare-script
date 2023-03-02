@@ -771,7 +771,7 @@ test('library, fetch response not-ok', async (t) => {
     };
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.json'], options), null);
-    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json" with error: Not Found']);
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json"']);
 });
 
 
@@ -793,7 +793,7 @@ test('library, fetch response json error', async (t) => {
     };
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.json'], options), null);
-    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json" with error: invalid json']);
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json"']);
 });
 
 
@@ -809,7 +809,7 @@ test('library, fetch text response not-ok', async (t) => {
     };
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
-    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt" with error: Not Found']);
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
 });
 
 
@@ -831,7 +831,7 @@ test('library, fetch response text error', async (t) => {
     };
     const options = {fetchFn, logFn};
     t.is(await scriptFunctions.fetch(['test.txt', null, true], options), null);
-    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt" with error: invalid text']);
+    t.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
 });
 
 

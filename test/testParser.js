@@ -903,7 +903,7 @@ include 'fi\\'le.mds'
 `));
     t.deepEqual(script, {
         'statements': [
-            {'include': "fi'le.mds"}
+            {'include': {'urls': ["fi'le.mds"]}}
         ]
     });
 });
@@ -915,7 +915,21 @@ include "fi\\"le.mds"
 `));
     t.deepEqual(script, {
         'statements': [
-            {'include': 'fi"le.mds'}
+            {'include': {'urls': ['fi"le.mds']}}
+        ]
+    });
+});
+
+
+test('parseScript, include statement multiple', (t) => {
+    const script = validateScript(parseScript(`\
+include 'test.mds'
+include "test2.mds"
+include 'test3.mds'
+`));
+    t.deepEqual(script, {
+        'statements': [
+            {'include': {'urls': ['test.mds', 'test2.mds', 'test3.mds']}}
         ]
     });
 });
