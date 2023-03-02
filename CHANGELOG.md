@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 (2023-03-02)
+
+- [dd69a0c](https://github.com/craigahobbs/calc-script/commit/dd69a0c) - implement parallel fetch of include urls
+
 ## 1.3.20 (2023-02-27)
 
 - [fbefbd0](https://github.com/craigahobbs/calc-script/commit/fbefbd0) - fix for Firefox versions prior to 103 \(missing Array.findLast\)
