@@ -15,14 +15,26 @@
 async function calcScriptLibraryDoc(url, title, menuLinks)
     # URL override?
     url = if(vURL != null, vURL, url)
+    if arrayLength(url) != null then
+        urls = url
+        url = arrayJoin(urls, ', ')
+    else then
+        urls = arrayNew(url)
+    endif
     title = if(title != null && vURL == null, title, url)
 
     # Fetch and validate the library documentation resource
-    library = schemaValidate(calcScriptLibraryTypes, 'Library', fetch(url))
-    if library == null then
-        markdownPrint('**Error:** Failed to fetch library documentation resource "' + url + '"')
-        return
-    endif
+    libraryFunctions = arrayNew()
+    library = objectNew('functions', libraryFunctions)
+    foreach libraryPart, ixLibrary in fetch(urls) do
+        libraryPart = schemaValidate(calcScriptLibraryTypes, 'Library', libraryPart)
+        if libraryPart == null then
+            libraryURL = arrayGet(urls, ixLibrary)
+            markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
+            return
+        endif
+        arrayExtend(libraryFunctions, objectGet(libraryPart, 'functions'))
+    endforeach
 
     # Render the page
     if vDoc then
