@@ -15,10 +15,10 @@ array.
 # Compute the first "count" Fibonacci numbers
 function fibonacci(count)
     numbers = arrayNew(0, 1)
-    numberLoop:
+    while arrayLength(numbers) < count do
         arrayPush(numbers, arrayGet(numbers, arrayLength(numbers) - 1) + \
             arrayGet(numbers, arrayLength(numbers) - 2))
-    jumpif (arrayLength(numbers) < count) numberLoop
+    endwhile
     return numbers
 endfunction
 
