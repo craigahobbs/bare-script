@@ -1,6 +1,6 @@
-;;; calcscript-mode.el --- major mode for editing CalcScript
+;;; calcscript-mode.el --- Major mode for editing CalcScript files
 
-;; Version: 0.3
+;; Version: 0.4
 
 ;;; Commentary:
 
@@ -13,57 +13,57 @@
 ;;     (url-copy-file "https://craigahobbs.github.io/calc-script/language/calcscript-mode.el" mode-file t)
 ;;     (package-install-file mode-file)
 ;;     (delete-file mode-file)))
+;; (add-to-list 'auto-mode-alist '("\\.\\(?:[Cc]alc-?[Ss]cript\\|mds\\)\\'" . calcscript-mode))
 
 ;;; Code:
-(require 'generic-x)
+
+(defconst calcscript-keywords
+  (regexp-opt
+   '("async" "break" "continue" "do" "else" "endforeach" "endfunction"
+     "endif" "endwhile" "false" "foreach" "function" "if" "in" "include"
+     "jump" "jumpif" "null" "return" "then" "true" "while")
+   'words)
+  )
+
+(defconst calcscript-font-lock-keywords
+  (list
+   (cons calcscript-keywords 'font-lock-keyword-face)
+
+   ;; Rule for variable assignment highlighting
+   '("^\\s-*\\([_A-Za-z][_A-Za-z0-9]*\\)\\s-*=" 1 'font-lock-variable-name-face)
+
+   ;; Rule for label highlighting
+   '("^\\s-*\\([_A-Za-z][_A-Za-z0-9]*\\)\\s-*:\\s-*$" 1 'font-lock-constant-face)
+   )
+  )
 
 ;;;###autoload
-(defun define-calcscript-mode()
-  (define-generic-mode 'calcscript-mode
-    nil
-    '(
-      "async"
-      "break"
-      "continue"
-      "do"
-      "else"
-      "endforeach"
-      "endfunction"
-      "endif"
-      "endwhile"
-      "false"
-      "foreach"
-      "function"
-      "if"
-      "in"
-      "include"
-      "jump"
-      "jumpif"
-      "null"
-      "return"
-      "then"
-      "true"
-      "while"
-      )
-    '(
-      ("^\\s-*\\(#.*\\)$"                                1 font-lock-comment-face)
-      ("^\\s-*\\(\\(_\\|\\w\\)+\\s-*:\\)\\s-*$"          1 font-lock-reference-face)
-      ("^\\s-*\\(#+.-*\\s-*\\)$"                         1 font-lock-doc-face)
-      ("^\\(\\(~~~+\\|```+\\)\\(\\s-*\\(_\\|-\\|\\w\\)+\\)?\\)\\s-*$" 1 font-lock-preprocessor-face)
-      ("^\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*="          1 font-lock-variable-name-face)
-      ("\\('\\(\\\\'\\|[^']\\)*'\\)"                     1 font-lock-string-face)
-      )
-    '(
-      "\\.mds?\\'"
-      )
-    (list
-     (lambda ()
-       (setq-local comment-start "#")
-       ))
-    "Major mode for editing CalcScript"))
+(define-derived-mode calcscript-mode prog-mode "CalcScript"
+  "Major mode for editing CalcScript source code"
 
-;;;###autoload
-(define-calcscript-mode)
+  ; Change single quote syntax to behave like double quotes
+  (modify-syntax-entry ?' "\"" calcscript-mode-syntax-table)
+
+  ; Ensure double quotes are treated as string delimiters
+  (modify-syntax-entry ?\" "\"" calcscript-mode-syntax-table)
+
+  ; Ensure backslashes are treated as escape characters
+  (modify-syntax-entry ?\\ "\\" calcscript-mode-syntax-table)
+
+  ; Specify that comments start with '#'
+  (modify-syntax-entry ?# "<" calcscript-mode-syntax-table)
+
+  ; Specify that comments end with a newline
+  (modify-syntax-entry ?\n ">" calcscript-mode-syntax-table)
+
+  ;; Set comment-related variables
+  (setq-local comment-start "#")
+  (setq-local comment-start-skip "#+\\s-*")
+
+  ;; Apply font-lock rules for syntax highlighting
+  (setq-local font-lock-defaults '(calcscript-font-lock-keywords))
+  )
 
 (provide 'calcscript-mode)
+
 ;;; calcscript-mode.el ends here
