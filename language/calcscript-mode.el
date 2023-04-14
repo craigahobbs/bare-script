@@ -62,7 +62,7 @@
 
 ;;;###autoload
 (define-derived-mode calcscript-mode prog-mode "CalcScript"
-  "Major mode for editing CalcScript source code"
+  "Major mode for editing CalcScript files"
 
   ; Change single quote syntax to behave like double quotes
   (modify-syntax-entry ?' "\"" calcscript-mode-syntax-table)
