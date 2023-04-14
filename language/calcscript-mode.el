@@ -38,13 +38,13 @@
   )
 
 (defun calcscript-open-language-documentation ()
-  "Open CalcScript language documentation in a web browser."
+  "Open CalcScript language documentation"
   (interactive)
   (browse-url "https://craigahobbs.github.io/calc-script/language/")
   )
 
 (defun calcscript-open-markdownup-library ()
-  "Open MarkdownUp library documentation in a web browser."
+  "Open MarkdownUp library documentation"
   (interactive)
   (browse-url "https://craigahobbs.github.io/markdown-up/library/")
   )
