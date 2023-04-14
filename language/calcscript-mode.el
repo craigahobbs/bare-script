@@ -1,6 +1,6 @@
 ;;; calcscript-mode.el --- Major mode for editing CalcScript files
 
-;; Version: 0.4
+;; Version: 0.5
 
 ;;; Commentary:
 
@@ -37,6 +37,29 @@
    )
   )
 
+(defun calcscript-open-language-documentation ()
+  "Open CalcScript language documentation in a web browser."
+  (interactive)
+  (browse-url "https://craigahobbs.github.io/calc-script/language/")
+  )
+
+(defun calcscript-open-markdownup-library ()
+  "Open MarkdownUp library documentation in a web browser."
+  (interactive)
+  (browse-url "https://craigahobbs.github.io/markdown-up/library/")
+  )
+
+(defun calcscript-open-markdownup-function ()
+  "Open CalcScript Library documentation for the function at point"
+  (interactive)
+  (let* ((library-url "https://craigahobbs.github.io/markdown-up/library/#var.vName='%s'")
+         (word-at-point (thing-at-point 'symbol))
+         (formatted-url (format library-url word-at-point)))
+    (if word-at-point (browse-url formatted-url)
+      (message "No valid CalcScript function at point"))
+    )
+  )
+
 ;;;###autoload
 (define-derived-mode calcscript-mode prog-mode "CalcScript"
   "Major mode for editing CalcScript source code"
@@ -62,6 +85,11 @@
 
   ;; Apply font-lock rules for syntax highlighting
   (setq-local font-lock-defaults '(calcscript-font-lock-keywords))
+
+  ;; Bind the key for browsing documentation
+  (define-key calcscript-mode-map (kbd "C-c C-l") 'calcscript-open-language-documentation)
+  (define-key calcscript-mode-map (kbd "C-c C-m") 'calcscript-open-markdownup-library)
+  (define-key calcscript-mode-map (kbd "C-c C-f") 'calcscript-open-markdownup-function)
   )
 
 (provide 'calcscript-mode)
