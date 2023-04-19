@@ -1213,18 +1213,71 @@ test('library, regexTest non-regexp', (t) => {
 
 
 test('script library, schemaParse', (t) => {
-    t.deepEqual(scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], {}), {
+    t.deepEqual(
+        scriptFunctions.schemaParse(
+            [
+                '# My struct',
+                'struct MyStruct',
+                '',
+                '  # An integer\n  int a'
+            ],
+            {}
+        ),
+        {
+            'MyStruct': {
+                'struct': {
+                    'name': 'MyStruct',
+                    'doc': ['My struct'],
+                    'members': [
+                        {
+                            'name': 'a',
+                            'doc': ['An integer'],
+                            'type': {'builtin': 'int'}
+                        }
+                    ]
+                }
+            }
+        }
+    );
+});
+
+
+test('script library, schemaParseEx', (t) => {
+    const types = scriptFunctions.schemaParse(
+        [
+            'typedef int MyType'
+        ],
+        {}
+    );
+    const types2 = scriptFunctions.schemaParseEx(
+        [
+            [
+                'struct MyStruct',
+                '    MyType a'
+            ],
+            types
+        ],
+        {}
+    );
+    t.is(types, types2);
+    t.deepEqual(types2, {
         'MyStruct': {
             'struct': {
                 'name': 'MyStruct',
-                'doc': ['My struct'],
                 'members': [
                     {
                         'name': 'a',
-                        'doc': ['An integer'],
-                        'type': {'builtin': 'int'}
+                        'type': {'user': 'MyType'}
                     }
                 ]
+            }
+        },
+        'MyType': {
+            'typedef': {
+                'name': 'MyType',
+                'type': {
+                    'builtin': 'int'
+                }
             }
         }
     });
