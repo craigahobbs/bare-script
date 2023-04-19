@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 (2023-04-19)
+
+- [00ca597](https://github.com/craigahobbs/calc-script/commit/00ca597) - add schemaParseEx library function
+
 ## 1.4.0 (2023-03-02)
 
 - [dd69a0c](https://github.com/craigahobbs/calc-script/commit/dd69a0c) - implement parallel fetch of include urls
