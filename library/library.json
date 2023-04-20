@@ -487,6 +487,60 @@
             ]
         },
         {
+            "name": "datetimeNewUTC",
+            "group": "Datetime",
+            "doc": [
+                "Create a new UTC datetime"
+            ],
+            "args": [
+                {
+                    "name": "year",
+                    "doc": [
+                        "The full year"
+                    ]
+                },
+                {
+                    "name": "month",
+                    "doc": [
+                        "The month (1-12)"
+                    ]
+                },
+                {
+                    "name": "day",
+                    "doc": [
+                        "The day of the month"
+                    ]
+                },
+                {
+                    "name": "hours",
+                    "doc": [
+                        "Optional (default is 0). The hour (0-23)"
+                    ]
+                },
+                {
+                    "name": "minutes",
+                    "doc": [
+                        "Optional (default is 0). The number of minutes."
+                    ]
+                },
+                {
+                    "name": "seconds",
+                    "doc": [
+                        "Optional (default is 0). The number of seconds."
+                    ]
+                },
+                {
+                    "name": "milliseconds",
+                    "doc": [
+                        "Optional (default is 0). The number of milliseconds."
+                    ]
+                }
+            ],
+            "return": [
+                "The new UTC datetime"
+            ]
+        },
+        {
             "name": "datetimeNow",
             "group": "Datetime",
             "doc": [
