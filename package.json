@@ -1,7 +1,7 @@
 {
     "type": "module",
     "name": "calc-script",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "CalcScript; a lightweight scripting and expression language",
     "keywords": [
         "expression",

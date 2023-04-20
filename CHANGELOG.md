@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 (2023-04-20)
+
+- [f9d5c63](https://github.com/craigahobbs/calc-script/commit/f9d5c63) - add datetimeNewUTC library function
+
 ## 1.4.1 (2023-04-19)
 
 - [00ca597](https://github.com/craigahobbs/calc-script/commit/00ca597) - add schemaParseEx library function
