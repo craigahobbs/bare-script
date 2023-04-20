@@ -322,6 +322,16 @@ test('library, datetimeNew complete', (t) => {
 });
 
 
+test('library, datetimeNewUTC', (t) => {
+    t.deepEqual(scriptFunctions.datetimeNewUTC([2022, 6, 21]), new Date(Date.UTC(2022 - 1900, 5, 21)));
+});
+
+
+test('library, datetimeNewUTC complete', (t) => {
+    t.deepEqual(scriptFunctions.datetimeNewUTC([2022, 6, 21, 12, 30, 15, 100]), new Date(Date.UTC(2022 - 1900, 5, 21, 12, 30, 15, 100)));
+});
+
+
 test('library, datetimeNow', (t) => {
     t.true(scriptFunctions.datetimeNow([]) instanceof Date);
 });
