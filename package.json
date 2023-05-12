@@ -31,8 +31,8 @@
     "devDependencies": {
         "ava": "~5.2",
         "c8": "~7.13",
-        "eslint": "~8.39",
+        "eslint": "~8.40",
         "jsdoc": "~4.0",
-        "jsdom": "~21.1"
+        "jsdom": "~22.0"
     }
 }
