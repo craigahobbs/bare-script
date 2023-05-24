@@ -23,13 +23,12 @@
         "lib/**/*"
     ],
     "scripts": {
-        "test": "ava -v test/"
+        "test": "node --test test/"
     },
     "dependencies": {
         "schema-markdown": "~1.2"
     },
     "devDependencies": {
-        "ava": "~5.2",
         "c8": "~7.13",
         "eslint": "~8.40",
         "jsdoc": "~4.0",

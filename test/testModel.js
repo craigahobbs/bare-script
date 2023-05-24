@@ -2,67 +2,74 @@
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
 import {lintScript, validateExpression, validateScript} from '../lib/model.js';
-import {ValidationError} from 'schema-markdown/lib/schema.js';
-import test from 'ava';
+import {strict as assert} from 'node:assert';
+import test from 'node:test';
 
 
-/* eslint-disable id-length */
-
-
-test('validateScript', (t) => {
+test('validateScript', () => {
     const script = {'statements': []};
-    t.deepEqual(validateScript(script), script);
+    assert.deepEqual(validateScript(script), script);
 });
 
 
-test('validateScript, error', (t) => {
+test('validateScript, error', () => {
     const script = {};
-    const error = t.throws(() => {
-        validateScript(script);
-    }, {'instanceOf': ValidationError});
-    t.is(error.message, "Required member 'statements' missing");
+    assert.throws(
+        () => {
+            validateScript(script);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'statements' missing"
+        }
+    );
 });
 
 
-test('validateExpression', (t) => {
+test('validateExpression', () => {
     const expr = {'number': 1};
-    t.deepEqual(validateExpression(expr), expr);
+    assert.deepEqual(validateExpression(expr), expr);
 });
 
 
-test('validateExpression, error', (t) => {
+test('validateExpression, error', () => {
     const expr = {};
-    const error = t.throws(() => {
-        validateExpression(expr);
-    }, {'instanceOf': ValidationError});
-    t.is(error.message, "Invalid value {} (type 'object'), expected type 'Expression'");
+    assert.throws(
+        () => {
+            validateExpression(expr);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Invalid value {} (type 'object'), expected type 'Expression'"
+        }
+    );
 });
 
 
-test('lintScript, empty script', (t) => {
+test('lintScript, empty script', () => {
     const script = {
         'statements': []
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Empty script'
     ]);
 });
 
 
-test('lintScript, function redefined', (t) => {
+test('lintScript, function redefined', () => {
     const script = {
         'statements': [
             {'function': {'name': 'testFn', 'statements': []}},
             {'function': {'name': 'testFn', 'statements': []}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Redefinition of function "testFn" (index 1)'
     ]);
 });
 
 
-test('lintScript, function duplicate argument', (t) => {
+test('lintScript, function duplicate argument', () => {
     const script = {
         'statements': [
             {
@@ -76,13 +83,13 @@ test('lintScript, function duplicate argument', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Duplicate argument "a" of function "testFn" (index 0)'
     ]);
 });
 
 
-test('lintScript, function unused argument', (t) => {
+test('lintScript, function unused argument', () => {
     const script = {
         'statements': [
             {
@@ -96,13 +103,13 @@ test('lintScript, function unused argument', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unused argument "b" of function "testFn" (index 0)'
     ]);
 });
 
 
-test('lintScript, function argument function call ok', (t) => {
+test('lintScript, function argument function call ok', () => {
     const script = {
         'statements': [
             {
@@ -116,11 +123,11 @@ test('lintScript, function argument function call ok', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), []);
+    assert.deepEqual(lintScript(validateScript(script)), []);
 });
 
 
-test('lintScript, function unused variable', (t) => {
+test('lintScript, function unused variable', () => {
     const script = {
         'statements': [
             {
@@ -142,13 +149,13 @@ test('lintScript, function unused variable', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unused variable "e" defined in function "testFn" (index 6)'
     ]);
 });
 
 
-test('lintScript, function arg used variable ok', (t) => {
+test('lintScript, function arg used variable ok', () => {
     const script = {
         'statements': [
             {
@@ -162,21 +169,21 @@ test('lintScript, function arg used variable ok', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), []);
+    assert.deepEqual(lintScript(validateScript(script)), []);
 });
 
 
-test('lintScript, global unused variable ok', (t) => {
+test('lintScript, global unused variable ok', () => {
     const script = {
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 1}}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), []);
+    assert.deepEqual(lintScript(validateScript(script)), []);
 });
 
 
-test('lintScript, function variable used before assignment', (t) => {
+test('lintScript, function variable used before assignment', () => {
     const script = {
         'statements': [
             {
@@ -190,13 +197,13 @@ test('lintScript, function variable used before assignment', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Variable "b" of function "testFn" used (index 0) before assignment (index 1)'
     ]);
 });
 
 
-test('lintScript, function variable used before assignment arg ok', (t) => {
+test('lintScript, function variable used before assignment arg ok', () => {
     const script = {
         'statements': [
             {
@@ -211,24 +218,24 @@ test('lintScript, function variable used before assignment arg ok', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), []);
+    assert.deepEqual(lintScript(validateScript(script)), []);
 });
 
 
-test('lintScript, global variable used before assignment', (t) => {
+test('lintScript, global variable used before assignment', () => {
     const script = {
         'statements': [
             {'expr': {'name': 'a', 'expr': {'variable': 'b'}}},
             {'expr': {'name': 'b', 'expr': {'variable': 'a'}}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Global variable "b" used (index 0) before assignment (index 1)'
     ]);
 });
 
 
-test('lintScript, function unused label', (t) => {
+test('lintScript, function unused label', () => {
     const script = {
         'statements': [
             {
@@ -241,25 +248,25 @@ test('lintScript, function unused label', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unused label "unusedLabel" in function "testFn" (index 0)'
     ]);
 });
 
 
-test('lintScript, global unused label', (t) => {
+test('lintScript, global unused label', () => {
     const script = {
         'statements': [
             {'label': 'unusedLabel'}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unused global label "unusedLabel" (index 0)'
     ]);
 });
 
 
-test('lintScript, function unknown label', (t) => {
+test('lintScript, function unknown label', () => {
     const script = {
         'statements': [
             {
@@ -272,25 +279,25 @@ test('lintScript, function unknown label', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unknown label "unknownLabel" in function "testFn" (index 0)'
     ]);
 });
 
 
-test('lintScript, global unknown label', (t) => {
+test('lintScript, global unknown label', () => {
     const script = {
         'statements': [
             {'jump': {'label': 'unknownLabel'}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Unknown global label "unknownLabel" (index 0)'
     ]);
 });
 
 
-test('lintScript, function label redefined', (t) => {
+test('lintScript, function label redefined', () => {
     const script = {
         'statements': [
             {
@@ -305,13 +312,13 @@ test('lintScript, function label redefined', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Redefinition of label "testLabel" in function "testFn" (index 1)'
     ]);
 });
 
 
-test('lintScript, global label redefined', (t) => {
+test('lintScript, global label redefined', () => {
     const script = {
         'statements': [
             {'label': 'testLabel'},
@@ -319,13 +326,13 @@ test('lintScript, global label redefined', (t) => {
             {'jump': {'label': 'testLabel'}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Redefinition of global label "testLabel" (index 1)'
     ]);
 });
 
 
-test('lintScript, function pointless statement', (t) => {
+test('lintScript, function pointless statement', () => {
     const script = {
         'statements': [
             {
@@ -343,13 +350,13 @@ test('lintScript, function pointless statement', (t) => {
             }
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Pointless statement in function "testFn" (index 1)'
     ]);
 });
 
 
-test('lintScript, global pointless statement', (t) => {
+test('lintScript, global pointless statement', () => {
     const script = {
         'statements': [
             {'expr': {'expr': {'unary': {'op': '!', 'expr': {
@@ -360,7 +367,7 @@ test('lintScript, global pointless statement', (t) => {
             }}}}}
         ]
     };
-    t.deepEqual(lintScript(validateScript(script)), [
+    assert.deepEqual(lintScript(validateScript(script)), [
         'Pointless global statement (index 1)'
     ]);
 });

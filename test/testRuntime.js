@@ -3,13 +3,11 @@
 
 import {CalcScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
-import test from 'ava';
+import {strict as assert} from 'node:assert';
+import test from 'node:test';
 
 
-/* eslint-disable id-length */
-
-
-test('executeScript', (t) => {
+test('executeScript', () => {
     const script = validateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
@@ -19,11 +17,11 @@ test('executeScript', (t) => {
             }}
         ]
     });
-    t.is(executeScript(script), 12);
+    assert.equal(executeScript(script), 12);
 });
 
 
-test('executeScript, function', (t) => {
+test('executeScript, function', () => {
     const script = validateScript({
         'statements': [
             {
@@ -43,11 +41,11 @@ test('executeScript, function', (t) => {
             }}
         ]
     });
-    t.is(executeScript(script), 35);
+    assert.equal(executeScript(script), 35);
 });
 
 
-test('executeScript, function async', (t) => {
+test('executeScript, function async', () => {
     const script = validateScript({
         'statements': [
             {
@@ -68,11 +66,11 @@ test('executeScript, function async', (t) => {
             }}
         ]
     });
-    t.is(executeScript(script), 35);
+    assert.equal(executeScript(script), 35);
 });
 
 
-test('executeScript, function missing arg', (t) => {
+test('executeScript, function missing arg', () => {
     const script = validateScript({
         'statements': [
             {
@@ -91,11 +89,11 @@ test('executeScript, function missing arg', (t) => {
             }}
         ]
     });
-    t.deepEqual(executeScript(script), [5, null]);
+    assert.deepEqual(executeScript(script), [5, null]);
 });
 
 
-test('executeScript, function async missing arg', (t) => {
+test('executeScript, function async missing arg', () => {
     const script = validateScript({
         'statements': [
             {
@@ -115,11 +113,11 @@ test('executeScript, function async missing arg', (t) => {
             }}
         ]
     });
-    t.deepEqual(executeScript(script), [5, null]);
+    assert.deepEqual(executeScript(script), [5, null]);
 });
 
 
-test('executeScript, function error', (t) => {
+test('executeScript, function error', () => {
     const script = validateScript({
         'statements': [
             {'return': {
@@ -131,11 +129,11 @@ test('executeScript, function error', (t) => {
         throw Error('unexpected error');
     };
     const options = {'globals': {errorFunction}};
-    t.is(executeScript(script, options), null);
+    assert.equal(executeScript(script, options), null);
 });
 
 
-test('executeScript, function error log', (t) => {
+test('executeScript, function error log', () => {
     const script = validateScript({
         'statements': [
             {'return': {
@@ -151,12 +149,12 @@ test('executeScript, function error log', (t) => {
         logs.push(message);
     };
     const options = {'globals': {errorFunction}, logFn};
-    t.is(executeScript(script, options), null);
-    t.deepEqual(logs, ['CalcScript: Function "errorFunction" failed with error: unexpected error']);
+    assert.equal(executeScript(script, options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "errorFunction" failed with error: unexpected error']);
 });
 
 
-test('executeScript, jump', (t) => {
+test('executeScript, jump', () => {
     const script = validateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
@@ -171,11 +169,11 @@ test('executeScript, jump', (t) => {
             {'return': {'expr': {'variable': 'a'}}}
         ]
     });
-    t.is(executeScript(script), 6);
+    assert.equal(executeScript(script), 6);
 });
 
 
-test('executeScript, jumpif', (t) => {
+test('executeScript, jumpif', () => {
     const script = validateScript({
         'statements': [
             {'expr': {'name': 'n', 'expr': {'number': 10}}},
@@ -199,44 +197,49 @@ test('executeScript, jumpif', (t) => {
             {'return': {'expr': {'variable': 'a'}}}
         ]
     });
-    t.is(executeScript(script), 55);
+    assert.equal(executeScript(script), 55);
 });
 
 
-test('executeScript, jump error unknown label', (t) => {
+test('executeScript, jump error unknown label', () => {
     const script = validateScript({
         'statements': [
             {'jump': {'label': 'unknownLabel'}}
         ]
     });
-    const error = t.throws(() => {
-        executeScript(script);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Unknown jump label "unknownLabel"');
+    assert.throws(
+        () => {
+            executeScript(script);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Unknown jump label "unknownLabel"'
+        }
+    );
 });
 
 
-test('executeScript, return', (t) => {
+test('executeScript, return', () => {
     const script = validateScript({
         'statements': [
             {'return': {'expr': {'number': 5}}}
         ]
     });
-    t.is(executeScript(script), 5);
+    assert.equal(executeScript(script), 5);
 });
 
 
-test('executeScript, return blank', (t) => {
+test('executeScript, return blank', () => {
     const script = validateScript({
         'statements': [
             {'return': {}}
         ]
     });
-    t.is(executeScript(script), null);
+    assert.equal(executeScript(script), null);
 });
 
 
-test('executeScript, include', (t) => {
+test('executeScript, include', () => {
     const script = validateScript({
         'statements': [
             {'include': {'urls': ['test.mds']}}
@@ -246,27 +249,37 @@ test('executeScript, include', (t) => {
     /* c8 ignore next */
     const fetchFn = () => ({'ok': true, 'text': () => ''});
     const options = {fetchFn};
-    const error = t.throws(() => {
-        executeScript(script, options);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Include of "test.mds" within non-async scope');
+    assert.throws(
+        () => {
+            executeScript(script, options);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Include of "test.mds" within non-async scope'
+        }
+    );
 });
 
 
-test('executeScript, include no fetchFn', (t) => {
+test('executeScript, include no fetchFn', () => {
     const script = validateScript({
         'statements': [
             {'include': {'urls': ['test.mds']}}
         ]
     });
-    const error = t.throws(() => {
-        executeScript(script);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Include of "test.mds" within non-async scope');
+    assert.throws(
+        () => {
+            executeScript(script);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Include of "test.mds" within non-async scope'
+        }
+    );
 });
 
 
-test('executeScript, error maxStatements', (t) => {
+test('executeScript, error maxStatements', () => {
     const script = validateScript({
         'statements': [
             {
@@ -281,16 +294,21 @@ test('executeScript, error maxStatements', (t) => {
             {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
-    const error = t.throws(() => {
-        executeScript(script, {'maxStatements': 3});
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Exceeded maximum script statements (3)');
-    t.is(executeScript(script, {}, {'maxStatements': 4}), null);
-    t.is(executeScript(script, {}, {'maxStatements': 0}), null);
+    assert.throws(
+        () => {
+            executeScript(script, {'maxStatements': 3});
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Exceeded maximum script statements (3)'
+        }
+    );
+    assert.equal(executeScript(script, {}, {'maxStatements': 4}), null);
+    assert.equal(executeScript(script, {}, {'maxStatements': 0}), null);
 });
 
 
-test('evaluateExpression', (t) => {
+test('evaluateExpression', () => {
     const calc = validateExpression({
         'binary': {
             'op': '+',
@@ -312,71 +330,71 @@ test('evaluateExpression', (t) => {
         }
     });
     const options = {'globals': {'varName': 4}};
-    t.is(evaluateExpression(calc, options), 19);
+    assert.equal(evaluateExpression(calc, options), 19);
 });
 
 
-test('evaluateExpression, no globals', (t) => {
+test('evaluateExpression, no globals', () => {
     const calc = validateExpression({'string': 'abc'});
     const options = {};
-    t.is(evaluateExpression(calc, options), 'abc');
+    assert.equal(evaluateExpression(calc, options), 'abc');
 });
 
 
-test('evaluateExpression, string', (t) => {
+test('evaluateExpression, string', () => {
     const calc = validateExpression({'string': 'abc'});
-    t.is(evaluateExpression(calc), 'abc');
+    assert.equal(evaluateExpression(calc), 'abc');
 });
 
 
-test('evaluateExpression, variable', (t) => {
+test('evaluateExpression, variable', () => {
     const calc = validateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
-    t.is(evaluateExpression(calc, options), 4);
+    assert.equal(evaluateExpression(calc, options), 4);
 });
 
 
-test('evaluateExpression, variable local', (t) => {
+test('evaluateExpression, variable local', () => {
     const calc = validateExpression({'variable': 'varName'});
     const locals = {'varName': 4};
-    t.is(evaluateExpression(calc, null, locals), 4);
-    t.deepEqual(locals, {'varName': 4});
+    assert.equal(evaluateExpression(calc, null, locals), 4);
+    assert.deepEqual(locals, {'varName': 4});
 });
 
 
-test('evaluateExpression, variable null local non-null global', (t) => {
+test('evaluateExpression, variable null local non-null global', () => {
     const calc = validateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
     const locals = {'varName': null};
-    t.is(evaluateExpression(calc, options, locals), null);
+    assert.equal(evaluateExpression(calc, options, locals), null);
 });
 
 
-test('evaluateExpression, variable unknown', (t) => {
+test('evaluateExpression, variable unknown', () => {
     const calc = validateExpression({'variable': 'varName'});
-    t.is(evaluateExpression(calc), null);
+    assert.equal(evaluateExpression(calc), null);
 });
 
 
-test('evaluateExpression, variable literal null', (t) => {
+test('evaluateExpression, variable literal null', () => {
     const calc = validateExpression({'variable': 'null'});
-    t.is(evaluateExpression(calc), null);
+    assert.equal(evaluateExpression(calc), null);
 });
 
 
-test('evaluateExpression, variable literal true', (t) => {
+test('evaluateExpression, variable literal true', () => {
     const calc = validateExpression({'variable': 'true'});
-    t.is(evaluateExpression(calc), true);
+    assert.equal(evaluateExpression(calc), true);
 });
 
 
-test('evaluateExpression, variable literal false', (t) => {
+test('evaluateExpression, variable literal false', () => {
     const calc = validateExpression({'variable': 'false'});
-    t.is(evaluateExpression(calc), false);
+    assert.equal(evaluateExpression(calc), false);
 });
 
 
-test('evaluateExpression, function', (t) => {
+test('evaluateExpression, function', () => {
     const calc = validateExpression({
         'function': {
             'name': 'myFunc',
@@ -385,14 +403,14 @@ test('evaluateExpression, function', (t) => {
     });
     const options = {
         'globals': {
-            'myFunc': ([a, b]) => a + b
+            'myFunc': ([val1, val2]) => val1 + val2
         }
     };
-    t.is(evaluateExpression(calc, options), 3);
+    assert.equal(evaluateExpression(calc, options), 3);
 });
 
 
-test('evaluateExpression, function no return', (t) => {
+test('evaluateExpression, function no return', () => {
     const calc = validateExpression({
         'function': {
             'name': 'myFunc'
@@ -405,11 +423,11 @@ test('evaluateExpression, function no return', (t) => {
             }
         }
     };
-    t.is(evaluateExpression(calc, options), null);
+    assert.equal(evaluateExpression(calc, options), null);
 });
 
 
-test('evaluateExpression, function if', (t) => {
+test('evaluateExpression, function if', () => {
     const calc = validateExpression({
         'function': {
             'name': 'if',
@@ -430,25 +448,25 @@ test('evaluateExpression, function if', (t) => {
             }
         }
     };
-    t.is(evaluateExpression(calc, options), 'a');
-    t.deepEqual(testValues, ['a']);
+    assert.equal(evaluateExpression(calc, options), 'a');
+    assert.deepEqual(testValues, ['a']);
     options.globals.test = false;
-    t.is(evaluateExpression(calc, options), 'b');
-    t.deepEqual(testValues, ['a', 'b']);
+    assert.equal(evaluateExpression(calc, options), 'b');
+    assert.deepEqual(testValues, ['a', 'b']);
 });
 
 
-test('evaluateExpression, function if no value expression', (t) => {
+test('evaluateExpression, function if no value expression', () => {
     const calc = validateExpression({
         'function': {
             'name': 'if'
         }
     });
-    t.is(evaluateExpression(calc), null);
+    assert.equal(evaluateExpression(calc), null);
 });
 
 
-test('evaluateExpression, function if no true expression', (t) => {
+test('evaluateExpression, function if no true expression', () => {
     const calc = validateExpression({
         'function': {
             'name': 'if',
@@ -457,11 +475,11 @@ test('evaluateExpression, function if no true expression', (t) => {
             ]
         }
     });
-    t.is(evaluateExpression(calc), null);
+    assert.equal(evaluateExpression(calc), null);
 });
 
 
-test('evaluateExpression, function if no false expression', (t) => {
+test('evaluateExpression, function if no false expression', () => {
     const calc = validateExpression({
         'function': {
             'name': 'if',
@@ -471,11 +489,11 @@ test('evaluateExpression, function if no false expression', (t) => {
             ]
         }
     });
-    t.is(evaluateExpression(calc), null);
+    assert.equal(evaluateExpression(calc), null);
 });
 
 
-test('evaluateExpression, function builtin', (t) => {
+test('evaluateExpression, function builtin', () => {
     const calc = validateExpression({
         'function': {
             'name': 'abs',
@@ -484,11 +502,11 @@ test('evaluateExpression, function builtin', (t) => {
             ]
         }
     });
-    t.is(evaluateExpression(calc), 1);
+    assert.equal(evaluateExpression(calc), 1);
 });
 
 
-test('evaluateExpression, function no-builtins', (t) => {
+test('evaluateExpression, function no-builtins', () => {
     const calc = validateExpression({
         'function': {
             'name': 'abs',
@@ -497,14 +515,19 @@ test('evaluateExpression, function no-builtins', (t) => {
             ]
         }
     });
-    const error = t.throws(() => {
-        evaluateExpression(calc, null, null, false);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Undefined function "abs"');
+    assert.throws(
+        () => {
+            evaluateExpression(calc, null, null, false);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Undefined function "abs"'
+        }
+    );
 });
 
 
-test('evaluateExpression, function global', (t) => {
+test('evaluateExpression, function global', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnName',
@@ -514,11 +537,11 @@ test('evaluateExpression, function global', (t) => {
         }
     });
     const options = {'globals': {'fnName': ([number]) => 2 * number}};
-    t.is(evaluateExpression(calc, options), 6);
+    assert.equal(evaluateExpression(calc, options), 6);
 });
 
 
-test('evaluateExpression, function local', (t) => {
+test('evaluateExpression, function local', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnLocal',
@@ -528,11 +551,11 @@ test('evaluateExpression, function local', (t) => {
         }
     });
     const locals = {'fnLocal': ([number]) => 2 * number};
-    t.is(evaluateExpression(calc, null, locals), 6);
+    assert.equal(evaluateExpression(calc, null, locals), 6);
 });
 
 
-test('evaluateExpression, function local null', (t) => {
+test('evaluateExpression, function local null', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnLocal'
@@ -540,25 +563,30 @@ test('evaluateExpression, function local null', (t) => {
     });
     const options = {'globals': {'fnLocal': 'abc'}};
     const locals = {'fnLocal': null};
-    const error = t.throws(() => {
-        evaluateExpression(calc, options, locals);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Undefined function "fnLocal"');
+    assert.throws(
+        () => {
+            evaluateExpression(calc, options, locals);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Undefined function "fnLocal"'
+        }
+    );
 });
 
 
-test('evaluateExpression, function non-function', (t) => {
+test('evaluateExpression, function non-function', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnLocal'
         }
     });
     const options = {'globals': {'fnLocal': 'abc'}};
-    t.is(evaluateExpression(calc, options), null);
+    assert.equal(evaluateExpression(calc, options), null);
 });
 
 
-test('evaluateExpression, function non-function logFn', (t) => {
+test('evaluateExpression, function non-function logFn', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnLocal'
@@ -569,25 +597,30 @@ test('evaluateExpression, function non-function logFn', (t) => {
         logs.push(message);
     };
     const options = {'globals': {'fnLocal': 'abc'}, logFn};
-    t.is(evaluateExpression(calc, options), null);
-    t.deepEqual(logs, ['CalcScript: Function "fnLocal" failed with error: funcValue is not a function']);
+    assert.equal(evaluateExpression(calc, options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "fnLocal" failed with error: funcValue is not a function']);
 });
 
 
-test('evaluateExpression, function unknown', (t) => {
+test('evaluateExpression, function unknown', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnUnknown'
         }
     });
-    const error = t.throws(() => {
-        evaluateExpression(calc);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Undefined function "fnUnknown"');
+    assert.throws(
+        () => {
+            evaluateExpression(calc);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Undefined function "fnUnknown"'
+        }
+    );
 });
 
 
-test('evaluateExpression, function async', (t) => {
+test('evaluateExpression, function async', () => {
     const calc = validateExpression({
         'function': {
             'name': 'fnAsync'
@@ -597,14 +630,19 @@ test('evaluateExpression, function async', (t) => {
     /* c8 ignore next 2 */
     // eslint-disable-next-line require-await
     const options = {'globals': {'fnAsync': async () => null}};
-    const error = t.throws(() => {
-        evaluateExpression(calc, options);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Async function "fnAsync" called within non-async scope');
+    assert.throws(
+        () => {
+            evaluateExpression(calc, options);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Async function "fnAsync" called within non-async scope'
+        }
+    );
 });
 
 
-test('evaluateExpression, function runtime error', (t) => {
+test('evaluateExpression, function runtime error', () => {
     const calc = validateExpression({
         'function': {
             'name': 'test'
@@ -618,19 +656,24 @@ test('evaluateExpression, function runtime error', (t) => {
             }
         }
     };
-    const error = t.throws(() => {
-        evaluateExpression(calc, options);
-    }, {'instanceOf': CalcScriptRuntimeError});
-    t.is(error.message, 'Test error');
+    assert.throws(
+        () => {
+            evaluateExpression(calc, options);
+        },
+        {
+            'name': 'CalcScriptRuntimeError',
+            'message': 'Test error'
+        }
+    );
 });
 
 
-test('evaluateExpression, binary logical and', (t) => {
+test('evaluateExpression, binary logical and', () => {
     const calc = validateExpression({
         'binary': {
             'op': '&&',
-            'left': {'variable': 'a'},
-            'right': {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
+            'left': {'variable': 'leftValue'},
+            'right': {'function': {'name': 'testValue', 'args': [{'string': 'abc'}]}}
         }
     });
     const testValues = [];
@@ -642,125 +685,125 @@ test('evaluateExpression, binary logical and', (t) => {
             }
         }
     };
-    t.is(evaluateExpression(calc, options), null);
-    t.deepEqual(testValues, []);
-    options.globals.a = true;
-    t.is(evaluateExpression(calc, options), 'b');
-    t.deepEqual(testValues, ['b']);
+    assert.equal(evaluateExpression(calc, options), null);
+    assert.deepEqual(testValues, []);
+    options.globals.leftValue = true;
+    assert.equal(evaluateExpression(calc, options), 'abc');
+    assert.deepEqual(testValues, ['abc']);
 });
 
 
-test('evaluateExpression, binary logical or', (t) => {
+test('evaluateExpression, binary logical or', () => {
     const calc = validateExpression({
         'binary': {
             'op': '||',
-            'left': {'variable': 'a'},
-            'right': {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
+            'left': {'variable': 'leftValue'},
+            'right': {'function': {'name': 'testValue', 'args': [{'string': 'abc'}]}}
         }
     });
     const testValues = [];
     const options = {
         'globals': {
-            'a': true,
+            'leftValue': true,
             'testValue': ([value]) => {
                 testValues.push(value);
                 return value;
             }
         }
     };
-    t.is(evaluateExpression(calc, options), true);
-    t.deepEqual(testValues, []);
-    options.globals.a = false;
-    t.is(evaluateExpression(calc, options), 'b');
-    t.deepEqual(testValues, ['b']);
+    assert.equal(evaluateExpression(calc, options), true);
+    assert.deepEqual(testValues, []);
+    options.globals.leftValue = false;
+    assert.equal(evaluateExpression(calc, options), 'abc');
+    assert.deepEqual(testValues, ['abc']);
 });
 
 
-test('evaluateExpression, binary exponentiation', (t) => {
+test('evaluateExpression, binary exponentiation', () => {
     const calc = validateExpression({'binary': {'op': '**', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 100);
+    assert.equal(evaluateExpression(calc), 100);
 });
 
 
-test('evaluateExpression, binary multiplication', (t) => {
+test('evaluateExpression, binary multiplication', () => {
     const calc = validateExpression({'binary': {'op': '*', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 20);
+    assert.equal(evaluateExpression(calc), 20);
 });
 
 
-test('evaluateExpression, binary division', (t) => {
+test('evaluateExpression, binary division', () => {
     const calc = validateExpression({'binary': {'op': '/', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 5);
+    assert.equal(evaluateExpression(calc), 5);
 });
 
 
-test('evaluateExpression, binary modulus', (t) => {
+test('evaluateExpression, binary modulus', () => {
     const calc = validateExpression({'binary': {'op': '%', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 0);
+    assert.equal(evaluateExpression(calc), 0);
 });
 
 
-test('evaluateExpression, binary addition', (t) => {
+test('evaluateExpression, binary addition', () => {
     const calc = validateExpression({'binary': {'op': '+', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 12);
+    assert.equal(evaluateExpression(calc), 12);
 });
 
 
-test('evaluateExpression, binary subtraction', (t) => {
+test('evaluateExpression, binary subtraction', () => {
     const calc = validateExpression({'binary': {'op': '-', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), 8);
+    assert.equal(evaluateExpression(calc), 8);
 });
 
 
-test('evaluateExpression, binary less-than or equal-to', (t) => {
+test('evaluateExpression, binary less-than or equal-to', () => {
     const calc = validateExpression({'binary': {'op': '<=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), false);
+    assert.equal(evaluateExpression(calc), false);
 });
 
 
-test('evaluateExpression, binary less-than', (t) => {
+test('evaluateExpression, binary less-than', () => {
     const calc = validateExpression({'binary': {'op': '<', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), false);
+    assert.equal(evaluateExpression(calc), false);
 });
 
 
-test('evaluateExpression, binary greater-than or equal-to', (t) => {
+test('evaluateExpression, binary greater-than or equal-to', () => {
     const calc = validateExpression({'binary': {'op': '>=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), true);
+    assert.equal(evaluateExpression(calc), true);
 });
 
 
-test('evaluateExpression, binary greater-than', (t) => {
+test('evaluateExpression, binary greater-than', () => {
     const calc = validateExpression({'binary': {'op': '>', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), true);
+    assert.equal(evaluateExpression(calc), true);
 });
 
 
-test('evaluateExpression, binary equality', (t) => {
+test('evaluateExpression, binary equality', () => {
     const calc = validateExpression({'binary': {'op': '==', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), false);
+    assert.equal(evaluateExpression(calc), false);
 });
 
 
-test('evaluateExpression, binary inequality', (t) => {
+test('evaluateExpression, binary inequality', () => {
     const calc = validateExpression({'binary': {'op': '!=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    t.is(evaluateExpression(calc), true);
+    assert.equal(evaluateExpression(calc), true);
 });
 
 
-test('evaluateExpression, unary not', (t) => {
+test('evaluateExpression, unary not', () => {
     const calc = validateExpression({'unary': {'op': '!', 'expr': {'variable': 'false'}}});
-    t.is(evaluateExpression(calc), true);
+    assert.equal(evaluateExpression(calc), true);
 });
 
 
-test('evaluateExpression, unary negate', (t) => {
+test('evaluateExpression, unary negate', () => {
     const calc = validateExpression({'unary': {'op': '-', 'expr': {'number': 1}}});
-    t.is(evaluateExpression(calc), -1);
+    assert.equal(evaluateExpression(calc), -1);
 });
 
 
-test('evaluateExpression, group', (t) => {
+test('evaluateExpression, group', () => {
     const calc = validateExpression(
         {
             'group': {
@@ -780,5 +823,5 @@ test('evaluateExpression, group', (t) => {
             }
         }
     );
-    t.is(evaluateExpression(calc), 16);
+    assert.equal(evaluateExpression(calc), 16);
 });

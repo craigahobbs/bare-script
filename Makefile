@@ -16,7 +16,6 @@ $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-bui
 
 
 # Include javascript-build
-AVA_TEST := 1
 include Makefile.base
 
 

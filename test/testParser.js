@@ -1,15 +1,13 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/calc-script/blob/main/LICENSE
 
-import {CalcScriptParserError, parseExpression, parseScript} from '../lib/parser.js';
+import {parseExpression, parseScript} from '../lib/parser.js';
 import {validateExpression, validateScript} from '../lib/model.js';
-import test from 'ava';
+import {strict as assert} from 'node:assert';
+import test from 'node:test';
 
 
-/* eslint-disable id-length */
-
-
-test('parseScript, array input', (t) => {
+test('parseScript, array input', () => {
     const script = validateScript(parseScript([
         'a = arrayNew( \\',
         '    1,\\',
@@ -18,7 +16,7 @@ test('parseScript, array input', (t) => {
 )
 `
     ]));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {
                 'expr': {
@@ -31,14 +29,14 @@ test('parseScript, array input', (t) => {
 });
 
 
-test('parseScript, line continuation', (t) => {
+test('parseScript, line continuation', () => {
     const script = validateScript(parseScript(`\
 a = arrayNew( \\
     1, \\
     2 \\
 )
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {
                 'expr': {
@@ -51,25 +49,31 @@ a = arrayNew( \\
 });
 
 
-test('parseScript, line continuation error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, line continuation error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
     fn1(arg1, \\
     fn2(),
     null))
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
     fn1(arg1, fn2(),
                     ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, long line error middle', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, long line error middle', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
     reallyLongFunctionName( \\
         value1 + value2 + value3 + value4 + value5, \\
         value6 + value7 + value8 + value9 + value10, \\
@@ -84,18 +88,23 @@ test('parseScript, long line error middle', (t) => {
         value46 + value47 + value48 + value49 + value50 \\
    )
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
 ...  + value20, value21 + value22 + value23 + value24 + value25, @#$, value26 + value27 + value28 + value29 + value30, value ...
                                                                 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, long line error left', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, long line error left', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
     reallyLongFunctionName( \\
         @#$, \\
         value1 + value2 + value3 + value4 + value5, \\
@@ -110,18 +119,23 @@ test('parseScript, long line error left', (t) => {
         value46 + value47 + value48 + value49 + value50 \\
    )
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
     reallyLongFunctionName( @#$, value1 + value2 + value3 + value4 + value5, value6 + value7 + value8 + value9 + value10 ...
                            ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, long line error right', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, long line error right', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
     reallyLongFunctionName( \\
         value1 + value2 + value3 + value4 + value5, \\
         value6 + value7 + value8 + value9 + value10, \\
@@ -136,16 +150,20 @@ test('parseScript, long line error right', (t) => {
         @#$ \\
    )
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
 ... alue39 + value40, value41 + value42 + value43 + value44 + value45, value46 + value47 + value48 + value49 + value50 @#$ )
                                                                                                                       ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, jumpif statement', (t) => {
+test('parseScript, jumpif statement', () => {
     const script = validateScript(parseScript(`\
 n = 10
 i = 0
@@ -163,7 +181,7 @@ fibend:
 
 return a
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'name': 'n', 'expr': {'number': 10}}},
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
@@ -198,13 +216,13 @@ return a
 });
 
 
-test('parseScript, function statement', (t) => {
+test('parseScript, function statement', () => {
     const script = validateScript(parseScript(`\
 function addNumbers(a, b)
     return a + b
 endfunction
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {
                 'function': {
@@ -224,13 +242,13 @@ endfunction
 });
 
 
-test('parseScript, async function statement', (t) => {
+test('parseScript, async function statement', () => {
     const script = validateScript(parseScript(`\
 async function fetchURL(url)
     return fetch(url)
 endfunction
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {
                 'function': {
@@ -247,7 +265,7 @@ endfunction
 });
 
 
-test('parseScript, if-then statement', (t) => {
+test('parseScript, if-then statement', () => {
     const script = validateScript(parseScript(`\
 if i > 0 then
     a = 1
@@ -257,7 +275,7 @@ else then
     a = 3
 endif
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {
                 'label': '__calcScriptIf0',
@@ -280,13 +298,13 @@ endif
 });
 
 
-test('parseScript, if-then statement only', (t) => {
+test('parseScript, if-then statement only', () => {
     const script = validateScript(parseScript(`\
 if i > 0 then
     a = 1
 endif
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {
                 'label': '__calcScriptDone0',
@@ -299,7 +317,7 @@ endif
 });
 
 
-test('parseScript, if-then statement if-else-if', (t) => {
+test('parseScript, if-then statement if-else-if', () => {
     const script = validateScript(parseScript(`\
 if i > 0 then
     a = 1
@@ -307,7 +325,7 @@ else if i < 0 then
     a = 2
 endif
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {
                 'label': '__calcScriptIf0',
@@ -327,7 +345,7 @@ endif
 });
 
 
-test('parseScript, if-then statement if-else', (t) => {
+test('parseScript, if-then statement if-else', () => {
     const script = validateScript(parseScript(`\
 if i > 0 then
     a = 1
@@ -335,7 +353,7 @@ else then
     a = 2
 endif
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {
                 'label': '__calcScriptIf0',
@@ -351,107 +369,138 @@ endif
 });
 
 
-test('parseScript, if-then statement error else-if outside if-then', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error else-if outside if-then', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 else if i < 0 then
     a = 3
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 1:
 else if i < 0 then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error else-if outside if-then 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error else-if outside if-then 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 while true do
     else if i < 0 then
         a = 3
     endif
 endwhile
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 2:
     else if i < 0 then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error else-then outside if-then', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error else-then outside if-then', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 else then
     a = 3
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 1:
 else then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error else-then outside if-then 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error else-then outside if-then 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 while true do
     else then
         a = 3
     endif
 endwhile
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 2:
     else then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error endif outside if-then', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error endif outside if-then', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 1:
 endif
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error endif outside if-then 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error endif outside if-then 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 while true do
     endif
 endwhile
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching if-then statement, line number 2:
     endif
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error else-if after else', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error else-if after else', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 if i > 0 then
     a = 1
 else then
@@ -460,18 +509,23 @@ else if i < 0 then
     a = 3
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Else-if-then statement following else-then statement, line number 5:
 else if i < 0 then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error multiple else', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error multiple else', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 if i > 0 then
     a = 1
 else then
@@ -480,37 +534,46 @@ else then
     a = 3
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Multiple else-then statements, line number 5:
 else then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, if-then statement error no endif', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, if-then statement error no endif', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 if i > 0 then
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Missing endif statement, line number 1:
 if i > 0 then
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, while-do statement', (t) => {
+test('parseScript, while-do statement', () => {
     const script = validateScript(parseScript(`\
 i = 0
 while i < arrayLength(values) do
     i = i + 1
 endwhile
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
             {'jump': {
@@ -540,13 +603,13 @@ endwhile
 });
 
 
-test('parseScript, while-do statement break', (t) => {
+test('parseScript, while-do statement break', () => {
     const script = validateScript(parseScript(`\
 while true do
     break
 endwhile
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
             {'label': '__calcScriptLoop0'},
@@ -558,13 +621,13 @@ endwhile
 });
 
 
-test('parseScript, while-do statement continue', (t) => {
+test('parseScript, while-do statement continue', () => {
     const script = validateScript(parseScript(`\
 while true do
     continue
 endwhile
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
             {'label': '__calcScriptLoop0'},
@@ -576,50 +639,65 @@ endwhile
 });
 
 
-test('parseScript, while-do statement error endwhile outside while-do', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, while-do statement error endwhile outside while-do', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 endwhile
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching while-do statement, line number 1:
 endwhile
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, while-do statement error endwhile outside while-do 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, while-do statement error endwhile outside while-do 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 foreach value in values do
 endwhile
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching while-do statement, line number 2:
 endwhile
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, while-do statement error no endwhile', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, while-do statement error no endwhile', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 while true do
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Missing endwhile statement, line number 1:
 while true do
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, foreach statement', (t) => {
+test('parseScript, foreach statement', () => {
     const script = validateScript(parseScript(`\
 values = arrayNew(1, 2, 3)
 sum = 0
@@ -627,7 +705,7 @@ foreach value in values do
     sum = sum + value
 endforeach
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {
                 'name': 'values',
@@ -667,12 +745,12 @@ endforeach
 });
 
 
-test('parseScript, foreach statement with index', (t) => {
+test('parseScript, foreach statement with index', () => {
     const script = validateScript(parseScript(`\
 foreach value, ixValue in values do
 endforeach
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
@@ -703,7 +781,7 @@ endforeach
 });
 
 
-test('parseScript, foreach statement break', (t) => {
+test('parseScript, foreach statement break', () => {
     const script = validateScript(parseScript(`\
 foreach value in values do
     if i > 0 then
@@ -711,7 +789,7 @@ foreach value in values do
     endif
 endforeach
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
@@ -748,7 +826,7 @@ endforeach
 });
 
 
-test('parseScript, foreach statement continue', (t) => {
+test('parseScript, foreach statement continue', () => {
     const script = validateScript(parseScript(`\
 foreach value in values do
     if i > 0 then
@@ -756,7 +834,7 @@ foreach value in values do
     endif
 endforeach
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
@@ -794,114 +872,149 @@ endforeach
 });
 
 
-test('parseScript, foreach statement error foreach outside foreach', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, foreach statement error foreach outside foreach', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 endforeach
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching foreach statement, line number 1:
 endforeach
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, foreach statement error endforeach outside foreach 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, foreach statement error endforeach outside foreach 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 while true do
 endforeach
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching foreach statement, line number 2:
 endforeach
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, foreach statement error no endforeach', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, foreach statement error no endforeach', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 foreach value in values do
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Missing endforeach statement, line number 1:
 foreach value in values do
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, break statement error break outside loop', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, break statement error break outside loop', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 break
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Break statement outside of loop, line number 1:
 break
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, break statement error break outside loop 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, break statement error break outside loop 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 if i > 0 then
     break
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Break statement outside of loop, line number 2:
     break
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, continue statement error continue outside loop', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, continue statement error continue outside loop', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 continue
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Continue statement outside of loop, line number 1:
 continue
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, continue statement error continue outside loop 2', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, continue statement error continue outside loop 2', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 if i > 0 then
     continue
 endif
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Continue statement outside of loop, line number 2:
     continue
 ^
-`);
+`
+        }
+    );
 });
 
 
-test('parseScript, include statement', (t) => {
+test('parseScript, include statement', () => {
     const script = validateScript(parseScript(`\
 include 'fi\\'le.mds'
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'include': {'urls': ["fi'le.mds"]}}
         ]
@@ -909,11 +1022,11 @@ include 'fi\\'le.mds'
 });
 
 
-test('parseScript, include statement, double-quotes', (t) => {
+test('parseScript, include statement, double-quotes', () => {
     const script = validateScript(parseScript(`\
 include "fi\\"le.mds"
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'include': {'urls': ['fi"le.mds']}}
         ]
@@ -921,13 +1034,13 @@ include "fi\\"le.mds"
 });
 
 
-test('parseScript, include statement multiple', (t) => {
+test('parseScript, include statement multiple', () => {
     const script = validateScript(parseScript(`\
 include 'test.mds'
 include "test2.mds"
 include 'test3.mds'
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'include': {'urls': ['test.mds', 'test2.mds', 'test3.mds']}}
         ]
@@ -935,11 +1048,11 @@ include 'test3.mds'
 });
 
 
-test('parseScript, expression statement', (t) => {
+test('parseScript, expression statement', () => {
     const script = validateScript(parseScript(`\
 foo()
 `));
-    t.deepEqual(script, {
+    assert.deepEqual(script, {
         'statements': [
             {'expr': {'expr': {'function': {'name': 'foo', 'args': []}}}}
         ]
@@ -947,126 +1060,156 @@ foo()
 });
 
 
-test('parseScript, expression statement syntax error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, expression statement syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 a = 0
 b = 1
 foo \
 bar
 c = 2
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 3:
 foo bar
    ^
-`);
-    t.is(error.error, 'Syntax error');
-    t.is(error.line, 'foo bar');
-    t.is(error.columnNumber, 4);
-    t.is(error.lineNumber, 3);
+`,
+            'error': 'Syntax error',
+            'line': 'foo bar',
+            'columnNumber': 4,
+            'lineNumber': 3
+        }
+    );
 });
 
 
-test('parseScript, assignment statement expression syntax error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, assignment statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 a = 0
 b = 1 + foo bar
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 2:
 b = 1 + foo bar
            ^
-`);
-    t.is(error.error, 'Syntax error');
-    t.is(error.line, 'b = 1 + foo bar');
-    t.is(error.columnNumber, 12);
-    t.is(error.lineNumber, 2);
+`,
+            'error': 'Syntax error',
+            'line': 'b = 1 + foo bar',
+            'columnNumber': 12,
+            'lineNumber': 2
+        }
+    );
 });
 
 
-test('parseScript, jump statement expression syntax error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, jump statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 jumpif (@#$) label
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
 jumpif (@#$) label
         ^
-`);
-    t.is(error.error, 'Syntax error');
-    t.is(error.line, 'jumpif (@#$) label');
-    t.is(error.columnNumber, 9);
-    t.is(error.lineNumber, 1);
+`,
+            'error': 'Syntax error',
+            'line': 'jumpif (@#$) label',
+            'columnNumber': 9,
+            'lineNumber': 1
+        }
+    );
 });
 
 
-test('parseScript, return statement expression syntax error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, return statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 return @#$
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error, line number 1:
 return @#$
        ^
-`);
-    t.is(error.error, 'Syntax error');
-    t.is(error.line, 'return @#$');
-    t.is(error.columnNumber, 8);
-    t.is(error.lineNumber, 1);
+`,
+            'error': 'Syntax error',
+            'line': 'return @#$',
+            'columnNumber': 8,
+            'lineNumber': 1
+        }
+    );
 });
 
 
-test('parseScript, nested function statement error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, nested function statement error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 function foo()
     function bar()
     endfunction
 endfunction
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Nested function definition, line number 2:
     function bar()
 ^
-`);
-    t.is(error.error, 'Nested function definition');
-    t.is(error.line, '    function bar()');
-    t.is(error.columnNumber, 1);
-    t.is(error.lineNumber, 2);
+`,
+            'error': 'Nested function definition',
+            'line': '    function bar()',
+            'columnNumber': 1,
+            'lineNumber': 2
+        }
+    );
 });
 
 
-test('parseScript, endfunction statement error', (t) => {
-    const error = t.throws(() => {
-        parseScript(`\
+test('parseScript, endfunction statement error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
 a = 1
 endfunction
 `);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 No matching function definition, line number 2:
 endfunction
 ^
-`);
-    t.is(error.error, 'No matching function definition');
-    t.is(error.line, 'endfunction');
-    t.is(error.columnNumber, 1);
-    t.is(error.lineNumber, 2);
+`,
+            'error': 'No matching function definition',
+            'line': 'endfunction',
+            'columnNumber': 1,
+            'lineNumber': 2
+        }
+    );
 });
 
 
-test('parseExpression', (t) => {
+test('parseExpression', () => {
     const expr = parseExpression('7 + 3 * 5');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '+',
             'left': {'number': 7},
@@ -1082,9 +1225,9 @@ test('parseExpression', (t) => {
 });
 
 
-test('parseExpression, unary', (t) => {
+test('parseExpression, unary', () => {
     const expr = parseExpression('!a');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'unary': {
             'op': '!',
             'expr': {'variable': 'a'}
@@ -1093,73 +1236,93 @@ test('parseExpression, unary', (t) => {
 });
 
 
-test('parseExpression, syntax error', (t) => {
+test('parseExpression, syntax error', () => {
     const exprText = ' @#$';
-    const error = t.throws(() => {
-        parseExpression(exprText);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+    assert.throws(
+        () => {
+            parseExpression(exprText);
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error:
 ${exprText}
 ^
-`);
-    t.is(error.line, exprText);
-    t.is(error.columnNumber, 1);
-    t.is(error.lineNumber, null);
+`,
+            'line': exprText,
+            'columnNumber': 1,
+            'lineNumber': null
+        }
+    );
 });
 
 
-test('parseExpression, nextText syntax error', (t) => {
+test('parseExpression, nextText syntax error', () => {
     const exprText = 'foo bar';
-    const error = t.throws(() => {
-        parseExpression(exprText);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+    assert.throws(
+        () => {
+            parseExpression(exprText);
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error:
 ${exprText}
    ^
-`);
-    t.is(error.line, exprText);
-    t.is(error.columnNumber, 4);
-    t.is(error.lineNumber, null);
+`,
+            'line': exprText,
+            'columnNumber': 4,
+            'lineNumber': null
+        }
+    );
 });
 
 
-test('parseExpression, syntax error, unmatched parenthesis', (t) => {
+test('parseExpression, syntax error, unmatched parenthesis', () => {
     const exprText = '10 * (1 + 2';
-    const error = t.throws(() => {
-        parseExpression(exprText);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+    assert.throws(
+        () => {
+            parseExpression(exprText);
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Unmatched parenthesis:
 ${exprText}
     ^
-`);
-    t.is(error.line, exprText);
-    t.is(error.columnNumber, 5);
-    t.is(error.lineNumber, null);
+`,
+            'line': exprText,
+            'columnNumber': 5,
+            'lineNumber': null
+        }
+    );
 });
 
 
-test('parseExpression, function argument syntax error', (t) => {
+test('parseExpression, function argument syntax error', () => {
     const exprText = 'foo(1, 2 3)';
-    const error = t.throws(() => {
-        parseExpression(exprText);
-    }, {'instanceOf': CalcScriptParserError});
-    t.is(error.message, `\
+    assert.throws(
+        () => {
+            parseExpression(exprText);
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
 Syntax error:
 foo(1, 2 3)
         ^
-`);
-    t.is(error.line, exprText);
-    t.is(error.columnNumber, 9);
-    t.is(error.lineNumber, null);
+`,
+            'line': exprText,
+            'columnNumber': 9,
+            'lineNumber': null
+        }
+    );
 });
 
 
-test('parseExpression, operator precedence', (t) => {
+test('parseExpression, operator precedence', () => {
     const expr = parseExpression('7 * 3 + 5');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '+',
             'left': {
@@ -1175,9 +1338,9 @@ test('parseExpression, operator precedence', (t) => {
 });
 
 
-test('parseExpression, operator precedence 2', (t) => {
+test('parseExpression, operator precedence 2', () => {
     const expr = parseExpression('2 * 3 + 4 - 1');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '-',
             'left': {
@@ -1199,9 +1362,9 @@ test('parseExpression, operator precedence 2', (t) => {
 });
 
 
-test('parseExpression, operator precedence 3', (t) => {
+test('parseExpression, operator precedence 3', () => {
     const expr = parseExpression('2 + 3 + 4 - 1');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '-',
             'left': {
@@ -1223,9 +1386,9 @@ test('parseExpression, operator precedence 3', (t) => {
 });
 
 
-test('parseExpression, operator precedence 4', (t) => {
+test('parseExpression, operator precedence 4', () => {
     const expr = parseExpression('1 - 2 + 3 + 4 + 5 * 6');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '+',
             'left': {
@@ -1259,9 +1422,9 @@ test('parseExpression, operator precedence 4', (t) => {
 });
 
 
-test('parseExpression, operator precedence 5', (t) => {
+test('parseExpression, operator precedence 5', () => {
     const expr = parseExpression('1 + 2 * 5 / 2');
-    t.deepEqual(expr, {
+    assert.deepEqual(expr, {
         'binary': {
             'op': '+',
             'left': {'number': 1},
@@ -1283,9 +1446,9 @@ test('parseExpression, operator precedence 5', (t) => {
 });
 
 
-test('parseExpression, operator precedence 6', (t) => {
+test('parseExpression, operator precedence 6', () => {
     const expr = parseExpression('1 + 2 / 5 * 2');
-    t.deepEqual(expr, {
+    assert.deepEqual(expr, {
         'binary': {
             'op': '+',
             'left': {'number': 1},
@@ -1307,9 +1470,9 @@ test('parseExpression, operator precedence 6', (t) => {
 });
 
 
-test('parseExpression, operator precedence 7', (t) => {
+test('parseExpression, operator precedence 7', () => {
     const expr = parseExpression('1 + 2 / 3 / 4 * 5');
-    t.deepEqual(expr, {
+    assert.deepEqual(expr, {
         'binary': {
             'op': '+',
             'left': {'number': 1},
@@ -1337,9 +1500,9 @@ test('parseExpression, operator precedence 7', (t) => {
 });
 
 
-test('parseExpression, operator precedence 8', (t) => {
+test('parseExpression, operator precedence 8', () => {
     const expr = parseExpression('1 >= 2 && 3 < 4 - 5');
-    t.deepEqual(expr, {
+    assert.deepEqual(expr, {
         'binary': {
             'op': '&&',
             'left': {
@@ -1367,9 +1530,9 @@ test('parseExpression, operator precedence 8', (t) => {
 });
 
 
-test('parseExpression, group', (t) => {
+test('parseExpression, group', () => {
     const expr = parseExpression('(7 + 3) * 5');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'binary': {
             'op': '*',
             'left': {
@@ -1387,9 +1550,9 @@ test('parseExpression, group', (t) => {
 });
 
 
-test('parseExpression, group nested', (t) => {
+test('parseExpression, group nested', () => {
     const expr = parseExpression('(1 + (2))');
-    t.deepEqual(validateExpression(expr), {
+    assert.deepEqual(validateExpression(expr), {
         'group': {
             'binary': {
                 'op': '+',
@@ -1401,42 +1564,42 @@ test('parseExpression, group nested', (t) => {
 });
 
 
-test('parseExpression, string literal', (t) => {
+test('parseExpression, string literal', () => {
     const expr = parseExpression("'abc'");
-    t.deepEqual(validateExpression(expr), {'string': 'abc'});
+    assert.deepEqual(validateExpression(expr), {'string': 'abc'});
 });
 
 
-test('parseExpression, string literal escapes', (t) => {
+test('parseExpression, string literal escapes', () => {
     const expr = parseExpression("'ab \\'c\\' d\\\\e \\f'");
-    t.deepEqual(validateExpression(expr), {'string': "ab 'c' d\\e \\f"});
+    assert.deepEqual(validateExpression(expr), {'string': "ab 'c' d\\e \\f"});
 });
 
 
-test('parseExpression, string literal backslash end', (t) => {
+test('parseExpression, string literal backslash end', () => {
     const expr = parseExpression("test('abc \\\\', 'def')");
-    t.deepEqual(validateExpression(expr), {'function': {
+    assert.deepEqual(validateExpression(expr), {'function': {
         'name': 'test',
         'args': [{'string': 'abc \\'}, {'string': 'def'}]
     }});
 });
 
 
-test('parseExpression, string literal double-quote', (t) => {
+test('parseExpression, string literal double-quote', () => {
     const expr = parseExpression('"abc"');
-    t.deepEqual(validateExpression(expr), {'string': 'abc'});
+    assert.deepEqual(validateExpression(expr), {'string': 'abc'});
 });
 
 
-test('parseExpression, string literal double-quote escapes', (t) => {
+test('parseExpression, string literal double-quote escapes', () => {
     const expr = parseExpression('"ab \\"c\\" d\\\\e \\f"');
-    t.deepEqual(validateExpression(expr), {'string': 'ab "c" d\\e \\f'});
+    assert.deepEqual(validateExpression(expr), {'string': 'ab "c" d\\e \\f'});
 });
 
 
-test('parseExpression, string literal double-quote backslash end', (t) => {
+test('parseExpression, string literal double-quote backslash end', () => {
     const expr = parseExpression('test("abc \\\\", "def")');
-    t.deepEqual(validateExpression(expr), {'function': {
+    assert.deepEqual(validateExpression(expr), {'function': {
         'name': 'test',
         'args': [{'string': 'abc \\'}, {'string': 'def'}]
     }});
