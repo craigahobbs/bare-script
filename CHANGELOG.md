@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.4 (2023-05-23)
+
+- [e93a3b4](https://github.com/craigahobbs/calc-script/commit/e93a3b4) - run tests with node --test
+
 ## 1.4.3 (2023-04-26)
 
 - [c6a4832](https://github.com/craigahobbs/calc-script/commit/c6a4832) - fix datetimeNewUTC
