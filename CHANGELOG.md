@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.5 (2023-05-28)
+
+- [20f54e3](https://github.com/craigahobbs/calc-script/commit/20f54e3) - remove jsdom dev dependency
+
 ## 1.4.4 (2023-05-23)
 
 - [e93a3b4](https://github.com/craigahobbs/calc-script/commit/e93a3b4) - run tests with node --test
