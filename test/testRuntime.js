@@ -648,7 +648,6 @@ test('evaluateExpression, function runtime error', () => {
             'name': 'test'
         }
     });
-    // eslint-disable-next-line require-await
     const options = {
         'globals': {
             'test': () => {
