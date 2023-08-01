@@ -267,11 +267,11 @@ endfunction
 
 test('parseScript, if-then statement', () => {
     const script = validateScript(parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
-else if i < 0 then
+elif i < 0:
     a = 2
-else then
+else:
     a = 3
 endif
 `));
@@ -300,7 +300,7 @@ endif
 
 test('parseScript, if-then statement only', () => {
     const script = validateScript(parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
 endif
 `));
@@ -319,9 +319,9 @@ endif
 
 test('parseScript, if-then statement if-else-if', () => {
     const script = validateScript(parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
-else if i < 0 then
+elif i < 0:
     a = 2
 endif
 `));
@@ -347,9 +347,9 @@ endif
 
 test('parseScript, if-then statement if-else', () => {
     const script = validateScript(parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
-else then
+else:
     a = 2
 endif
 `));
@@ -373,7 +373,7 @@ test('parseScript, if-then statement error else-if outside if-then', () => {
     assert.throws(
         () => {
             parseScript(`\
-else if i < 0 then
+elif i < 0:
     a = 3
 endif
 `);
@@ -381,8 +381,8 @@ endif
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 1:
-else if i < 0 then
+No matching if statement, line number 1:
+elif i < 0:
 ^
 `
         }
@@ -394,8 +394,8 @@ test('parseScript, if-then statement error else-if outside if-then 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-while true do
-    else if i < 0 then
+while true:
+    elif i < 0:
         a = 3
     endif
 endwhile
@@ -404,8 +404,8 @@ endwhile
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 2:
-    else if i < 0 then
+No matching if statement, line number 2:
+    elif i < 0:
 ^
 `
         }
@@ -417,7 +417,7 @@ test('parseScript, if-then statement error else-then outside if-then', () => {
     assert.throws(
         () => {
             parseScript(`\
-else then
+else:
     a = 3
 endif
 `);
@@ -425,8 +425,8 @@ endif
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 1:
-else then
+No matching if statement, line number 1:
+else:
 ^
 `
         }
@@ -438,8 +438,8 @@ test('parseScript, if-then statement error else-then outside if-then 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-while true do
-    else then
+while true:
+    else:
         a = 3
     endif
 endwhile
@@ -448,8 +448,8 @@ endwhile
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 2:
-    else then
+No matching if statement, line number 2:
+    else:
 ^
 `
         }
@@ -467,7 +467,7 @@ endif
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 1:
+No matching if statement, line number 1:
 endif
 ^
 `
@@ -480,7 +480,7 @@ test('parseScript, if-then statement error endif outside if-then 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-while true do
+while true:
     endif
 endwhile
 `);
@@ -488,7 +488,7 @@ endwhile
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching if-then statement, line number 2:
+No matching if statement, line number 2:
     endif
 ^
 `
@@ -501,11 +501,11 @@ test('parseScript, if-then statement error else-if after else', () => {
     assert.throws(
         () => {
             parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
-else then
+else:
     a = 2
-else if i < 0 then
+elif i < 0:
     a = 3
 endif
 `);
@@ -513,8 +513,8 @@ endif
         {
             'name': 'CalcScriptParserError',
             'message': `\
-Else-if-then statement following else-then statement, line number 5:
-else if i < 0 then
+Elif statement following else statement, line number 5:
+elif i < 0:
 ^
 `
         }
@@ -526,11 +526,11 @@ test('parseScript, if-then statement error multiple else', () => {
     assert.throws(
         () => {
             parseScript(`\
-if i > 0 then
+if i > 0:
     a = 1
-else then
+else:
     a = 2
-else then
+else:
     a = 3
 endif
 `);
@@ -538,8 +538,8 @@ endif
         {
             'name': 'CalcScriptParserError',
             'message': `\
-Multiple else-then statements, line number 5:
-else then
+Multiple else statements, line number 5:
+else:
 ^
 `
         }
@@ -551,14 +551,14 @@ test('parseScript, if-then statement error no endif', () => {
     assert.throws(
         () => {
             parseScript(`\
-if i > 0 then
+if i > 0:
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
 Missing endif statement, line number 1:
-if i > 0 then
+if i > 0:
 ^
 `
         }
@@ -569,7 +569,7 @@ if i > 0 then
 test('parseScript, while-do statement', () => {
     const script = validateScript(parseScript(`\
 i = 0
-while i < arrayLength(values) do
+while i < arrayLength(values):
     i = i + 1
 endwhile
 `));
@@ -605,7 +605,7 @@ endwhile
 
 test('parseScript, while-do statement break', () => {
     const script = validateScript(parseScript(`\
-while true do
+while true:
     break
 endwhile
 `));
@@ -623,7 +623,7 @@ endwhile
 
 test('parseScript, while-do statement continue', () => {
     const script = validateScript(parseScript(`\
-while true do
+while true:
     continue
 endwhile
 `));
@@ -649,7 +649,7 @@ endwhile
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching while-do statement, line number 1:
+No matching while statement, line number 1:
 endwhile
 ^
 `
@@ -662,14 +662,14 @@ test('parseScript, while-do statement error endwhile outside while-do 2', () => 
     assert.throws(
         () => {
             parseScript(`\
-foreach value in values do
+for value in values:
 endwhile
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching while-do statement, line number 2:
+No matching while statement, line number 2:
 endwhile
 ^
 `
@@ -682,14 +682,14 @@ test('parseScript, while-do statement error no endwhile', () => {
     assert.throws(
         () => {
             parseScript(`\
-while true do
+while true:
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
 Missing endwhile statement, line number 1:
-while true do
+while true:
 ^
 `
         }
@@ -701,9 +701,9 @@ test('parseScript, foreach statement', () => {
     const script = validateScript(parseScript(`\
 values = arrayNew(1, 2, 3)
 sum = 0
-foreach value in values do
+for value in values:
     sum = sum + value
-endforeach
+endfor
 `));
     assert.deepEqual(script, {
         'statements': [
@@ -747,8 +747,8 @@ endforeach
 
 test('parseScript, foreach statement with index', () => {
     const script = validateScript(parseScript(`\
-foreach value, ixValue in values do
-endforeach
+for value, ixValue in values:
+endfor
 `));
     assert.deepEqual(script, {
         'statements': [
@@ -783,11 +783,11 @@ endforeach
 
 test('parseScript, foreach statement break', () => {
     const script = validateScript(parseScript(`\
-foreach value in values do
-    if i > 0 then
+for value in values:
+    if i > 0:
         break
     endif
-endforeach
+endfor
 `));
     assert.deepEqual(script, {
         'statements': [
@@ -828,11 +828,11 @@ endforeach
 
 test('parseScript, foreach statement continue', () => {
     const script = validateScript(parseScript(`\
-foreach value in values do
-    if i > 0 then
+for value in values:
+    if i > 0:
         continue
     endif
-endforeach
+endfor
 `));
     assert.deepEqual(script, {
         'statements': [
@@ -876,14 +876,14 @@ test('parseScript, foreach statement error foreach outside foreach', () => {
     assert.throws(
         () => {
             parseScript(`\
-endforeach
+endfor
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching foreach statement, line number 1:
-endforeach
+No matching for statement, line number 1:
+endfor
 ^
 `
         }
@@ -891,19 +891,19 @@ endforeach
 });
 
 
-test('parseScript, foreach statement error endforeach outside foreach 2', () => {
+test('parseScript, foreach statement error endfor outside foreach 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-while true do
-endforeach
+while true:
+endfor
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
-No matching foreach statement, line number 2:
-endforeach
+No matching for statement, line number 2:
+endfor
 ^
 `
         }
@@ -911,18 +911,18 @@ endforeach
 });
 
 
-test('parseScript, foreach statement error no endforeach', () => {
+test('parseScript, foreach statement error no endfor', () => {
     assert.throws(
         () => {
             parseScript(`\
-foreach value in values do
+for value in values:
 `);
         },
         {
             'name': 'CalcScriptParserError',
             'message': `\
-Missing endforeach statement, line number 1:
-foreach value in values do
+Missing endfor statement, line number 1:
+for value in values:
 ^
 `
         }
@@ -953,7 +953,7 @@ test('parseScript, break statement error break outside loop 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-if i > 0 then
+if i > 0:
     break
 endif
 `);
@@ -993,7 +993,7 @@ test('parseScript, continue statement error continue outside loop 2', () => {
     assert.throws(
         () => {
             parseScript(`\
-if i > 0 then
+if i > 0:
     continue
 endif
 `);

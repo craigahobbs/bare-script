@@ -15,7 +15,7 @@ array.
 # Compute the first "count" Fibonacci numbers
 function fibonacci(count)
     numbers = arrayNew(0, 1)
-    while arrayLength(numbers) < count do
+    while arrayLength(numbers) < count:
         arrayPush(numbers, arrayGet(numbers, arrayLength(numbers) - 1) + \
             arrayGet(numbers, arrayLength(numbers) - 2))
     endwhile
@@ -146,11 +146,11 @@ return addNumbers(0, 1)
 If-then statements allow you to execute a sequence of statements conditionally. For example:
 
 ~~~ calcscript
-if a < 0 then
+if a < 0:
     b = 1
-else if a > 0 then
+elif a > 0:
     b = 2
-else then
+else:
     b = 3
 endif
 ~~~
@@ -164,7 +164,7 @@ is true. For example:
 ~~~ calcscript
 i = 0
 sum = 0
-while i < 10 do
+while i < 10:
     sum = sum + i
     i = i + 1
 endwhile
@@ -179,9 +179,9 @@ For example:
 ~~~ calcscript
 values = arrayNew(1, 2, 3)
 sum = 0
-foreach value in values do
+for value in values:
     sum = sum + value
-endforeach
+endfor
 ~~~
 
 You can also access the array value index:
@@ -189,9 +189,9 @@ You can also access the array value index:
 ~~~ calcscript
 values = arrayNew(1, 2, 3)
 sum = 0
-foreach value, ixValue in values do
+for value, ixValue in values:
     sum = sum + ixValue * value
-endforeach
+endfor
 ~~~
 
 
@@ -201,8 +201,8 @@ To stop a while-do loop or a foreach loop using a break statement. For example:
 
 ~~~ calcscript
 i = 0
-while i < 10 do
-    if i > 5 then
+while i < 10:
+    if i > 5:
         break
     endif
     i = i + 1
@@ -214,12 +214,12 @@ To skip the remaining statements in an iteration using a continue statement. For
 ~~~ calcscript
 values = arrayNew(1, -2, 3)
 sum = 0
-foreach value, ixValue in values do
-    if value < 0 then
+for value, ixValue in values:
+    if value < 0:
         continue
     endif
     sum = sum + value
-endforeach
+endfor
 ~~~
 
 

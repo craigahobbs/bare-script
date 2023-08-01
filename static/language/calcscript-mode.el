@@ -1,6 +1,6 @@
 ;;; calcscript-mode.el --- Major mode for editing CalcScript files
 
-;; Version: 0.5
+;; Version: 0.6
 
 ;;; Commentary:
 
@@ -19,10 +19,10 @@
 
 (defconst calcscript-keywords
   (regexp-opt
-   '("async" "break" "continue" "do" "else" "endforeach" "endfunction"
-     "endif" "endwhile" "false" "foreach" "function" "if" "in" "include"
-     "jump" "jumpif" "null" "return" "then" "true" "while")
-   'words)
+   '("async" "break" "continue" "else" "elif" "endfor" "endfunction"
+     "endif" "endwhile" "false" "for" "function" "if" "in" "include"
+     "jump" "jumpif" "null" "return" "true" "while")
+   'symbols)
   )
 
 (defconst calcscript-font-lock-keywords
