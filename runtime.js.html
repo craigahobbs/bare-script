@@ -38,12 +38,14 @@ import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './libr
  * The CalcScript runtime options
  *
  * @typedef {Object} ExecuteScriptOptions
- * @property {function} [fetchFn] - The [URL fetch function]{@link module:lib/runtime~FetchFn}
+ * @property {boolean} [debug] - If true, execute in debug mode
+ * @property {function} [fetchFn] - The [fetch function]{@link module:lib/runtime~FetchFn}
  * @property {Object} [globals] - The global variables
  * @property {function} [logFn] - The [log function]{@link module:lib/runtime~LogFn}
  * @property {number} [maxStatements] - The maximum number of statements; default is 1e9; 0 for no maximum
  * @property {number} [statementCount] - The current statement count
  * @property {function} [urlFn] - The [URL modifier function]{@link module:lib/runtime~URLFn}
+ * @property {string} [systemPrefix] - The system include prefix
  */
 
 /**
@@ -169,7 +171,8 @@ export function executeScriptHelper(statements, options, locals) {
 
         // Include?
         } else if (statementKey === 'include') {
-            throw new CalcScriptRuntimeError(`Include of "${statement.include.urls[0]}" within non-async scope`);
+            const includes = [...statement.include.includes, ...statement.include.systemIncludes, ''];
+            throw new CalcScriptRuntimeError(`Include of "${includes[0]}" within non-async scope`);
         }
     }
 
@@ -258,7 +261,7 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
                 }
 
                 // Log and return null
-                if (options !== null &amp;&amp; 'logFn' in options) {
+                if (options !== null &amp;&amp; 'logFn' in options &amp;&amp; options.debug) {
                     options.logFn(`CalcScript: Function "${funcName}" failed with error: ${error.message}`);
                 }
                 return null;

@@ -229,54 +229,6 @@
             ]
         },
         {
-            "name": "encodeURI",
-            "group": "Miscellaneous",
-            "doc": [
-                "Encode a URI"
-            ],
-            "args": [
-                {
-                    "name": "uri",
-                    "doc": [
-                        "The URI string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URI string"
-            ]
-        },
-        {
-            "name": "encodeURIComponent",
-            "group": "Miscellaneous",
-            "doc": [
-                "Encode a URI component"
-            ],
-            "args": [
-                {
-                    "name": "uri",
-                    "doc": [
-                        "The URI component string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URI component string"
-            ]
-        },
-        {
             "name": "endsWith",
             "group": "String",
             "doc": [
@@ -301,34 +253,7 @@
             ]
         },
         {
-            "name": "if",
-            "group": "Miscellaneous",
-            "doc": [
-                "Conditionally evaluate expressions"
-            ],
-            "args": [
-                {
-                    "name": "testExpr",
-                    "doc": [
-                        "The test expression"
-                    ]
-                },
-                {
-                    "name": "trueExpr",
-                    "doc": [
-                        "The expression to evaluate if the test expression is true"
-                    ]
-                },
-                {
-                    "name": "falseExpr",
-                    "doc": [
-                        "The expression to evaluate if the test expression is false"
-                    ]
-                }
-            ],
-            "return": [
-                "If testExpr is true, evaluates trueExpr; otherwise evaluates falseExpr"
-            ]
+            "name": "if"
         },
         {
             "name": "indexOf",
@@ -980,6 +905,54 @@
             ],
             "return": [
                 "The upper-case string"
+            ]
+        },
+        {
+            "name": "urlEncode",
+            "group": "URL",
+            "doc": [
+                "Encode a URL"
+            ],
+            "args": [
+                {
+                    "name": "url",
+                    "doc": [
+                        "The URL string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URL string"
+            ]
+        },
+        {
+            "name": "urlEncodeComponent",
+            "group": "URL",
+            "doc": [
+                "Encode a URL component"
+            ],
+            "args": [
+                {
+                    "name": "url",
+                    "doc": [
+                        "The URL component string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URL component string"
             ]
         },
         {

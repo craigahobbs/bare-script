@@ -85,12 +85,10 @@ console.log(executeScript(script, {'globals': globals}));
 <pre class="prettyprint source"><code>10 times 2 is 20
 </code></pre>
 <h3>The CalcScript Library</h3>
-<p><a href="https://craigahobbs.github.io/calc-script/library/">The CalcScript Library</a>
-includes a set of built-in functions for mathematical operations, object manipulation, array
-manipulation, regular expressions,
-fetch
-and more. The following example demonstrates the use of the
-<a href="https://craigahobbs.github.io/calc-script/library/#var.vName='fetch'">fetch</a>,
+<p><a href="https://craigahobbs.github.io/calc-script/library/">The CalcScript Library</a> includes a set of
+built-in functions for mathematical operations, object manipulation, array manipulation, regular
+expressions, HTTP fetch and more. The following example demonstrates the use of the
+<a href="https://craigahobbs.github.io/calc-script/library/#var.vName='httpFetch'">httpFetch</a>,
 <a href="https://craigahobbs.github.io/calc-script/library/#var.vName='objectGet'">objectGet</a>, and
 <a href="https://craigahobbs.github.io/calc-script/library/#var.vName='arrayLength'">arrayLength</a> functions.</p>
 <pre class="prettyprint source lang-javascript"><code>import {executeScriptAsync} from 'calc-script/lib/runtimeAsync.js';
@@ -99,7 +97,7 @@ import {parseScript} from 'calc-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Fetch the CalcScript library documentation JSON
-libraryDocs = fetch('https://craigahobbs.github.io/calc-script/library/library.json')
+libraryDocs = httpFetch('https://craigahobbs.github.io/calc-script/library/library.json')
 
 # Return the number of library functions
 return 'The CalcScript Library has ' + arrayLength(objectGet(libraryDocs, 'functions')) + ' functions'

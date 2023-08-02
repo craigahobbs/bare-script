@@ -337,6 +337,36 @@
             ]
         },
         {
+            "name": "consoleLog",
+            "group": "Console",
+            "doc": [
+                "Log a message to the console"
+            ],
+            "args": [
+                {
+                    "name": "string",
+                    "doc": [
+                        "The message"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "consoleLogDebug",
+            "group": "Console",
+            "doc": [
+                "Log a debug message"
+            ],
+            "args": [
+                {
+                    "name": "string",
+                    "doc": [
+                        "The message"
+                    ]
+                }
+            ]
+        },
+        {
             "name": "datetimeDay",
             "group": "Datetime",
             "doc": [
@@ -597,71 +627,8 @@
             ]
         },
         {
-            "name": "debugLog",
-            "group": "Miscellaneous",
-            "doc": [
-                "Log a debug message"
-            ],
-            "args": [
-                {
-                    "name": "string",
-                    "doc": [
-                        "The message"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "encodeURI",
-            "group": "Miscellaneous",
-            "doc": [
-                "Encode a URI"
-            ],
-            "args": [
-                {
-                    "name": "uri",
-                    "doc": [
-                        "The URI string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URI string"
-            ]
-        },
-        {
-            "name": "encodeURIComponent",
-            "group": "Miscellaneous",
-            "doc": [
-                "Encode a URI component"
-            ],
-            "args": [
-                {
-                    "name": "uri",
-                    "doc": [
-                        "The URI component string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URI component string"
-            ]
-        },
-        {
-            "name": "fetch",
-            "group": "Miscellaneous",
+            "name": "httpFetch",
+            "group": "HTTP",
             "doc": [
                 "Retrieve a remote JSON or text resource"
             ],
@@ -687,54 +654,6 @@
             ],
             "return": [
                 "The resource object/string or array of objects/strings; null if an error occurred."
-            ]
-        },
-        {
-            "name": "getGlobal",
-            "group": "Miscellaneous",
-            "doc": [
-                "Get a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value or null if it does not exist"
-            ]
-        },
-        {
-            "name": "if",
-            "group": "Miscellaneous",
-            "doc": [
-                "Conditionally evaluate expressions"
-            ],
-            "args": [
-                {
-                    "name": "testExpr",
-                    "doc": [
-                        "The test expression"
-                    ]
-                },
-                {
-                    "name": "trueExpr",
-                    "doc": [
-                        "The expression to evaluate if the test expression is true"
-                    ]
-                },
-                {
-                    "name": "falseExpr",
-                    "doc": [
-                        "The expression to evaluate if the test expression is false"
-                    ]
-                }
-            ],
-            "return": [
-                "If testExpr is true, evaluates trueExpr; otherwise evaluates falseExpr"
             ]
         },
         {
@@ -1498,6 +1417,48 @@
             ]
         },
         {
+            "name": "runtimeGetGlobal",
+            "group": "Runtime",
+            "doc": [
+                "Get a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value or null if it does not exist"
+            ]
+        },
+        {
+            "name": "runtimeSetGlobal",
+            "group": "Runtime",
+            "doc": [
+                "Set a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "The global variable's value"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value"
+            ]
+        },
+        {
             "name": "schemaParse",
             "group": "Schema",
             "doc": [
@@ -1603,30 +1564,6 @@
             ],
             "return": [
                 "The validated [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')"
-            ]
-        },
-        {
-            "name": "setGlobal",
-            "group": "Miscellaneous",
-            "doc": [
-                "Set a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                },
-                {
-                    "name": "value",
-                    "doc": [
-                        "The global variable's value"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value"
             ]
         },
         {
@@ -1981,6 +1918,54 @@
             ],
             "return": [
                 "The upper-case string"
+            ]
+        },
+        {
+            "name": "urlEncode",
+            "group": "URL",
+            "doc": [
+                "Encode a URL"
+            ],
+            "args": [
+                {
+                    "name": "url",
+                    "doc": [
+                        "The URL string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URL string"
+            ]
+        },
+        {
+            "name": "urlEncodeComponent",
+            "group": "URL",
+            "doc": [
+                "Encode a URL component"
+            ],
+            "args": [
+                {
+                    "name": "url",
+                    "doc": [
+                        "The URL component string"
+                    ]
+                },
+                {
+                    "name": "extra",
+                    "doc": [
+                        "Optional (default is true). If true, encode extra characters for wider compatibility."
+                    ]
+                }
+            ],
+            "return": [
+                "The encoded URL component string"
             ]
         }
     ]

@@ -15,10 +15,10 @@
 async function calcScriptLibraryDoc(url, title, menuLinks)
     # URL override?
     url = if(vURL != null, vURL, url)
-    if arrayLength(url) != null then
+    if arrayLength(url) != null:
         urls = url
         url = arrayJoin(urls, ', ')
-    else then
+    else:
         urls = arrayNew(url)
     endif
     title = if(title != null && vURL == null, title, url)
@@ -26,23 +26,23 @@ async function calcScriptLibraryDoc(url, title, menuLinks)
     # Fetch and validate the library documentation resource
     libraryFunctions = arrayNew()
     library = objectNew('functions', libraryFunctions)
-    foreach libraryPart, ixLibrary in fetch(urls) do
+    for libraryPart, ixLibrary in httpFetch(urls):
         libraryPart = schemaValidate(calcScriptLibraryTypes, 'Library', libraryPart)
-        if libraryPart == null then
+        if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
             return
         endif
         arrayExtend(libraryFunctions, objectGet(libraryPart, 'functions'))
-    endforeach
+    endfor
 
     # Render the page
-    if vDoc then
-        setDocumentTitle(title + ' - Library')
+    if vDoc:
+        documentSetTitle(title + ' - Library')
         elementModelRender(schemaElements(calcScriptLibraryTypes, 'Library'))
-    else if vName != null then
+    elif vName != null:
         calcScriptLibraryFunctionPage(library, title, vName)
-    else then
+    else:
         calcScriptLibraryIndexPage(library, title, menuLinks)
     endif
 endfunction
@@ -50,89 +50,89 @@ endfunction
 
 function calcScriptLibraryIndexPage(library, title, menuLinks)
     # Set the page title
-    setDocumentTitle(title)
+    documentSetTitle(title)
     markdownPrint('# ' + title)
 
     # Render the index menu
     markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + calcScriptLibraryURL(objectNew('expand', !vExpand, 'group', '')) + ')')
-    foreach menuLink in menuLinks do
+    for menuLink in menuLinks:
         menuLinkText = arrayGet(menuLink, 0)
         menuLinkURL = arrayGet(menuLink, 1)
         markdownPrint('| [' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
-    endforeach
+    endfor
 
     # Group the function documentation
-    debugLog('Library has ' + arrayLength(objectGet(library, 'functions')) + ' functions')
+    consoleLogDebug('Library has ' + arrayLength(objectGet(library, 'functions')) + ' functions')
     groups = objectNew()
-    foreach function in objectGet(library, 'functions') do
-        group = objectGet(function, 'group')
+    for function_ in objectGet(library, 'functions'):
+        group = objectGet(function_, 'group')
         groupFunctions = objectGet(groups, group)
-        if groupFunctions == null then
+        if groupFunctions == null:
             groupFunctions = arrayNew()
             objectSet(groups, group, groupFunctions)
         endif
-        arrayPush(groupFunctions, objectGet(function, 'name'))
-    endforeach
+        arrayPush(groupFunctions, objectGet(function_, 'name'))
+    endfor
 
     # Render the library function index
     groupKeys = arraySort(objectKeys(groups))
-    foreach groupKey in groupKeys do
+    for groupKey in groupKeys:
         # Render the group key link
-        if vExpand then
+        if vExpand:
             markdownPrint('## ' + markdownEscape(groupKey))
-        else if vGroup != groupKey then
+        elif vGroup != groupKey:
             markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryURL(objectNew('group', groupKey)) + ')')
-        else then
+        else:
             markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryURL(objectNew('group', '')) + ')')
         endif
 
         # Render the group's function links
-        if vExpand || vGroup == groupKey then
-            foreach functionName in arraySort(objectGet(groups, groupKey)) do
+        if vExpand || vGroup == groupKey:
+            for functionName in arraySort(objectGet(groups, groupKey)):
                 markdownPrint('', '[' + markdownEscape(functionName) + '](' + calcScriptLibraryURL(objectNew('name', functionName)) + ')')
-            endforeach
+            endfor
         endif
-    endforeach
+    endfor
 endfunction
 
 
 function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     # Set the document title
-    setDocumentTitle(title + ' - ' + functionName)
+    documentSetTitle(title + ' - ' + functionName)
 
     # Function exist?
     functionFound = false
-    foreach function in objectGet(libDoc, 'functions') do
-        if functionName == objectGet(function, 'name') then
+    for function_ in objectGet(libDoc, 'functions'):
+        if functionName == objectGet(function_, 'name'):
             functionFound = true
             break
         endif
-    endforeach
-    if !functionFound then
+    endfor
+    if !functionFound:
         markdownPrint('', '**Error:** Unknown function "' + functionName + '"')
         return
     endif
-    functionGroup = objectGet(function, 'group')
+    functionGroup = objectGet(function_, 'group')
 
     # Render the page title and menu
     markdownPrint('# ' + title)
     markdownPrint('', '[Index](' + calcScriptLibraryURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
-    markdownPrint('', '## ' + functionName, '', objectGet(function, 'doc'))
+    markdownPrint('', '## ' + functionName, '', objectGet(function_, 'doc'))
 
     # Render the functions's argument documentation
     markdownPrint('', '### Arguments')
-    arguments = objectGet(function, 'args')
-    if arguments != null then
-        foreach argument in arguments do
+    arguments = objectGet(function_, 'args')
+    if arguments != null:
+        for argument in arguments:
             markdownPrint('', '**' + objectGet(argument, 'name') + ' -** ', objectGet(argument, 'doc'))
-        endforeach
-    else then
+        endfor
+    else:
         markdownPrint('None')
     endif
 
     # Render the function's return documentation
     markdownPrint('', '### Returns')
-    returnDoc = objectGet(function, 'return')
+    returnDoc = objectGet(function_, 'return')
     markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
 endfunction
 
@@ -157,9 +157,9 @@ function calcScriptLibraryURL(args)
     # Create the link
     parts = arrayNew()
     if(expand != null && expand, arrayPush(parts, 'var.vExpand=1'))
-    if(group != null, arrayPush(parts, "var.vGroup='" + encodeURIComponent(group) + "'"))
-    if(name != null, arrayPush(parts, "var.vName='" + encodeURIComponent(name) + "'"))
-    if(url != null, arrayPush(parts, "var.vURL='" + encodeURIComponent(url) + "'"))
+    if(group != null, arrayPush(parts, "var.vGroup='" + urlEncodeComponent(group) + "'"))
+    if(name != null, arrayPush(parts, "var.vName='" + urlEncodeComponent(name) + "'"))
+    if(url != null, arrayPush(parts, "var.vURL='" + urlEncodeComponent(url) + "'"))
     return if(arrayLength(parts) != 0, '#' + arrayJoin(parts, '&'), '#var=')
 endfunction
 

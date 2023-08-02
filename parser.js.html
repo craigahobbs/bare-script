@@ -44,15 +44,15 @@ const rScriptFunctionEnd = /^\s*endfunction\s*$/;
 const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
 const rScriptJump = /^(?&lt;jump>\s*(?:jump|jumpif\s*\((?&lt;expr>.+)\)))\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
 const rScriptReturn = /^(?&lt;return>\s*return(?:\s+(?&lt;expr>.+))?)\s*$/;
-const rScriptInclude = /^\s*include\s+'(?&lt;url>(?:\\'|[^'])*)'/;
-const rScriptIncludeDouble = /^\s*include\s+"(?&lt;url>(?:\\"|[^"])*)"/;
-const rScriptIfThenBegin = /^\s*if\s+(?&lt;expr>.+)\s+then\s*$/;
-const rScriptIfThenElseIf = /^\s*else\s+if\s+(?&lt;expr>.+)\s+then\s*$/;
-const rScriptIfThenElse = /^\s*else\s+then\s*$/;
-const rScriptIfThenEnd = /^\s*endif\s*$/;
-const rScriptForeachBegin = /^\s*foreach\s+(?&lt;value>[A-Za-z_]\w*)(?:\s*,\s*(?&lt;index>[A-Za-z_]\w*))?\s+in\s+(?&lt;values>.+)\s+do\s*$/;
-const rScriptForeachEnd = /^\s*endforeach\s*$/;
-const rScriptWhileBegin = /^\s*while\s+(?&lt;expr>.+)\s+do\s*$/;
+const rScriptInclude = /^\s*include\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'\s*$/;
+const rScriptIncludeSystem = /^\s*include\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>\s*$/;
+const rScriptIfBegin = /^\s*if\s+(?&lt;expr>.+)\s*:\s*$/;
+const rScriptIfElseIf = /^\s*elif\s+(?&lt;expr>.+)\s*:\s*$/;
+const rScriptIfElse = /^\s*else\s*:\s*$/;
+const rScriptIfEnd = /^\s*endif\s*$/;
+const rScriptForBegin = /^\s*for\s+(?&lt;value>[A-Za-z_]\w*)(?:\s*,\s*(?&lt;index>[A-Za-z_]\w*))?\s+in\s+(?&lt;values>.+)\s*:\s*$/;
+const rScriptForEnd = /^\s*endfor\s*$/;
+const rScriptWhileBegin = /^\s*while\s+(?&lt;expr>.+)\s*:\s*$/;
 const rScriptWhileEnd = /^\s*endwhile\s*$/;
 const rScriptBreak = /^\s*break\s*$/;
 const rScriptContinue = /^\s*continue\s*$/;
@@ -170,13 +170,13 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // If-then begin?
-        const matchIfThenBegin = line.match(rScriptIfThenBegin);
-        if (matchIfThenBegin !== null) {
-            // Add the for-each label definition
+        const matchIfBegin = line.match(rScriptIfBegin);
+        if (matchIfBegin !== null) {
+            // Add the if-then label definition
             const ifthen = {
                 'jump': {
                     'label': `__calcScriptIf${labelIndex}`,
-                    'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfThenBegin.groups.expr)}}
+                    'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfBegin.groups.expr)}}
                 },
                 'done': `__calcScriptDone${labelIndex}`,
                 'hasElse': false,
@@ -186,30 +186,30 @@ export function parseScript(scriptText, startLineNumber = 1) {
             labelDefs.push({'if': ifthen});
             labelIndex += 1;
 
-            // Add the for-each header statement
+            // Add the if-then header statement
             statements.push({'jump': ifthen.jump});
             continue;
         }
 
         // Else-if-then?
-        const matchIfThenElseIf = line.match(rScriptIfThenElseIf);
-        if (matchIfThenElseIf !== null) {
+        const matchIfElseIf = line.match(rScriptIfElseIf);
+        if (matchIfElseIf !== null) {
             // Get the if-then definition
             const ifthen = (labelDefs.length > 0 ? (labelDefs[labelDefs.length - 1].if ?? null) : null);
             if (ifthen === null) {
-                throw new CalcScriptParserError('No matching if-then statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching if statement', line, 1, startLineNumber + ixLine);
             }
 
             // Cannot come after the else-then statement
             if (ifthen.hasElse) {
-                throw new CalcScriptParserError('Else-if-then statement following else-then statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('Elif statement following else statement', line, 1, startLineNumber + ixLine);
             }
 
             // Generate the next if-then jump statement
             const prevLabel = ifthen.jump.label;
             ifthen.jump = {
                 'label': `__calcScriptIf${labelIndex}`,
-                'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfThenElseIf.groups.expr)}}
+                'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfElseIf.groups.expr)}}
             };
             labelIndex += 1;
 
@@ -223,17 +223,17 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // Else-then?
-        const matchIfThenElse = line.match(rScriptIfThenElse);
-        if (matchIfThenElse !== null) {
+        const matchIfElse = line.match(rScriptIfElse);
+        if (matchIfElse !== null) {
             // Get the if-then definition
             const ifthen = (labelDefs.length > 0 ? (labelDefs[labelDefs.length - 1].if ?? null) : null);
             if (ifthen === null) {
-                throw new CalcScriptParserError('No matching if-then statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching if statement', line, 1, startLineNumber + ixLine);
             }
 
             // Cannot have multiple else-then statements
             if (ifthen.hasElse) {
-                throw new CalcScriptParserError('Multiple else-then statements', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('Multiple else statements', line, 1, startLineNumber + ixLine);
             }
             ifthen.hasElse = true;
 
@@ -246,12 +246,12 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // If-then end?
-        const matchIfThenEnd = line.match(rScriptIfThenEnd);
-        if (matchIfThenEnd !== null) {
+        const matchIfEnd = line.match(rScriptIfEnd);
+        if (matchIfEnd !== null) {
             // Pop the if-then definition
             const ifthen = (labelDefs.length > 0 ? (labelDefs.pop().if ?? null) : null);
             if (ifthen === null) {
-                throw new CalcScriptParserError('No matching if-then statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching if statement', line, 1, startLineNumber + ixLine);
             }
 
             // Update the previous jump statement's label, if necessary
@@ -293,7 +293,7 @@ export function parseScript(scriptText, startLineNumber = 1) {
             // Pop the while-do definition
             const whiledo = (labelDefs.length > 0 ? (labelDefs.pop().while ?? null) : null);
             if (whiledo === null) {
-                throw new CalcScriptParserError('No matching while-do statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching while statement', line, 1, startLineNumber + ixLine);
             }
 
             // Add the while-do footer statements
@@ -305,26 +305,26 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // For-each begin?
-        const matchForeachBegin = line.match(rScriptForeachBegin);
-        if (matchForeachBegin !== null) {
+        const matchForBegin = line.match(rScriptForBegin);
+        if (matchForBegin !== null) {
             // Add the for-each label
             const foreach = {
                 'loop': `__calcScriptLoop${labelIndex}`,
                 'continue': `__calcScriptContinue${labelIndex}`,
                 'done': `__calcScriptDone${labelIndex}`,
-                'index': matchForeachBegin.groups.index ?? `__calcScriptIndex${labelIndex}`,
+                'index': matchForBegin.groups.index ?? `__calcScriptIndex${labelIndex}`,
                 'values': `__calcScriptValues${labelIndex}`,
                 'length': `__calcScriptLength${labelIndex}`,
-                'value': matchForeachBegin.groups.value,
+                'value': matchForBegin.groups.value,
                 line,
                 'lineNumber': startLineNumber + ixLine
             };
-            labelDefs.push({foreach});
+            labelDefs.push({'for': foreach});
             labelIndex += 1;
 
             // Add the for-each header statements
             statements.push(
-                {'expr': {'name': foreach.values, 'expr': parseExpression(matchForeachBegin.groups.values)}},
+                {'expr': {'name': foreach.values, 'expr': parseExpression(matchForBegin.groups.values)}},
                 {'expr': {'name': foreach.length, 'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': foreach.values}]}}}},
                 {'jump': {'label': foreach.done, 'expr': {'unary': {'op': '!', 'expr': {'variable': foreach.length}}}}},
                 {'expr': {'name': foreach.index, 'expr': {'number': 0}}},
@@ -338,12 +338,12 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // For-each end?
-        const matchForeachEnd = line.match(rScriptForeachEnd);
-        if (matchForeachEnd !== null) {
+        const matchForEnd = line.match(rScriptForEnd);
+        if (matchForEnd !== null) {
             // Pop the foreach definition
-            const foreach = (labelDefs.length > 0 ? (labelDefs.pop().foreach ?? null) : null);
+            const foreach = (labelDefs.length > 0 ? (labelDefs.pop().for ?? null) : null);
             if (foreach === null) {
-                throw new CalcScriptParserError('No matching foreach statement', line, 1, startLineNumber + ixLine);
+                throw new CalcScriptParserError('No matching for statement', line, 1, startLineNumber + ixLine);
             }
 
             // Add the for-each footer statements
@@ -437,15 +437,16 @@ export function parseScript(scriptText, startLineNumber = 1) {
         }
 
         // Include definition?
-        const matchInclude = line.match(rScriptInclude) || line.match(rScriptIncludeDouble);
+        const matchInclude = line.match(rScriptInclude) || line.match(rScriptIncludeSystem);
         if (matchInclude !== null) {
-            const url = matchInclude.groups.url.replace(matchInclude[0].endsWith("'") ? rCalcStringEscape : rCalcStringDoubleEscape, '$1');
+            const {delim} = matchInclude.groups;
+            const url = (delim === '&lt;' ? matchInclude.groups.url : matchInclude.groups.url.replace(rCalcStringEscape, '$1'));
             let includeStatement = (statements.length ? statements[statements.length - 1] : null);
             if (includeStatement === null || !('include' in includeStatement)) {
-                includeStatement = {'include': {'urls': []}};
+                includeStatement = {'include': {'includes': [], 'systemIncludes': []}};
                 statements.push(includeStatement);
             }
-            includeStatement.include.urls.push(url);
+            includeStatement.include[delim === '&lt;' ? 'systemIncludes' : 'includes'].push(url);
             continue;
         }
 
