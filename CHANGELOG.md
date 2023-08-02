@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0 (2023-08-02)
+
+- [2dfab50](https://github.com/craigahobbs/calc-script/commit/2dfab50) - cleanup standard library function prefixes
+
+- [18773e1](https://github.com/craigahobbs/calc-script/commit/18773e1) - add system includes
+
+- [dcae0c3](https://github.com/craigahobbs/calc-script/commit/dcae0c3) - make branch syntax more like Python
+
 ## 1.4.5 (2023-05-28)
 
 - [20f54e3](https://github.com/craigahobbs/calc-script/commit/20f54e3) - remove jsdom dev dependency
