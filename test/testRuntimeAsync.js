@@ -243,7 +243,7 @@ test('executeScriptAsync, return blank', async () => {
 test('executeScriptAsync, include', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -263,10 +263,67 @@ a = 1
 });
 
 
+test('executeScriptAsync, include system', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [], 'systemIncludes': ['test.mds']}}
+        ]
+    });
+    const fetchFn = (url) => {
+        assert(url === 'system/test.mds');
+        return {
+            'ok': true,
+            'text': () => 'a = 1'
+        };
+    };
+    const options = {'globals': {}, fetchFn, 'systemPrefix': 'system/'};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(options.globals.a, 1);
+});
+
+
+test('executeScriptAsync, include system no system prefix', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [], 'systemIncludes': ['test.mds']}}
+        ]
+    });
+    const fetchFn = (url) => {
+        assert(url === 'test.mds');
+        return {
+            'ok': true,
+            'text': () => 'a = 1'
+        };
+    };
+    const options = {'globals': {}, fetchFn};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(options.globals.a, 1);
+});
+
+
+test('executeScriptAsync, include system no system prefix with urlFn', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [], 'systemIncludes': ['test.mds']}}
+        ]
+    });
+    const fetchFn = (url) => {
+        assert(url === '/base/test.mds');
+        return {
+            'ok': true,
+            'text': () => 'a = 1'
+        };
+    };
+    const options = {'globals': {}, fetchFn, 'urlFn': (url) => `/base/${url}`};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(options.globals.a, 1);
+});
+
+
 test('executeScriptAsync, include multiple', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds', 'test2.mds']}}
+            {'include': {'includes': ['test.mds', 'test2.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -286,7 +343,7 @@ test('executeScriptAsync, include multiple', async () => {
 test('executeScriptAsync, include no fetchFn', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     assert.rejects(
@@ -302,7 +359,7 @@ test('executeScriptAsync, include no fetchFn', async () => {
 test('executeScriptAsync, include fetchFn subdir', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['lib/test.mds']}}
+            {'include': {'includes': ['lib/test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -325,7 +382,7 @@ a = 1
 test('executeScriptAsync, include fetchFn absolute', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -348,7 +405,7 @@ a = 1
 test('executeScriptAsync, include lint', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -377,7 +434,7 @@ endfunction
 test('executeScriptAsync, include lint multiple', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -407,7 +464,7 @@ endfunction
 test('executeScriptAsync, include lint OK', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -434,7 +491,7 @@ endfunction
 test('executeScriptAsync, include fetchFn not-ok', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -458,7 +515,7 @@ test('executeScriptAsync, include fetchFn not-ok', async () => {
 test('executeScriptAsync, include fetchFn response error', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = () => {
@@ -478,7 +535,7 @@ test('executeScriptAsync, include fetchFn response error', async () => {
 test('executeScriptAsync, include fetchFn text error', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {
@@ -504,7 +561,7 @@ test('executeScriptAsync, include fetchFn text error', async () => {
 test('executeScriptAsync, include fetchFn parser error', async () => {
     const script = validateScript({
         'statements': [
-            {'include': {'urls': ['test.mds']}}
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
         ]
     });
     const fetchFn = (url) => {

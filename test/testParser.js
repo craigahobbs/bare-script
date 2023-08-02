@@ -1016,33 +1016,56 @@ include 'fi\\'le.mds'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'urls': ["fi'le.mds"]}}
+            {'include': {'includes': ["fi'le.mds"], 'systemIncludes': []}}
+        ]
+    });
+});
+
+
+test('parseScript, include statement, system', () => {
+    const script = validateScript(parseScript(`\
+include <file.mds>
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {'include': {'includes': [], 'systemIncludes': ['file.mds']}}
         ]
     });
 });
 
 
 test('parseScript, include statement, double-quotes', () => {
-    const script = validateScript(parseScript(`\
-include "fi\\"le.mds"
-`));
-    assert.deepEqual(script, {
-        'statements': [
-            {'include': {'urls': ['fi"le.mds']}}
-        ]
-    });
+    assert.throws(
+        () => {
+            parseScript(`\
+include "file.mds"
+`);
+        },
+        {
+            'name': 'CalcScriptParserError',
+            'message': `\
+Syntax error, line number 1:
+include "file.mds"
+       ^
+`,
+            'error': 'Syntax error',
+            'line': 'include "file.mds"',
+            'columnNumber': 8,
+            'lineNumber': 1
+        }
+    );
 });
 
 
 test('parseScript, include statement multiple', () => {
     const script = validateScript(parseScript(`\
 include 'test.mds'
-include "test2.mds"
+include <test2.mds>
 include 'test3.mds'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'urls': ['test.mds', 'test2.mds', 'test3.mds']}}
+            {'include': {'includes': ['test.mds', 'test3.mds'], 'systemIncludes': ['test2.mds']}}
         ]
     });
 });
