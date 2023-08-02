@@ -148,9 +148,31 @@ test('executeScript, function error log', () => {
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {errorFunction}, logFn};
+    const options = {'globals': {errorFunction}, logFn, 'debug': true};
     assert.equal(executeScript(script, options), null);
     assert.deepEqual(logs, ['CalcScript: Function "errorFunction" failed with error: unexpected error']);
+});
+
+
+test('executeScript, function error log no-debug', () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = () => {
+        throw Error('unexpected error');
+    };
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {errorFunction}, logFn, 'debug': false};
+    assert.equal(executeScript(script, options), null);
+    assert.deepEqual(logs, []);
 });
 
 
@@ -309,7 +331,7 @@ test('executeScript, include no fetchFn, empty', () => {
         },
         {
             'name': 'CalcScriptRuntimeError',
-            'message': 'Include of "-" within non-async scope'
+            'message': 'Include of "" within non-async scope'
         }
     );
 });
@@ -632,7 +654,7 @@ test('evaluateExpression, function non-function logFn', () => {
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {'fnLocal': 'abc'}, logFn};
+    const options = {'globals': {'fnLocal': 'abc'}, logFn, 'debug': true};
     assert.equal(evaluateExpression(calc, options), null);
     assert.deepEqual(logs, ['CalcScript: Function "fnLocal" failed with error: funcValue is not a function']);
 });

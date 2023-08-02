@@ -245,7 +245,7 @@ endfunction
 test('parseScript, async function statement', () => {
     const script = validateScript(parseScript(`\
 async function fetchURL(url)
-    return fetch(url)
+    return httpFetch(url)
 endfunction
 `));
     assert.deepEqual(script, {
@@ -256,7 +256,7 @@ endfunction
                     'name': 'fetchURL',
                     'args': ['url'],
                     'statements': [
-                        {'return': {'expr': {'function': {'name': 'fetch', 'args': [{'variable': 'url'}]}}}}
+                        {'return': {'expr': {'function': {'name': 'httpFetch', 'args': [{'variable': 'url'}]}}}}
                     ]
                 }
             }

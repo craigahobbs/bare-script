@@ -54,12 +54,10 @@ This outputs:
 
 ### The CalcScript Library
 
-[The CalcScript Library](https://craigahobbs.github.io/calc-script/library/)
-includes a set of built-in functions for mathematical operations, object manipulation, array
-manipulation, regular expressions,
-fetch
-and more. The following example demonstrates the use of the
-[fetch](https://craigahobbs.github.io/calc-script/library/#var.vName='fetch'),
+[The CalcScript Library](https://craigahobbs.github.io/calc-script/library/) includes a set of
+built-in functions for mathematical operations, object manipulation, array manipulation, regular
+expressions, HTTP fetch and more. The following example demonstrates the use of the
+[httpFetch](https://craigahobbs.github.io/calc-script/library/#var.vName='httpFetch'),
 [objectGet](https://craigahobbs.github.io/calc-script/library/#var.vName='objectGet'), and
 [arrayLength](https://craigahobbs.github.io/calc-script/library/#var.vName='arrayLength') functions.
 
@@ -70,7 +68,7 @@ import {parseScript} from 'calc-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Fetch the CalcScript library documentation JSON
-libraryDocs = fetch('https://craigahobbs.github.io/calc-script/library/library.json')
+libraryDocs = httpFetch('https://craigahobbs.github.io/calc-script/library/library.json')
 
 # Return the number of library functions
 return 'The CalcScript Library has ' + arrayLength(objectGet(libraryDocs, 'functions')) + ' functions'

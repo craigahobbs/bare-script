@@ -26,7 +26,7 @@ async function calcScriptLibraryDoc(url, title, menuLinks)
     # Fetch and validate the library documentation resource
     libraryFunctions = arrayNew()
     library = objectNew('functions', libraryFunctions)
-    for libraryPart, ixLibrary in fetch(urls):
+    for libraryPart, ixLibrary in httpFetch(urls):
         libraryPart = schemaValidate(calcScriptLibraryTypes, 'Library', libraryPart)
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
@@ -62,7 +62,7 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
     endfor
 
     # Group the function documentation
-    debugLog('Library has ' + arrayLength(objectGet(library, 'functions')) + ' functions')
+    consoleLogDebug('Library has ' + arrayLength(objectGet(library, 'functions')) + ' functions')
     groups = objectNew()
     for function_ in objectGet(library, 'functions'):
         group = objectGet(function_, 'group')
@@ -157,9 +157,9 @@ function calcScriptLibraryURL(args)
     # Create the link
     parts = arrayNew()
     if(expand != null && expand, arrayPush(parts, 'var.vExpand=1'))
-    if(group != null, arrayPush(parts, "var.vGroup='" + encodeURIComponent(group) + "'"))
-    if(name != null, arrayPush(parts, "var.vName='" + encodeURIComponent(name) + "'"))
-    if(url != null, arrayPush(parts, "var.vURL='" + encodeURIComponent(url) + "'"))
+    if(group != null, arrayPush(parts, "var.vGroup='" + urlEncodeComponent(group) + "'"))
+    if(name != null, arrayPush(parts, "var.vName='" + urlEncodeComponent(name) + "'"))
+    if(url != null, arrayPush(parts, "var.vURL='" + urlEncodeComponent(url) + "'"))
     return if(arrayLength(parts) != 0, '#' + arrayJoin(parts, '&'), '#var=')
 endfunction
 

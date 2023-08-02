@@ -23,8 +23,6 @@ test('library, built-in expression functions', () => {
             ['cos', true],
             ['date', true],
             ['day', true],
-            ['encodeURI', true],
-            ['encodeURIComponent', true],
             ['endsWith', true],
             ['indexOf', true],
             ['fixed', true],
@@ -59,6 +57,8 @@ test('library, built-in expression functions', () => {
             ['today', true],
             ['trim', true],
             ['upper', true],
+            ['urlEncode', true],
+            ['urlEncodeComponent', true],
             ['year', true]
         ]
     );
@@ -262,6 +262,76 @@ test('library, arraySort compare function', () => {
 
 
 //
+// Console functions
+//
+
+
+test('library, consoleLog', () => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': true};
+    assert.equal(scriptFunctions.consoleLog(['Hello'], options), undefined);
+    assert.deepEqual(logs, ['Hello']);
+});
+
+
+test('library, consoleLog no-debug', () => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': false};
+    assert.equal(scriptFunctions.consoleLog(['Hello'], options), undefined);
+    assert.deepEqual(logs, ['Hello']);
+});
+
+
+test('library, consoleLog null options', () => {
+    assert.equal(scriptFunctions.consoleLog(['Hello'], null), undefined);
+});
+
+
+test('library, consoleLog no log function', () => {
+    assert.equal(scriptFunctions.consoleLog(['Hello'], {}), undefined);
+});
+
+
+test('library, consoleLogDebug', () => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': true};
+    assert.equal(scriptFunctions.consoleLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, ['Hello']);
+});
+
+
+test('library, consoleLogDebug no-debug', () => {
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': false};
+    assert.equal(scriptFunctions.consoleLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
+});
+
+
+test('library, consoleLogDebug null options', () => {
+    assert.equal(scriptFunctions.consoleLogDebug(['Hello'], null), undefined);
+});
+
+
+test('library, consoleLogDebug no log function', () => {
+    assert.equal(scriptFunctions.consoleLogDebug(['Hello'], {}), undefined);
+});
+
+
+//
 // Datetime functions
 //
 
@@ -361,6 +431,301 @@ test('library, datetimeYear', () => {
 
 test('library, datetimeYear non-datetime', () => {
     assert.equal(scriptFunctions.datetimeYear([null]), null);
+});
+
+
+//
+// HTTP functions
+//
+
+
+test('library, httpFetch', async () => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const options = {fetchFn};
+    assert.deepEqual(await scriptFunctions.httpFetch(['test.json'], options), jsonObject);
+});
+
+
+test('library, httpFetch options', async () => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url, fetchFnOptions) => {
+        assert.equal(url, 'test.json');
+        assert.equal(fetchFnOptions, fetchOptions);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const options = {fetchFn};
+    const fetchOptions = {'method': 'POST'};
+    assert.deepEqual(await scriptFunctions.httpFetch(['test.json', fetchOptions], options), jsonObject);
+});
+
+
+test('library, httpFetch text', async () => {
+    const text = 'asdf';
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.txt');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'text': async () => text
+        };
+    };
+    const options = {fetchFn};
+    assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), text);
+});
+
+
+test('library, httpFetch array', async () => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert(url === 'test.json' || url === 'test2.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const options = {fetchFn};
+    assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
+});
+
+
+test('library, httpFetch array options', async () => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url, fetchFnOptions) => {
+        assert(url === 'test.json' || url === 'test2.json');
+        assert.equal(fetchFnOptions, fetchOptions);
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const options = {fetchFn};
+    const fetchOptions = {'method': 'POST'};
+    assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json'], fetchOptions], options), [jsonObject, jsonObject2]);
+});
+
+
+test('library, httpFetch urlFn', async () => {
+    const jsonObject = {'a': 1, 'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'urlFn-test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (jsonObject)
+        };
+    };
+    const urlFn = (url) => `urlFn-${url}`;
+    const options = {fetchFn, urlFn};
+    assert.deepEqual(await scriptFunctions.httpFetch(['test.json'], options), jsonObject);
+});
+
+
+test('library, httpFetch array urlFn', async () => {
+    const jsonObject = {'a': 1};
+    const jsonObject2 = {'b': 2};
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert(url === 'urlFn-test.json' || url === 'urlFn-test2.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => (url === 'urlFn-test.json' ? jsonObject : jsonObject2)
+        };
+    };
+    const urlFn = (url) => `urlFn-${url}`;
+    const options = {fetchFn, urlFn};
+    assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
+});
+
+
+test('library, httpFetch null ExecuteScriptOptions', async () => {
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], null), null);
+});
+
+
+test('library, httpFetch null options log', async () => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+});
+
+
+test('library, httpFetch null options log no-debug', async () => {
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': false};
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
+    assert.deepEqual(logs, []);
+});
+
+
+test('library, httpFetch null array options log', async () => {
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {logFn, 'debug': true};
+    assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json']], options), [null, null]);
+    assert.deepEqual(logs, [
+        'CalcScript: Function "httpFetch" failed for JSON resource "test.json"',
+        'CalcScript: Function "httpFetch" failed for JSON resource "test2.json"'
+    ]);
+});
+
+
+test('library, httpFetch options no fetchFn', async () => {
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], {}), null);
+});
+
+
+test('library, httpFetch array null ExecuteScriptOptions', async () => {
+    assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json']], null), [null, null]);
+});
+
+
+test('library, httpFetch response not-ok', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.json');
+        return {'ok': false, 'statusText': 'Not Found'};
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+});
+
+
+test('library, httpFetch response json error', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.json');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => {
+                throw new Error('invalid json');
+            }
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+});
+
+
+test('library, httpFetch text response not-ok', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.txt');
+        return {'ok': false, 'statusText': 'Not Found'};
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+});
+
+
+test('library, httpFetch response text error', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.txt');
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'text': async () => {
+                throw new Error('invalid text');
+            }
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+});
+
+
+test('library, httpFetch response error', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        assert.equal(url, 'test.txt');
+        throw new Error('httpFetch failed');
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+});
+
+
+test('library, httpFetch array response error', async () => {
+    // eslint-disable-next-line require-await
+    const fetchFn = async (url) => {
+        if (url === 'test.txt') {
+            throw new Error('httpFetch failed');
+        }
+        return {
+            'ok': true,
+            // eslint-disable-next-line require-await
+            'json': async () => ({'foo': 'bar'})
+        };
+    };
+    const logs = [];
+    const logFn = (string) => {
+        logs.push(string);
+    };
+    const options = {fetchFn, logFn, 'debug': true};
+    assert.deepEqual(
+        await scriptFunctions.httpFetch([['test.txt', 'test2.txt']], options),
+        [null, {'foo': 'bar'}]
+    );
+    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.txt"']);
 });
 
 
@@ -513,399 +878,6 @@ test('library, mathSqrt', () => {
 
 test('library, mathTan', () => {
     assert.equal(scriptFunctions.mathTan([0]), 0);
-});
-
-
-//
-// Miscellaneous functions
-//
-
-
-test('library, debugLog', () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {'logFn': logFn};
-    assert.equal(scriptFunctions.debugLog(['Hello'], options), undefined);
-    assert.deepEqual(logs, ['Hello']);
-});
-
-
-test('library, debugLog null options', () => {
-    assert.equal(scriptFunctions.debugLog(['Hello'], null), undefined);
-});
-
-
-test('library, debugLog no log function', () => {
-    assert.equal(scriptFunctions.debugLog(['Hello'], {}), undefined);
-});
-
-
-test('script library, encodeURI', () => {
-    assert.equal(
-        scriptFunctions.encodeURI(['https://foo.com/this & that'], {}),
-        'https://foo.com/this%20&%20that'
-    );
-    assert.equal(
-        scriptFunctions.encodeURI(['https://foo.com/this (& that)'], {}),
-        'https://foo.com/this%20(&%20that%29'
-    );
-});
-
-
-test('script library, encodeURI no extra', () => {
-    assert.equal(
-        scriptFunctions.encodeURI(['https://foo.com/this & that', false], {}),
-        'https://foo.com/this%20&%20that'
-    );
-    assert.equal(
-        scriptFunctions.encodeURI(['https://foo.com/this (& that)', false], {}),
-        'https://foo.com/this%20(&%20that)'
-    );
-});
-
-
-test('script library, encodeURIComponent', () => {
-    assert.equal(
-        scriptFunctions.encodeURIComponent(['https://foo.com/this & that'], {}),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
-    );
-    assert.equal(
-        scriptFunctions.encodeURIComponent(['https://foo.com/this (& that)'], {}),
-        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that%29'
-    );
-});
-
-
-test('script library, encodeURIComponent no extra', () => {
-    assert.equal(
-        scriptFunctions.encodeURIComponent(['https://foo.com/this & that', false], {}),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
-    );
-    assert.equal(
-        scriptFunctions.encodeURIComponent(['https://foo.com/this (& that)', false], {}),
-        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
-    );
-});
-
-
-test('library, getGlobal', () => {
-    const options = {'globals': {'a': 1}};
-    assert.equal(scriptFunctions.getGlobal(['a'], options), 1);
-});
-
-
-test('library, getGlobal unknown', () => {
-    const options = {'globals': {}};
-    assert.equal(scriptFunctions.getGlobal(['a'], options), null);
-});
-
-
-test('library, getGlobal no globals', () => {
-    const options = {};
-    assert.equal(scriptFunctions.getGlobal(['a'], options), null);
-});
-
-
-test('library, getGlobal no options', () => {
-    assert.equal(scriptFunctions.getGlobal(['a'], null), null);
-});
-
-
-test('library, fetch', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const options = {fetchFn};
-    assert.deepEqual(await scriptFunctions.fetch(['test.json'], options), jsonObject);
-});
-
-
-test('library, fetch options', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url, fetchFnOptions) => {
-        assert.equal(url, 'test.json');
-        assert.equal(fetchFnOptions, fetchOptions);
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const options = {fetchFn};
-    const fetchOptions = {'method': 'POST'};
-    assert.deepEqual(await scriptFunctions.fetch(['test.json', fetchOptions], options), jsonObject);
-});
-
-
-test('library, fetch text', async () => {
-    const text = 'asdf';
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'text': async () => text
-        };
-    };
-    const options = {fetchFn};
-    assert.equal(await scriptFunctions.fetch(['test.txt', null, true], options), text);
-});
-
-
-test('library, fetch array', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert(url === 'test.json' || url === 'test2.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const options = {fetchFn};
-    assert.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, fetch array options', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url, fetchFnOptions) => {
-        assert(url === 'test.json' || url === 'test2.json');
-        assert.equal(fetchFnOptions, fetchOptions);
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const options = {fetchFn};
-    const fetchOptions = {'method': 'POST'};
-    assert.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json'], fetchOptions], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, fetch urlFn', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'urlFn-test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const urlFn = (url) => `urlFn-${url}`;
-    const options = {fetchFn, urlFn};
-    assert.deepEqual(await scriptFunctions.fetch(['test.json'], options), jsonObject);
-});
-
-
-test('library, fetch array urlFn', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert(url === 'urlFn-test.json' || url === 'urlFn-test2.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'urlFn-test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const urlFn = (url) => `urlFn-${url}`;
-    const options = {fetchFn, urlFn};
-    assert.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, fetch null ExecuteScriptOptions', async () => {
-    assert.equal(await scriptFunctions.fetch(['test.json'], null), null);
-});
-
-
-test('library, fetch null options log', async () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {'logFn': logFn};
-    assert.equal(await scriptFunctions.fetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, fetch null array options log', async () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {'logFn': logFn};
-    assert.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], options), [null, null]);
-    assert.deepEqual(logs, [
-        'CalcScript: Function "fetch" failed for JSON resource "test.json"',
-        'CalcScript: Function "fetch" failed for JSON resource "test2.json"'
-    ]);
-});
-
-
-test('library, fetch options no fetchFn', async () => {
-    assert.equal(await scriptFunctions.fetch(['test.json'], {}), null);
-});
-
-
-test('library, fetch array null ExecuteScriptOptions', async () => {
-    assert.deepEqual(await scriptFunctions.fetch([['test.json', 'test2.json']], null), [null, null]);
-});
-
-
-test('library, fetch response not-ok', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {'ok': false, 'statusText': 'Not Found'};
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.equal(await scriptFunctions.fetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, fetch response json error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => {
-                throw new Error('invalid json');
-            }
-        };
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.equal(await scriptFunctions.fetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, fetch text response not-ok', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {'ok': false, 'statusText': 'Not Found'};
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.equal(await scriptFunctions.fetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, fetch response text error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'text': async () => {
-                throw new Error('invalid text');
-            }
-        };
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.equal(await scriptFunctions.fetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, fetch response error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        throw new Error('fetch failed');
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.equal(await scriptFunctions.fetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, fetch array response error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        if (url === 'test.txt') {
-            throw new Error('fetch failed');
-        }
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => ({'foo': 'bar'})
-        };
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn};
-    assert.deepEqual(
-        await scriptFunctions.fetch([['test.txt', 'test2.txt']], options),
-        [null, {'foo': 'bar'}]
-    );
-    assert.deepEqual(logs, ['CalcScript: Function "fetch" failed for JSON resource "test.txt"']);
-});
-
-
-test('library, setGlobal', () => {
-    const options = {'globals': {}};
-    assert.equal(scriptFunctions.setGlobal(['a', 1], options), 1);
-    assert.deepEqual(options.globals, {'a': 1});
-});
-
-
-test('library, setGlobal no globals', () => {
-    const options = {};
-    assert.equal(scriptFunctions.setGlobal(['a', 1], options), 1);
-});
-
-
-test('library, setGlobal no options', () => {
-    assert.equal(scriptFunctions.setGlobal(['a', 1], null), 1);
 });
 
 
@@ -1223,6 +1195,52 @@ test('library, regexTest non-regexp', () => {
 
 
 //
+// Rumtime functions
+//
+
+
+test('library, runtimeGetGlobal', () => {
+    const options = {'globals': {'a': 1}};
+    assert.equal(scriptFunctions.runtimeGetGlobal(['a'], options), 1);
+});
+
+
+test('library, runtimeGetGlobal unknown', () => {
+    const options = {'globals': {}};
+    assert.equal(scriptFunctions.runtimeGetGlobal(['a'], options), null);
+});
+
+
+test('library, runtimeGetGlobal no globals', () => {
+    const options = {};
+    assert.equal(scriptFunctions.runtimeGetGlobal(['a'], options), null);
+});
+
+
+test('library, runtimeGetGlobal no options', () => {
+    assert.equal(scriptFunctions.runtimeGetGlobal(['a'], null), null);
+});
+
+
+test('library, runtimeSetGlobal', () => {
+    const options = {'globals': {}};
+    assert.equal(scriptFunctions.runtimeSetGlobal(['a', 1], options), 1);
+    assert.deepEqual(options.globals, {'a': 1});
+});
+
+
+test('library, runtimeSetGlobal no globals', () => {
+    const options = {};
+    assert.equal(scriptFunctions.runtimeSetGlobal(['a', 1], options), 1);
+});
+
+
+test('library, runtimeSetGlobal no options', () => {
+    assert.equal(scriptFunctions.runtimeSetGlobal(['a', 1], null), 1);
+});
+
+
+//
 // Schema functions
 //
 
@@ -1497,4 +1515,57 @@ test('library, stringUpper', () => {
 
 test('library, stringUpper non-string', () => {
     assert.equal(scriptFunctions.stringUpper([null]), null);
+});
+
+
+//
+// URL functions
+//
+
+
+test('script library, urlEncode', () => {
+    assert.equal(
+        scriptFunctions.urlEncode(['https://foo.com/this & that'], {}),
+        'https://foo.com/this%20&%20that'
+    );
+    assert.equal(
+        scriptFunctions.urlEncode(['https://foo.com/this (& that)'], {}),
+        'https://foo.com/this%20(&%20that%29'
+    );
+});
+
+
+test('script library, urlEncode no extra', () => {
+    assert.equal(
+        scriptFunctions.urlEncode(['https://foo.com/this & that', false], {}),
+        'https://foo.com/this%20&%20that'
+    );
+    assert.equal(
+        scriptFunctions.urlEncode(['https://foo.com/this (& that)', false], {}),
+        'https://foo.com/this%20(&%20that)'
+    );
+});
+
+
+test('script library, urlEncodeComponent', () => {
+    assert.equal(
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that'], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
+    );
+    assert.equal(
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)'], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that%29'
+    );
+});
+
+
+test('script library, urlEncodeComponent no extra', () => {
+    assert.equal(
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that', false], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
+    );
+    assert.equal(
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)', false], {}),
+        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
+    );
 });

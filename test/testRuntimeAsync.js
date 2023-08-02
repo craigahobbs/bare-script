@@ -151,9 +151,31 @@ test('executeScriptAsync, function error log', async () => {
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {errorFunction}, logFn};
+    const options = {'globals': {errorFunction}, logFn, 'debug': true};
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, ['CalcScript: Function "errorFunction" failed with error: unexpected error']);
+});
+
+
+test('executeScriptAsync, function error log no-debug', async () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = async () => {
+        throw Error('unexpected error');
+    };
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {errorFunction}, logFn, 'debug': false};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.deepEqual(logs, []);
 });
 
 
@@ -422,12 +444,39 @@ endfunction
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {}, fetchFn, logFn};
+    const options = {'globals': {}, fetchFn, logFn, 'debug': true};
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, [
         'CalcScript: Include "test.mds" static analysis... 1 warning:',
         'CalcScript:     Unused argument "a" of function "test" (index 0)'
     ]);
+});
+
+
+test('executeScriptAsync, include lint no-debug', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
+        ]
+    });
+    const fetchFn = (url) => {
+        assert.equal(url, 'test.mds');
+        return {
+            'ok': true,
+            'text': () => `\
+function test(a)
+endfunction
+`
+        };
+    };
+    const logs = [];
+    /* c8 ignore next 2 */
+    const logFn = (message) => {
+        logs.push(message);
+    };
+    const options = {'globals': {}, fetchFn, logFn, 'debug': false};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.deepEqual(logs, []);
 });
 
 
@@ -451,7 +500,7 @@ endfunction
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {}, fetchFn, logFn};
+    const options = {'globals': {}, fetchFn, logFn, 'debug': true};
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, [
         'CalcScript: Include "test.mds" static analysis... 2 warnings:',
@@ -482,7 +531,7 @@ endfunction
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {}, fetchFn, logFn};
+    const options = {'globals': {}, fetchFn, logFn, 'debug': true};
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, []);
 });
@@ -925,7 +974,7 @@ test('evaluateExpressionAsync, function non-function logFn', async () => {
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {asyncNull, 'fnLocal': 'abc'}, logFn};
+    const options = {'globals': {asyncNull, 'fnLocal': 'abc'}, logFn, 'debug': true};
     assert.equal(await evaluateExpressionAsync(calc, options, null, options), null);
     assert.deepEqual(logs, ['CalcScript: Function "fnLocal" failed with error: funcValue is not a function']);
 });

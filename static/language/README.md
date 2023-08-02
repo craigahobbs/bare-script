@@ -73,7 +73,7 @@ Expression statements evaluate an [expression](#expressions) and discard the res
 following example, we evaluate a function call expression:
 
 ~~~ calcscript
-debugLog('Hello, World!')
+consoleLog('Hello, World!')
 ~~~
 
 Similarly, a variable assignment statement evaluates an expression and assigns the result to a
@@ -116,11 +116,11 @@ return getMinMax(1, 2, 3, 5)
 ~~~
 
 A function that makes any **asynchronous** function call (e.g.,
-[fetch](../library/#var.vName='fetch')) must be defined as asynchronous. For example:
+[httpFetch](../library/#var.vName='httpFetch')) must be defined as asynchronous. For example:
 
 ~~~ calcscript
 async function getLibraryCount(url)
-    return arrayLength(objectGet(fetch(url), 'functions'))
+    return arrayLength(objectGet(httpFetch(url), 'functions'))
 endfunction
 
 return getLibraryCount('https://craigahobbs.github.io/calc-script/library/library.json')
@@ -247,7 +247,7 @@ valueLoopDone:
 
 ### Include Statements
 
-Include statements fetch and evaluate a script resource URL in the global scope. For example:
+Include statements load and evaluate a script file in the global scope. For example:
 
 ~~~ calcscript
 include 'util.mds'
@@ -285,7 +285,7 @@ The [CalcScript Library](../library/) is a set of built-in, general-purpose glob
 available to all CalcScript scripts. The library contains functions for creating and manipulating
 objects, arrays, datetimes, regular expressions, and strings. There are also functions for
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
-[fetch](../library/#var.vName='fetch').
+[httpFetch](../library/#var.vName='httpFetch').
 
 ## Expressions
 
@@ -351,9 +351,16 @@ argument expressions separated by commas, and a close parenthesis. For example:
 max(0, sin(x))
 ~~~
 
-The ["if"](../library/#var.vName='if') function has the special behavior that only the true
+
+#### The Built-In "if" Function
+
+The built-in ["if"](../library/#var.vName='if') function has the special behavior that only the true
 expression is evaluated if the test expression is true. Likewise, only the false expression is
 evaluated if the test expression is false.
+
+~~~ calcscript
+v = if(a == b, fn1(), fn2())
+~~~
 
 
 ### Binary Operator Expressions
