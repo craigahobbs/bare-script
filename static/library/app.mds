@@ -38,7 +38,7 @@ async function calcScriptLibraryDoc(url, title, menuLinks)
 
     # Render the page
     if vDoc:
-        setDocumentTitle(title + ' - Library')
+        documentSetTitle(title + ' - Library')
         elementModelRender(schemaElements(calcScriptLibraryTypes, 'Library'))
     elif vName != null:
         calcScriptLibraryFunctionPage(library, title, vName)
@@ -50,7 +50,7 @@ endfunction
 
 function calcScriptLibraryIndexPage(library, title, menuLinks)
     # Set the page title
-    setDocumentTitle(title)
+    documentSetTitle(title)
     markdownPrint('# ' + title)
 
     # Render the index menu
@@ -98,7 +98,7 @@ endfunction
 
 function calcScriptLibraryFunctionPage(libDoc, title, functionName)
     # Set the document title
-    setDocumentTitle(title + ' - ' + functionName)
+    documentSetTitle(title + ' - ' + functionName)
 
     # Function exist?
     functionFound = false
