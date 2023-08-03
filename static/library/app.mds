@@ -1,9 +1,9 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
 #
-# The CalcScript library documentation application
+# The BareScript library documentation application
 #
 
 
@@ -12,7 +12,7 @@
 # title - The library title
 # menuLinks - Optional array of text/URL menu link tuples
 #
-async function calcScriptLibraryDoc(url, title, menuLinks)
+async function bareScriptLibraryDoc(url, title, menuLinks)
     # URL override?
     url = if(vURL != null, vURL, url)
     if arrayLength(url) != null:
@@ -27,7 +27,7 @@ async function calcScriptLibraryDoc(url, title, menuLinks)
     libraryFunctions = arrayNew()
     library = objectNew('functions', libraryFunctions)
     for libraryPart, ixLibrary in httpFetch(urls):
-        libraryPart = schemaValidate(calcScriptLibraryTypes, 'Library', libraryPart)
+        libraryPart = schemaValidate(bareScriptLibraryTypes, 'Library', libraryPart)
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -39,22 +39,22 @@ async function calcScriptLibraryDoc(url, title, menuLinks)
     # Render the page
     if vDoc:
         documentSetTitle(title + ' - Library')
-        elementModelRender(schemaElements(calcScriptLibraryTypes, 'Library'))
+        elementModelRender(schemaElements(bareScriptLibraryTypes, 'Library'))
     elif vName != null:
-        calcScriptLibraryFunctionPage(library, title, vName)
+        bareScriptLibraryFunctionPage(library, title, vName)
     else:
-        calcScriptLibraryIndexPage(library, title, menuLinks)
+        bareScriptLibraryIndexPage(library, title, menuLinks)
     endif
 endfunction
 
 
-function calcScriptLibraryIndexPage(library, title, menuLinks)
+function bareScriptLibraryIndexPage(library, title, menuLinks)
     # Set the page title
     documentSetTitle(title)
     markdownPrint('# ' + title)
 
     # Render the index menu
-    markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + calcScriptLibraryURL(objectNew('expand', !vExpand, 'group', '')) + ')')
+    markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + bareScriptLibraryURL(objectNew('expand', !vExpand, 'group', '')) + ')')
     for menuLink in menuLinks:
         menuLinkText = arrayGet(menuLink, 0)
         menuLinkURL = arrayGet(menuLink, 1)
@@ -81,22 +81,22 @@ function calcScriptLibraryIndexPage(library, title, menuLinks)
         if vExpand:
             markdownPrint('## ' + markdownEscape(groupKey))
         elif vGroup != groupKey:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryURL(objectNew('group', groupKey)) + ')')
+            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareScriptLibraryURL(objectNew('group', groupKey)) + ')')
         else:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + calcScriptLibraryURL(objectNew('group', '')) + ')')
+            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareScriptLibraryURL(objectNew('group', '')) + ')')
         endif
 
         # Render the group's function links
         if vExpand || vGroup == groupKey:
             for functionName in arraySort(objectGet(groups, groupKey)):
-                markdownPrint('', '[' + markdownEscape(functionName) + '](' + calcScriptLibraryURL(objectNew('name', functionName)) + ')')
+                markdownPrint('', '[' + markdownEscape(functionName) + '](' + bareScriptLibraryURL(objectNew('name', functionName)) + ')')
             endfor
         endif
     endfor
 endfunction
 
 
-function calcScriptLibraryFunctionPage(libDoc, title, functionName)
+function bareScriptLibraryFunctionPage(libDoc, title, functionName)
     # Set the document title
     documentSetTitle(title + ' - ' + functionName)
 
@@ -116,7 +116,7 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
 
     # Render the page title and menu
     markdownPrint('# ' + title)
-    markdownPrint('', '[Index](' + calcScriptLibraryURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
+    markdownPrint('', '[Index](' + bareScriptLibraryURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
     markdownPrint('', '## ' + functionName, '', objectGet(function_, 'doc'))
 
     # Render the functions's argument documentation
@@ -137,7 +137,7 @@ function calcScriptLibraryFunctionPage(libDoc, title, functionName)
 endfunction
 
 
-function calcScriptLibraryURL(args)
+function bareScriptLibraryURL(args)
     # Arguments overrides
     expand = objectGet(args, 'expand')
     group = objectGet(args, 'group')
@@ -165,7 +165,7 @@ endfunction
 
 
 # The library documentation schema
-calcScriptLibraryTypes = schemaParse( \
+bareScriptLibraryTypes = schemaParse( \
     '# A library documentation model', \
     'struct Library', \
     '', \

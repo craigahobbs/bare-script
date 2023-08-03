@@ -1,5 +1,5 @@
 // Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {parseExpression, parseScript} from '../lib/parser.js';
 import {validateExpression, validateScript} from '../lib/model.js';
@@ -59,7 +59,7 @@ test('parseScript, line continuation error', () => {
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
     fn1(arg1, fn2(),
@@ -90,7 +90,7 @@ test('parseScript, long line error middle', () => {
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
 ...  + value20, value21 + value22 + value23 + value24 + value25, @#$, value26 + value27 + value28 + value29 + value30, value ...
@@ -121,7 +121,7 @@ test('parseScript, long line error left', () => {
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
     reallyLongFunctionName( @#$, value1 + value2 + value3 + value4 + value5, value6 + value7 + value8 + value9 + value10 ...
@@ -152,7 +152,7 @@ test('parseScript, long line error right', () => {
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
 ... alue39 + value40, value41 + value42 + value43 + value44 + value45, value46 + value47 + value48 + value49 + value50 @#$ )
@@ -278,21 +278,21 @@ endif
     assert.deepEqual(script, {
         'statements': [
             {'jump': {
-                'label': '__calcScriptIf0',
+                'label': '__bareScriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptIf0'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf0'},
             {'jump': {
-                'label': '__calcScriptIf1',
+                'label': '__bareScriptIf1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}}
             },
             {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptIf1'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf1'},
             {'expr': {'name': 'a', 'expr': {'number': 3}}},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -307,11 +307,11 @@ endif
     assert.deepEqual(script, {
         'statements': [
             {'jump': {
-                'label': '__calcScriptDone0',
+                'label': '__bareScriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -328,18 +328,18 @@ endif
     assert.deepEqual(script, {
         'statements': [
             {'jump': {
-                'label': '__calcScriptIf0',
+                'label': '__bareScriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptIf0'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf0'},
             {'jump': {
-                'label': '__calcScriptDone0',
+                'label': '__bareScriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -356,14 +356,14 @@ endif
     assert.deepEqual(script, {
         'statements': [
             {'jump': {
-                'label': '__calcScriptIf0',
+                'label': '__bareScriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptIf0'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf0'},
             {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -379,7 +379,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 1:
 elif i < 0:
@@ -402,7 +402,7 @@ endwhile
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 2:
     elif i < 0:
@@ -423,7 +423,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 1:
 else:
@@ -446,7 +446,7 @@ endwhile
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 2:
     else:
@@ -465,7 +465,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 1:
 endif
@@ -486,7 +486,7 @@ endwhile
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching if statement, line number 2:
     endif
@@ -511,7 +511,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Elif statement following else statement, line number 5:
 elif i < 0:
@@ -536,7 +536,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Multiple else statements, line number 5:
 else:
@@ -555,7 +555,7 @@ if i > 0:
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Missing endif statement, line number 1:
 if i > 0:
@@ -577,7 +577,7 @@ endwhile
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
             {'jump': {
-                'label': '__calcScriptDone0',
+                'label': '__bareScriptDone0',
                 'expr': {'unary': {
                     'op': '!',
                     'expr': {'binary': {
@@ -587,17 +587,17 @@ endwhile
                     }}
                 }}
             }},
-            {'label': '__calcScriptLoop0'},
+            {'label': '__bareScriptLoop0'},
             {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
             {'jump': {
-                'label': '__calcScriptLoop0',
+                'label': '__bareScriptLoop0',
                 'expr': {'binary': {
                     'op': '<',
                     'left': {'variable': 'i'},
                     'right': {'function': {'name': 'arrayLength', 'args': [{'variable': 'values'}]}}
                 }}
             }},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -611,11 +611,11 @@ endwhile
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
-            {'label': '__calcScriptLoop0'},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'jump': {'label': '__calcScriptLoop0', 'expr': {'variable': 'true'}}},
-            {'label': '__calcScriptDone0'}
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'label': '__bareScriptLoop0'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}}},
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -629,11 +629,11 @@ endwhile
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
-            {'label': '__calcScriptLoop0'},
-            {'jump': {'label': '__calcScriptLoop0'}},
-            {'jump': {'label': '__calcScriptLoop0', 'expr': {'variable': 'true'}}},
-            {'label': '__calcScriptDone0'}
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
+            {'label': '__bareScriptLoop0'},
+            {'jump': {'label': '__bareScriptLoop0'}},
+            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}}},
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -647,7 +647,7 @@ endwhile
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching while statement, line number 1:
 endwhile
@@ -667,7 +667,7 @@ endwhile
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching while statement, line number 2:
 endwhile
@@ -686,7 +686,7 @@ while true:
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Missing endwhile statement, line number 1:
 while true:
@@ -712,19 +712,19 @@ endfor
                 'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
             }},
             {'expr': {'name': 'sum', 'expr': {'number': 0}}},
-            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
-                'name': '__calcScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                'name': '__bareScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
             }},
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
-            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__calcScriptLoop0'},
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__bareScriptLoop0'},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
                 }}
             }},
             {'expr': {
@@ -732,14 +732,14 @@ endfor
                 'expr': {'binary': {'op': '+', 'left': {'variable': 'sum'}, 'right': {'variable': 'value'}}}
             }},
             {'expr': {
-                'name': '__calcScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+                'name': '__bareScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
             }},
             {'jump': {
-                'label': '__calcScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
+                'label': '__bareScriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
             }},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -752,19 +752,19 @@ endfor
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
-                'name': '__calcScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                'name': '__bareScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
             }},
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
             {'expr': {'name': 'ixValue', 'expr': {'number': 0}}},
-            {'label': '__calcScriptLoop0'},
+            {'label': '__bareScriptLoop0'},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__calcScriptValues0'}, {'variable': 'ixValue'}]
+                    'args': [{'variable': '__bareScriptValues0'}, {'variable': 'ixValue'}]
                 }}
             }},
             {'expr': {
@@ -772,10 +772,10 @@ endfor
                 'expr': {'binary': {'op': '+', 'left': {'variable': 'ixValue'}, 'right': {'number': 1}}}
             }},
             {'jump': {
-                'label': '__calcScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__calcScriptLength0'}}}
+                'label': '__bareScriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__bareScriptLength0'}}}
             }},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -791,36 +791,36 @@ endfor
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
-                'name': '__calcScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                'name': '__bareScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
             }},
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
-            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__calcScriptLoop0'},
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__bareScriptLoop0'},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
                 }}
             }},
             {'jump': {
-                'label': '__calcScriptDone1',
+                'label': '__bareScriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
-            {'jump': {'label': '__calcScriptDone0'}},
-            {'label': '__calcScriptDone1'},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptDone1'},
             {'expr': {
-                'name': '__calcScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+                'name': '__bareScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
             }},
             {'jump': {
-                'label': '__calcScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
+                'label': '__bareScriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
             }},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -836,37 +836,37 @@ endfor
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'expr': {'name': '__calcScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
             {'expr': {
-                'name': '__calcScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__calcScriptValues0'}]}}
+                'name': '__bareScriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
             }},
-            {'jump': {'label': '__calcScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__calcScriptLength0'}}}}},
-            {'expr': {'name': '__calcScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__calcScriptLoop0'},
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
+            {'label': '__bareScriptLoop0'},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__calcScriptValues0'}, {'variable': '__calcScriptIndex0'}]
+                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
                 }}
             }},
             {'jump': {
-                'label': '__calcScriptDone1',
+                'label': '__bareScriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
             }},
-            {'jump': {'label': '__calcScriptContinue0'}},
-            {'label': '__calcScriptDone1'},
-            {'label': '__calcScriptContinue0'},
+            {'jump': {'label': '__bareScriptContinue0'}},
+            {'label': '__bareScriptDone1'},
+            {'label': '__bareScriptContinue0'},
             {'expr': {
-                'name': '__calcScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'number': 1}}}
+                'name': '__bareScriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
             }},
             {'jump': {
-                'label': '__calcScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__calcScriptIndex0'}, 'right': {'variable': '__calcScriptLength0'}}}
+                'label': '__bareScriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
             }},
-            {'label': '__calcScriptDone0'}
+            {'label': '__bareScriptDone0'}
         ]
     });
 });
@@ -880,7 +880,7 @@ endfor
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching for statement, line number 1:
 endfor
@@ -900,7 +900,7 @@ endfor
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching for statement, line number 2:
 endfor
@@ -919,7 +919,7 @@ for value in values:
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Missing endfor statement, line number 1:
 for value in values:
@@ -938,7 +938,7 @@ break
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Break statement outside of loop, line number 1:
 break
@@ -959,7 +959,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Break statement outside of loop, line number 2:
     break
@@ -978,7 +978,7 @@ continue
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Continue statement outside of loop, line number 1:
 continue
@@ -999,7 +999,7 @@ endif
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Continue statement outside of loop, line number 2:
     continue
@@ -1042,7 +1042,7 @@ include "file.mds"
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
 include "file.mds"
@@ -1095,7 +1095,7 @@ c = 2
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 3:
 foo bar
@@ -1119,7 +1119,7 @@ b = 1 + foo bar
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 2:
 b = 1 + foo bar
@@ -1142,7 +1142,7 @@ jumpif (@#$) label
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
 jumpif (@#$) label
@@ -1165,7 +1165,7 @@ return @#$
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
 return @#$
@@ -1191,7 +1191,7 @@ endfunction
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Nested function definition, line number 2:
     function bar()
@@ -1215,7 +1215,7 @@ endfunction
 `);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 No matching function definition, line number 2:
 endfunction
@@ -1266,7 +1266,7 @@ test('parseExpression, syntax error', () => {
             parseExpression(exprText);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error:
 ${exprText}
@@ -1287,7 +1287,7 @@ test('parseExpression, nextText syntax error', () => {
             parseExpression(exprText);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error:
 ${exprText}
@@ -1308,7 +1308,7 @@ test('parseExpression, syntax error, unmatched parenthesis', () => {
             parseExpression(exprText);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Unmatched parenthesis:
 ${exprText}
@@ -1329,7 +1329,7 @@ test('parseExpression, function argument syntax error', () => {
             parseExpression(exprText);
         },
         {
-            'name': 'CalcScriptParserError',
+            'name': 'BareScriptParserError',
             'message': `\
 Syntax error:
 foo(1, 2 3)

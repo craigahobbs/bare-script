@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {argv, exit, stderr, stdout} from 'node:process';
 import {parseLibraryDoc} from '../lib/libraryDoc.js';

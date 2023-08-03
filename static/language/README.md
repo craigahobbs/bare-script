@@ -1,9 +1,9 @@
-[Home](https://github.com/craigahobbs/calc-script#readme)
+[Home](https://github.com/craigahobbs/bare-script#readme)
 
 
-# The CalcScript Language
+# The BareScript Language
 
-CalcScript is a simple, line-based scripting language. Each line of a CalcScript script is either a
+BareScript is a simple, line-based scripting language. Each line of a BareScript script is either a
 comment or a [statement](#statements). A statement is either an [expression](#expressions), a
 variable assignment, a jump, a return, or an include. Expressions include numbers, strings, variable
 lookups, function calls, binary expressions, unary expressions, or groups.
@@ -11,7 +11,7 @@ lookups, function calls, binary expressions, unary expressions, or groups.
 For example, the following script computes the first ten Fibonacci numbers and returns them as an
 array.
 
-~~~ calcscript
+~~~ barescript
 # Compute the first "count" Fibonacci numbers
 function fibonacci(count)
     numbers = arrayNew(0, 1)
@@ -29,9 +29,9 @@ return fibonacci(10)
 
 ## Links
 
-- [CalcScript Home](https://github.com/craigahobbs/calc-script)
-- [The CalcScript Library](../library/)
-- [The CalcScript Expression Library](../library/expression.html)
+- [BareScript Home](https://github.com/craigahobbs/bare-script)
+- [The BareScript Library](../library/)
+- [The BareScript Expression Library](../library/expression.html)
 
 
 ## Table of Contents
@@ -48,7 +48,7 @@ return fibonacci(10)
   - [Jump and Label Statements](#jump-and-label-statements)
   - [Include Statements](#include-statements)
   - [Multiline Statements](#multiline-statements)
-  - [The CalcScript Library](#the-calcscript-library)
+  - [The BareScript Library](#the-barescript-library)
 - [Expressions](#expressions)
   - [Number Expressions](#number-expressions)
   - [String Expressions](#string-expressions)
@@ -57,13 +57,13 @@ return fibonacci(10)
   - [Binary Operator Expressions](#binary-operator-expressions)
   - [Unary Operator Expressions](#unary-operator-expressions)
   - [Group Expressions](#group-expressions)
-  - [The CalcScript Expression Library](#the-calcscript-expression-library)
+  - [The BareScript Expression Library](#the-barescript-expression-library)
 - [Emacs Mode](#emacs-mode)
 
 
 ## Statements
 
-A CalcScript script consists of one or more statements. The following sections describe the
+A BareScript script consists of one or more statements. The following sections describe the
 different types of statements.
 
 
@@ -72,7 +72,7 @@ different types of statements.
 Expression statements evaluate an [expression](#expressions) and discard the result. In the
 following example, we evaluate a function call expression:
 
-~~~ calcscript
+~~~ barescript
 consoleLog('Hello, World!')
 ~~~
 
@@ -80,7 +80,7 @@ Similarly, a variable assignment statement evaluates an expression and assigns t
 variable. If the statement is in the global scope, the variable is global. Otherwise, the variable
 is a function-local variable. For example:
 
-~~~ calcscript
+~~~ barescript
 a = 5
 b = 7
 c = a + b
@@ -89,9 +89,9 @@ c = a + b
 
 ### Comments
 
-Comments in CalcScript are any line that begins with the "#" character. For example:
+Comments in BareScript are any line that begins with the "#" character. For example:
 
-~~~ calcscript
+~~~ barescript
 # Initialize the "a" variable
 a = 0
 
@@ -107,7 +107,7 @@ name and its argument names within parentheses. Until the "endfunction" statemen
 that follow belong to the function. When the function executes, its arguments are available as local
 variables. For example:
 
-~~~ calcscript
+~~~ barescript
 function getMinMax(a, b, c, d)
     return arrayNew(mathMin(a, b, c, d), mathMax(a, b, c, d))
 endfunction
@@ -118,12 +118,12 @@ return getMinMax(1, 2, 3, 5)
 A function that makes any **asynchronous** function call (e.g.,
 [httpFetch](../library/#var.vName='httpFetch')) must be defined as asynchronous. For example:
 
-~~~ calcscript
+~~~ barescript
 async function getLibraryCount(url)
     return arrayLength(objectGet(httpFetch(url), 'functions'))
 endfunction
 
-return getLibraryCount('https://craigahobbs.github.io/calc-script/library/library.json')
+return getLibraryCount('https://craigahobbs.github.io/bare-script/library/library.json')
 ~~~
 
 
@@ -132,7 +132,7 @@ return getLibraryCount('https://craigahobbs.github.io/calc-script/library/librar
 Return statements return from the current program scope. If there is a return
 [expression](#expressions), it is evaluated, and the result is returned. For example:
 
-~~~ calcscript
+~~~ barescript
 function addNumbers(a, b)
     return a + b
 endfunction
@@ -145,7 +145,7 @@ return addNumbers(0, 1)
 
 If-then statements allow you to execute a sequence of statements conditionally. For example:
 
-~~~ calcscript
+~~~ barescript
 if a < 0:
     b = 1
 elif a > 0:
@@ -161,7 +161,7 @@ endif
 While-do statements allow you to loop over a sequence of statements as long as the loop expression
 is true. For example:
 
-~~~ calcscript
+~~~ barescript
 i = 0
 sum = 0
 while i < 10:
@@ -176,7 +176,7 @@ endwhile
 Foreach statements allow you to loop over a sequence of statements for each value in an array.
 For example:
 
-~~~ calcscript
+~~~ barescript
 values = arrayNew(1, 2, 3)
 sum = 0
 for value in values:
@@ -186,7 +186,7 @@ endfor
 
 You can also access the array value index:
 
-~~~ calcscript
+~~~ barescript
 values = arrayNew(1, 2, 3)
 sum = 0
 for value, ixValue in values:
@@ -199,7 +199,7 @@ endfor
 
 To stop a while-do loop or a foreach loop using a break statement. For example:
 
-~~~ calcscript
+~~~ barescript
 i = 0
 while i < 10:
     if i > 5:
@@ -211,7 +211,7 @@ endwhile
 
 To skip the remaining statements in an iteration using a continue statement. For example:
 
-~~~ calcscript
+~~~ barescript
 values = arrayNew(1, -2, 3)
 sum = 0
 for value, ixValue in values:
@@ -231,7 +231,7 @@ name followed by a colon.
 
 The example below uses "jump", "jumpif", and label statements to sum the values of an array:
 
-~~~ calcscript
+~~~ barescript
 values = arrayNew(1, 2, 3, 5, 7)
 sum = 0
 ixValue = 0
@@ -249,7 +249,7 @@ valueLoopDone:
 
 Include statements load and evaluate a script file in the global scope. For example:
 
-~~~ calcscript
+~~~ barescript
 include 'util.mds'
 
 return concatStrings('abc', 'def')
@@ -257,7 +257,7 @@ return concatStrings('abc', 'def')
 
 The contents of "util.mds" are:
 
-~~~ calcscript
+~~~ barescript
 function concatStrings(a, b)
     return a + b
 endfunction
@@ -269,7 +269,7 @@ endfunction
 Long statements can be broken into multiple lines using the line continuation syntax, a trailing "\"
 character. For example:
 
-~~~ calcscript
+~~~ barescript
 colors = arrayNew( \
     'red', \
     'green', \
@@ -279,17 +279,17 @@ return arrayJoin(colors, ', ')
 ~~~
 
 
-### The CalcScript Library
+### The BareScript Library
 
-The [CalcScript Library](../library/) is a set of built-in, general-purpose global functions
-available to all CalcScript scripts. The library contains functions for creating and manipulating
+The [BareScript Library](../library/) is a set of built-in, general-purpose global functions
+available to all BareScript scripts. The library contains functions for creating and manipulating
 objects, arrays, datetimes, regular expressions, and strings. There are also functions for
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
 [httpFetch](../library/#var.vName='httpFetch').
 
 ## Expressions
 
-CalcScript expressions are similar to spreadsheet formulas. The different expression types are
+BareScript expressions are similar to spreadsheet formulas. The different expression types are
 described below.
 
 
@@ -297,7 +297,7 @@ described below.
 
 Number expressions are decimal numbers. For example:
 
-~~~ calcscript
+~~~ barescript
 5
 -1
 3.14159
@@ -309,7 +309,7 @@ Number expressions are decimal numbers. For example:
 String expressions are specified with single or double quotes. Quotes are escaped using a preceding
 backslash character.
 
-~~~ calcscript
+~~~ barescript
 'abc'
 "def"
 'that\'s a "quote"'
@@ -318,7 +318,7 @@ backslash character.
 
 Strings are concatenated using the addition operator.
 
-~~~ calcscript
+~~~ barescript
 'abc' + 'def'
 ~~~
 
@@ -329,7 +329,7 @@ Variable lookup expressions retrieve the value of a variable. A variable lookup 
 the variable name, or if the variable name has non-alphanumeric characters, the variable name is
 wrapped in open and close brackets. For example:
 
-~~~ calcscript
+~~~ barescript
 x
 fooBar
 [Height (ft)]
@@ -338,7 +338,7 @@ fooBar
 
 #### Special Variables
 
-CalcScript has the following special variables: "null", "false", and "true". Special variables
+BareScript has the following special variables: "null", "false", and "true". Special variables
 cannot be overridden.
 
 
@@ -347,7 +347,7 @@ cannot be overridden.
 Function calls are specified as the function name followed by an open parenthesis, the function
 argument expressions separated by commas, and a close parenthesis. For example:
 
-~~~ calcscript
+~~~ barescript
 max(0, sin(x))
 ~~~
 
@@ -358,7 +358,7 @@ The built-in ["if"](../library/#var.vName='if') function has the special behavio
 expression is evaluated if the test expression is true. Likewise, only the false expression is
 evaluated if the test expression is false.
 
-~~~ calcscript
+~~~ barescript
 v = if(a == b, fn1(), fn2())
 ~~~
 
@@ -368,7 +368,7 @@ v = if(a == b, fn1(), fn2())
 Binary operator expressions perform an operation on the result of two other expressions. For
 example:
 
-~~~ calcscript
+~~~ barescript
 a + 1
 sin(x) / x
 ~~~
@@ -381,7 +381,7 @@ order of evaluation precedence.
 
 Unary operator expressions perform an operation on the result of another expression. For example:
 
-~~~ calcscript
+~~~ barescript
 !a
 -x
 ~~~
@@ -394,30 +394,30 @@ of evaluation precedence.
 
 Group expressions provide control over expression evaluation order. For example:
 
-~~~ calcscript
+~~~ barescript
 0.5 * (x + y)
 ~~~
 
 
-### The CalcScript Expression Library
+### The BareScript Expression Library
 
-The [CalcScript Expression Library](../library/expression.html) is a set of built-in,
+The [BareScript Expression Library](../library/expression.html) is a set of built-in,
 spreadsheet-like global functions available to all expressions. The library contains functions for
 manipulating datetimes, strings, standard math operations, and parsing/formatting numbers.
 
 
 ## Emacs Mode
 
-To install the [Emacs](https://www.gnu.org/software/emacs/) CalcScript mode add the following to
+To install the [Emacs](https://www.gnu.org/software/emacs/) BareScript mode add the following to
 your .emacs file:
 
 ~~~
 (package-initialize)
 
-(unless (package-installed-p 'calcscript-mode)
-  (let ((mode-file (make-temp-file "calcscript-mode")))
-    (url-copy-file "https://craigahobbs.github.io/calc-script/language/calcscript-mode.el" mode-file t)
+(unless (package-installed-p 'barescript-mode)
+  (let ((mode-file (make-temp-file "barescript-mode")))
+    (url-copy-file "https://craigahobbs.github.io/bare-script/language/barescript-mode.el" mode-file t)
     (package-install-file mode-file)
     (delete-file mode-file)))
-(add-to-list 'auto-mode-alist '("\\.\\(?:[Cc]alc-?[Ss]cript\\|mds\\)\\'" . calcscript-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(?:[Cc]alc-?[Ss]cript\\|mds\\)\\'" . barescript-mode))
 ~~~
