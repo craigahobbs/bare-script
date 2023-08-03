@@ -1016,7 +1016,7 @@ include 'fi\\'le.mds'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': ["fi'le.mds"], 'systemIncludes': []}}
+            {'include': {'includes': [{'url': "fi'le.mds"}]}}
         ]
     });
 });
@@ -1028,7 +1028,7 @@ include <file.mds>
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': [], 'systemIncludes': ['file.mds']}}
+            {'include': {'includes': [{'url': 'file.mds', 'system': true}]}}
         ]
     });
 });
@@ -1065,7 +1065,7 @@ include 'test3.mds'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': ['test.mds', 'test3.mds'], 'systemIncludes': ['test2.mds']}}
+            {'include': {'includes': [{'url': 'test.mds'}, {'url': 'test2.mds', 'system': true}, {'url': 'test3.mds'}]}}
         ]
     });
 });

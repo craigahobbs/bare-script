@@ -264,7 +264,7 @@ test('executeScript, return blank', () => {
 test('executeScript, include', () => {
     const script = validateScript({
         'statements': [
-            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
+            {'include': {'includes': [{'url': 'test.mds'}]}}
         ]
     });
 
@@ -286,7 +286,7 @@ test('executeScript, include', () => {
 test('executeScript, include no fetchFn', () => {
     const script = validateScript({
         'statements': [
-            {'include': {'includes': ['test.mds'], 'systemIncludes': []}}
+            {'include': {'includes': [{'url': 'test.mds'}]}}
         ]
     });
     assert.throws(
@@ -304,7 +304,7 @@ test('executeScript, include no fetchFn', () => {
 test('executeScript, include no fetchFn, system', () => {
     const script = validateScript({
         'statements': [
-            {'include': {'includes': [], 'systemIncludes': ['test.mds']}}
+            {'include': {'includes': [{'url': 'test.mds', 'system': true}]}}
         ]
     });
     assert.throws(
@@ -314,24 +314,6 @@ test('executeScript, include no fetchFn, system', () => {
         {
             'name': 'CalcScriptRuntimeError',
             'message': 'Include of "test.mds" within non-async scope'
-        }
-    );
-});
-
-
-test('executeScript, include no fetchFn, empty', () => {
-    const script = validateScript({
-        'statements': [
-            {'include': {'includes': [], 'systemIncludes': []}}
-        ]
-    });
-    assert.throws(
-        () => {
-            executeScript(script);
-        },
-        {
-            'name': 'CalcScriptRuntimeError',
-            'message': 'Include of "" within non-async scope'
         }
     );
 });
