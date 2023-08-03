@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 (2023-08-03)
+
+- [783442c](https://github.com/craigahobbs/calc-script/commit/783442c) - ensure system include order
+
 ## 2.0.0 (2023-08-02)
 
 - [2dfab50](https://github.com/craigahobbs/calc-script/commit/2dfab50) - cleanup standard library function prefixes
