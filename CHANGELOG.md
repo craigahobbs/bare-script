@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.3 (2023-08-07)
+
+- [7b86ca1](https://github.com/craigahobbs/bare-script/commit/7b86ca1) - fix expression library docs
+
+# 2.0.2 (2023-08-07)
+
+- [6011f6a](https://github.com/craigahobbs/bare-script/commit/6011f6a) - rename to bear-script
+
 ## 2.0.1 (2023-08-03)
 
 - [783442c](https://github.com/craigahobbs/bare-script/commit/783442c) - ensure system include order
