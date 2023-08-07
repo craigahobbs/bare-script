@@ -1,15 +1,15 @@
 {
     "type": "module",
-    "name": "calc-script",
+    "name": "bare-script",
     "version": "2.0.2",
-    "description": "CalcScript; a lightweight scripting and expression language",
+    "description": "BareScript; a lightweight scripting and expression language",
     "keywords": [
         "expression",
         "language",
         "script"
     ],
-    "homepage": "https://github.com/craigahobbs/calc-script#readme",
-    "bugs": "https://github.com/craigahobbs/calc-script/issues",
+    "homepage": "https://github.com/craigahobbs/bare-script#readme",
+    "bugs": "https://github.com/craigahobbs/bare-script/issues",
     "license": "MIT",
     "author": {
         "name": "Craig A. Hobbs",
@@ -17,7 +17,7 @@
         "url": "https://github.com/craigahobbs"
     },
     "bin": {
-        "calcScriptDoc": "./bin/calcScriptDoc.js"
+        "bareScriptDoc": "./bin/bareScriptDoc.js"
     },
     "files": [
         "lib/**/*"

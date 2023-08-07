@@ -1,5 +1,5 @@
 // Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 /* eslint-disable id-length */
 
@@ -572,7 +572,7 @@ test('library, httpFetch null options log', async () => {
     };
     const options = {logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for JSON resource "test.json"']);
 });
 
 
@@ -596,8 +596,8 @@ test('library, httpFetch null array options log', async () => {
     const options = {logFn, 'debug': true};
     assert.deepEqual(await scriptFunctions.httpFetch([['test.json', 'test2.json']], options), [null, null]);
     assert.deepEqual(logs, [
-        'CalcScript: Function "httpFetch" failed for JSON resource "test.json"',
-        'CalcScript: Function "httpFetch" failed for JSON resource "test2.json"'
+        'BareScript: Function "httpFetch" failed for JSON resource "test.json"',
+        'BareScript: Function "httpFetch" failed for JSON resource "test2.json"'
     ]);
 });
 
@@ -624,7 +624,7 @@ test('library, httpFetch response not-ok', async () => {
     };
     const options = {fetchFn, logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for JSON resource "test.json"']);
 });
 
 
@@ -646,7 +646,7 @@ test('library, httpFetch response json error', async () => {
     };
     const options = {fetchFn, logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.json"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for JSON resource "test.json"']);
 });
 
 
@@ -662,7 +662,7 @@ test('library, httpFetch text response not-ok', async () => {
     };
     const options = {fetchFn, logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for text resource "test.txt"']);
 });
 
 
@@ -684,7 +684,7 @@ test('library, httpFetch response text error', async () => {
     };
     const options = {fetchFn, logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for text resource "test.txt"']);
 });
 
 
@@ -700,7 +700,7 @@ test('library, httpFetch response error', async () => {
     };
     const options = {fetchFn, logFn, 'debug': true};
     assert.equal(await scriptFunctions.httpFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for text resource "test.txt"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for text resource "test.txt"']);
 });
 
 
@@ -725,7 +725,7 @@ test('library, httpFetch array response error', async () => {
         await scriptFunctions.httpFetch([['test.txt', 'test2.txt']], options),
         [null, {'foo': 'bar'}]
     );
-    assert.deepEqual(logs, ['CalcScript: Function "httpFetch" failed for JSON resource "test.txt"']);
+    assert.deepEqual(logs, ['BareScript: Function "httpFetch" failed for JSON resource "test.txt"']);
 });
 
 

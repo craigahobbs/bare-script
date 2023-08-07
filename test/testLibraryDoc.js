@@ -1,5 +1,5 @@
 // Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {strict as assert} from 'node:assert';
 import {parseLibraryDoc} from '../lib/libraryDoc.js';
