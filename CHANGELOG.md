@@ -4,9 +4,9 @@
 
 - [7b86ca1](https://github.com/craigahobbs/bare-script/commit/7b86ca1) - fix expression library docs
 
-# 2.0.2 (2023-08-07)
+## 2.0.2 (2023-08-07)
 
-- [6011f6a](https://github.com/craigahobbs/bare-script/commit/6011f6a) - rename to bear-script
+- [6add38b](https://github.com/craigahobbs/bare-script/commit/6add38b) - rename calc-script to bare-script
 
 ## 2.0.1 (2023-08-03)
 
