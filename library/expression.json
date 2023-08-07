@@ -253,9 +253,6 @@
             ]
         },
         {
-            "name": "if"
-        },
-        {
             "name": "indexOf",
             "group": "String",
             "doc": [
