@@ -27,7 +27,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>// Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 /** @module lib/runtime */
 
@@ -35,7 +35,7 @@ import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './libr
 
 
 /**
- * The CalcScript runtime options
+ * The BareScript runtime options
  *
  * @typedef {Object} ExecuteScriptOptions
  * @property {boolean} [debug] - If true, execute in debug mode
@@ -74,12 +74,12 @@ import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './libr
 
 
 /**
- * Execute a CalcScript model
+ * Execute a BareScript model
  *
- * @param {Object} script - The [CalcScript model]{@link https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript'}
+ * @param {Object} script - The [BareScript model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'}
  * @param {Object} [options = {}] - The [script execution options]{@link module:lib/runtime~ExecuteScriptOptions}
  * @returns The script result
- * @throws [CalcScriptRuntimeError]{@link module:lib/runtime.CalcScriptRuntimeError}
+ * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
 export function executeScript(script, options = {}) {
     // Create the global variable object, if necessary
@@ -115,7 +115,7 @@ export function executeScriptHelper(statements, options, locals) {
         // Increment the statement counter
         const maxStatements = options.maxStatements ?? defaultMaxStatements;
         if (maxStatements > 0 &amp;&amp; ++options.statementCount > maxStatements) {
-            throw new CalcScriptRuntimeError(`Exceeded maximum script statements (${maxStatements})`);
+            throw new BareScriptRuntimeError(`Exceeded maximum script statements (${maxStatements})`);
         }
 
         // Expression?
@@ -139,7 +139,7 @@ export function executeScriptHelper(statements, options, locals) {
                 } else {
                     const ixLabel = statements.findIndex((stmt) => stmt.label === statement.jump.label);
                     if (ixLabel === -1) {
-                        throw new CalcScriptRuntimeError(`Unknown jump label "${statement.jump.label}"`);
+                        throw new BareScriptRuntimeError(`Unknown jump label "${statement.jump.label}"`);
                     }
                     if (labelIndexes === null) {
                         labelIndexes = {};
@@ -171,7 +171,7 @@ export function executeScriptHelper(statements, options, locals) {
 
         // Include?
         } else if (statementKey === 'include') {
-            throw new CalcScriptRuntimeError(`Include of "${statement.include.includes[0].url}" within non-async scope`);
+            throw new BareScriptRuntimeError(`Include of "${statement.include.includes[0].url}" within non-async scope`);
         }
     }
 
@@ -182,13 +182,13 @@ export function executeScriptHelper(statements, options, locals) {
 /**
  * Evaluate an expression model
  *
- * @param {Object} expr - The [expression model]{@link https://craigahobbs.github.io/calc-script/model/#var.vName='Expression'}
+ * @param {Object} expr - The [expression model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'}
  * @param {?Object} [options = null] - The [script execution options]{@link module:lib/runtime~ExecuteScriptOptions}
  * @param {?Object} [locals = null] - The local variables
  * @param {boolean} [builtins = true] - If true, include the
- *     [built-in expression functions]{@link https://craigahobbs.github.io/calc-script/library/expression.html}
+ *     [built-in expression functions]{@link https://craigahobbs.github.io/bare-script/library/expression.html}
  * @returns The expression result
- * @throws [CalcScriptRuntimeError]{@link module:lib/runtime.CalcScriptRuntimeError}
+ * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
 export function evaluateExpression(expr, options = null, locals = null, builtins = true) {
     const [exprKey] = Object.keys(expr);
@@ -247,7 +247,7 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
         if (funcValue !== null) {
             // Async function called within non-async execution?
             if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor.name === 'AsyncFunction') {
-                throw new CalcScriptRuntimeError(`Async function "${funcName}" called within non-async scope`);
+                throw new BareScriptRuntimeError(`Async function "${funcName}" called within non-async scope`);
             }
 
             // Call the function
@@ -255,19 +255,19 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
                 return funcValue(funcArgs, options) ?? null;
             } catch (error) {
                 // Propogate runtime errors
-                if (error instanceof CalcScriptRuntimeError) {
+                if (error instanceof BareScriptRuntimeError) {
                     throw error;
                 }
 
                 // Log and return null
                 if (options !== null &amp;&amp; 'logFn' in options &amp;&amp; options.debug) {
-                    options.logFn(`CalcScript: Function "${funcName}" failed with error: ${error.message}`);
+                    options.logFn(`BareScript: Function "${funcName}" failed with error: ${error.message}`);
                 }
                 return null;
             }
         }
 
-        throw new CalcScriptRuntimeError(`Undefined function "${funcName}"`);
+        throw new BareScriptRuntimeError(`Undefined function "${funcName}"`);
 
     // Binary expression
     } else if (exprKey === 'binary') {
@@ -327,13 +327,13 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
 
 
 /**
- * A CalcScript runtime error
+ * A BareScript runtime error
  *
  * @extends {Error}
  */
-export class CalcScriptRuntimeError extends Error {
+export class BareScriptRuntimeError extends Error {
     /**
-     * Create a CalcScript parser error
+     * Create a BareScript parser error
      *
      * @param {string} message - The runtime error message
      */
@@ -352,7 +352,7 @@ export class CalcScriptRuntimeError extends Error {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.CalcScriptParserError.html">CalcScriptParserError</a></li><li><a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

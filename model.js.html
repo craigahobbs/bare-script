@@ -27,7 +27,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>// Licensed under the MIT License
-// https://github.com/craigahobbs/calc-script/blob/main/LICENSE
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 /** @module lib/model */
 
@@ -36,11 +36,11 @@ import {validateType} from 'schema-markdown/lib/schema.js';
 
 
 /**
- * The CalcScript type model
+ * The BareScript type model
  */
-export const calcScriptTypes = parseSchemaMarkdown(`\
-# A CalcScript script
-struct CalcScript
+export const bareScriptTypes = parseSchemaMarkdown(`\
+# A BareScript script
+struct BareScript
 
     # The script's statements
     ScriptStatement[] statements
@@ -244,33 +244,33 @@ struct FunctionExpression
 
 
 /**
- * Validate a CalcScript script model
+ * Validate a BareScript script model
  *
- * @param {Object} script - The [CalcScript model]{@link https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript'}
- * @returns {Object} The validated CalcScript model
+ * @param {Object} script - The [BareScript model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'}
+ * @returns {Object} The validated BareScript model
  * @throws [ValidationError]{@link https://craigahobbs.github.io/schema-markdown-js/module-lib_schema.ValidationError.html}
  */
 export function validateScript(script) {
-    return validateType(calcScriptTypes, 'CalcScript', script);
+    return validateType(bareScriptTypes, 'BareScript', script);
 }
 
 
 /**
  * Validate an expression model
  *
- * @param {Object} expr - The [expression model]{@link https://craigahobbs.github.io/calc-script/model/#var.vName='Expression'}
+ * @param {Object} expr - The [expression model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'}
  * @returns {Object} The validated expression model
  * @throws [ValidationError]{@link https://craigahobbs.github.io/schema-markdown-js/module-lib_schema.ValidationError.html}
  */
 export function validateExpression(expr) {
-    return validateType(calcScriptTypes, 'Expression', expr);
+    return validateType(bareScriptTypes, 'Expression', expr);
 }
 
 
 /**
- * Lint a CalcScript script model
+ * Lint a BareScript script model
  *
- * @param {Object} script - The [CalcScript model]{@link https://craigahobbs.github.io/calc-script/model/#var.vName='CalcScript'}
+ * @param {Object} script - The [BareScript model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'}
  * @returns {string[]} The array of lint warnings
  */
 export function lintScript(script) {
@@ -513,7 +513,7 @@ function getExpressionVariableUses(expr, uses, ixStatement) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.CalcScriptParserError.html">CalcScriptParserError</a></li><li><a href="module-lib_runtime.CalcScriptRuntimeError.html">CalcScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">
