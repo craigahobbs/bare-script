@@ -73,7 +73,7 @@ Expression statements evaluate an [expression](#expressions) and discard the res
 following example, we evaluate a function call expression:
 
 ~~~ barescript
-consoleLog('Hello, World!')
+systemLog('Hello, World!')
 ~~~
 
 Similarly, a variable assignment statement evaluates an expression and assigns the result to a
@@ -116,11 +116,11 @@ return getMinMax(1, 2, 3, 5)
 ~~~
 
 A function that makes any **asynchronous** function call (e.g.,
-[httpFetch](../library/#var.vName='httpFetch')) must be defined as asynchronous. For example:
+[systemFetch](../library/#var.vName='systemFetch')) must be defined as asynchronous. For example:
 
 ~~~ barescript
 async function getLibraryCount(url)
-    return arrayLength(objectGet(httpFetch(url), 'functions'))
+    return arrayLength(objectGet(systemFetch(url), 'functions'))
 endfunction
 
 return getLibraryCount('https://craigahobbs.github.io/bare-script/library/library.json')
@@ -285,7 +285,7 @@ The [BareScript Library](../library/) is a set of built-in, general-purpose glob
 available to all BareScript scripts. The library contains functions for creating and manipulating
 objects, arrays, datetimes, regular expressions, and strings. There are also functions for
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
-[httpFetch](../library/#var.vName='httpFetch').
+[systemFetch](../library/#var.vName='systemFetch').
 
 ## Expressions
 

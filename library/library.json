@@ -337,36 +337,6 @@
             ]
         },
         {
-            "name": "consoleLog",
-            "group": "Console",
-            "doc": [
-                "Log a message to the console"
-            ],
-            "args": [
-                {
-                    "name": "string",
-                    "doc": [
-                        "The message"
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "consoleLogDebug",
-            "group": "Console",
-            "doc": [
-                "Log a debug message"
-            ],
-            "args": [
-                {
-                    "name": "string",
-                    "doc": [
-                        "The message"
-                    ]
-                }
-            ]
-        },
-        {
             "name": "datetimeDay",
             "group": "Datetime",
             "doc": [
@@ -624,36 +594,6 @@
             ],
             "return": [
                 "The full year"
-            ]
-        },
-        {
-            "name": "httpFetch",
-            "group": "HTTP",
-            "doc": [
-                "Retrieve a remote JSON or text resource"
-            ],
-            "args": [
-                {
-                    "name": "url",
-                    "doc": [
-                        "The resource URL or array of URLs"
-                    ]
-                },
-                {
-                    "name": "options",
-                    "doc": [
-                        "Optional (default is null). The [fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)."
-                    ]
-                },
-                {
-                    "name": "isText",
-                    "doc": [
-                        "Optional (default is false). If true, retrieve the resource as text."
-                    ]
-                }
-            ],
-            "return": [
-                "The resource object/string or array of objects/strings; null if an error occurred."
             ]
         },
         {
@@ -1417,48 +1357,6 @@
             ]
         },
         {
-            "name": "runtimeGetGlobal",
-            "group": "Runtime",
-            "doc": [
-                "Get a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value or null if it does not exist"
-            ]
-        },
-        {
-            "name": "runtimeSetGlobal",
-            "group": "Runtime",
-            "doc": [
-                "Set a global variable value"
-            ],
-            "args": [
-                {
-                    "name": "name",
-                    "doc": [
-                        "The global variable name"
-                    ]
-                },
-                {
-                    "name": "value",
-                    "doc": [
-                        "The global variable's value"
-                    ]
-                }
-            ],
-            "return": [
-                "The global variable's value"
-            ]
-        },
-        {
             "name": "schemaParse",
             "group": "Schema",
             "doc": [
@@ -1918,6 +1816,108 @@
             ],
             "return": [
                 "The upper-case string"
+            ]
+        },
+        {
+            "name": "systemFetch",
+            "group": "System",
+            "doc": [
+                "Retrieve a remote JSON or text resource"
+            ],
+            "args": [
+                {
+                    "name": "url",
+                    "doc": [
+                        "The resource URL or array of URLs"
+                    ]
+                },
+                {
+                    "name": "options",
+                    "doc": [
+                        "Optional (default is null). The [fetch options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters)."
+                    ]
+                },
+                {
+                    "name": "isText",
+                    "doc": [
+                        "Optional (default is false). If true, retrieve the resource as text."
+                    ]
+                }
+            ],
+            "return": [
+                "The resource object/string or array of objects/strings; null if an error occurred."
+            ]
+        },
+        {
+            "name": "systemGlobalGet",
+            "group": "System",
+            "doc": [
+                "Get a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value or null if it does not exist"
+            ]
+        },
+        {
+            "name": "systemGlobalSet",
+            "group": "System",
+            "doc": [
+                "Set a global variable value"
+            ],
+            "args": [
+                {
+                    "name": "name",
+                    "doc": [
+                        "The global variable name"
+                    ]
+                },
+                {
+                    "name": "value",
+                    "doc": [
+                        "The global variable's value"
+                    ]
+                }
+            ],
+            "return": [
+                "The global variable's value"
+            ]
+        },
+        {
+            "name": "systemLog",
+            "group": "System",
+            "doc": [
+                "Log a message to the console"
+            ],
+            "args": [
+                {
+                    "name": "string",
+                    "doc": [
+                        "The message"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "systemLogDebug",
+            "group": "System",
+            "doc": [
+                "Log a message to the console, if in debug mode"
+            ],
+            "args": [
+                {
+                    "name": "string",
+                    "doc": [
+                        "The message"
+                    ]
+                }
             ]
         },
         {
