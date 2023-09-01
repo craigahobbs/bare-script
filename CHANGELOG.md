@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 (2023-09-01)
+
+- [222cc07](https://github.com/craigahobbs/bare-script/commit/222cc07) - add the bare CLI
+
 ## 2.0.3 (2023-08-07)
 
 - [7b86ca1](https://github.com/craigahobbs/bare-script/commit/7b86ca1) - fix expression library docs
