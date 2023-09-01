@@ -12,7 +12,7 @@
 # title - The library title
 # menuLinks - Optional array of text/URL menu link tuples
 #
-async function bareScriptLibraryDoc(url, title, menuLinks)
+async function bareDocMain(url, title, menuLinks)
     # URL override?
     url = if(vURL != null, vURL, url)
     if arrayLength(url) != null:
@@ -26,8 +26,8 @@ async function bareScriptLibraryDoc(url, title, menuLinks)
     # Fetch and validate the library documentation resource
     libraryFunctions = arrayNew()
     library = objectNew('functions', libraryFunctions)
-    for libraryPart, ixLibrary in httpFetch(urls):
-        libraryPart = schemaValidate(bareScriptLibraryTypes, 'Library', libraryPart)
+    for libraryPart, ixLibrary in systemFetch(urls):
+        libraryPart = schemaValidate(bareDocTypes, 'Library', libraryPart)
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -39,22 +39,22 @@ async function bareScriptLibraryDoc(url, title, menuLinks)
     # Render the page
     if vDoc:
         documentSetTitle(title + ' - Library')
-        elementModelRender(schemaElements(bareScriptLibraryTypes, 'Library'))
+        elementModelRender(schemaElements(bareDocTypes, 'Library'))
     elif vName != null:
-        bareScriptLibraryFunctionPage(library, title, vName)
+        bareDocFunctionPage(library, title, vName)
     else:
-        bareScriptLibraryIndexPage(library, title, menuLinks)
+        bareDocIndexPage(library, title, menuLinks)
     endif
 endfunction
 
 
-function bareScriptLibraryIndexPage(library, title, menuLinks)
+function bareDocIndexPage(library, title, menuLinks)
     # Set the page title
     documentSetTitle(title)
     markdownPrint('# ' + title)
 
     # Render the index menu
-    markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + bareScriptLibraryURL(objectNew('expand', !vExpand, 'group', '')) + ')')
+    markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + bareDocURL(objectNew('expand', !vExpand, 'group', '')) + ')')
     for menuLink in menuLinks:
         menuLinkText = arrayGet(menuLink, 0)
         menuLinkURL = arrayGet(menuLink, 1)
@@ -62,7 +62,6 @@ function bareScriptLibraryIndexPage(library, title, menuLinks)
     endfor
 
     # Group the function documentation
-    consoleLogDebug('Library has ' + arrayLength(objectGet(library, 'functions')) + ' functions')
     groups = objectNew()
     for function_ in objectGet(library, 'functions'):
         group = objectGet(function_, 'group')
@@ -81,22 +80,22 @@ function bareScriptLibraryIndexPage(library, title, menuLinks)
         if vExpand:
             markdownPrint('## ' + markdownEscape(groupKey))
         elif vGroup != groupKey:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareScriptLibraryURL(objectNew('group', groupKey)) + ')')
+            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', groupKey)) + ')')
         else:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareScriptLibraryURL(objectNew('group', '')) + ')')
+            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', '')) + ')')
         endif
 
         # Render the group's function links
         if vExpand || vGroup == groupKey:
             for functionName in arraySort(objectGet(groups, groupKey)):
-                markdownPrint('', '[' + markdownEscape(functionName) + '](' + bareScriptLibraryURL(objectNew('name', functionName)) + ')')
+                markdownPrint('', '[' + markdownEscape(functionName) + '](' + bareDocURL(objectNew('name', functionName)) + ')')
             endfor
         endif
     endfor
 endfunction
 
 
-function bareScriptLibraryFunctionPage(libDoc, title, functionName)
+function bareDocFunctionPage(libDoc, title, functionName)
     # Set the document title
     documentSetTitle(title + ' - ' + functionName)
 
@@ -116,7 +115,7 @@ function bareScriptLibraryFunctionPage(libDoc, title, functionName)
 
     # Render the page title and menu
     markdownPrint('# ' + title)
-    markdownPrint('', '[Index](' + bareScriptLibraryURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
+    markdownPrint('', '[Index](' + bareDocURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
     markdownPrint('', '## ' + functionName, '', objectGet(function_, 'doc'))
 
     # Render the functions's argument documentation
@@ -137,7 +136,7 @@ function bareScriptLibraryFunctionPage(libDoc, title, functionName)
 endfunction
 
 
-function bareScriptLibraryURL(args)
+function bareDocURL(args)
     # Arguments overrides
     expand = objectGet(args, 'expand')
     group = objectGet(args, 'group')
@@ -165,7 +164,7 @@ endfunction
 
 
 # The library documentation schema
-bareScriptLibraryTypes = schemaParse( \
+bareDocTypes = schemaParse( \
     '# A library documentation model', \
     'struct Library', \
     '', \

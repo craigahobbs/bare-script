@@ -31,10 +31,10 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_DOCKER) node bin/bareScriptDoc.js lib/library.js > build/doc/library/library.json
+	$(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json
 
     # Generate the expression library documentation
-	$(NODE_DOCKER) node bin/bareScriptDoc.js lib/library.js | \
+	$(NODE_DOCKER) npx baredoc lib/library.js | \
 		$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
 
     # Generate the model documentation

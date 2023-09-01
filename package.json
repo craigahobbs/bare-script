@@ -17,7 +17,8 @@
         "url": "https://github.com/craigahobbs"
     },
     "bin": {
-        "bareScriptDoc": "./bin/bareScriptDoc.js"
+        "bare": "./bin/bare.js",
+        "baredoc": "./bin/bareDoc.js"
     },
     "files": [
         "lib/**/*"

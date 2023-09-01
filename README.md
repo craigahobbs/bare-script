@@ -42,7 +42,7 @@ return N + ' times 2 is ' + double(N)
 
 // Execute the script
 const globals = {'N': 10};
-console.log(executeScript(script, {'globals': globals}));
+console.log(executeScript(script, {globals}));
 ~~~
 
 This outputs:
@@ -54,12 +54,14 @@ This outputs:
 
 ### The BareScript Library
 
-[The BareScript Library](https://craigahobbs.github.io/bare-script/library/) includes a set of
-built-in functions for mathematical operations, object manipulation, array manipulation, regular
-expressions, HTTP fetch and more. The following example demonstrates the use of the
-[httpFetch](https://craigahobbs.github.io/bare-script/library/#var.vName='httpFetch'),
+[The BareScript Library](https://craigahobbs.github.io/bare-script/library/)
+includes a set of built-in functions for mathematical operations, object manipulation, array
+manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
+of the
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch'),
 [objectGet](https://craigahobbs.github.io/bare-script/library/#var.vName='objectGet'), and
-[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vName='arrayLength') functions.
+[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vName='arrayLength')
+functions.
 
 ~~~ javascript
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
@@ -68,10 +70,10 @@ import {parseScript} from 'bare-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Fetch the BareScript library documentation JSON
-libraryDocs = httpFetch('https://craigahobbs.github.io/bare-script/library/library.json')
+docs = systemFetch('https://craigahobbs.github.io/bare-script/library/library.json')
 
 # Return the number of library functions
-return 'The BareScript Library has ' + arrayLength(objectGet(libraryDocs, 'functions')) + ' functions'
+return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions')) + ' functions'
 `);
 
 // Execute the script
@@ -81,7 +83,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ~~~
-The BareScript Library has 86 functions
+The BareScript Library has 89 functions
 ~~~
 
 
@@ -120,6 +122,42 @@ This outputs:
 ~~~
 6
 ~~~
+
+
+## The BareScript Command-Line Interface (CLI)
+
+You can run BareScript from the command line using the BareScript CLI, "bare". BareScript script
+files use the ".bare" file extension.
+
+~~~
+bare script.bare
+~~~
+
+**Note:** In the BareScript CLI, import statements and the
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch')
+function read non-URL paths from the local file system.
+
+
+## MarkdownUp, a Markdown Viewer with BareScript
+
+[MarkdownUp](https://craigahobbs.github.io/markdown-up/)
+is a Markdown Viewer that executes BareScript embedded within Markdown documents.
+[MarkdownUp](https://craigahobbs.github.io/markdown-up/)
+extends its
+[standard library](https://craigahobbs.github.io/markdown-up/library/)
+with functions for dynamically rendering Markdown text, drawing SVG images, etc.
+
+For example:
+
+```
+# Markdown Application
+
+This is a Markdown document with embedded BareScript:
+
+~~~ markdown-script
+markdownPrint('Hello, Markdown!')
+~~~
+```
 
 
 ## Development

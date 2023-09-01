@@ -1,14 +1,129 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+import {main, parseBareDoc} from '../lib/bareDoc.js';
 import {strict as assert} from 'node:assert';
-import {parseLibraryDoc} from '../lib/libraryDoc.js';
 import test from 'node:test';
 
 
-test('parseLibraryDoc', () => {
+test('bareDoc.main', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert.equal(url, 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+    // $function: myFunc
+    // $group: My Group
+    // $doc: My function
+`
+            };
+        },
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        `\
+{
+    "functions": [
+        {
+            "name": "myFunc",
+            "group": "My Group",
+            "doc": [
+                "My function"
+            ]
+        }
+    ]
+}`
+    ]);
+});
+
+
+test('bareDoc.main, error', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert.equal(url, 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+// $group: My Group
+`
+            };
+        },
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['test.bare:1: group keyword outside function\nerror: No library functions']);
+});
+
+
+test('bareDoc.main, fetch error', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert.equal(url, 'test.bare');
+            throw new Error();
+        },
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['Failed to load "test.bare"']);
+});
+
+
+test('bareDoc.main, fetch text error', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert.equal(url, 'test.bare');
+            return {'ok': false};
+        },
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['Failed to load "test.bare"']);
+});
+
+
+test('bareDoc.main, fetch text error 2', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert.equal(url, 'test.bare');
+            return {
+                'ok': true,
+                'text': () => {
+                    throw new Error();
+                }
+            };
+        },
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['Failed to load "test.bare"']);
+});
+
+
+test('parseBareDoc', () => {
     assert.deepEqual(
-        parseLibraryDoc([
+        parseBareDoc([
             [
                 'library.js',
                 `\
@@ -75,9 +190,9 @@ test('parseLibraryDoc', () => {
 });
 
 
-test('parseLibraryDoc, blank lines', () => {
+test('parseBareDoc, blank lines', () => {
     assert.deepEqual(
-        parseLibraryDoc([
+        parseBareDoc([
             [
                 'library.js',
                 `\
@@ -121,10 +236,10 @@ test('parseLibraryDoc, blank lines', () => {
 });
 
 
-test('parseLibraryDoc, error keyword outside function', () => {
+test('parseBareDoc, error keyword outside function', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -147,10 +262,10 @@ error: No library functions`
 });
 
 
-test('parseLibraryDoc, error arg outside function', () => {
+test('parseBareDoc, error arg outside function', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -169,10 +284,10 @@ error: No library functions`
 });
 
 
-test('parseLibraryDoc, error empty function name', () => {
+test('parseBareDoc, error empty function name', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -191,10 +306,10 @@ error: No library functions`
 });
 
 
-test('parseLibraryDoc, error function redefinition', () => {
+test('parseBareDoc, error function redefinition', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -219,10 +334,10 @@ library.js:6: Function "myFunc" group redefinition`
 });
 
 
-test('parseLibraryDoc, error empty group name', () => {
+test('parseBareDoc, error empty group name', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -243,10 +358,10 @@ error: Function "myFunc" missing group`
 });
 
 
-test('parseLibraryDoc, error group redefinition', () => {
+test('parseBareDoc, error group redefinition', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\
@@ -267,10 +382,10 @@ library.js:3: Function "myFunc" group redefinition`
 });
 
 
-test('parseLibraryDoc, error no functions', () => {
+test('parseBareDoc, error no functions', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     ''
@@ -285,10 +400,10 @@ test('parseLibraryDoc, error no functions', () => {
 });
 
 
-test('parseLibraryDoc, error function missing group/doc', () => {
+test('parseBareDoc, error function missing group/doc', () => {
     assert.throws(
         () => {
-            parseLibraryDoc([
+            parseBareDoc([
                 [
                     'library.js',
                     `\

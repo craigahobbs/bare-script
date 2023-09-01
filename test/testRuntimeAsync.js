@@ -292,7 +292,7 @@ test('executeScriptAsync, include system', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'system/test.mds');
+        assert.equal(url, 'system/test.mds');
         return {
             'ok': true,
             'text': () => 'a = 1'
@@ -311,7 +311,7 @@ test('executeScriptAsync, include system no system prefix', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'test.mds');
+        assert.equal(url, 'test.mds');
         return {
             'ok': true,
             'text': () => 'a = 1'
@@ -330,7 +330,7 @@ test('executeScriptAsync, include system no system prefix with urlFn', async () 
         ]
     });
     const fetchFn = (url) => {
-        assert(url === '/base/test.mds');
+        assert.equal(url, '/base/test.mds');
         return {
             'ok': true,
             'text': () => 'a = 1'
@@ -544,7 +544,7 @@ test('executeScriptAsync, include fetchFn not-ok', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'test.mds');
+        assert.equal(url, 'test.mds');
         return {
             'ok': false,
             'statusText': 'Not Found'
@@ -588,7 +588,7 @@ test('executeScriptAsync, include fetchFn text error', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'test.mds');
+        assert.equal(url, 'test.mds');
         return {
             'ok': true,
             'text': () => {
@@ -614,7 +614,7 @@ test('executeScriptAsync, include fetchFn parser error', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'test.mds');
+        assert.equal(url, 'test.mds');
         return {
             'ok': true,
             'text': () => 'foo bar'
