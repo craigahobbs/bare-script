@@ -102,8 +102,8 @@ return a + 1
 
 ### Function Definition Statements
 
-Functions are defined using "function" statements. A function statement consists of the function
-name and its argument names within parentheses. Until the "endfunction" statement, all statements
+Functions are defined using `function` statements. A function statement consists of the function
+name and its argument names within parentheses. Until the `endfunction` statement, all statements
 that follow belong to the function. When the function executes, its arguments are available as local
 variables. For example:
 
@@ -116,7 +116,7 @@ return getMinMax(1, 2, 3, 5)
 ~~~
 
 A function that makes any **asynchronous** function call (e.g.,
-[systemFetch](../library/#var.vName='systemFetch')) must be defined as asynchronous. For example:
+[systemFetch](../library/#var.vGroup='System'&systemfetch)) must be defined as asynchronous. For example:
 
 ~~~ barescript
 async function getLibraryCount(url)
@@ -225,11 +225,11 @@ endfor
 
 ### Jump and Label Statements
 
-A "jump" statement sets the current program statement to a label. A "jumpif" statement jumps only if
+A `jump` statement sets the current program statement to a label. A `jumpif` statement jumps only if
 its test [expression](#expressions) evaluates to true. Labels are defined by specifying the label
 name followed by a colon.
 
-The example below uses "jump", "jumpif", and label statements to sum the values of an array:
+The example below uses `jump`, `jumpif`, and label statements to sum the values of an array:
 
 ~~~ barescript
 values = arrayNew(1, 2, 3, 5, 7)
@@ -266,7 +266,7 @@ endfunction
 
 ### Multiline Statements
 
-Long statements can be broken into multiple lines using the line continuation syntax, a trailing "\"
+Long statements can be broken into multiple lines using the line continuation syntax, a trailing "\\"
 character. For example:
 
 ~~~ barescript
@@ -285,7 +285,7 @@ The [BareScript Library](../library/) is a set of built-in, general-purpose glob
 available to all BareScript scripts. The library contains functions for creating and manipulating
 objects, arrays, datetimes, regular expressions, and strings. There are also functions for
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
-[systemFetch](../library/#var.vName='systemFetch').
+[systemFetch](../library/#var.vGroup='System'&systemfetch).
 
 ## Expressions
 
@@ -338,7 +338,7 @@ fooBar
 
 #### Special Variables
 
-BareScript has the following special variables: "null", "false", and "true". Special variables
+BareScript has the following special variables: `null`, `false`, and `true`. Special variables
 cannot be overridden.
 
 
@@ -352,11 +352,11 @@ max(0, sin(x))
 ~~~
 
 
-#### The Built-In "if" Function
+#### The Built-In `if` Function
 
-The built-in ["if"](../library/#var.vName='if') function has the special behavior that only the true
-expression is evaluated if the test expression is true. Likewise, only the false expression is
-evaluated if the test expression is false.
+The built-in `if` function has the special behavior that only the true expression is evaluated if
+the test expression is true. Likewise, only the false expression is evaluated if the test expression
+is false.
 
 ~~~ barescript
 v = if(a == b, fn1(), fn2())

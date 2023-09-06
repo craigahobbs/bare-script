@@ -11,8 +11,9 @@
 # url - The library documentation JSON resource URL
 # title - The library title
 # menuLinks - Optional array of text/URL menu link tuples
+# groupURLs - Optional map of group name to Markdown URL ('' is index)
 #
-async function bareDocMain(url, title, menuLinks)
+async function bareDocMain(url, title, menuLinks, groupURLs)
     # URL override?
     url = if(vURL != null, vURL, url)
     if arrayLength(url) != null:
@@ -24,8 +25,7 @@ async function bareDocMain(url, title, menuLinks)
     title = if(title != null && vURL == null, title, url)
 
     # Fetch and validate the library documentation resource
-    libraryFunctions = arrayNew()
-    library = objectNew('functions', libraryFunctions)
+    groups = objectNew()
     for libraryPart, ixLibrary in systemFetch(urls):
         libraryPart = schemaValidate(bareDocTypes, 'Library', libraryPart)
         if libraryPart == null:
@@ -33,131 +33,142 @@ async function bareDocMain(url, title, menuLinks)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
             return
         endif
-        arrayExtend(libraryFunctions, objectGet(libraryPart, 'functions'))
+
+        # Group the function documentation
+        for function_ in objectGet(libraryPart, 'functions'):
+            groupName = objectGet(function_, 'group')
+            groupFunctions = objectGet(groups, groupName)
+            if groupFunctions == null:
+                groupFunctions = arrayNew()
+                objectSet(groups, groupName, groupFunctions)
+            endif
+            arrayPush(groupFunctions, function_)
+        endfor
     endfor
+
+    # Function requested by name?
+    if vName != null:
+        for groupName in objectKeys(groups):
+            for function_ in objectGet(groups, groupName):
+                functionName = objectGet(function_, 'name')
+                if functionName == vName:
+                    # Redirect to the actual URL
+                    functionURL = bareDocURL(objectNew('group', objectGet(function_, 'group'))) + '&' + markdownHeaderId(functionName)
+                    windowSetLocation(functionURL)
+                    return
+                endif
+            endfor
+        endfor
+        markdownPrint('', '**Error:** Unknown function "' + vName + '"')
+        return
+    endif
 
     # Render the page
     if vDoc:
         documentSetTitle(title + ' - Library')
         elementModelRender(schemaElements(bareDocTypes, 'Library'))
-    elif vName != null:
-        bareDocFunctionPage(library, title, vName)
+    elif vGroup != null:
+        bareDocGroupPage(title, groupURLs, groups, vGroup)
     else:
-        bareDocIndexPage(library, title, menuLinks)
+        bareDocIndexPage(title, menuLinks, groupURLs, groups)
     endif
 endfunction
 
 
-function bareDocIndexPage(library, title, menuLinks)
-    # Set the page title
+async function bareDocIndexPage(title, menuLinks, groupURLs, groups)
+    # Render the menu and title
     documentSetTitle(title)
-    markdownPrint('# ' + title)
-
-    # Render the index menu
-    markdownPrint('', if(vExpand, '[Collapse](', '[Expand](') + bareDocURL(objectNew('expand', !vExpand, 'group', '')) + ')')
-    for menuLink in menuLinks:
+    for menuLink, ixMenuLink in menuLinks:
         menuLinkText = arrayGet(menuLink, 0)
         menuLinkURL = arrayGet(menuLink, 1)
-        markdownPrint('| [' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
+        markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
     endfor
+    markdownPrint('', '# ' + title)
 
-    # Group the function documentation
-    groups = objectNew()
-    for function_ in objectGet(library, 'functions'):
-        group = objectGet(function_, 'group')
-        groupFunctions = objectGet(groups, group)
-        if groupFunctions == null:
-            groupFunctions = arrayNew()
-            objectSet(groups, group, groupFunctions)
-        endif
-        arrayPush(groupFunctions, objectGet(function_, 'name'))
-    endfor
+    # Render the index Markdown, if any
+    if objectHas(groupURLs, ''):
+        rootURL = objectGet(groupURLs, '')
+        rootMarkdown = systemFetch(rootURL, null, true)
+        markdownPrint('', if(rootMarkdown != null, rootMarkdown, 'Error: Failed to load "' + rootURL + '"'))
+    endif
 
     # Render the library function index
-    groupKeys = arraySort(objectKeys(groups))
-    for groupKey in groupKeys:
-        # Render the group key link
-        if vExpand:
-            markdownPrint('## ' + markdownEscape(groupKey))
-        elif vGroup != groupKey:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', groupKey)) + ')')
-        else:
-            markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', '')) + ')')
-        endif
-
-        # Render the group's function links
-        if vExpand || vGroup == groupKey:
-            for functionName in arraySort(objectGet(groups, groupKey)):
-                markdownPrint('', '[' + markdownEscape(functionName) + '](' + bareDocURL(objectNew('name', functionName)) + ')')
-            endfor
-        endif
+    for groupKey in arraySort(objectKeys(groups)):
+        markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', groupKey)) + ')')
     endfor
 endfunction
 
 
-function bareDocFunctionPage(libDoc, title, functionName)
+async function bareDocGroupPage(title, groupURLs, groups, groupName)
     # Set the document title
-    documentSetTitle(title + ' - ' + functionName)
+    documentSetTitle(title + ' - ' + groupName)
 
-    # Function exist?
-    functionFound = false
-    for function_ in objectGet(libDoc, 'functions'):
-        if functionName == objectGet(function_, 'name'):
-            functionFound = true
-            break
-        endif
-    endfor
-    if !functionFound:
-        markdownPrint('', '**Error:** Unknown function "' + functionName + '"')
+    # Group exist?
+    if !objectHas(groups, groupName):
+        markdownPrint('', '**Error:** Unknown group "' + groupName + '"')
         return
     endif
-    functionGroup = objectGet(function_, 'group')
 
-    # Render the page title and menu
-    markdownPrint('# ' + title)
-    markdownPrint('', '[Index](' + bareDocURL(objectNew('name', '')) + '&' + markdownHeaderId(functionGroup) + ')')
-    markdownPrint('', '## ' + functionName, '', objectGet(function_, 'doc'))
+    # Render the menu and title
+    markdownPrint( \
+        '[Index](' + bareDocURL(objectNew('group', '')) + ')', \
+        '', \
+        '# ' + groupName \
+    )
 
-    # Render the functions's argument documentation
-    markdownPrint('', '### Arguments')
-    arguments = objectGet(function_, 'args')
-    if arguments != null:
-        for argument in arguments:
-            markdownPrint('', '**' + objectGet(argument, 'name') + ' -** ', objectGet(argument, 'doc'))
-        endfor
-    else:
-        markdownPrint('None')
+    # Render the group Markdown, if any
+    if objectHas(groupURLs, groupName):
+        groupURL = objectGet(groupURLs, groupName)
+        groupMarkdown = systemFetch(groupURL, null, true)
+        markdownPrint('', if(groupMarkdown != null, groupMarkdown, 'Error: Failed to load "' + groupURL + '"'))
     endif
 
-    # Render the function's return documentation
-    markdownPrint('', '### Returns')
-    returnDoc = objectGet(function_, 'return')
-    markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
+    # Render the group function index
+    markdownPrint('', '## Function Index')
+    for function_, ixFunction in objectGet(groups, groupName):
+        functionName = objectGet(function_, 'name')
+        markdownPrint('- [' + markdownEscape(functionName) + '](' + bareDocURL() + '&' + markdownHeaderId(functionName) + ')')
+    endfor
+
+    # Render the group function documentation
+    for function_ in objectGet(groups, groupName):
+        # Render the function header
+        markdownPrint('', '---', '', '## ' + objectGet(function_, 'name'))
+
+        # Render the functions's argument documentation
+        markdownPrint('', '### Arguments')
+        arguments = objectGet(function_, 'args')
+        if arguments != null:
+            for argument in arguments:
+                markdownPrint('', '**' + objectGet(argument, 'name') + ' -** ', objectGet(argument, 'doc'))
+            endfor
+        else:
+            markdownPrint('None')
+        endif
+
+        # Render the function's return documentation
+        markdownPrint('', '### Returns')
+        returnDoc = objectGet(function_, 'return')
+        markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
+    endfor
 endfunction
 
 
 function bareDocURL(args)
     # Arguments overrides
-    expand = objectGet(args, 'expand')
     group = objectGet(args, 'group')
-    name = objectGet(args, 'name')
     url = objectGet(args, 'url')
 
     # Variable arguments
-    expand = if(expand != null, expand, vExpand)
     group = if(group != null, group, vGroup)
-    name = if(name != null, name, vName)
     url = if(url != null, url, vURL)
 
     # Cleared arguments
     group = if(group != null && stringLength(group) > 0, group)
-    name = if(name != null && stringLength(name) > 0, name)
 
     # Create the link
     parts = arrayNew()
-    if(expand != null && expand, arrayPush(parts, 'var.vExpand=1'))
     if(group != null, arrayPush(parts, "var.vGroup='" + urlEncodeComponent(group) + "'"))
-    if(name != null, arrayPush(parts, "var.vName='" + urlEncodeComponent(name) + "'"))
     if(url != null, arrayPush(parts, "var.vURL='" + urlEncodeComponent(url) + "'"))
     return if(arrayLength(parts) != 0, '#' + arrayJoin(parts, '&'), '#var=')
 endfunction
@@ -170,6 +181,7 @@ bareDocTypes = schemaParse( \
     '', \
     '    # The library functions', \
     '    Function[len > 0] functions', \
+    '', \
     '', \
     '# A library function', \
     'struct Function', \
@@ -188,6 +200,7 @@ bareDocTypes = schemaParse( \
     '', \
     "    # The function return's documentation Markdown lines", \
     '    optional string[len > 0] return', \
+    '', \
     '', \
     '# A function argument', \
     'struct FunctionArgument', \

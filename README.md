@@ -58,9 +58,9 @@ This outputs:
 includes a set of built-in functions for mathematical operations, object manipulation, array
 manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
 of the
-[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch'),
-[objectGet](https://craigahobbs.github.io/bare-script/library/#var.vName='objectGet'), and
-[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vName='arrayLength')
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch),
+[objectGet](https://craigahobbs.github.io/bare-script/library/#var.vGroup='Object'&objectget), and
+[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&arraylength)
 functions.
 
 ~~~ javascript
@@ -134,7 +134,7 @@ bare script.bare
 ~~~
 
 **Note:** In the BareScript CLI, import statements and the
-[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch')
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
 function read non-URL paths from the local file system.
 
 
