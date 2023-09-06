@@ -89,9 +89,9 @@ console.log(executeScript(script, {globals}));
 includes a set of built-in functions for mathematical operations, object manipulation, array
 manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
 of the
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch'">systemFetch</a>,
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vName='objectGet'">objectGet</a>, and
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vName='arrayLength'">arrayLength</a>
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>,
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Object'&amp;objectget">objectGet</a>, and
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&amp;arraylength">arrayLength</a>
 functions.</p>
 <pre class="prettyprint source lang-javascript"><code>import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 import {parseScript} from 'bare-script/lib/parser.js';
@@ -144,7 +144,7 @@ files use the &quot;.bare&quot; file extension.</p>
 <pre class="prettyprint source"><code>bare script.bare
 </code></pre>
 <p><strong>Note:</strong> In the BareScript CLI, import statements and the
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vName='systemFetch'">systemFetch</a>
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>
 function read non-URL paths from the local file system.</p>
 <h2>MarkdownUp, a Markdown Viewer with BareScript</h2>
 <p><a href="https://craigahobbs.github.io/markdown-up/">MarkdownUp</a>
