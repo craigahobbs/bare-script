@@ -1,3 +1,3 @@
 Welcome to the
 [BareScript](https://craigahobbs.github.io/bare-script/language/)
-Standard Library documentation.
+Expression Library documentation.
