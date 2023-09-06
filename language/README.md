@@ -250,17 +250,27 @@ valueLoopDone:
 Include statements load and evaluate a script file in the global scope. For example:
 
 ~~~ barescript
-include 'util.mds'
+include 'util.bare'
 
 return concatStrings('abc', 'def')
 ~~~
 
-The contents of "util.mds" are:
+The contents of "util.bare" are:
 
 ~~~ barescript
 function concatStrings(a, b)
     return a + b
 endfunction
+~~~
+
+
+#### System Include Statements
+
+System include statements are similar to include statements, but relative paths are resolved to be
+relative to the system include prefix. For example:
+
+~~~
+include <util.bare>
 ~~~
 
 
