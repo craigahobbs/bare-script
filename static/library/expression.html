@@ -15,9 +15,17 @@
             'markdownText': `\
 ~~~ markdown-script
 include 'app.mds'
-bareDocMain('expression.json', 'The BareScript Expression Library', arrayNew( \\
-    arrayNew('BareScript', 'https://craigahobbs.github.io/bare-script/language/') \\
-))
+bareDocMain( \\
+    'expression.json', \\
+    'The BareScript Expression Library', \\
+    arrayNew( \\
+        arrayNew('Home', 'https://github.com/craigahobbs/bare-script#readme'), \\
+        arrayNew('BareScript', 'https://craigahobbs.github.io/bare-script/language/') \\
+    ), \\
+    objectNew( \\
+        '', 'content/introExpression.md' \\
+    ) \\
+)
 ~~~
 `});
         app.run();
