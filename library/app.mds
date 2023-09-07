@@ -59,7 +59,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs)
                 endif
             endfor
         endfor
-        markdownPrint('', '**Error:** Unknown function "' + vName + '"')
+        markdownPrint('', '**Error:** Unknown function "' + markdownEscape(vName) + '"')
         return
     endif
 
@@ -83,13 +83,13 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups)
         menuLinkURL = arrayGet(menuLink, 1)
         markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
     endfor
-    markdownPrint('', '# ' + title)
+    markdownPrint('', '# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
     if objectHas(groupURLs, ''):
         rootURL = objectGet(groupURLs, '')
         rootMarkdown = systemFetch(rootURL, null, true)
-        markdownPrint('', if(rootMarkdown != null, rootMarkdown, 'Error: Failed to load "' + rootURL + '"'))
+        markdownPrint('', if(rootMarkdown != null, rootMarkdown, 'Error: Failed to load "' + markdownEscape(rootURL) + '"'))
     endif
 
     # Render the library function index
@@ -105,7 +105,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName)
 
     # Group exist?
     if !objectHas(groups, groupName):
-        markdownPrint('', '**Error:** Unknown group "' + groupName + '"')
+        markdownPrint('', '**Error:** Unknown group "' + markdownEscape(groupName) + '"')
         return
     endif
 
@@ -113,14 +113,14 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName)
     markdownPrint( \
         '[Index](' + bareDocURL(objectNew('group', '')) + ')', \
         '', \
-        '# ' + groupName \
+        '# ' + markdownEscape(groupName) \
     )
 
     # Render the group Markdown, if any
     if objectHas(groupURLs, groupName):
         groupURL = objectGet(groupURLs, groupName)
         groupMarkdown = systemFetch(groupURL, null, true)
-        markdownPrint('', if(groupMarkdown != null, groupMarkdown, 'Error: Failed to load "' + groupURL + '"'))
+        markdownPrint('', if(groupMarkdown != null, groupMarkdown, 'Error: Failed to load "' + markdownEscape(groupURL) + '"'))
     endif
 
     # Render the group function index
@@ -133,14 +133,21 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName)
     # Render the group function documentation
     for function_ in objectGet(groups, groupName):
         # Render the function header
-        markdownPrint('', '---', '', '## ' + objectGet(function_, 'name'))
+        markdownPrint( \
+            '', \
+            '---', \
+            '', \
+            '## ' + markdownEscape(objectGet(function_, 'name')), \
+            '', \
+            objectGet(function_, 'doc') \
+        )
 
         # Render the functions's argument documentation
         markdownPrint('', '### Arguments')
         arguments = objectGet(function_, 'args')
         if arguments != null:
             for argument in arguments:
-                markdownPrint('', '**' + objectGet(argument, 'name') + ' -** ', objectGet(argument, 'doc'))
+                markdownPrint('', '**' + markdownEscape(objectGet(argument, 'name')) + ' -** ', objectGet(argument, 'doc'))
             endfor
         else:
             markdownPrint('None')
