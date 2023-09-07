@@ -22,6 +22,10 @@ include Makefile.base
 ESLINT_ARGS := $(ESLINT_ARGS) bin/
 
 
+help:
+	@echo "            [perf]"
+
+
 clean:
 	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
 
@@ -55,8 +59,44 @@ const libraryFunctionMap = Object.fromEntries(library.functions.map((func) => [f
 // Output the expression library documentation
 const libraryExpr = {'functions': []};
 for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) {
-    libraryExpr.functions.push({...libraryFunctionMap[scriptFnName], 'name': exprFnName});
+	libraryExpr.functions.push({...libraryFunctionMap[scriptFnName], 'name': exprFnName});
 }
 console.log(JSON.stringify(libraryExpr, null, 4));
 endef
 export LIBRARY_EXPR
+
+
+# Run performance tests
+.PHONY: perf
+perf: commit
+	echo "Language,TimeMs" > $(PERF_CSV)
+	for X in $$(seq 1 $(PERF_RUNS)); do echo "BareScript,$$($(NODE_DOCKER) npx bare perf/test.bare)" >> $(PERF_CSV); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo "JavaScript,$$($(NODE_DOCKER) node perf/test.js)" >> $(PERF_CSV); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo "Python,$$($(PYTHON_DOCKER) python3 perf/test.py)" >> $(PERF_CSV); done
+	$(PYTHON_DOCKER) python3 -c "$$PERF_PY"
+
+
+# Performance test constants
+PERF_CSV := build/perf.csv
+PERF_RUNS := 5
+
+
+# Python to report on performance test data
+define PERF_PY
+import csv
+from collections import defaultdict
+
+# Read the performance test data
+languageTimings = defaultdict(list)
+with open('$(PERF_CSV)', 'r') as csvfile:
+	reader = csv.DictReader(csvfile)
+	for row in reader:
+		languageTimings[row['Language']].append(float(row['TimeMs']))
+
+# Report language timings
+timings = dict((language, min(timings)) for language, timings in languageTimings.items())
+for language, timing in sorted(timings.items(), key = lambda kv: kv[1], reverse = True):
+	report = f'{language} - {timing:.1f} milliseconds'
+	print(report if language == 'BareScript' else f'{report} ({timings["BareScript"] / timing:.0f}x)')
+endef
+export PERF_PY
