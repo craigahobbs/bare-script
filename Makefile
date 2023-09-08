@@ -19,7 +19,7 @@ $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-bui
 include Makefile.base
 
 
-ESLINT_ARGS := $(ESLINT_ARGS) bin/
+ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 
 
 help:
@@ -39,7 +39,7 @@ doc:
 
     # Generate the expression library documentation
 	$(NODE_DOCKER) npx baredoc lib/library.js | \
-		$(NODE_DOCKER) node --input-type=module -e "$$LIBRARY_EXPR" > build/doc/library/expression.json
+		$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
 
     # Generate the model documentation
 	$(NODE_DOCKER) node --input-type=module \
@@ -48,12 +48,12 @@ doc:
 
 
 # JavaScript to generate the expression library documentation
-define LIBRARY_EXPR
+define DOC_EXPR_JS
 import {expressionFunctionMap} from "./lib/library.js";
 import {readFileSync} from 'node:fs';
 
 // Read the script library documentation JSON from stdin
-const library = JSON.parse(fs.readFileSync(0).toString());
+const library = JSON.parse(readFileSync(0).toString());
 const libraryFunctionMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
 
 // Output the expression library documentation
@@ -63,40 +63,42 @@ for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) 
 }
 console.log(JSON.stringify(libraryExpr, null, 4));
 endef
-export LIBRARY_EXPR
+export DOC_EXPR_JS
 
 
 # Run performance tests
 .PHONY: perf
 perf: commit
-	echo "Language,TimeMs" > $(PERF_CSV)
-	for X in $$(seq 1 $(PERF_RUNS)); do echo "BareScript,$$($(NODE_DOCKER) npx bare perf/test.bare)" >> $(PERF_CSV); done
-	for X in $$(seq 1 $(PERF_RUNS)); do echo "JavaScript,$$($(NODE_DOCKER) node perf/test.js)" >> $(PERF_CSV); done
-	for X in $$(seq 1 $(PERF_RUNS)); do echo "Python,$$($(PYTHON_DOCKER) python3 perf/test.py)" >> $(PERF_CSV); done
-	$(PYTHON_DOCKER) python3 -c "$$PERF_PY"
+	echo "[" > $(PERF_JSON)
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript", "timeMs": '$$($(NODE_DOCKER) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "JavaScript", "timeMs": '$$($(NODE_DOCKER) node perf/test.js)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "Python", "timeMs": '$$($(PYTHON_DOCKER) python3 perf/test.py)'},' >> $(PERF_JSON); done
+	echo '{"language": null, "timeMs": null}' >> $(PERF_JSON)
+	echo "]" >> $(PERF_JSON)
+	$(NODE_DOCKER) node --input-type=module -e "$$PERF_JS"
 
 
 # Performance test constants
-PERF_CSV := build/perf.csv
+PERF_JSON := build/perf.json
 PERF_RUNS := 5
 
 
-# Python to report on performance test data
-define PERF_PY
-import csv
-from collections import defaultdict
+# JavsScript to report on performance test data
+define PERF_JS
+import {readFileSync} from 'node:fs';
 
-# Read the performance test data
-languageTimings = defaultdict(list)
-with open('$(PERF_CSV)', 'r') as csvfile:
-	reader = csv.DictReader(csvfile)
-	for row in reader:
-		languageTimings[row['Language']].append(float(row['TimeMs']))
+// Read the performance test data
+const bestTimings = {};
+for (const {language, timeMs}  of JSON.parse(readFileSync('build/perf.json'))) {
+	if (language !== null && (!(language in bestTimings) || timeMs < bestTimings[language])) {
+		bestTimings[language] = timeMs;
+	}
+}
 
-# Report language timings
-timings = dict((language, min(timings)) for language, timings in languageTimings.items())
-for language, timing in sorted(timings.items(), key = lambda kv: kv[1], reverse = True):
-	report = f'{language} - {timing:.1f} milliseconds'
-	print(report if language == 'BareScript' else f'{report} ({timings["BareScript"] / timing:.0f}x)')
+// Report the timing multiples
+for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], [, timeMs2]) => timeMs2 - timeMs1)) {
+	const report = `$${language} - $${timeMs.toFixed(3)} milliseconds`;
+	console.log(language === 'BareScript' ? report : `$${report} ($${(bestTimings.BareScript / timeMs).toFixed(0)}x)`);
+}
 endef
-export PERF_PY
+export PERF_JS

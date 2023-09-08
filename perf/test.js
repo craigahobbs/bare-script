@@ -1,61 +1,64 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-const vVerbose = process.argv.length > 2 && process.argv[2];
+import {argv, stdout} from 'node:process';
+
+
+const vVerbose = argv.length > 2 && argv[2];
 
 
 function main() {
-    const timeBegin = new Date();
+    const timeBegin = performance.now();
     const width = 300;
     const height = 200;
-    const iter = 60;
-    const x = -0.5;
-    const y = 0;
+    const xCoord = -0.5;
+    const yCoord = 0;
     const xRange = 2.6;
-    mandelbrotSet(width, height, x, y, xRange, iter);
-    const timeEnd = new Date();
-    console.log(timeEnd - timeBegin);
+    const maxIter = 60;
+    mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter);
+    const timeEnd = performance.now();
+    stdout.write(`${timeEnd - timeBegin}\n`);
 }
 
 
-function mandelbrotSet(width, height, xCoord, yCoord, xRange, iter) {
+function mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter) {
     // Compute the set extents
     const yRange = (height / width) * xRange;
     const xMin = xCoord - 0.5 * xRange;
     const yMin = yCoord - 0.5 * yRange;
 
     // Draw each pixel in the set
-    let x = 0;
-    while (x < width) {
-        let y = 0;
-        while (y < height) {
-            const xValue = xMin + (x / (width - 1)) * xRange;
-            const yValue = yMin + (y / (height - 1)) * yRange;
-            const n = mandelbrotValue(xValue, yValue, iter);
+    let ix = 0;
+    while (ix < width) {
+        let iy = 0;
+        while (iy < height) {
+            const xValue = xMin + (ix / (width - 1)) * xRange;
+            const yValue = yMin + (iy / (height - 1)) * yRange;
+            const iter = mandelbrotValue(xValue, yValue, maxIter);
             if (vVerbose) {
-                console.log('x = ' + xValue + ', y = ' + yValue + ', n = ' + n);
+                stdout.write(`x = ${xValue}, y = ${yValue}, n = ${iter}\n`);
             }
-            y = y + 1;
+            iy++;
         }
-        x = x + 1;
+        ix++;
     }
 }
 
 
-function mandelbrotValue(x, y, maxIterations) {
+function mandelbrotValue(xValue, yValue, maxIter) {
     // c1 = complex(x, y) {
     // c2 = complex(0, 0)
-    let c1r = x;
-    let c1i = y;
+    const c1r = xValue;
+    const c1i = yValue;
     let c2r = 0;
     let c2i = 0;
 
     // Iteratively compute the next c2 value
-    let n = 1;
-    while ((n <= maxIterations) ) {
+    let iter = 1;
+    while (iter <= maxIter) {
         // Done?
         if (Math.sqrt(c2r * c2r + c2i * c2i) > 2) {
-            return n;
+            return iter;
         }
 
         // c2 = c2 * c2 + c1
@@ -63,7 +66,7 @@ function mandelbrotValue(x, y, maxIterations) {
         c2i = 2 * c2r * c2i + c1i;
         c2r = c2rNew;
 
-        n = n + 1;
+        iter++;
     }
 
     // Hit max iterations - the point is in the Mandelbrot set

@@ -1,67 +1,68 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import datetime
+from datetime import datetime
 import math
-import sys
+from sys import argv
 
-vVerbose = len(sys.argv) > 1 and sys.argv[1]
+
+vVerbose = len(argv) > 1 and argv[1]
 
 
 def main():
-    timeBegin = datetime.datetime.now()
+    timeBegin = datetime.now()
     width = 300
     height = 200
-    iter = 60
-    x = -0.5
-    y = 0
+    xCoord = -0.5
+    yCoord = 0
     xRange = 2.6
-    mandelbrotSet(width, height, x, y, xRange, iter)
-    timeEnd = datetime.datetime.now()
-    print((timeEnd - timeBegin).total_seconds() * 1000)
+    maxIter = 60
+    mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter)
+    timeEnd = datetime.now()
+    print(f'{(timeEnd - timeBegin).total_seconds() * 1000:.3f}')
 
 
-def mandelbrotSet(width, height, xCoord, yCoord, xRange, iter):
+def mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter):
     # Compute the set extents
     yRange = (height / width) * xRange
     xMin = xCoord - 0.5 * xRange
     yMin = yCoord - 0.5 * yRange
 
     # Draw each pixel in the set
-    x = 0
-    while x < width:
-        y = 0
-        while y < height:
-            xValue = xMin + (x / (width - 1)) * xRange
-            yValue = yMin + (y / (height - 1)) * yRange
-            n = mandelbrotValue(xValue, yValue, iter)
+    ix = 0
+    while ix < width:
+        iy = 0
+        while iy < height:
+            xValue = xMin + (ix / (width - 1)) * xRange
+            yValue = yMin + (iy / (height - 1)) * yRange
+            iter_ = mandelbrotValue(xValue, yValue, maxIter)
             if vVerbose:
-                print('x = ' + str(xValue) + ', y = ' + str(yValue) + ', n = ' + str(n))
-            y = y + 1
-        x = x + 1
+                print(f'x = {xValue}, y = {yValue}, n = {iter_}')
+            iy = iy + 1
+        ix = ix + 1
 
 
-def mandelbrotValue(x, y, maxIterations):
+def mandelbrotValue(xValue, yValue, maxIter):
     # c1 = complex(x, y)
     # c2 = complex(0, 0)
-    c1r = x
-    c1i = y
+    c1r = xValue
+    c1i = yValue
     c2r = 0
     c2i = 0
 
     # Iteratively compute the next c2 value
-    n = 1
-    while n <= maxIterations:
+    iter_ = 1
+    while iter_ <= maxIter:
         # Done?
         if math.sqrt(c2r * c2r + c2i * c2i) > 2:
-            return n
+            return iter_
 
         # c2 = c2 * c2 + c1
         c2rNew = c2r * c2r - c2i * c2i + c1r
         c2i = 2 * c2r * c2i + c1i
         c2r = c2rNew
 
-        n = n + 1
+        iter_ = iter_ + 1
 
     # Hit max iterations - the point is in the Mandelbrot set
     return 0
