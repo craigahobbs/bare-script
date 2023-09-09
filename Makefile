@@ -89,7 +89,7 @@ import {readFileSync} from 'node:fs';
 
 // Read the performance test data
 const bestTimings = {};
-for (const {language, timeMs}  of JSON.parse(readFileSync('build/perf.json'))) {
+for (const {language, timeMs}  of JSON.parse(readFileSync('$(PERF_JSON)'))) {
 	if (language !== null && (!(language in bestTimings) || timeMs < bestTimings[language])) {
 		bestTimings[language] = timeMs;
 	}

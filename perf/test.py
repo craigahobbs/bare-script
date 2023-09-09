@@ -19,7 +19,7 @@ def main():
     maxIter = 60
     mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter)
     timeEnd = datetime.now()
-    print(f'{(timeEnd - timeBegin).total_seconds() * 1000:.3f}')
+    print(f'{(timeEnd - timeBegin).total_seconds() * 1000}')
 
 
 def mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter):
