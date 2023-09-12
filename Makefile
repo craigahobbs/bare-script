@@ -68,7 +68,8 @@ export DOC_EXPR_JS
 
 # Run performance tests
 .PHONY: perf
-perf: commit
+perf: build/npm.build
+	mkdir -p $(dir $(PERF_JSON))
 	echo "[" > $(PERF_JSON)
 	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript", "timeMs": '$$($(NODE_DOCKER) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
 	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "JavaScript", "timeMs": '$$($(NODE_DOCKER) node perf/test.js)'},' >> $(PERF_JSON); done
