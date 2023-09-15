@@ -13,7 +13,7 @@
 # menuLinks - Optional array of text/URL menu link tuples
 # groupURLs - Optional map of group name to Markdown URL ('' is index)
 #
-async function bareDocMain(url, title, menuLinks, groupURLs)
+async function bareDocMain(url, title, menuLinks, groupURLs):
     # URL override?
     url = if(vURL != null, vURL, url)
     if arrayLength(url) != null:
@@ -75,7 +75,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs)
 endfunction
 
 
-async function bareDocIndexPage(title, menuLinks, groupURLs, groups)
+async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the menu and title
     documentSetTitle(title)
     for menuLink, ixMenuLink in menuLinks:
@@ -99,7 +99,7 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups)
 endfunction
 
 
-async function bareDocGroupPage(title, groupURLs, groups, groupName)
+async function bareDocGroupPage(title, groupURLs, groups, groupName):
     # Set the document title
     documentSetTitle(title + ' - ' + groupName)
 
@@ -161,7 +161,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName)
 endfunction
 
 
-function bareDocURL(args)
+function bareDocURL(args):
     # Arguments overrides
     group = objectGet(args, 'group')
     url = objectGet(args, 'url')

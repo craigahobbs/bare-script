@@ -132,8 +132,11 @@ async function executeScriptHelperAsync(statements, options, locals) {
                     const funcLocals = {};
                     if ('args' in statement.function) {
                         const argsLength = args.length;
-                        for (let ixArg = 0; ixArg &lt; statement.function.args.length; ixArg++) {
-                            funcLocals[statement.function.args[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+                        const funcArgsLength = statement.function.args.length;
+                        const ixArgLast = (statement.function.lastArgArray ?? null) &amp;&amp; (funcArgsLength - 1);
+                        for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
+                            const argName = statement.function.args[ixArg];
+                            funcLocals[argName] = (ixArg &lt; argsLength ? (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]) : null);
                         }
                     }
                     return executeScriptHelperAsync(statement.function.statements, fnOptions, funcLocals);
@@ -143,8 +146,11 @@ async function executeScriptHelperAsync(statements, options, locals) {
                     const funcLocals = {};
                     if ('args' in statement.function) {
                         const argsLength = args.length;
-                        for (let ixArg = 0; ixArg &lt; statement.function.args.length; ixArg++) {
-                            funcLocals[statement.function.args[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
+                        const funcArgsLength = statement.function.args.length;
+                        const ixArgLast = (statement.function.lastArgArray ?? null) &amp;&amp; (funcArgsLength - 1);
+                        for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
+                            const argName = statement.function.args[ixArg];
+                            funcLocals[argName] = (ixArg &lt; argsLength ? (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]) : null);
                         }
                     }
                     return executeScriptHelper(statement.function.statements, fnOptions, funcLocals);
