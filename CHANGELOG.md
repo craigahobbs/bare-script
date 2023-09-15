@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1 (2023-09-15)
+
+- [d878111](https://github.com/craigahobbs/bare-script/commit/d878111)
+  - add function last-arg-array syntax \(e.g. "function foo\(args...\)"\)
+  - allow colon at end of function definition
+
 ## 2.1.0 (2023-09-01)
 
 - [222cc07](https://github.com/craigahobbs/bare-script/commit/222cc07) - add the bare CLI
