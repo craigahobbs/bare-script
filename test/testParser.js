@@ -218,7 +218,7 @@ return a
 
 test('parseScript, function statement', () => {
     const script = validateScript(parseScript(`\
-function addNumbers(a, b)
+function addNumbers(a, b):
     return a + b
 endfunction
 `));
@@ -244,7 +244,7 @@ endfunction
 
 test('parseScript, async function statement', () => {
     const script = validateScript(parseScript(`\
-async function fetchURL(url)
+async function fetchURL(url):
     return systemFetch(url)
 endfunction
 `));
@@ -257,6 +257,74 @@ endfunction
                     'args': ['url'],
                     'statements': [
                         {'return': {'expr': {'function': {'name': 'systemFetch', 'args': [{'variable': 'url'}]}}}}
+                    ]
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, function statement lastArgArray', () => {
+    const script = validateScript(parseScript(`\
+function argsCount(args...):
+    return arrayLength(args)
+endfunction
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'function': {
+                    'name': 'argsCount',
+                    'args': ['args'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}}}
+                    ]
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, function statement lastArgArray no-args', () => {
+    const script = validateScript(parseScript(`\
+function test(...):
+    return 1
+endfunction
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'function': {
+                    'name': 'test',
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {'expr': {'number': 1}}}
+                    ]
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, function statement lastArgArray spaces', () => {
+    const script = validateScript(parseScript(`\
+function argsCount(args ... ):
+    return arrayLength(args)
+endfunction
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'function': {
+                    'name': 'argsCount',
+                    'args': ['args'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}}}
                     ]
                 }
             }
@@ -1184,8 +1252,8 @@ test('parseScript, nested function statement error', () => {
     assert.throws(
         () => {
             parseScript(`\
-function foo()
-    function bar()
+function foo():
+    function bar():
     endfunction
 endfunction
 `);
@@ -1194,11 +1262,11 @@ endfunction
             'name': 'BareScriptParserError',
             'message': `\
 Nested function definition, line number 2:
-    function bar()
+    function bar():
 ^
 `,
             'error': 'Nested function definition',
-            'line': '    function bar()',
+            'line': '    function bar():',
             'columnNumber': 1,
             'lineNumber': 2
         }

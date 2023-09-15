@@ -114,7 +114,7 @@ test('bare.main, debug static analysis', async () => {
             return {
                 'ok': true,
                 'text': () => `\
-function test(arg)
+function test(arg):
 endfunction
 `
             };
@@ -141,7 +141,7 @@ test('bare.main, debug static analysis 2', async () => {
             return {
                 'ok': true,
                 'text': () => `\
-function test(arg, arg2)
+function test(arg, arg2):
 endfunction
 `
             };

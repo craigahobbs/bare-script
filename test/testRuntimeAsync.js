@@ -73,6 +73,55 @@ test('executeScriptAsync, function async', async () => {
 });
 
 
+test('executeScriptAsync, function lastArgArray', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'test',
+                    'args': ['a', 'b'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(await executeScriptAsync(script), [1, [2, 3]]);
+});
+
+
+test('executeScriptAsync, function async lastArgArray', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'test',
+                    'args': ['a', 'b'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(await executeScriptAsync(script), [1, [2, 3]]);
+});
+
+
 test('executeScriptAsync, function missing arg', async () => {
     const script = validateScript({
         'statements': [
@@ -435,7 +484,7 @@ test('executeScriptAsync, include lint', async () => {
         return {
             'ok': true,
             'text': () => `\
-function test(a)
+function test(a):
 endfunction
 `
         };
@@ -464,7 +513,7 @@ test('executeScriptAsync, include lint no-debug', async () => {
         return {
             'ok': true,
             'text': () => `\
-function test(a)
+function test(a):
 endfunction
 `
         };
@@ -491,7 +540,7 @@ test('executeScriptAsync, include lint multiple', async () => {
         return {
             'ok': true,
             'text': () => `\
-function test(a, b)
+function test(a, b):
 endfunction
 `
         };
@@ -521,7 +570,7 @@ test('executeScriptAsync, include lint OK', async () => {
         return {
             'ok': true,
             'text': () => `\
-function test()
+function test():
 endfunction
 `
         };

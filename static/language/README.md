@@ -13,7 +13,7 @@ array.
 
 ~~~ barescript
 # Compute the first "count" Fibonacci numbers
-function fibonacci(count)
+function fibonacci(count):
     numbers = arrayNew(0, 1)
     while arrayLength(numbers) < count:
         arrayPush(numbers, arrayGet(numbers, arrayLength(numbers) - 1) + \
@@ -108,7 +108,7 @@ that follow belong to the function. When the function executes, its arguments ar
 variables. For example:
 
 ~~~ barescript
-function getMinMax(a, b, c, d)
+function getMinMax(a, b, c, d):
     return arrayNew(mathMin(a, b, c, d), mathMax(a, b, c, d))
 endfunction
 
@@ -119,7 +119,7 @@ A function that makes any **asynchronous** function call (e.g.,
 [systemFetch](../library/#var.vGroup='System'&systemfetch)) must be defined as asynchronous. For example:
 
 ~~~ barescript
-async function getLibraryCount(url)
+async function getLibraryCount(url):
     return arrayLength(objectGet(systemFetch(url), 'functions'))
 endfunction
 
@@ -133,7 +133,7 @@ Return statements return from the current program scope. If there is a return
 [expression](#expressions), it is evaluated, and the result is returned. For example:
 
 ~~~ barescript
-function addNumbers(a, b)
+function addNumbers(a, b):
     return a + b
 endfunction
 
@@ -258,7 +258,7 @@ return concatStrings('abc', 'def')
 The contents of "util.bare" are:
 
 ~~~ barescript
-function concatStrings(a, b)
+function concatStrings(a, b):
     return a + b
 endfunction
 ~~~

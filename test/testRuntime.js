@@ -70,6 +70,30 @@ test('executeScript, function async', () => {
 });
 
 
+test('executeScript, function lastArgArray', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'test',
+                    'args': ['a', 'b'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(executeScript(script), [1, [2, 3]]);
+});
+
+
 test('executeScript, function missing arg', () => {
     const script = validateScript({
         'statements': [

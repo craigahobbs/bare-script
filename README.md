@@ -33,7 +33,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Double a number
-function double(n)
+function double(n):
     return n * 2
 endfunction
 

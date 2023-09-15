@@ -2,7 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
-function main()
+function main():
     timeBegin = datetimeNow()
     width = 300
     height = 200
@@ -16,7 +16,7 @@ function main()
 endfunction
 
 
-function mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter)
+function mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter):
     # Compute the set extents
     yRange = (height / width) * xRange
     xMin = xCoord - 0.5 * xRange
@@ -40,7 +40,7 @@ function mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter)
 endfunction
 
 
-function mandelbrotValue(xValue, yValue, maxIter)
+function mandelbrotValue(xValue, yValue, maxIter):
     # c1 = complex(x, y)
     # c2 = complex(0, 0)
     c1r = xValue
