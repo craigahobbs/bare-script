@@ -262,6 +262,353 @@ test('library, arraySort compare function', () => {
 
 
 //
+// Data functions
+//
+
+
+test('script library, dataAggregate', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const aggregation = {
+        'categories': ['a'],
+        'measures': [
+            {'field': 'b', 'function': 'sum', 'name': 'sum_b'}
+        ]
+    };
+    assert.deepEqual(scriptFunctions.dataAggregate([data, aggregation]), [
+        {'a': 1, 'sum_b': 7},
+        {'a': 2, 'sum_b': 5}
+    ]);
+});
+
+
+test('script library, dataCalculatedField', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'a * b'], {}), [
+        {'a': 1, 'b': 3, 'c': 3},
+        {'a': 1, 'b': 4, 'c': 4},
+        {'a': 2, 'b': 5, 'c': 10}
+    ]);
+});
+
+
+test('script library, dataCalculatedField variables', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const variables = {'d': 2};
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * d', variables], {}), [
+        {'a': 1, 'b': 3, 'c': 6},
+        {'a': 1, 'b': 4, 'c': 8},
+        {'a': 2, 'b': 5, 'c': 10}
+    ]);
+});
+
+
+test('script library, dataCalculatedField globals', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const options = {'globals': {'e': 3}};
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * e'], options), [
+        {'a': 1, 'b': 3, 'c': 9},
+        {'a': 1, 'b': 4, 'c': 12},
+        {'a': 2, 'b': 5, 'c': 15}
+    ]);
+});
+
+
+test('script library, dataCalculatedField globals variables', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const variables = {'d': 2};
+    const options = {'globals': {'e': 3}};
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * d * e', variables], options), [
+        {'a': 1, 'b': 3, 'c': 18},
+        {'a': 1, 'b': 4, 'c': 24},
+        {'a': 2, 'b': 5, 'c': 30}
+    ]);
+});
+
+
+test('script library, dataCalculatedField runtime', () => {
+    const data = [
+        {'a': '/foo'},
+        {'a': 'bar'}
+    ];
+    const options = {
+        'globals': {
+            'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
+        },
+        'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
+    };
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'b', 'documentURL(a)'], options), [
+        {'a': '/foo', 'b': '/foo'},
+        {'a': 'bar', 'b': '/foo/bar'}
+    ]);
+});
+
+
+test('script library, dataFilter', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'b > 3'], {}), [
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ]);
+});
+
+
+test('script library, dataFilter variables', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const variables = {'d': 3};
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'b > d', variables], {}), [
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ]);
+});
+
+
+test('script library, dataFilter globals', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const options = {'globals': {'c': 2}};
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'a == c'], options), [
+        {'a': 2, 'b': 5}
+    ]);
+});
+
+
+test('script library, dataFilter globals variables', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ];
+    const variables = {'d': 1};
+    const options = {'globals': {'c': 1}};
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'a == (c + d)', variables], options), [
+        {'a': 2, 'b': 5}
+    ]);
+});
+
+
+test('script library, dataFilter runtime', () => {
+    const data = [
+        {'a': '/foo'},
+        {'a': 'bar'}
+    ];
+    const options = {
+        'globals': {
+            'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
+        },
+        'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
+    };
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'documentURL(a) == "/foo/bar"'], options), [
+        {'a': 'bar'}
+    ]);
+});
+
+
+test('script library, dataJoin', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 1, 'b': 6},
+        {'a': 2, 'b': 7},
+        {'a': 3, 'b': 8}
+    ];
+    const rightData = [
+        {'a': 1, 'c': 10},
+        {'a': 2, 'c': 11},
+        {'a': 2, 'c': 12}
+    ];
+    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a'], {}), [
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10},
+        {'a': 1, 'b': 6, 'a2': 1, 'c': 10},
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 11},
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 12},
+        {'a': 3, 'b': 8}
+    ]);
+});
+
+
+test('script library, dataJoin options', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 1, 'b': 6},
+        {'a': 2, 'b': 7},
+        {'a': 3, 'b': 8}
+    ];
+    const rightData = [
+        {'a': 2, 'c': 10},
+        {'a': 4, 'c': 11},
+        {'a': 4, 'c': 12}
+    ];
+    assert.deepEqual(
+        scriptFunctions.dataJoin([leftData, rightData, 'a', 'a / denominator', true, {'denominator': 2}], {}),
+        [
+            {'a': 1, 'b': 5, 'a2': 2, 'c': 10},
+            {'a': 1, 'b': 6, 'a2': 2, 'c': 10},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 11},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 12}
+        ]
+    );
+});
+
+
+test('script library, dataJoin globals', () => {
+    const leftData = [
+        {'a': 1, 'c': 5},
+        {'a': 2, 'c': 6}
+    ];
+    const rightData = [
+        {'b': 1, 'd': 10},
+        {'b': 2, 'd': 11}
+    ];
+    const options = {'globals': {'e': 1}};
+    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a + e', 'b'], options), [
+        {'a': 1, 'b': 2, 'c': 5, 'd': 11},
+        {'a': 2, 'c': 6}
+    ]);
+});
+
+
+test('script library, dataJoin globals variables', () => {
+    const leftData = [
+        {'a': 1, 'c': 5},
+        {'a': 2, 'c': 6}
+    ];
+    const rightData = [
+        {'b': 2, 'd': 10},
+        {'b': 3, 'd': 11}
+    ];
+    const variables = {'f': 1};
+    const options = {'globals': {'e': 1}};
+    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a + e + f', 'b', null, variables], options), [
+        {'a': 1, 'b': 3, 'c': 5, 'd': 11},
+        {'a': 2, 'c': 6}
+    ]);
+});
+
+
+test('script library, dataJoin runtime', () => {
+    const options = {
+        'globals': {
+            'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
+        },
+        'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
+    };
+    const leftData = [
+        {'a': '/foo', 'c': 5},
+        {'a': 'bar', 'c': 6}
+    ];
+    const rightData = [
+        {'b': '/foo', 'd': 10},
+        {'b': '/foo/bar', 'd': 11}
+    ];
+    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'documentURL(a)', 'b'], options), [
+        {'a': '/foo', 'b': '/foo', 'c': 5, 'd': 10},
+        {'a': 'bar', 'b': '/foo/bar', 'c': 6, 'd': 11}
+    ]);
+});
+
+
+test('script library, dataParseCSV', () => {
+    const text = `\
+a,b
+1,3
+`;
+    const text2 = `\
+1,4
+2,5
+`;
+    assert.deepEqual(scriptFunctions.dataParseCSV([text, text2]), [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ]);
+});
+
+
+test('script library, dataSort', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5},
+        {'a': 3, 'b': 6},
+        {'a': 4, 'b': 7}
+    ];
+    assert.deepEqual(scriptFunctions.dataSort([data, [['a', true], ['b']]]), [
+        {'a': 4, 'b': 7},
+        {'a': 3, 'b': 6},
+        {'a': 2, 'b': 5},
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4}
+    ]);
+});
+
+
+test('script library, dataTop', () => {
+    const data = [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5},
+        {'a': 3, 'b': 6},
+        {'a': 4, 'b': 7}
+    ];
+    assert.deepEqual(scriptFunctions.dataTop([data, 3]), [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ]);
+    assert.deepEqual(scriptFunctions.dataTop([data, 1, ['a']]), [
+        {'a': 1, 'b': 3},
+        {'a': 2, 'b': 5},
+        {'a': 3, 'b': 6},
+        {'a': 4, 'b': 7}
+    ]);
+});
+
+
+test('script library, dataValidate', () => {
+    const data = [
+        {'a': '1', 'b': 3},
+        {'a': '1', 'b': 4},
+        {'a': '2', 'b': 5}
+    ];
+    assert.deepEqual(scriptFunctions.dataValidate([data]), [
+        {'a': '1', 'b': 3},
+        {'a': '1', 'b': 4},
+        {'a': '2', 'b': 5}
+    ]);
+});
+
+
+//
 // Datetime functions
 //
 
@@ -289,6 +636,15 @@ test('library, datetimeHour non-datetime', () => {
 test('library, datetimeISOFormat', () => {
     assert.equal(scriptFunctions.datetimeISOFormat([new Date(Date.UTC(2022, 7, 29, 15, 8))]), '2022-08-29T15:08:00.000Z');
     assert.equal(scriptFunctions.datetimeISOFormat([new Date(Date.UTC(2022, 7, 29, 15, 8)), true]), '2022-08-29');
+});
+
+
+test('library, datetimeISOParse', () => {
+    assert.deepEqual(
+        scriptFunctions.datetimeISOFormat([scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00.000Z'])]),
+        '2022-08-29T15:08:00.000Z'
+    );
+    assert.equal(scriptFunctions.datetimeISOParse(['invalid']), null);
 });
 
 

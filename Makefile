@@ -41,7 +41,10 @@ doc:
 	$(NODE_DOCKER) npx baredoc lib/library.js | \
 		$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
 
-    # Generate the model documentation
+    # Generate the library model documentation
+	$(NODE_DOCKER) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" > build/doc/library/model.json
+
+    # Generate the runtime model documentation
 	$(NODE_DOCKER) node --input-type=module \
 		-e 'import {bareScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(bareScriptTypes))' \
 		> build/doc/model/model.json
@@ -64,6 +67,14 @@ for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) 
 console.log(JSON.stringify(libraryExpr, null, 4));
 endef
 export DOC_EXPR_JS
+
+
+# JavaScript to generate the library model documentation
+define DOC_LIBRARY_MODEL_JS
+import {aggregationTypes} from "./lib/data.js";
+console.log(JSON.stringify(aggregationTypes, null, 4));
+endef
+export DOC_LIBRARY_MODEL_JS
 
 
 # Run performance tests
