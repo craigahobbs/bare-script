@@ -333,6 +333,26 @@ endfunction
 });
 
 
+test('parseScript, function statement missing colon', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+function test()
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Syntax error, line number 1:
+function test()
+        ^
+`
+        }
+    );
+});
+
+
 test('parseScript, if-then statement', () => {
     const script = validateScript(parseScript(`\
 if i > 0:
