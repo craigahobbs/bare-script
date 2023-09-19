@@ -46,10 +46,14 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
         endfor
     endfor
 
-    # Function requested by name?
-    if vName != null:
-        for groupName in objectKeys(groups):
-            for function_ in objectGet(groups, groupName):
+    # Sort the group functions
+    for groupName in objectKeys(groups):
+        groupFunctions = objectGet(groups, groupName)
+        arraySort(groupFunctions, functionCompare)
+
+        # Function requested by name?
+        if vName != null:
+            for function_ in groupFunctions:
                 functionName = objectGet(function_, 'name')
                 if functionName == vName:
                     # Redirect to the actual URL
@@ -58,7 +62,9 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
                     return
                 endif
             endfor
-        endfor
+        endif
+    endfor
+    if vName != null:
         markdownPrint('', '**Error:** Unknown function "' + markdownEscape(vName) + '"')
         return
     endif
@@ -72,6 +78,13 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     else:
         bareDocIndexPage(title, menuLinks, groupURLs, groups)
     endif
+endfunction
+
+
+function functionCompare(f1, f2):
+    f1Name = objectGet(f1, 'name')
+    f2Name = objectGet(f2, 'name')
+    return if(f1Name < f2Name, -1, if(f1Name == f2Name, 0, 1))
 endfunction
 
 
