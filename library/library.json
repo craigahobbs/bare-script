@@ -352,7 +352,7 @@
                 {
                     "name": "aggregation",
                     "doc": [
-                        "The [aggregation model](model.html#var.vName='Aggregation')"
+                        "The [aggregation model](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='Aggregation')"
                     ]
                 }
             ],
