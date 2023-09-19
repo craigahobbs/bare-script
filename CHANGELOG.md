@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.0 (2023-09-19)
+
+- [cd2098f](https://github.com/craigahobbs/bare-script/commit/cd2098f) - function statements now require colon
+
+- [b1cfaf5](https://github.com/craigahobbs/bare-script/commit/b1cfaf5) - add data functions \(moved from markdown-up\)
+
 ## 2.1.1 (2023-09-15)
 
 - [d878111](https://github.com/craigahobbs/bare-script/commit/d878111)
