@@ -11,7 +11,7 @@
 # url - The library documentation JSON resource URL
 # title - The library title
 # menuLinks - Optional array of text/URL menu link tuples
-# groupURLs - Optional map of group name to Markdown URL ('' is index)
+# groupURLs - Optional map of group name to group Markdown content URL ('' is index)
 #
 async function bareDocMain(url, title, menuLinks, groupURLs):
     # URL override?
@@ -44,6 +44,13 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
             endif
             arrayPush(groupFunctions, function_)
         endfor
+    endfor
+
+    # Add an empty group for any missing group URLs
+    for groupName in objectKeys(groupURLs):
+        if !objectHas(groups, groupName):
+            objectSet(groups, groupName, arrayNew())
+        endif
     endfor
 
     # Sort the group functions
@@ -137,14 +144,17 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
     endif
 
     # Render the group function index
-    markdownPrint('', '## Function Index')
-    for function_, ixFunction in objectGet(groups, groupName):
+    groupFunctions = objectGet(groups, groupName)
+    if arrayLength(groupFunctions) != 0:
+        markdownPrint('', '## Function Index')
+    endif
+    for function_, ixFunction in groupFunctions:
         functionName = objectGet(function_, 'name')
         markdownPrint('- [' + markdownEscape(functionName) + '](' + bareDocURL() + '&' + markdownHeaderId(functionName) + ')')
     endfor
 
     # Render the group function documentation
-    for function_ in objectGet(groups, groupName):
+    for function_ in groupFunctions:
         # Render the function header
         markdownPrint( \
             '', \
