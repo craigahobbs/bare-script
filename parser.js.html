@@ -39,7 +39,7 @@ const rScriptComment = /^\s*(?:#.*)?$/;
 const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.+)$/;
 const rScriptFunctionBegin = new RegExp(
     '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_]\\w*)\\s*\\(' +
-        '\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)(?:\\s*:)?\\s*$'
+        '\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:\\s*$'
 );
 const rScriptFunctionArgSplit = /\s*,\s*/;
 const rScriptFunctionEnd = /^\s*endfunction\s*$/;
@@ -767,7 +767,7 @@ ${' '.repeat(lineColumn - 1)}^
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

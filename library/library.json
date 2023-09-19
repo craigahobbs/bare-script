@@ -337,6 +337,235 @@
             ]
         },
         {
+            "name": "dataAggregate",
+            "group": "Data",
+            "doc": [
+                "Aggregate a data array"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                },
+                {
+                    "name": "aggregation",
+                    "doc": [
+                        "The [aggregation model](model.html#var.vName='Aggregation')"
+                    ]
+                }
+            ],
+            "return": [
+                "The aggregated data array"
+            ]
+        },
+        {
+            "name": "dataCalculatedField",
+            "group": "Data",
+            "doc": [
+                "Add a calculated field to a data array"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                },
+                {
+                    "name": "fieldName",
+                    "doc": [
+                        "The calculated field name"
+                    ]
+                },
+                {
+                    "name": "expr",
+                    "doc": [
+                        "The calculated field expression"
+                    ]
+                },
+                {
+                    "name": "variables",
+                    "doc": [
+                        "Optional (default is null). A variables object the expression evaluation."
+                    ]
+                }
+            ],
+            "return": [
+                "The updated data array"
+            ]
+        },
+        {
+            "name": "dataFilter",
+            "group": "Data",
+            "doc": [
+                "Filter a data array"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                },
+                {
+                    "name": "expr",
+                    "doc": [
+                        "The filter expression"
+                    ]
+                },
+                {
+                    "name": "variables",
+                    "doc": [
+                        "Optional (default is null). A variables object the expression evaluation."
+                    ]
+                }
+            ],
+            "return": [
+                "The filtered data array"
+            ]
+        },
+        {
+            "name": "dataJoin",
+            "group": "Data",
+            "doc": [
+                "Join two data arrays"
+            ],
+            "args": [
+                {
+                    "name": "leftData",
+                    "doc": [
+                        "The left data array"
+                    ]
+                },
+                {
+                    "name": "rightData",
+                    "doc": [
+                        "The right data array"
+                    ]
+                },
+                {
+                    "name": "joinExpr",
+                    "doc": [
+                        "The [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)"
+                    ]
+                },
+                {
+                    "name": "rightExpr",
+                    "doc": [
+                        "Optional (default is null).",
+                        "    The right [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)"
+                    ]
+                },
+                {
+                    "name": "isLeftJoin",
+                    "doc": [
+                        "Optional (default is false). If true, perform a left join (always include left row)."
+                    ]
+                },
+                {
+                    "name": "variables",
+                    "doc": [
+                        "Optional (default is null). A variables object for join expression evaluation."
+                    ]
+                }
+            ],
+            "return": [
+                "The joined data array"
+            ]
+        },
+        {
+            "name": "dataParseCSV",
+            "group": "Data",
+            "doc": [
+                "Parse CSV text to a data array"
+            ],
+            "args": [
+                {
+                    "name": "text",
+                    "doc": [
+                        "The CSV text"
+                    ]
+                }
+            ],
+            "return": [
+                "The data array"
+            ]
+        },
+        {
+            "name": "dataSort",
+            "group": "Data",
+            "doc": [
+                "Sort a data array"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                },
+                {
+                    "name": "sorts",
+                    "doc": [
+                        "The sort field-name/descending-sort tuples"
+                    ]
+                }
+            ],
+            "return": [
+                "The sorted data array"
+            ]
+        },
+        {
+            "name": "dataTop",
+            "group": "Data",
+            "doc": [
+                "Keep the top rows for each category"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                },
+                {
+                    "name": "count",
+                    "doc": [
+                        "The number of rows to keep"
+                    ]
+                },
+                {
+                    "name": "categoryFields",
+                    "doc": [
+                        "Optional (default is null). The category fields."
+                    ]
+                }
+            ],
+            "return": [
+                "The top data array"
+            ]
+        },
+        {
+            "name": "dataValidate",
+            "group": "Data",
+            "doc": [
+                "Validate a data array"
+            ],
+            "args": [
+                {
+                    "name": "data",
+                    "doc": [
+                        "The data array"
+                    ]
+                }
+            ],
+            "return": [
+                "The validated data array"
+            ]
+        },
+        {
             "name": "datetimeDay",
             "group": "Datetime",
             "doc": [
@@ -394,6 +623,24 @@
             ],
             "return": [
                 "The formatted datetime string"
+            ]
+        },
+        {
+            "name": "datetimeISOParse",
+            "group": "Datetime",
+            "doc": [
+                "Parse an ISO date/time string"
+            ],
+            "args": [
+                {
+                    "name": "str",
+                    "doc": [
+                        "The ISO date/time string"
+                    ]
+                }
+            ],
+            "return": [
+                "The datetime, or null if parsing fails"
             ]
         },
         {
