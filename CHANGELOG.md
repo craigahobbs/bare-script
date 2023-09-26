@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.1 (2023-09-26)
+
+- [8d36cac](https://github.com/craigahobbs/bare-script/commit/8d36cac) - fix library objectGet for non-objects with default
+
 ## 2.2.0 (2023-09-19)
 
 - [cd2098f](https://github.com/craigahobbs/bare-script/commit/cd2098f) - function statements now require colon
