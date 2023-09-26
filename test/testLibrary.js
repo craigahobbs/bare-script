@@ -1029,6 +1029,11 @@ test('library, objectGet null', () => {
 });
 
 
+test('library, objectGet null default', () => {
+    assert.equal(scriptFunctions.objectGet([null, 'a', 1]), 1);
+});
+
+
 test('library, objectGet non-object', () => {
     assert.equal(scriptFunctions.objectGet([0, 'a']), null);
 });
