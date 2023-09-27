@@ -118,7 +118,7 @@ test('library, arrayIndexOf', () => {
 
 
 test('library, arrayIndexOf non-array', () => {
-    assert.equal(scriptFunctions.arrayIndexOf([null, 2]), null);
+    assert.equal(scriptFunctions.arrayIndexOf([null, 2]), -1);
 });
 
 
@@ -146,7 +146,7 @@ test('library, arrayLastIndexOf', () => {
 
 
 test('library, arrayLastIndexOf non-array', () => {
-    assert.equal(scriptFunctions.arrayLastIndexOf([null, 2]), null);
+    assert.equal(scriptFunctions.arrayLastIndexOf([null, 2]), -1);
 });
 
 
@@ -1314,7 +1314,7 @@ test('library, stringIndexOf', () => {
 
 
 test('library, stringIndexOf non-string', () => {
-    assert.equal(scriptFunctions.stringIndexOf([null, 'bar']), null);
+    assert.equal(scriptFunctions.stringIndexOf([null, 'bar']), -1);
 });
 
 
@@ -1334,7 +1334,7 @@ test('library, stringLastIndexOf', () => {
 
 
 test('library, stringLastIndexOf non-string', () => {
-    assert.equal(scriptFunctions.stringLastIndexOf([null, 'bar']), null);
+    assert.equal(scriptFunctions.stringLastIndexOf([null, 'bar']), -1);
 });
 
 
