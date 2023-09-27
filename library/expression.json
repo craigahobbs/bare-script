@@ -411,7 +411,7 @@
                 }
             ],
             "return": [
-                "The string's length"
+                "The string's length; null if not a string"
             ]
         },
         {

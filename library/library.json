@@ -165,7 +165,7 @@
                 }
             ],
             "return": [
-                "The array's length"
+                "The array's length; null if not an array"
             ]
         },
         {
@@ -249,7 +249,7 @@
                 }
             ],
             "return": [
-                "The new length of the array"
+                "The array"
             ]
         },
         {
@@ -1433,7 +1433,7 @@
                 }
             ],
             "return": [
-                "The array of keys"
+                "The array of keys; null if not an object"
             ]
         },
         {
@@ -1852,7 +1852,7 @@
                 }
             ],
             "return": [
-                "The string's length"
+                "The string's length; null if not a string"
             ]
         },
         {
