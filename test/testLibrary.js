@@ -77,7 +77,7 @@ test('library, arrayCopy', () => {
 
 
 test('library, arrayCopy non-array', () => {
-    assert.equal(scriptFunctions.arrayCopy([null]), null);
+    assert.deepEqual(scriptFunctions.arrayCopy([null]), []);
 });
 
 
@@ -91,6 +91,13 @@ test('library, arrayExtend', () => {
 
 test('library, arrayExtend non-array', () => {
     assert.equal(scriptFunctions.arrayExtend([null]), null);
+});
+
+
+test('library, arrayExtend non-array second', () => {
+    const array = [1, 2, 3];
+    assert.deepEqual(scriptFunctions.arrayExtend([array, null]), [1, 2, 3]);
+    assert.deepEqual(array, [1, 2, 3]);
 });
 
 
@@ -135,7 +142,7 @@ test('library, arrayJoin', () => {
 
 
 test('library, arrayJoin non-array', () => {
-    assert.equal(scriptFunctions.arrayJoin([null, ', ']), null);
+    assert.equal(scriptFunctions.arrayJoin([null, ', ']), '');
 });
 
 
@@ -203,7 +210,7 @@ test('library, arrayPop non-array', () => {
 
 test('library, arrayPush', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayPush([array, 5]), 4);
+    assert.deepEqual(scriptFunctions.arrayPush([array, 5]), [1, 2, 3, 5]);
     assert.deepEqual(array, [1, 2, 3, 5]);
 });
 
@@ -221,7 +228,7 @@ test('library, arraySet', () => {
 
 
 test('library, arraySet non-array', () => {
-    assert.equal(scriptFunctions.arraySet([null, 1, 5]), null);
+    assert.equal(scriptFunctions.arraySet([null, 1, 5]), 5);
 });
 
 
@@ -929,7 +936,7 @@ test('library, objectAssign', () => {
 
 test('library, objectAssign null', () => {
     const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectAssign([obj, null]), null);
+    assert.deepEqual(scriptFunctions.objectAssign([obj, null]), obj);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
     assert.equal(scriptFunctions.objectAssign([null, obj]), null);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
@@ -938,9 +945,9 @@ test('library, objectAssign null', () => {
 
 test('library, objectAssign non-object', () => {
     const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectAssign([obj, 0]), null);
+    assert.deepEqual(scriptFunctions.objectAssign([obj, 0]), obj);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
-    assert.equal(scriptFunctions.objectAssign([0, obj]), null);
+    assert.deepEqual(scriptFunctions.objectAssign([0, obj]), 0);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
@@ -948,9 +955,9 @@ test('library, objectAssign non-object', () => {
 test('library, objectAssign array', () => {
     const obj = {'a': 1, 'b': 2};
     const array = ['c', 'd'];
-    assert.equal(scriptFunctions.objectAssign([obj, array]), null);
+    assert.deepEqual(scriptFunctions.objectAssign([obj, array]), obj);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
-    assert.equal(scriptFunctions.objectAssign([array, obj]), null);
+    assert.deepEqual(scriptFunctions.objectAssign([array, obj]), array);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
@@ -962,17 +969,17 @@ test('library, objectCopy', () => {
 
 
 test('library, objectCopy null', () => {
-    assert.equal(scriptFunctions.objectCopy([null]), null);
+    assert.deepEqual(scriptFunctions.objectCopy([null]), {});
 });
 
 
 test('library, objectCopy non-object', () => {
-    assert.equal(scriptFunctions.objectCopy([0]), null);
+    assert.deepEqual(scriptFunctions.objectCopy([0]), {});
 });
 
 
 test('library, objectCopy array', () => {
-    assert.equal(scriptFunctions.objectCopy([['a', 'b']]), null);
+    assert.deepEqual(scriptFunctions.objectCopy([['a', 'b']]), {});
 });
 
 
@@ -1112,18 +1119,18 @@ test('library, objectSet missing', () => {
 
 
 test('library, objectSet null', () => {
-    assert.equal(scriptFunctions.objectSet([null, 'c', 3]), null);
+    assert.equal(scriptFunctions.objectSet([null, 'c', 3]), 3);
 });
 
 
 test('library, objectSet non-object', () => {
-    assert.equal(scriptFunctions.objectSet([0, 'c', 3]), null);
+    assert.equal(scriptFunctions.objectSet([0, 'c', 3]), 3);
 });
 
 
 test('library, objectSet array', () => {
     const array = ['a', 'b'];
-    assert.equal(scriptFunctions.objectSet([array, 'c', 3]), null);
+    assert.equal(scriptFunctions.objectSet([array, 'c', 3]), 3);
     assert.deepEqual(array, ['a', 'b']);
 });
 
