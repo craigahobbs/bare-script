@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.2 (2023-09-27)
+
+- [74f3b42](https://github.com/craigahobbs/bare-script/commit/74f3b42) - library - update indexOf functions to return -1 on non-array/string
+
 ## 2.2.1 (2023-09-26)
 
 - [8d36cac](https://github.com/craigahobbs/bare-script/commit/8d36cac) - fix library objectGet for non-objects with default
