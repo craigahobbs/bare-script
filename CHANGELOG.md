@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.3 (2023-09-27)
+
+- [13ac9d6](https://github.com/craigahobbs/bare-script/commit/13ac9d6) - improve library array, object, and string functions
+
 ## 2.2.2 (2023-09-27)
 
 - [74f3b42](https://github.com/craigahobbs/bare-script/commit/74f3b42) - library - update indexOf functions to return -1 on non-array/string
