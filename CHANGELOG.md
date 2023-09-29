@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.5 (2023-09-29)
+
+- [8f157bc](https://github.com/craigahobbs/bare-script/commit/8f157bc) - bare - add -s command-line argument to perform static analysis
+
 ## 2.2.4 (2023-09-29)
 
 - [35f778e](https://github.com/craigahobbs/bare-script/commit/35f778e) - bare - use script result as process status code
