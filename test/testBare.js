@@ -29,6 +29,76 @@ systemLogDebug("Goodbye")
 });
 
 
+test('bare.main, status code', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return 1']
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code zero', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return 0']
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code max', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return 255']
+    });
+    assert.equal(exitCode, 255);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code negative', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return -1']
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code beyond max', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return 256']
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code non-integer true', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return "abc"']
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, []);
+});
+
+
+test('bare.main, status code non-integer false', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'return ""']
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, []);
+});
+
+
 test('bare.main, fetch url', async () => {
     const output = [];
     const exitCode = await main({
