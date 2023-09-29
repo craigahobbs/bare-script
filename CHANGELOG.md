@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.4 (2023-09-29)
+
+- [35f778e](https://github.com/craigahobbs/bare-script/commit/35f778e) - bare - use script result as process status code
+
 ## 2.2.3 (2023-09-27)
 
 - [13ac9d6](https://github.com/craigahobbs/bare-script/commit/13ac9d6) - improve library array, object, and string functions
