@@ -230,6 +230,59 @@ endfunction
 });
 
 
+test('bare.main, static analysis', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-s', '-c', 'return 1 + 1', '-c', 'return 1 + 2'],
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        'BareScript: Static analysis... OK',
+        'BareScript: Static analysis... OK'
+    ]);
+});
+
+
+test('bare.main, static analysis failure', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-s', '-c', '1 + 1', '-c', '1 + 2'],
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'BareScript: Static analysis... 1 warning:',
+        'BareScript:     Pointless global statement (index 0)',
+        '-c 1:',
+        'Static analysis failed'
+    ]);
+});
+
+
+test('bare.main, static analysis failure 2', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-s', '-c', 'return 1 + 1', '-c', '1 + 2'],
+        'logFn': (message) => {
+            output.push(message);
+        }
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'BareScript: Static analysis... OK',
+        'BareScript: Static analysis... 1 warning:',
+        'BareScript:     Pointless global statement (index 0)',
+        '-c 2:',
+        'Static analysis failed'
+    ]);
+});
+
+
 test('bare.main, code', async () => {
     const output = [];
     const exitCode = await main({
@@ -300,7 +353,7 @@ test('bare.main, parsing error', async () => {
         }
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['-c 1:\nSyntax error, line number 1:\nbad(\n    ^\n']);
+    assert.deepEqual(output, ['-c 1:', 'Syntax error, line number 1:\nbad(\n    ^\n']);
 });
 
 
@@ -313,7 +366,7 @@ test('bare.main, script error', async () => {
         }
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['-c 1:\nUndefined function "unknown"']);
+    assert.deepEqual(output, ['-c 1:', 'Undefined function "unknown"']);
 });
 
 
