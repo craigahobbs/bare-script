@@ -103,7 +103,7 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
         menuLinkURL = arrayGet(menuLink, 1)
         markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
     endfor
-    markdownPrint('', '# ' + markdownEscape(title))
+    markdownPrint('# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
     if objectHas(groupURLs, ''):

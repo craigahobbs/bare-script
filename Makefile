@@ -35,7 +35,7 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json
+	if ! $(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json; then cat build/doc/library/library.json; exit 1; fi
 
     # Generate the expression library documentation
 	$(NODE_DOCKER) npx baredoc lib/library.js | \
@@ -75,6 +75,13 @@ import {aggregationTypes} from "./lib/data.js";
 console.log(JSON.stringify(aggregationTypes, null, 4));
 endef
 export DOC_LIBRARY_MODEL_JS
+
+
+.PHONY: test-doc
+commit: test-doc
+test-doc: build/npm.build
+	$(NODE_DOCKER) npx bare -s static/library/*.mds static/library/test/*.mds
+	$(NODE_DOCKER) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds
 
 
 # Run performance tests
