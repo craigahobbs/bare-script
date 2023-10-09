@@ -35,7 +35,7 @@ async function testBareDocMain():
     bareDocMain('library.json', 'The Test Library')
 
     # Reset mocks
-    unittestDeepEquals(unittestMockEnd(), objectNew( \
+    unittestDeepEqual(unittestMockEnd(), objectNew( \
         'documentSetTitle', arrayNew( \
             arrayNew('The Test Library') \
         ), \
