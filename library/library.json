@@ -2168,6 +2168,31 @@
             ]
         },
         {
+            "name": "systemPartial",
+            "group": "System",
+            "doc": [
+                "Return a new function which behaves like \"func\" called with \"args\".",
+                "If additional arguments are passed to the returned function, they are appended to \"args\"."
+            ],
+            "args": [
+                {
+                    "name": "func",
+                    "doc": [
+                        "The function"
+                    ]
+                },
+                {
+                    "name": "args",
+                    "doc": [
+                        "The function arguments"
+                    ]
+                }
+            ],
+            "return": [
+                "The new function called with \"args\""
+            ]
+        },
+        {
             "name": "urlEncode",
             "group": "URL",
             "doc": [

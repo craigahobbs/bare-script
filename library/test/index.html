@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>BareScript Documentation Tests</title>
+        <meta charset="UTF-8">
+        <meta name="description" content="BareScript Documentation Tests">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">
+    </head>
+    <body>
+    </body>
+    <script type="module">
+        import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/app.js';
+        const app = new MarkdownUp(window, {'markdownText': `\
+# BareScript Documentation Tests
+
+~~~ markdown-script
+include 'runTests.mds'
+~~~
+`});
+        app.run();
+    </script>
+</html>
