@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.6 (2023-10-09)
+
+- [533d937](https://github.com/craigahobbs/bare-script/commit/533d937) - bare - report static analysis file
+
+- [7c68e8f](https://github.com/craigahobbs/bare-script/commit/7c68e8f) - add library systemPartial function
+
 ## 2.2.5 (2023-09-29)
 
 - [8f157bc](https://github.com/craigahobbs/bare-script/commit/8f157bc) - bare - add -s command-line argument to perform static analysis
