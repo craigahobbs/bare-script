@@ -1876,6 +1876,18 @@ test('library, systemLogDebug no log function', () => {
 });
 
 
+test('library, systemPartial', () => {
+    const testFunc = ([name, number], options) => {
+        assert.equal(name, 'test');
+        assert.equal(number, 1);
+        assert.deepEqual(options, {'debug': false});
+        return `${name}-${number}`;
+    };
+    const partialFunc = scriptFunctions.systemPartial([testFunc, 'test'], {'debug': false});
+    assert.deepEqual(partialFunc([1], {'debug': false}), 'test-1');
+});
+
+
 //
 // URL functions
 //
