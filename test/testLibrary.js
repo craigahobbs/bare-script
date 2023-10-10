@@ -232,6 +232,25 @@ test('library, arraySet non-array', () => {
 });
 
 
+test('library, arrayShift', () => {
+    const array = [1, 2, 3];
+    assert.equal(scriptFunctions.arrayShift([array]), 1);
+    assert.deepEqual(array, [2, 3]);
+});
+
+
+test('library, arrayShift empty', () => {
+    const array = [];
+    assert.equal(scriptFunctions.arrayShift([array]), null);
+    assert.deepEqual(array, []);
+});
+
+
+test('library, arrayShift non-array', () => {
+    assert.equal(scriptFunctions.arrayShift([null]), null);
+});
+
+
 test('library, arraySlice', () => {
     const array = [1, 2, 3, 4];
     assert.deepEqual(scriptFunctions.arraySlice([array, 1, 3]), [2, 3]);
