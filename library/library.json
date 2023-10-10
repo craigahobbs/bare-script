@@ -283,6 +283,24 @@
             ]
         },
         {
+            "name": "arrayShift",
+            "group": "Array",
+            "doc": [
+                "Remove the first element of the array and return it"
+            ],
+            "args": [
+                {
+                    "name": "array",
+                    "doc": [
+                        "The array"
+                    ]
+                }
+            ],
+            "return": [
+                "The first element of the array; null if the array is empty."
+            ]
+        },
+        {
             "name": "arraySlice",
             "group": "Array",
             "doc": [
