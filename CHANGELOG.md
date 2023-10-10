@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.7 (2023-10-10)
+
+- [486329d](https://github.com/craigahobbs/bare-script/commit/486329d) - library - add arrayShift function
+
 ## 2.2.6 (2023-10-09)
 
 - [533d937](https://github.com/craigahobbs/bare-script/commit/533d937) - bare - report static analysis file
