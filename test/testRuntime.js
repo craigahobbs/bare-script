@@ -45,28 +45,26 @@ test('executeScript, function', () => {
 });
 
 
-test('executeScript, function async', () => {
+test('executeScript, function missing arg', () => {
     const script = validateScript({
         'statements': [
             {
                 'function': {
-                    'async': true,
-                    'name': 'multiplyNumbers',
+                    'name': 'createPair',
                     'args': ['a', 'b'],
                     'statements': [
-                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
                         {'return': {
-                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
                         }}
                     ]
                 }
             },
             {'return': {
-                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}}
+                'expr': {'function': {'name': 'createPair', 'args': [{'number': 5}]}}
             }}
         ]
     });
-    assert.equal(executeScript(script), 35);
+    assert.deepEqual(executeScript(script), [5, null]);
 });
 
 
@@ -94,13 +92,14 @@ test('executeScript, function lastArgArray', () => {
 });
 
 
-test('executeScript, function missing arg', () => {
+test('executeScript, function lastArgArray missing', () => {
     const script = validateScript({
         'statements': [
             {
                 'function': {
-                    'name': 'createPair',
+                    'name': 'test',
                     'args': ['a', 'b'],
+                    'lastArgArray': true,
                     'statements': [
                         {'return': {
                             'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
@@ -109,11 +108,36 @@ test('executeScript, function missing arg', () => {
                 }
             },
             {'return': {
-                'expr': {'function': {'name': 'createPair', 'args': [{'number': 5}]}}
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}]}}
             }}
         ]
     });
-    assert.deepEqual(executeScript(script), [5, null]);
+    assert.deepEqual(executeScript(script), [1, []]);
+});
+
+
+test('executeScript, function async', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'multiplyNumbers',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'multiplyNumbers', 'args': [{'number': 5}, {'number': 7}]}}
+            }}
+        ]
+    });
+    assert.equal(executeScript(script), 35);
 });
 
 
@@ -138,6 +162,56 @@ test('executeScript, function async missing arg', () => {
         ]
     });
     assert.deepEqual(executeScript(script), [5, null]);
+});
+
+
+test('executeScript, function async lastArgArray', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'test',
+                    'args': ['a', 'b'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(executeScript(script), [1, [2, 3]]);
+});
+
+
+test('executeScript, function async lastArgArray missing', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'test',
+                    'args': ['a', 'b'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(executeScript(script), [1, []]);
 });
 
 
