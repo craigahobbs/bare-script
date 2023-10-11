@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.8 (2023-10-10)
+
+- [7a5115f](https://github.com/craigahobbs/bare-script/commit/7a5115f) - ensure function last-argument array is an array if arguments missing
+
 ## 2.2.7 (2023-10-10)
 
 - [486329d](https://github.com/craigahobbs/bare-script/commit/486329d) - library - add arrayShift function
