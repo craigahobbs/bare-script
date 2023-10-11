@@ -8,15 +8,13 @@ async function testBareDocMain():
     # Setup mocks
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
-            'library.json', arrayNew( \
-                objectNew( \
-                    'functions', arrayNew( \
-                        objectNew( \
-                            'name', 'testFunc', \
-                            'group', 'Test Group', \
-                            'doc', arrayNew( \
-                                'The test function' \
-                            ) \
+            'library.json', objectNew( \
+                'functions', arrayNew( \
+                    objectNew( \
+                        'name', 'testFunc', \
+                        'group', 'Test Group', \
+                        'doc', arrayNew( \
+                            'The test function' \
                         ) \
                     ) \
                 ) \
