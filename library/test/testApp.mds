@@ -4,13 +4,6 @@
 include '../app.mds'
 
 
-function unittestMockAll(options):
-    unittestMockBegin('documentSetTitle')
-    unittestMockBegin_markdownPrint()
-    unittestMockBegin_systemFetch(objectGet(options, 'systemFetch'))
-endfunction
-
-
 async function testBareDocMain():
     # Setup mocks
     unittestMockAll(objectNew( \
@@ -35,18 +28,11 @@ async function testBareDocMain():
     bareDocMain('library.json', 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), objectNew( \
-        'documentSetTitle', arrayNew( \
-            arrayNew('The Test Library') \
-        ), \
-        'markdownPrint', arrayNew( \
-            '# The Test Library', \
-            '', \
-            "## [Test Group](#var.vGroup='Test%20Group')" \
-        ), \
-        'systemFetch', arrayNew( \
-            arrayNew(arrayNew('library.json'), null, null) \
-        ) \
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
+        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', "## [Test Group](#var.vGroup='Test%20Group')")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain')
