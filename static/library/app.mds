@@ -14,6 +14,13 @@
 # groupURLs - Optional map of group name to group Markdown content URL ('' is index)
 #
 async function bareDocMain(url, title, menuLinks, groupURLs):
+    # Render library JSON documentation page?
+    if vDoc:
+        documentSetTitle('Library')
+        elementModelRender(schemaElements(bareDocTypes, 'Library'))
+        return
+    endif
+
     # URL override?
     url = if(vURL != null, vURL, url)
     if arrayLength(url) != null:
@@ -48,7 +55,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
 
     # Add an empty group for any missing group URLs
     for groupName in objectKeys(groupURLs):
-        if !objectHas(groups, groupName):
+        if groupName != '' && !objectHas(groups, groupName):
             objectSet(groups, groupName, arrayNew())
         endif
     endfor
@@ -77,10 +84,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     endif
 
     # Render the page
-    if vDoc:
-        documentSetTitle(title + ' - Library')
-        elementModelRender(schemaElements(bareDocTypes, 'Library'))
-    elif vGroup != null:
+    if vGroup != null:
         bareDocGroupPage(title, groupURLs, groups, vGroup)
     else:
         bareDocIndexPage(title, menuLinks, groupURLs, groups)
@@ -98,11 +102,14 @@ endfunction
 async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the menu and title
     documentSetTitle(title)
-    for menuLink, ixMenuLink in menuLinks:
-        menuLinkText = arrayGet(menuLink, 0)
-        menuLinkURL = arrayGet(menuLink, 1)
-        markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + menuLinkURL + ')')
-    endfor
+    if arrayLength(menuLinks) > 0:
+        for menuLink, ixMenuLink in menuLinks:
+            menuLinkText = arrayGet(menuLink, 0)
+            menuLinkURL = arrayGet(menuLink, 1)
+            markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
+        endfor
+        markdownPrint('')
+    endif
     markdownPrint('# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
@@ -170,10 +177,10 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
         arguments = objectGet(function_, 'args')
         if arguments != null:
             for argument in arguments:
-                markdownPrint('', '**' + markdownEscape(objectGet(argument, 'name')) + ' -** ', objectGet(argument, 'doc'))
+                markdownPrint('', '**' + markdownEscape(objectGet(argument, 'name')) + ' -**', objectGet(argument, 'doc'))
             endfor
         else:
-            markdownPrint('None')
+            markdownPrint('', 'None')
         endif
 
         # Render the function's return documentation
