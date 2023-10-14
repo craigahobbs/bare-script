@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.9 (2023-10-14)
+
+- [ed54859](https://github.com/craigahobbs/bare-script/commit/ed54859) - use String.findLast now that Debian LTS has more-current Firefox
+
 ## 2.2.8 (2023-10-10)
 
 - [7a5115f](https://github.com/craigahobbs/bare-script/commit/7a5115f) - ensure function last-argument array is an array if arguments missing
