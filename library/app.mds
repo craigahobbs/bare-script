@@ -116,7 +116,7 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
     if objectHas(groupURLs, ''):
         rootURL = objectGet(groupURLs, '')
         rootMarkdown = systemFetch(rootURL, null, true)
-        markdownPrint('', if(rootMarkdown != null, rootMarkdown, 'Error: Failed to load "' + markdownEscape(rootURL) + '"'))
+        markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
     endif
 
     # Render the library function index
@@ -147,7 +147,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
     if objectHas(groupURLs, groupName):
         groupURL = objectGet(groupURLs, groupName)
         groupMarkdown = systemFetch(groupURL, null, true)
-        markdownPrint('', if(groupMarkdown != null, groupMarkdown, 'Error: Failed to load "' + markdownEscape(groupURL) + '"'))
+        markdownPrint('', if(groupMarkdown != null, groupMarkdown, '**Error:** Failed to load "' + markdownEscape(groupURL) + '"'))
     endif
 
     # Render the group function index

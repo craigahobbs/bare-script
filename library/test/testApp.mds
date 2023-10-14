@@ -186,7 +186,33 @@ endfunction
 unittestRunTestAsync('testBareDocMain_index_menuLinksOne')
 
 
-async function testBareDocMain_index_groupEmpty():
+async function testBareDocMain_index_content():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'library.json', testBareDocLibrary, \
+            'index.md', 'This is the index.' \
+        ) \
+    ))
+
+    # Render the index
+    bareDocMain('library.json', 'The Test Library', null, objectNew('', 'index.md', 'A Group', 'testGroup.md'))
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
+        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('systemFetch', arrayNew('index.md', null, true)), \
+        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+    ))
+endfunction
+unittestRunTestAsync('testBareDocMain_index_content')
+
+
+async function testBareDocMain_index_contentEmpty():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -203,20 +229,15 @@ async function testBareDocMain_index_groupEmpty():
         arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_index_groupEmpty')
+unittestRunTestAsync('testBareDocMain_index_contentEmpty')
 
 
-async function testBareDocMain_index_groupTop():
+async function testBareDocMain_index_contentError():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBareDocLibrary, \
-            'index.md', 'This is the index.' \
-        ) \
-    ))
+    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
     # Render the index
-    bareDocMain('library.json', 'The Test Library', null, objectNew('', 'index.md'))
+    bareDocMain('library.json', 'The Test Library', null, objectNew('', 'index.md', 'A Group', 'testGroup.md'))
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
@@ -224,52 +245,12 @@ async function testBareDocMain_index_groupTop():
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
         arrayNew('systemFetch', arrayNew('index.md', null, true)), \
-        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
+        arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "index.md"')), \
         arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
         arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_index_groupTop')
-
-
-async function testBareDocMain_index_groupTopError():
-    # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
-
-    # Render the index
-    bareDocMain('library.json', 'The Test Library', null, objectNew('', 'index.md'))
-
-    # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md', null, true)), \
-        arrayNew('markdownPrint', arrayNew('', 'Error: Failed to load "index.md"')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
-    ))
-endfunction
-unittestRunTestAsync('testBareDocMain_index_groupTopError')
-
-
-async function testBareDocMain_index_groupContent():
-    # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
-
-    # Render the index
-    bareDocMain('library.json', 'The Test Library', null, objectNew('A Group', 'testGroup.md'))
-
-    # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
-    ))
-endfunction
-unittestRunTestAsync('testBareDocMain_index_groupContent')
+unittestRunTestAsync('testBareDocMain_index_contentError')
 
 
 async function testBareDocMain_index_urlArgument():
@@ -369,7 +350,7 @@ endfunction
 unittestRunTestAsync('testBareDocMain_group')
 
 
-async function testBareDocMain_group2():
+async function testBareDocMain_group_other():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -398,10 +379,10 @@ async function testBareDocMain_group2():
         arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_group2')
+unittestRunTestAsync('testBareDocMain_group_other')
 
 
-async function testBareDocMain_groupContent():
+async function testBareDocMain_group_content():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary, 'c.md', 'These are the C functions.')))
 
@@ -432,10 +413,10 @@ async function testBareDocMain_groupContent():
         arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_groupContent')
+unittestRunTestAsync('testBareDocMain_group_content')
 
 
-async function testBareDocMain_groupContentError():
+async function testBareDocMain_group_contentError():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -450,7 +431,7 @@ async function testBareDocMain_groupContentError():
         arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)', '', '# C Group')), \
         arrayNew('systemFetch', arrayNew('c.md', null, true)), \
-        arrayNew('markdownPrint', arrayNew('', 'Error: Failed to load "c.md"')), \
+        arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "c.md"')), \
         arrayNew('markdownPrint', arrayNew('', '## Function Index')), \
         arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
         arrayNew('markdownPrint', arrayNew("- [func\\_e](#var.vGroup='C%20Group'&func-e)")), \
@@ -466,10 +447,10 @@ async function testBareDocMain_groupContentError():
         arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_groupContentError')
+unittestRunTestAsync('testBareDocMain_group_contentError')
 
 
-async function testBareDocMain_groupUnknown():
+async function testBareDocMain_group_unknown():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -485,10 +466,10 @@ async function testBareDocMain_groupUnknown():
         arrayNew('markdownPrint', arrayNew('', '**Error:** Unknown group "Unknown"')) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_groupUnknown')
+unittestRunTestAsync('testBareDocMain_group_unknown')
 
 
-async function testBareDocMain_functionName():
+async function testBareDocMain_function():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -503,10 +484,10 @@ async function testBareDocMain_functionName():
         arrayNew('windowSetLocation', arrayNew("#var.vGroup='A%20Group'&func-a")) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_functionName')
+unittestRunTestAsync('testBareDocMain_function')
 
 
-async function testBareDocMain_functionNameUnknown():
+async function testBareDocMain_function_unknown():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBareDocLibrary)))
 
@@ -521,7 +502,7 @@ async function testBareDocMain_functionNameUnknown():
         arrayNew('markdownPrint', arrayNew('', '**Error:** Unknown function "unknownFunc"')) \
     ))
 endfunction
-unittestRunTestAsync('testBareDocMain_functionNameUnknown')
+unittestRunTestAsync('testBareDocMain_function_unknown')
 
 
 async function testBareDocMain_doc():
