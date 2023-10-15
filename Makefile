@@ -23,7 +23,7 @@ ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 
 
 help:
-	@echo "            [perf]"
+	@echo "            [perf|test-doc]"
 
 
 clean:
