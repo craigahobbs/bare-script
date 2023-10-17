@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.10 (2023-10-17)
+
+- [143aa19](https://github.com/craigahobbs/bare-script/commit/143aa19) - Fix if-then, while-do, and for-each statements crossing function scope boundaries
+
 ## 2.2.9 (2023-10-14)
 
 - [ed54859](https://github.com/craigahobbs/bare-script/commit/ed54859) - use String.findLast now that Debian LTS has more-current Firefox
