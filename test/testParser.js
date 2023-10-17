@@ -654,6 +654,96 @@ if i > 0:
 });
 
 
+test('parseScript, if-then statement error endif outside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+function test():
+    if i > 0:
+endfunction
+endif
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Missing endif statement, line number 2:
+    if i > 0:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, if-then statement error endif inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+if i > 0:
+function test():
+    endif
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+No matching if statement, line number 3:
+    endif
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, if-then statement error elif inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+if i > 0:
+function test():
+    elif i == 1:
+    endif
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+No matching if statement, line number 3:
+    elif i == 1:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, if-then statement error else inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+if i > 0:
+function test():
+    else:
+    endif
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+No matching if statement, line number 3:
+    else:
+^
+`
+        }
+    );
+});
+
+
 test('parseScript, while-do statement', () => {
     const script = validateScript(parseScript(`\
 i = 0
@@ -778,6 +868,96 @@ while true:
             'message': `\
 Missing endwhile statement, line number 1:
 while true:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, while-do statement error endwhile outside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+function test():
+    while i > 0:
+endfunction
+endwhile
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Missing endwhile statement, line number 2:
+    while i > 0:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, while-do statement error endwhile inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+while i > 0:
+function test():
+    endwhile
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+No matching while statement, line number 3:
+    endwhile
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, while-do statement error break inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+while i > 0:
+function test():
+        break
+    endwhile
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Break statement outside of loop, line number 3:
+        break
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, while-do statement error continue inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+while i > 0:
+function test():
+        continue
+    endwhile
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Continue statement outside of loop, line number 3:
+        continue
 ^
 `
         }
@@ -1011,6 +1191,96 @@ for value in values:
             'message': `\
 Missing endfor statement, line number 1:
 for value in values:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, foreach statement error endfor outside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+function test():
+    for value in values:
+endfunction
+endfor
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Missing endfor statement, line number 2:
+    for value in values:
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, foreach statement error endfor inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+for value in values:
+function test():
+    endfor
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+No matching for statement, line number 3:
+    endfor
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, foreach statement error break inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+for value in values:
+function test():
+        break
+    endfor
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Break statement outside of loop, line number 3:
+        break
+^
+`
+        }
+    );
+});
+
+
+test('parseScript, for-do statement error continue inside function', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+for value in values:
+function test():
+        continue
+    endfor
+endfunction
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Continue statement outside of loop, line number 3:
+        continue
 ^
 `
         }
