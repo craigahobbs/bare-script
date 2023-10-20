@@ -83,7 +83,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ~~~
-The BareScript Library has 89 functions
+The BareScript Library has 100 functions
 ~~~
 
 
