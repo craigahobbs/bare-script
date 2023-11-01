@@ -81,7 +81,7 @@ export DOC_LIBRARY_MODEL_JS
 commit: test-doc
 test-doc: build/npm.build
 	$(NODE_DOCKER) npx bare -s static/library/*.mds static/library/test/*.mds
-	$(NODE_DOCKER) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds
+	$(NODE_DOCKER) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Run performance tests
