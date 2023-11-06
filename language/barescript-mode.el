@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.6
+;; Version: 0.7
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
    )
   )
 
-(defun barescript-open-language-documentation ()
+(defun barescript-open-language ()
   "Open BareScript language documentation"
   (interactive)
   (browse-url "https://craigahobbs.github.io/bare-script/language/")
@@ -49,14 +49,31 @@
   (browse-url "https://craigahobbs.github.io/markdown-up/library/")
   )
 
-(defun barescript-open-markdownup-function ()
-  "Open BareScript Library documentation for the function at point"
+(defun barescript-open-markdownup-include ()
+  "Open MarkdownUp include library documentation"
+  (interactive)
+  (browse-url "https://craigahobbs.github.io/markdown-up/library/include.html")
+  )
+
+(defun barescript-open-markdownup-library-function ()
+  "Open MarkdownUp library documentation for the function at point"
   (interactive)
   (let* ((library-url "https://craigahobbs.github.io/markdown-up/library/#var.vName='%s'")
          (word-at-point (thing-at-point 'symbol))
          (formatted-url (format library-url word-at-point)))
     (if word-at-point (browse-url formatted-url)
-      (message "No valid BareScript function at point"))
+      (message "No BareScript function at point"))
+    )
+  )
+
+(defun barescript-open-markdownup-include-function ()
+  "Open MarkdownUp include library documentation for the function at point"
+  (interactive)
+  (let* ((library-url "https://craigahobbs.github.io/markdown-up/library/include.html#var.vName='%s'")
+         (word-at-point (thing-at-point 'symbol))
+         (formatted-url (format library-url word-at-point)))
+    (if word-at-point (browse-url formatted-url)
+      (message "No BareScript function at point"))
     )
   )
 
@@ -87,9 +104,11 @@
   (setq-local font-lock-defaults '(barescript-font-lock-keywords))
 
   ;; Bind the key for browsing documentation
-  (define-key barescript-mode-map (kbd "C-c C-l") 'barescript-open-language-documentation)
-  (define-key barescript-mode-map (kbd "C-c C-m") 'barescript-open-markdownup-library)
-  (define-key barescript-mode-map (kbd "C-c C-f") 'barescript-open-markdownup-function)
+  (define-key barescript-mode-map (kbd "C-c C-h") 'barescript-open-language)
+  (define-key barescript-mode-map (kbd "C-c C-l") 'barescript-open-markdownup-library)
+  (define-key barescript-mode-map (kbd "C-c C-n") 'barescript-open-markdownup-include)
+  (define-key barescript-mode-map (kbd "C-c C-f") 'barescript-open-markdownup-library-function)
+  (define-key barescript-mode-map (kbd "C-c C-i") 'barescript-open-markdownup-include-function)
   )
 
 (provide 'barescript-mode)
