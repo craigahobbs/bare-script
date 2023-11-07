@@ -595,6 +595,12 @@
                     "doc": [
                         "The datetime"
                     ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC day of the month."
+                    ]
                 }
             ],
             "return": [
@@ -612,6 +618,12 @@
                     "name": "datetime",
                     "doc": [
                         "The datetime"
+                    ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC hour."
                     ]
                 }
             ],
@@ -673,6 +685,12 @@
                     "doc": [
                         "The datetime"
                     ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC minutes."
+                    ]
                 }
             ],
             "return": [
@@ -690,6 +708,12 @@
                     "name": "datetime",
                     "doc": [
                         "The datetime"
+                    ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC month."
                     ]
                 }
             ],
@@ -827,6 +851,12 @@
                     "doc": [
                         "The datetime"
                     ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC seconds."
+                    ]
                 }
             ],
             "return": [
@@ -854,6 +884,12 @@
                     "name": "datetime",
                     "doc": [
                         "The datetime"
+                    ]
+                },
+                {
+                    "name": "utc",
+                    "doc": [
+                        "Optional (default is false). If true, return the UTC year."
                     ]
                 }
             ],
