@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.12 (2023-11-07)
+
+- [6b3ad3d](https://github.com/craigahobbs/bare-script/commit/6b3ad3d) - library - fix date parsing
+
 ## 2.2.11 (2023-11-07)
 
 - [70aa5f4](https://github.com/craigahobbs/bare-script/commit/70aa5f4) - library - add datetime utc accessor arguments
