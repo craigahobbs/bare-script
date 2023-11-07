@@ -671,7 +671,8 @@ test('library, datetimeHour non-datetime', () => {
 
 test('library, datetimeISOFormat', () => {
     assert.equal(scriptFunctions.datetimeISOFormat([new Date(Date.UTC(2022, 7, 29, 15, 8))]), '2022-08-29T15:08:00.000Z');
-    assert.equal(scriptFunctions.datetimeISOFormat([new Date(Date.UTC(2022, 7, 29, 15, 8)), true]), '2022-08-29');
+    assert.equal(scriptFunctions.datetimeISOFormat([new Date(2022, 7, 29, 15, 8), true]), '2022-08-29');
+    assert.equal(scriptFunctions.datetimeISOFormat([new Date(2022, 10, 9, 15, 8), true]), '2022-11-09');
 });
 
 
