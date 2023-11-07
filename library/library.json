@@ -176,7 +176,7 @@
             ],
             "args": [
                 {
-                    "name": "args",
+                    "name": "values...",
                     "doc": [
                         "The new array's values"
                     ]
@@ -242,7 +242,7 @@
                     ]
                 },
                 {
-                    "name": "values",
+                    "name": "values...",
                     "doc": [
                         "The values to add to the end of the array"
                     ]
@@ -501,7 +501,7 @@
             ],
             "args": [
                 {
-                    "name": "text",
+                    "name": "text...",
                     "doc": [
                         "The CSV text"
                     ]
@@ -1135,13 +1135,13 @@
             "name": "mathMax",
             "group": "Math",
             "doc": [
-                "Compute the maximum value of all arguments"
+                "Compute the maximum value"
             ],
             "args": [
                 {
-                    "name": "values",
+                    "name": "values...",
                     "doc": [
-                        "All arguments"
+                        "The values"
                     ]
                 }
             ],
@@ -1153,13 +1153,13 @@
             "name": "mathMin",
             "group": "Math",
             "doc": [
-                "Compute the minimum value of all arguments"
+                "Compute the minimum value"
             ],
             "args": [
                 {
-                    "name": "values",
+                    "name": "values...",
                     "doc": [
-                        "All arguments"
+                        "The values"
                     ]
                 }
             ],
@@ -1498,9 +1498,9 @@
             ],
             "args": [
                 {
-                    "name": "keyValues",
+                    "name": "keyValues...",
                     "doc": [
-                        "The object's initial key and value arguments"
+                        "The object's initial key and value pairs"
                     ]
                 }
             ],
@@ -1665,7 +1665,7 @@
             ],
             "args": [
                 {
-                    "name": "lines",
+                    "name": "lines...",
                     "doc": [
                         "The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/)",
                         "text lines (may contain nested arrays of un-split lines)"
@@ -1817,18 +1817,18 @@
             "name": "stringFromCharCode",
             "group": "String",
             "doc": [
-                "Create a string from the character code arguments"
+                "Create a string of characters from character codes"
             ],
             "args": [
                 {
-                    "name": "charCodes",
+                    "name": "charCodes...",
                     "doc": [
                         "The character codes"
                     ]
                 }
             ],
             "return": [
-                "The new string"
+                "The string of characters"
             ]
         },
         {
@@ -2236,7 +2236,7 @@
                     ]
                 },
                 {
-                    "name": "args",
+                    "name": "args...",
                     "doc": [
                         "The function arguments"
                     ]

@@ -340,18 +340,18 @@
             "name": "fromCharCode",
             "group": "String",
             "doc": [
-                "Create a string from the character code arguments"
+                "Create a string of characters from character codes"
             ],
             "args": [
                 {
-                    "name": "charCodes",
+                    "name": "charCodes...",
                     "doc": [
                         "The character codes"
                     ]
                 }
             ],
             "return": [
-                "The new string"
+                "The string of characters"
             ]
         },
         {
@@ -490,13 +490,13 @@
             "name": "max",
             "group": "Math",
             "doc": [
-                "Compute the maximum value of all arguments"
+                "Compute the maximum value"
             ],
             "args": [
                 {
-                    "name": "values",
+                    "name": "values...",
                     "doc": [
-                        "All arguments"
+                        "The values"
                     ]
                 }
             ],
@@ -508,13 +508,13 @@
             "name": "min",
             "group": "Math",
             "doc": [
-                "Compute the minimum value of all arguments"
+                "Compute the minimum value"
             ],
             "args": [
                 {
-                    "name": "values",
+                    "name": "values...",
                     "doc": [
-                        "All arguments"
+                        "The values"
                     ]
                 }
             ],
