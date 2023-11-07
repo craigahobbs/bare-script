@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.13 (2023-11-07)
+
+- [283f524](https://github.com/craigahobbs/bare-script/commit/283f524) - library - fix datetimeISOFormat for dates
+
 ## 2.2.12 (2023-11-07)
 
 - [6b3ad3d](https://github.com/craigahobbs/bare-script/commit/6b3ad3d) - library - fix date parsing
