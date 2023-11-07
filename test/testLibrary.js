@@ -644,6 +644,11 @@ test('library, datetimeDay', () => {
 });
 
 
+test('library, datetimeDay UTC', () => {
+    assert.equal(scriptFunctions.datetimeDay([new Date(Date.UTC(2022, 5, 21)), true]), 21);
+});
+
+
 test('library, datetimeDay non-datetime', () => {
     assert.equal(scriptFunctions.datetimeDay([null]), null);
 });
@@ -651,6 +656,11 @@ test('library, datetimeDay non-datetime', () => {
 
 test('library, datetimeHour', () => {
     assert.equal(scriptFunctions.datetimeHour([new Date(2022, 5, 21, 7)]), 7);
+});
+
+
+test('library, datetimeHour UTC', () => {
+    assert.equal(scriptFunctions.datetimeHour([new Date(Date.UTC(2022, 5, 21, 7)), true]), 7);
 });
 
 
@@ -679,6 +689,11 @@ test('library, datetimeMinute', () => {
 });
 
 
+test('library, datetimeMinute UTC', () => {
+    assert.equal(scriptFunctions.datetimeMinute([new Date(Date.UTC(2022, 5, 21, 7, 15)), true]), 15);
+});
+
+
 test('library, datetimeMinute non-datetime', () => {
     assert.equal(scriptFunctions.datetimeMinute([null]), null);
 });
@@ -686,6 +701,11 @@ test('library, datetimeMinute non-datetime', () => {
 
 test('library, datetimeMonth', () => {
     assert.equal(scriptFunctions.datetimeMonth([new Date(2022, 5, 21, 7, 15)]), 6);
+});
+
+
+test('library, datetimeMonth UTC', () => {
+    assert.equal(scriptFunctions.datetimeMonth([new Date(Date.UTC(2022, 5, 21, 7, 15)), true]), 6);
 });
 
 
@@ -724,6 +744,11 @@ test('library, datetimeSecond', () => {
 });
 
 
+test('library, datetimeSecond UTC', () => {
+    assert.equal(scriptFunctions.datetimeSecond([new Date(Date.UTC(2022, 5, 21, 7, 15, 30)), true]), 30);
+});
+
+
 test('library, datetimeSecond non-datetime', () => {
     assert.equal(scriptFunctions.datetimeSecond([null]), null);
 });
@@ -738,6 +763,11 @@ test('library, datetimeToday', () => {
 
 test('library, datetimeYear', () => {
     assert.equal(scriptFunctions.datetimeYear([new Date(2022, 5, 21)]), 2022);
+});
+
+
+test('library, datetimeYear UTC', () => {
+    assert.equal(scriptFunctions.datetimeYear([new Date(Date.UTC(2022, 5, 21)), true]), 2022);
 });
 
 
