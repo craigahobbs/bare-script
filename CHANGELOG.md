@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.11 (2023-11-07)
+
+- [70aa5f4](https://github.com/craigahobbs/bare-script/commit/70aa5f4) - library - add datetime utc accessor arguments
+
 ## 2.2.10 (2023-10-17)
 
 - [143aa19](https://github.com/craigahobbs/bare-script/commit/143aa19) - Fix if-then, while-do, and for-each statements crossing function scope boundaries
