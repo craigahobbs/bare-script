@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.14 (2023-11-07)
+
+- [282b7bc](https://github.com/craigahobbs/bare-script/commit/282b7bc) - bareDoc - document lastArgArray args
+
 ## 2.2.13 (2023-11-07)
 
 - [283f524](https://github.com/craigahobbs/bare-script/commit/283f524) - library - fix datetimeISOFormat for dates
