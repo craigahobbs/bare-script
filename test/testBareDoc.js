@@ -190,6 +190,39 @@ test('parseBareDoc', () => {
 });
 
 
+test('parseBareDoc, lastArgArray', () => {
+    assert.deepEqual(
+        parseBareDoc([
+            [
+                'library.js',
+                `\
+    // $function: myFunc
+    // $group: My Group
+    // $doc: The function
+    // $arg args...: The many
+    // $arg args...: args
+`
+            ]
+        ]),
+        {
+            'functions': [
+                {
+                    'name': 'myFunc',
+                    'group': 'My Group',
+                    'doc': ['The function'],
+                    'args': [
+                        {
+                            'name': 'args...',
+                            'doc': ['The many', 'args']
+                        }
+                    ]
+                }
+            ]
+        }
+    );
+});
+
+
 test('parseBareDoc, blank lines', () => {
     assert.deepEqual(
         parseBareDoc([
@@ -421,6 +454,32 @@ test('parseBareDoc, error function missing group/doc', () => {
             'message': `\
 error: Function "myFunc" missing group
 error: Function "myFunc" missing documentation`
+        }
+    );
+});
+
+
+test('parseBareDoc, invalid doc comment', () => {
+    assert.throws(
+        () => {
+            parseBareDoc([
+                [
+                    'library.js',
+                    `\
+// $function: myFunc
+// $group: My Group
+// $doc: The function
+// $arg args ...: The args
+// $returns: The value
+`
+                ]
+            ]);
+        },
+        {
+            'name': 'Error',
+            'message': `\
+library.js:4: Invalid documentation comment "arg args ..."
+library.js:5: Invalid documentation comment "returns"`
         }
     );
 });
