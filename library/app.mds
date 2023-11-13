@@ -1,12 +1,11 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <args.mds>
+
 
 #
-# The BareScript library documentation application
-#
-
-
+# The BareScript library documentation application main entry point
 #
 # url - The library documentation JSON resource URL
 # title - The library title
@@ -14,25 +13,22 @@
 # groupURLs - Optional map of group name to group Markdown content URL ('' is index)
 #
 async function bareDocMain(url, title, menuLinks, groupURLs):
+    # Parse arguments
+    args = argsParse(bareDocArguments)
+    group = objectGet(args, 'group')
+    name = objectGet(args, 'name')
+    url = objectGet(args, 'url', url)
+
     # Render library JSON documentation page?
-    if vDoc:
+    if objectGet(args, 'doc'):
         documentSetTitle('Library')
         elementModelRender(schemaElements(bareDocTypes, 'Library'))
         return
     endif
 
-    # URL override?
-    url = if(vURL != null, vURL, url)
-    if arrayLength(url) != null:
-        urls = url
-        url = arrayJoin(urls, ', ')
-    else:
-        urls = arrayNew(url)
-    endif
-    title = if(title != null && vURL == null, title, url)
-
     # Fetch and validate the library documentation resource
     groups = objectNew()
+    urls = if(arrayLength(url) != null, url, arrayNew(url))
     for libraryPart, ixLibrary in systemFetch(urls):
         libraryPart = schemaValidate(bareDocTypes, 'Library', libraryPart)
         if libraryPart == null:
@@ -63,42 +59,55 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     # Sort the group functions
     for groupName in objectKeys(groups):
         groupFunctions = objectGet(groups, groupName)
-        arraySort(groupFunctions, functionCompare)
+        arraySort(groupFunctions, bareDocFunctionCompare)
 
         # Function requested by name?
-        if vName != null:
+        if name != null:
             for function_ in groupFunctions:
                 functionName = objectGet(function_, 'name')
-                if functionName == vName:
+                if functionName == name:
                     # Redirect to the actual URL
-                    functionURL = bareDocURL(objectNew('group', objectGet(function_, 'group'))) + '&' + markdownHeaderId(functionName)
-                    windowSetLocation(functionURL)
+                    windowSetLocation( \
+                        argsURL(bareDocArguments, objectNew('group', objectGet(function_, 'group'), 'name', null), false, functionName) \
+                    )
                     return
                 endif
             endfor
         endif
     endfor
-    if vName != null:
-        markdownPrint('', '**Error:** Unknown function "' + markdownEscape(vName) + '"')
+    if name != null:
+        markdownPrint('', '**Error:** Unknown function "' + markdownEscape(name) + '"')
         return
     endif
 
     # Render the page
-    if vGroup != null:
-        bareDocGroupPage(title, groupURLs, groups, vGroup)
+    title = if(title != null && !objectHas(args, 'url'), title, url)
+    if group != null:
+        bareDocGroupPage(title, groupURLs, groups, group)
     else:
         bareDocIndexPage(title, menuLinks, groupURLs, groups)
     endif
 endfunction
 
 
-function functionCompare(f1, f2):
+# # The BareScript library documentation application arguments
+bareDocArguments = argsValidate(arrayNew( \
+    objectNew('name', 'doc', 'type', 'bool', 'default', false), \
+    objectNew('name', 'group'), \
+    objectNew('name', 'name'), \
+    objectNew('name', 'url', 'global', 'vURL') \
+))
+
+
+# Helper to compare library function objects by name
+function bareDocFunctionCompare(f1, f2):
     f1Name = objectGet(f1, 'name')
     f2Name = objectGet(f2, 'name')
     return if(f1Name < f2Name, -1, if(f1Name == f2Name, 0, 1))
 endfunction
 
 
+# Render a library documentation index page
 async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the menu and title
     documentSetTitle(title)
@@ -121,11 +130,12 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
 
     # Render the library function index
     for groupKey in arraySort(objectKeys(groups)):
-        markdownPrint('', '## [' + markdownEscape(groupKey) + '](' + bareDocURL(objectNew('group', groupKey)) + ')')
+        markdownPrint('', '## ' + argsLink(bareDocArguments, groupKey, objectNew('group', groupKey)))
     endfor
 endfunction
 
 
+# Render a library documentation group page
 async function bareDocGroupPage(title, groupURLs, groups, groupName):
     # Set the document title
     documentSetTitle(title + ' - ' + groupName)
@@ -138,7 +148,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
 
     # Render the menu and title
     markdownPrint( \
-        '[Index](' + bareDocURL(objectNew('group', '')) + ')', \
+        argsLink(bareDocArguments, 'Index', objectNew('group', null)), \
         '', \
         '# ' + markdownEscape(groupName) \
     )
@@ -157,7 +167,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
     endif
     for function_, ixFunction in groupFunctions:
         functionName = objectGet(function_, 'name')
-        markdownPrint('- [' + markdownEscape(functionName) + '](' + bareDocURL() + '&' + markdownHeaderId(functionName) + ')')
+        markdownPrint('- ' + argsLink(bareDocArguments, functionName, null, false, functionName))
     endfor
 
     # Render the group function documentation
@@ -188,26 +198,6 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
         returnDoc = objectGet(function_, 'return')
         markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
     endfor
-endfunction
-
-
-function bareDocURL(args):
-    # Arguments overrides
-    group = objectGet(args, 'group')
-    url = objectGet(args, 'url')
-
-    # Variable arguments
-    group = if(group != null, group, vGroup)
-    url = if(url != null, url, vURL)
-
-    # Cleared arguments
-    group = if(group != null && stringLength(group) > 0, group)
-
-    # Create the link
-    parts = arrayNew()
-    if(group != null, arrayPush(parts, "var.vGroup='" + urlEncodeComponent(group) + "'"))
-    if(url != null, arrayPush(parts, "var.vURL='" + urlEncodeComponent(url) + "'"))
-    return if(arrayLength(parts) != 0, '#' + arrayJoin(parts, '&'), '#var=')
 endfunction
 
 
