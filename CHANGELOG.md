@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.15 (2023-11-18)
+
+- [35a601e](https://github.com/craigahobbs/bare-script/commit/35a601e) - library - add systemType function
+
 ## 2.2.14 (2023-11-07)
 
 - [282b7bc](https://github.com/craigahobbs/bare-script/commit/282b7bc) - bareDoc - document lastArgArray args
