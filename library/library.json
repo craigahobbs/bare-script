@@ -2247,6 +2247,25 @@
             ]
         },
         {
+            "name": "systemType",
+            "group": "System",
+            "doc": [
+                "Get a value's type string"
+            ],
+            "args": [
+                {
+                    "name": "value",
+                    "doc": [
+                        "The value"
+                    ]
+                }
+            ],
+            "return": [
+                "The type string of the value.",
+                "Valid values are: 'array', 'boolean', 'datetime', 'function', 'null', 'number', 'object', 'regex', 'string'."
+            ]
+        },
+        {
             "name": "urlEncode",
             "group": "URL",
             "doc": [
