@@ -1938,6 +1938,19 @@ test('library, systemPartial', () => {
 });
 
 
+test('library, systemType', () => {
+    assert.equal(scriptFunctions.systemType([[1, 2, 3]], {}), 'array');
+    assert.equal(scriptFunctions.systemType([true], {}), 'boolean');
+    assert.equal(scriptFunctions.systemType([new Date()], {}), 'datetime');
+    assert.equal(scriptFunctions.systemType([() => null], {}), 'function');
+    assert.equal(scriptFunctions.systemType([null], {}), 'null');
+    assert.equal(scriptFunctions.systemType([3.14], {}), 'number');
+    assert.equal(scriptFunctions.systemType([{}], {}), 'object');
+    assert.equal(scriptFunctions.systemType([/^abc$/], {}), 'regex');
+    assert.equal(scriptFunctions.systemType(['abc'], {}), 'string');
+});
+
+
 //
 // URL functions
 //
