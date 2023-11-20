@@ -130,7 +130,7 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
 
     # Render the library function index
     for groupKey in arraySort(objectKeys(groups)):
-        markdownPrint('', '## ' + argsLink(bareDocArguments, groupKey, objectNew('group', groupKey)))
+        markdownPrint('', '## ' + argsLink(bareDocArguments, groupKey, objectNew('group', groupKey), false, argsTopHeaderId))
     endfor
 endfunction
 
