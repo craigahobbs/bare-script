@@ -52,8 +52,8 @@ async function testBareDocMain_index():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index')
@@ -84,9 +84,9 @@ async function testBareDocMain_index_urlArray():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [B Group](#var.vGroup='B%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [B Group](#var.vGroup='B%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_urlArray')
@@ -117,8 +117,8 @@ async function testBareDocMain_index_urlArrayMerge():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_urlArrayMerge')
@@ -136,8 +136,8 @@ async function testBareDocMain_index_noTitle():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('library.json')), \
         arrayNew('markdownPrint', arrayNew('# library.json')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_noTitle')
@@ -158,8 +158,8 @@ async function testBareDocMain_index_menuLinks():
         arrayNew("markdownPrint", arrayNew('| [Link \\_2\\_](page2.html)')), \
         arrayNew('markdownPrint', arrayNew('')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_menuLinks')
@@ -179,8 +179,8 @@ async function testBareDocMain_index_menuLinksOne():
         arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
         arrayNew('markdownPrint', arrayNew('')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_menuLinksOne')
@@ -205,8 +205,8 @@ async function testBareDocMain_index_content():
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
         arrayNew('systemFetch', arrayNew('index.md', null, true)), \
         arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_content')
@@ -224,9 +224,9 @@ async function testBareDocMain_index_contentEmpty():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [B Group](#var.vGroup='B%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [B Group](#var.vGroup='B%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_contentEmpty')
@@ -246,8 +246,8 @@ async function testBareDocMain_index_contentError():
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
         arrayNew('systemFetch', arrayNew('index.md', null, true)), \
         arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "index.md"')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_contentError')
@@ -267,8 +267,8 @@ async function testBareDocMain_index_urlArgument():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('library.json')), \
         arrayNew('markdownPrint', arrayNew('# library.json')), \
-        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&var.vURL='library.json')")), \
-        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&var.vURL='library.json')")) \
+        arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&var.vURL='library.json'&_top)")), \
+        arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&var.vURL='library.json'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBareDocMain_index_urlArgument')
