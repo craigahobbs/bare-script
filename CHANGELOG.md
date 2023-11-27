@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.16 (2023-11-27)
+
+- [0b968e8](https://github.com/craigahobbs/bare-script/commit/0b968e8) - library - add stddev aggregation to dataAggregate
+
 ## 2.2.15 (2023-11-18)
 
 - [35a601e](https://github.com/craigahobbs/bare-script/commit/35a601e) - library - add systemType function
