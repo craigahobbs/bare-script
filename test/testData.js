@@ -414,7 +414,7 @@ test('aggregateData', () => {
     };
     validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
-        {'C': 3}
+        {'C': 4.5}
     ]);
 });
 
@@ -439,10 +439,10 @@ test('aggregateData, categories', () => {
     };
     validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
-        {'A': 1, 'B': 1, 'C': 3, 'Average(C)': 3},
+        {'A': 1, 'B': 1, 'C': 4.5, 'Average(C)': 4.5},
         {'A': 1, 'B': 2, 'C': 7.5, 'Average(C)': 7.5},
         {'A': 2, 'B': 1, 'C': 9.5, 'Average(C)': 9.5},
-        {'A': 2, 'B': 2, 'C': 0, 'Average(C)': 0}
+        {'A': 2, 'B': 2, 'C': null, 'Average(C)': null}
     ]);
 });
 
@@ -466,10 +466,10 @@ test('aggregateData, count', () => {
     };
     validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
-        {'A': 1, 'B': 1, 'C': 3},
+        {'A': 1, 'B': 1, 'C': 2},
         {'A': 1, 'B': 2, 'C': 2},
         {'A': 2, 'B': 1, 'C': 2},
-        {'A': 2, 'B': 2, 'C': 1}
+        {'A': 2, 'B': 2, 'C': null}
     ]);
 });
 
@@ -478,6 +478,7 @@ test('aggregateData, max', () => {
     const data = [
         {'A': 1, 'B': 1, 'C': 5},
         {'A': 1, 'B': 1, 'C': 6},
+        {'A': 1, 'B': 1, 'C': 4},
         {'A': 1, 'B': 1},
         {'A': 1, 'B': 2, 'C': 7},
         {'A': 1, 'B': 2, 'C': 8},
@@ -505,6 +506,7 @@ test('aggregateData, min', () => {
     const data = [
         {'A': 1, 'B': 1, 'C': 5},
         {'A': 1, 'B': 1, 'C': 6},
+        {'A': 1, 'B': 1, 'C': 4},
         {'A': 1, 'B': 1},
         {'A': 1, 'B': 2, 'C': 7},
         {'A': 1, 'B': 2, 'C': 8},
@@ -520,9 +522,36 @@ test('aggregateData, min', () => {
     };
     validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
-        {'A': 1, 'B': 1, 'C': null},
+        {'A': 1, 'B': 1, 'C': 4},
         {'A': 1, 'B': 2, 'C': 7},
         {'A': 2, 'B': 1, 'C': 9},
+        {'A': 2, 'B': 2, 'C': null}
+    ]);
+});
+
+
+test('aggregateData, stddev', () => {
+    const data = [
+        {'A': 1, 'B': 1, 'C': 5},
+        {'A': 1, 'B': 1, 'C': 6},
+        {'A': 1, 'B': 1},
+        {'A': 1, 'B': 2, 'C': 7},
+        {'A': 1, 'B': 2, 'C': 10},
+        {'A': 2, 'B': 1, 'C': 5},
+        {'A': 2, 'B': 1, 'C': 10},
+        {'A': 2, 'B': 2}
+    ];
+    const aggregation = {
+        'categories': ['A', 'B'],
+        'measures': [
+            {'field': 'C', 'function': 'stddev'}
+        ]
+    };
+    validateAggregation(aggregation);
+    assert.deepEqual(aggregateData(data, aggregation), [
+        {'A': 1, 'B': 1, 'C': 0.5},
+        {'A': 1, 'B': 2, 'C': 1.5},
+        {'A': 2, 'B': 1, 'C': 2.5},
         {'A': 2, 'B': 2, 'C': null}
     ]);
 });
@@ -550,7 +579,7 @@ test('aggregateData, sum', () => {
         {'A': 1, 'B': 1, 'C': 11},
         {'A': 1, 'B': 2, 'C': 15},
         {'A': 2, 'B': 1, 'C': 19},
-        {'A': 2, 'B': 2, 'C': 0}
+        {'A': 2, 'B': 2, 'C': null}
     ]);
 });
 
