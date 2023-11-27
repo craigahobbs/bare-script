@@ -404,6 +404,9 @@ enum AggregationFunction
     # The least of the measure's values
     min
 
+    # The standard deviation of the measure's values
+    stddev
+
     # The sum of the measure's values
     sum
 `);
@@ -462,7 +465,9 @@ export function aggregateData(data, aggregation) {
             if (!(field in aggregateRow)) {
                 aggregateRow[field] = [];
             }
-            aggregateRow[field].push(value);
+            if (value !== null) {
+                aggregateRow[field].push(value);
+            }
         }
     }
 
@@ -473,7 +478,9 @@ export function aggregateData(data, aggregation) {
             const field = measure.name ?? measure.field;
             const func = measure.function;
             const measureValues = aggregateRow[field];
-            if (func === 'count') {
+            if (!measureValues.length) {
+                aggregateRow[field] = null;
+            } else if (func === 'count') {
                 aggregateRow[field] = measureValues.length;
             } else if (func === 'max') {
                 aggregateRow[field] = measureValues.reduce((max, val) => (val > max ? val : max));
@@ -481,7 +488,11 @@ export function aggregateData(data, aggregation) {
                 aggregateRow[field] = measureValues.reduce((min, val) => (val &lt; min ? val : min));
             } else if (func === 'sum') {
                 aggregateRow[field] = measureValues.reduce((sum, val) => sum + val, 0);
+            } else if (func === 'stddev') {
+                const average = measureValues.reduce((sum, val) => sum + val, 0) / measureValues.length;
+                aggregateRow[field] = Math.sqrt(measureValues.reduce((sum, val) => sum + (val - average) ** 2, 0) / measureValues.length);
             } else {
+                // func === 'average'
                 aggregateRow[field] = measureValues.reduce((sum, val) => sum + val, 0) / measureValues.length;
             }
         }
