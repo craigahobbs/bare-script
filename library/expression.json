@@ -935,54 +935,6 @@
             ]
         },
         {
-            "name": "urlEncode",
-            "group": "URL",
-            "doc": [
-                "Encode a URL"
-            ],
-            "args": [
-                {
-                    "name": "url",
-                    "doc": [
-                        "The URL string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URL string"
-            ]
-        },
-        {
-            "name": "urlEncodeComponent",
-            "group": "URL",
-            "doc": [
-                "Encode a URL component"
-            ],
-            "args": [
-                {
-                    "name": "url",
-                    "doc": [
-                        "The URL component string"
-                    ]
-                },
-                {
-                    "name": "extra",
-                    "doc": [
-                        "Optional (default is true). If true, encode extra characters for wider compatibility."
-                    ]
-                }
-            ],
-            "return": [
-                "The encoded URL component string"
-            ]
-        },
-        {
             "name": "year",
             "group": "Datetime",
             "doc": [
