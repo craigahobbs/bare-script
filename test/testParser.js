@@ -12,7 +12,7 @@ test('parseScript, array input', () => {
         'a = arrayNew( \\',
         '    1,\\',
         `\
-    2 \
+    2 \\
 )
 `
     ]));
@@ -33,6 +33,29 @@ test('parseScript, line continuation', () => {
     const script = validateScript(parseScript(`\
 a = arrayNew( \\
     1, \\
+    2 \\
+)
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'expr': {
+                    'name': 'a',
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, line continuation comments', () => {
+    const script = validateScript(parseScript(`\
+# Comments don't continue \\
+a = arrayNew( \\
+    # Comments are OK within a continuation...
+    1, \\
+    # ...with or without a continuation backslash \\
     2 \\
 )
 `));
@@ -257,6 +280,28 @@ endfunction
                     'args': ['url'],
                     'statements': [
                         {'return': {'expr': {'function': {'name': 'systemFetch', 'args': [{'variable': 'url'}]}}}}
+                    ]
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, function statement empty return', () => {
+    const script = validateScript(parseScript(`\
+function fetchURL(url):
+    return
+endfunction
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'function': {
+                    'name': 'fetchURL',
+                    'args': ['url'],
+                    'statements': [
+                        {'return': {}}
                     ]
                 }
             }
@@ -1265,7 +1310,7 @@ Break statement outside of loop, line number 3:
 });
 
 
-test('parseScript, for-do statement error continue inside function', () => {
+test('parseScript, foreach statement error continue inside function', () => {
     assert.throws(
         () => {
             parseScript(`\
@@ -1447,7 +1492,7 @@ test('parseScript, expression statement syntax error', () => {
             parseScript(`\
 a = 0
 b = 1
-foo \
+foo \\
 bar
 c = 2
 `);
@@ -1690,7 +1735,7 @@ test('parseExpression, function argument syntax error', () => {
             'name': 'BareScriptParserError',
             'message': `\
 Syntax error:
-foo(1, 2 3)
+${exprText}
         ^
 `,
             'line': exprText,

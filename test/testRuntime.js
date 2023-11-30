@@ -441,8 +441,8 @@ test('executeScript, error maxStatements', () => {
             'message': 'Exceeded maximum script statements (3)'
         }
     );
-    assert.equal(executeScript(script, {}, {'maxStatements': 4}), null);
-    assert.equal(executeScript(script, {}, {'maxStatements': 0}), null);
+    assert.equal(executeScript(script, {'maxStatements': 4}), null);
+    assert.equal(executeScript(script, {'maxStatements': 0}), null);
 });
 
 

@@ -57,8 +57,6 @@ test('library, built-in expression functions', () => {
             ['today', true],
             ['trim', true],
             ['upper', true],
-            ['urlEncode', true],
-            ['urlEncodeComponent', true],
             ['year', true]
         ]
     );
