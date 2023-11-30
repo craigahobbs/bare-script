@@ -903,7 +903,12 @@ test('library, mathRound', () => {
 
 
 test('library, mathRound digits', () => {
-    assert.equal(scriptFunctions.mathRound([5.125, 2]), 5.13);
+    assert.equal(scriptFunctions.mathRound([5.25, 1]), 5.3);
+});
+
+
+test('library, mathRound digits 2', () => {
+    assert.equal(scriptFunctions.mathRound([5.15, 1]), 5.2);
 });
 
 
