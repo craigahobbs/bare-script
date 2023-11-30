@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.17 (2023-11-30)
+
+- [43250bf](https://github.com/craigahobbs/bare-script/commit/43250bf) - don't include comments in line continuations
+
 ## 2.2.16 (2023-11-27)
 
 - [0b968e8](https://github.com/craigahobbs/bare-script/commit/0b968e8) - library - add stddev aggregation to dataAggregate
