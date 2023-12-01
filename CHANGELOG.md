@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.18 (2023-12-01)
+
+- [2c1f6a2](https://github.com/craigahobbs/bare-script/commit/2c1f6a2) - revert minor perf regression
+
 ## 2.2.17 (2023-11-30)
 
 - [43250bf](https://github.com/craigahobbs/bare-script/commit/43250bf) - don't include comments in line continuations
