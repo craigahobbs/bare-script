@@ -99,7 +99,7 @@ perf: build/npm.build
 
 # Performance test constants
 PERF_JSON := build/perf.json
-PERF_RUNS := 5
+PERF_RUNS := 3
 
 
 # JavsScript to report on performance test data
