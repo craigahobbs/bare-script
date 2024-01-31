@@ -1,6 +1,8 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+/* c8 ignore start */
+
 import {argv, stdout} from 'node:process';
 
 
@@ -76,3 +78,5 @@ function mandelbrotValue(xValue, yValue, maxIter) {
 
 // Execute main
 main();
+
+/* c8 ignore end */
