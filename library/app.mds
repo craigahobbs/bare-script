@@ -28,7 +28,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
 
     # Fetch and validate the library documentation resource
     groups = objectNew()
-    urls = if(arrayLength(url) != null, url, arrayNew(url))
+    urls = if(systemType(url) == 'array', url, arrayNew(url))
     for libraryPart, ixLibrary in systemFetch(urls):
         libraryPart = schemaValidate(bareDocTypes, 'Library', libraryPart)
         if libraryPart == null:
