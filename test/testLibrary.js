@@ -1240,6 +1240,43 @@ test('library, regexNew flags', () => {
 });
 
 
+test('library, regexReplace', () => {
+    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2$1'], null), 'ba');
+
+    // Named groups
+    assert.equal(
+        scriptFunctions.regexReplace([/^(?<first>\w+)\s+(?<last>\w+)/, 'foo bar', '$2, $1'], null),
+        'bar, foo'
+    );
+
+    // JavaScript escape
+    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2$$$1'], null), 'b$a');
+
+    // Python escape
+    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2\\$1'], null), 'b\\a');
+
+    // Non-regex
+    assert.equal(scriptFunctions.regexReplace([null, 'ab', '$2$1'], null), null);
+
+    // Non-string
+    assert.equal(scriptFunctions.regexReplace([/(a*)(b)/, null, '$2$1'], null), null);
+
+    // Non-string substr
+    assert.equal(scriptFunctions.regexReplace([/(a*)(b)/, 'ab', null], null), null);
+});
+
+
+test('library, regexSplit', () => {
+    assert.deepEqual(scriptFunctions.regexSplit([/\s*,\s*/, '1,2, 3 , 4'], null), ['1', '2', '3', '4']);
+
+    // Non-regex
+    assert.equal(scriptFunctions.regexSplit([null, '1,2'], null), null);
+
+    // Non-string
+    assert.equal(scriptFunctions.regexSplit([/\s*,\s*/, null], null), null);
+});
+
+
 test('library, regexTest', () => {
     assert(scriptFunctions.regexTest([/a*b/, 'caaabc']));
 });

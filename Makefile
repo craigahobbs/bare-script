@@ -38,7 +38,7 @@ doc:
 	if ! $(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json; then cat build/doc/library/library.json; exit 1; fi
 
     # Generate the expression library documentation
-	$(NODE_DOCKER) npx baredoc lib/library.js | \
+	cat build/doc/library/library.json | \
 		$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
 
     # Generate the library model documentation
