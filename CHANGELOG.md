@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0 (2024-02-05)
+
+- [4b09368](https://github.com/craigahobbs/bare-script/commit/4b09368) - add regexReplace and regexSplit
+
 ## 2.2.18 (2023-12-01)
 
 - [2c1f6a2](https://github.com/craigahobbs/bare-script/commit/2c1f6a2) - revert minor perf regression
