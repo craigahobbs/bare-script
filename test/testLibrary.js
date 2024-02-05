@@ -1249,6 +1249,18 @@ test('library, regexReplace', () => {
         'bar, foo'
     );
 
+    // Multiple replacements
+    assert.equal(
+        scriptFunctions.regexReplace([/(fo+)/, 'foo bar fooooo', '$1d'], null),
+        'food bar foooood'
+    );
+
+    // Global flag (shouldn't ever happen)
+    assert.equal(
+        scriptFunctions.regexReplace([/(fo+)/g, 'foo bar fooooo', '$1d'], null),
+        'food bar foooood'
+    );
+
     // JavaScript escape
     assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2$$$1'], null), 'b$a');
 
