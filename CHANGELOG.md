@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.1 (2024-02-05)
+
+- [9354101](https://github.com/craigahobbs/bare-script/commit/9354101) - regexReplace does a replaceAll
+
 ## 2.3.0 (2024-02-05)
 
 - [4b09368](https://github.com/craigahobbs/bare-script/commit/4b09368) - add regexReplace and regexSplit
