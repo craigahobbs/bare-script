@@ -473,7 +473,7 @@
                     "name": "rightExpr",
                     "doc": [
                         "Optional (default is null).",
-                        "    The right [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)"
+                        "The right [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)"
                     ]
                 },
                 {
@@ -1631,6 +1631,60 @@
             ],
             "return": [
                 "The regular expression or null if the pattern is invalid"
+            ]
+        },
+        {
+            "name": "regexReplace",
+            "group": "Regex",
+            "doc": [
+                "Replace regular expression matches with a string"
+            ],
+            "args": [
+                {
+                    "name": "regex",
+                    "doc": [
+                        "The replacement regular expression"
+                    ]
+                },
+                {
+                    "name": "string",
+                    "doc": [
+                        "The string"
+                    ]
+                },
+                {
+                    "name": "substr",
+                    "doc": [
+                        "The replacement string"
+                    ]
+                }
+            ],
+            "return": [
+                "The updated string"
+            ]
+        },
+        {
+            "name": "regexSplit",
+            "group": "Regex",
+            "doc": [
+                "Split a string with a regular expression"
+            ],
+            "args": [
+                {
+                    "name": "regex",
+                    "doc": [
+                        "The regular expression"
+                    ]
+                },
+                {
+                    "name": "string",
+                    "doc": [
+                        "The string"
+                    ]
+                }
+            ],
+            "return": [
+                "The array of split parts"
             ]
         },
         {
