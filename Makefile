@@ -38,16 +38,13 @@ doc:
 	if ! $(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json; then cat build/doc/library/library.json; exit 1; fi
 
     # Generate the expression library documentation
-	cat build/doc/library/library.json | \
-		$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
+	cat build/doc/library/library.json | $(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
 
     # Generate the library model documentation
 	$(NODE_DOCKER) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" > build/doc/library/model.json
 
     # Generate the runtime model documentation
-	$(NODE_DOCKER) node --input-type=module \
-		-e 'import {bareScriptTypes} from "./lib/model.js"; console.log(JSON.stringify(bareScriptTypes))' \
-		> build/doc/model/model.json
+	$(NODE_DOCKER) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" > build/doc/model/model.json
 
 
 # JavaScript to generate the expression library documentation
@@ -64,7 +61,7 @@ const libraryExpr = {'functions': []};
 for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) {
 	libraryExpr.functions.push({...libraryFunctionMap[scriptFnName], 'name': exprFnName});
 }
-console.log(JSON.stringify(libraryExpr, null, 4));
+console.log(JSON.stringify(libraryExpr));
 endef
 export DOC_EXPR_JS
 
@@ -72,9 +69,17 @@ export DOC_EXPR_JS
 # JavaScript to generate the library model documentation
 define DOC_LIBRARY_MODEL_JS
 import {aggregationTypes} from "./lib/data.js";
-console.log(JSON.stringify(aggregationTypes, null, 4));
+console.log(JSON.stringify(aggregationTypes));
 endef
 export DOC_LIBRARY_MODEL_JS
+
+
+# JavaScript to generate the runtime model documentation
+define DOC_RUNTIME_MODEL_JS
+import {bareScriptTypes} from "./lib/model.js";
+console.log(JSON.stringify(bareScriptTypes));
+endef
+export DOC_RUNTIME_MODEL_JS
 
 
 .PHONY: test-doc

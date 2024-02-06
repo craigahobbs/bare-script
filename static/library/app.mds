@@ -12,9 +12,9 @@ include <args.mds>
 # menuLinks - Optional array of text/URL menu link tuples
 # groupURLs - Optional map of group name to group Markdown content URL ('' is index)
 #
-async function bareDocMain(url, title, menuLinks, groupURLs):
+async function baredocMain(url, title, menuLinks, groupURLs):
     # Parse arguments
-    args = argsParse(bareDocArguments)
+    args = argsParse(baredocArguments)
     group = objectGet(args, 'group')
     name = objectGet(args, 'name')
     url = objectGet(args, 'url', url)
@@ -22,7 +22,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     # Render library JSON documentation page?
     if objectGet(args, 'doc'):
         documentSetTitle('Library')
-        elementModelRender(schemaElements(bareDocTypes, 'Library'))
+        elementModelRender(schemaElements(baredocTypes, 'Library'))
         return
     endif
 
@@ -30,7 +30,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     groups = objectNew()
     urls = if(systemType(url) == 'array', url, arrayNew(url))
     for libraryPart, ixLibrary in systemFetch(urls):
-        libraryPart = schemaValidate(bareDocTypes, 'Library', libraryPart)
+        libraryPart = schemaValidate(baredocTypes, 'Library', libraryPart)
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -59,7 +59,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     # Sort the group functions
     for groupName in objectKeys(groups):
         groupFunctions = objectGet(groups, groupName)
-        arraySort(groupFunctions, bareDocFunctionCompare)
+        arraySort(groupFunctions, baredocFunctionCompare)
 
         # Function requested by name?
         if name != null:
@@ -68,7 +68,7 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
                 if functionName == name:
                     # Redirect to the actual URL
                     windowSetLocation( \
-                        argsURL(bareDocArguments, objectNew('group', objectGet(function_, 'group'), 'name', null), false, functionName) \
+                        argsURL(baredocArguments, objectNew('group', objectGet(function_, 'group'), 'name', null), false, functionName) \
                     )
                     return
                 endif
@@ -83,15 +83,15 @@ async function bareDocMain(url, title, menuLinks, groupURLs):
     # Render the page
     title = if(title != null && !objectHas(args, 'url'), title, url)
     if group != null:
-        bareDocGroupPage(title, groupURLs, groups, group)
+        baredocGroupPage(title, groupURLs, groups, group)
     else:
-        bareDocIndexPage(title, menuLinks, groupURLs, groups)
+        baredocIndexPage(title, menuLinks, groupURLs, groups)
     endif
 endfunction
 
 
 # # The BareScript library documentation application arguments
-bareDocArguments = argsValidate(arrayNew( \
+baredocArguments = argsValidate(arrayNew( \
     objectNew('name', 'doc', 'type', 'bool', 'default', false), \
     objectNew('name', 'group'), \
     objectNew('name', 'name'), \
@@ -100,7 +100,7 @@ bareDocArguments = argsValidate(arrayNew( \
 
 
 # Helper to compare library function objects by name
-function bareDocFunctionCompare(f1, f2):
+function baredocFunctionCompare(f1, f2):
     f1Name = objectGet(f1, 'name')
     f2Name = objectGet(f2, 'name')
     return if(f1Name < f2Name, -1, if(f1Name == f2Name, 0, 1))
@@ -108,7 +108,7 @@ endfunction
 
 
 # Render a library documentation index page
-async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
+async function baredocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the menu and title
     documentSetTitle(title)
     if arrayLength(menuLinks) > 0:
@@ -130,13 +130,13 @@ async function bareDocIndexPage(title, menuLinks, groupURLs, groups):
 
     # Render the library function index
     for groupKey in arraySort(objectKeys(groups)):
-        markdownPrint('', '## ' + argsLink(bareDocArguments, groupKey, objectNew('group', groupKey), false, argsTopHeaderId))
+        markdownPrint('', '## ' + argsLink(baredocArguments, groupKey, objectNew('group', groupKey), false, argsTopHeaderId))
     endfor
 endfunction
 
 
 # Render a library documentation group page
-async function bareDocGroupPage(title, groupURLs, groups, groupName):
+async function baredocGroupPage(title, groupURLs, groups, groupName):
     # Set the document title
     documentSetTitle(title + ' - ' + groupName)
 
@@ -148,7 +148,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
 
     # Render the menu and title
     markdownPrint( \
-        argsLink(bareDocArguments, 'Index', objectNew('group', null)), \
+        argsLink(baredocArguments, 'Index', objectNew('group', null)), \
         '', \
         '# ' + markdownEscape(groupName) \
     )
@@ -167,7 +167,7 @@ async function bareDocGroupPage(title, groupURLs, groups, groupName):
     endif
     for function_, ixFunction in groupFunctions:
         functionName = objectGet(function_, 'name')
-        markdownPrint('- ' + argsLink(bareDocArguments, functionName, null, false, functionName))
+        markdownPrint('- ' + argsLink(baredocArguments, functionName, null, false, functionName))
     endfor
 
     # Render the group function documentation
@@ -202,7 +202,7 @@ endfunction
 
 
 # The library documentation schema
-bareDocTypes = schemaParse( \
+baredocTypes = schemaParse( \
     '# A library documentation model', \
     'struct Library', \
     '', \

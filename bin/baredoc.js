@@ -3,7 +3,7 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {argv, exit, stdout} from 'node:process';
-import {main} from '../lib/bareDoc.js';
+import {main} from '../lib/baredoc.js';
 import {readFile} from 'node:fs/promises';
 
 

@@ -18,7 +18,7 @@
     },
     "bin": {
         "bare": "./bin/bare.js",
-        "baredoc": "./bin/bareDoc.js"
+        "baredoc": "./bin/baredoc.js"
     },
     "files": [
         "lib/**/*"
