@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.2 (2024-02-06)
+
+- [6f69f59](https://github.com/craigahobbs/bare-script/commit/6f69f59) - rename bareDoc.js to baredoc.js
+
 ## 2.3.1 (2024-02-05)
 
 - [9354101](https://github.com/craigahobbs/bare-script/commit/9354101) - regexReplace does a replaceAll
