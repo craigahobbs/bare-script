@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.0.0 (2024-03-11)
+
+- [6efffb9](https://github.com/craigahobbs/bare-script/commit/6efffb9) - bare-script 3.0
+
+  BareScript 3.0 includes backwards incompatible changes that make it easier to port BareScript to
+  other runtime platforms (namely [Python](https://github.com/craigahobbs/bare-script-py#readme)).
+  Most changes to the core language involve more consistent value, operator, and library function
+  behavior. The most notable changes are:
+
+  - [regexMatch](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='Regex'&regexmatch)
+    and [regexMatchAll](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='Regex'&regexmatchall)
+    now return a simplified match object. Numeric match groups are now strings (e.g. "0" instead of 0).
+
+  - [stringReplace](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='String'&stringreplace)
+    no longer accepts regular expressions. Instead, use
+    [regexReplace](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='Regex'&regexreplace).
+
+  - [stringSplit](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='String'&stringsplit)
+    no longer accepts regular expressions. Instead, use
+    [regexSplit](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='Regex'&regexsplit).
+
+  - [systemFetch](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='System'&systemfetch)
+    has a simplified interface and returns the resource text. If the resource is JSON, parse the response using
+    [jsonParse](https://craigahobbs.github.io/bare-script-py/library/#var.vGroup='JSON'&jsonparse).
+
 ## 2.3.2 (2024-02-06)
 
 - [6f69f59](https://github.com/craigahobbs/bare-script/commit/6f69f59) - rename bareDoc.js to baredoc.js
