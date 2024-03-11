@@ -32,52 +32,14 @@
 /** @module lib/runtime */
 
 import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './library.js';
-
-
-/**
- * The BareScript runtime options
- *
- * @typedef {Object} ExecuteScriptOptions
- * @property {boolean} [debug] - If true, execute in debug mode
- * @property {function} [fetchFn] - The [fetch function]{@link module:lib/runtime~FetchFn}
- * @property {Object} [globals] - The global variables
- * @property {function} [logFn] - The [log function]{@link module:lib/runtime~LogFn}
- * @property {number} [maxStatements] - The maximum number of statements; default is 1e9; 0 for no maximum
- * @property {number} [statementCount] - The current statement count
- * @property {function} [urlFn] - The [URL modifier function]{@link module:lib/runtime~URLFn}
- * @property {string} [systemPrefix] - The system include prefix
- */
-
-/**
- * The fetch function
- *
- * @callback FetchFn
- * @param {string} url - The URL to fetch
- * @param {?Object} [options] - The [fetch options]{@link https://developer.mozilla.org/en-US/docs/Web/API/fetch#parameters}
- * @returns {Promise} The fetch promise
- */
-
-/**
- * The log function
- *
- * @callback LogFn
- * @param {string} text - The log text
- */
-
-/**
- * The URL modifier function
- *
- * @callback URLFn
- * @param {string} url - The URL
- * @returns {string} The modified URL
- */
+import {valueBoolean, valueCompare, valueString} from './value.js';
 
 
 /**
  * Execute a BareScript model
  *
- * @param {Object} script - The [BareScript model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'}
- * @param {Object} [options = {}] - The [script execution options]{@link module:lib/runtime~ExecuteScriptOptions}
+ * @param {Object} script - The [BareScript model](model/#var.vName='BareScript')
+ * @param {Object} [options = {}] - The [script execution options]{@link module:lib/options~ExecuteScriptOptions}
  * @returns The script result
  * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
@@ -102,7 +64,7 @@ export function executeScript(script, options = {}) {
 }
 
 
-export function executeScriptHelper(statements, options, locals) {
+function executeScriptHelper(statements, options, locals) {
     const {globals} = options;
 
     // Iterate each script statement
@@ -113,8 +75,9 @@ export function executeScriptHelper(statements, options, locals) {
         const [statementKey] = Object.keys(statement);
 
         // Increment the statement counter
+        options.statementCount += 1;
         const maxStatements = options.maxStatements ?? defaultMaxStatements;
-        if (maxStatements > 0 &amp;&amp; ++options.statementCount > maxStatements) {
+        if (maxStatements > 0 &amp;&amp; options.statementCount > maxStatements) {
             throw new BareScriptRuntimeError(`Exceeded maximum script statements (${maxStatements})`);
         }
 
@@ -158,23 +121,7 @@ export function executeScriptHelper(statements, options, locals) {
 
         // Function?
         } else if (statementKey === 'function') {
-            globals[statement.function.name] = (args, fnOptions) => {
-                const funcLocals = {};
-                if ('args' in statement.function) {
-                    const argsLength = args.length;
-                    const funcArgsLength = statement.function.args.length;
-                    const ixArgLast = (statement.function.lastArgArray ?? null) &amp;&amp; (funcArgsLength - 1);
-                    for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
-                        const argName = statement.function.args[ixArg];
-                        if (ixArg &lt; argsLength) {
-                            funcLocals[argName] = (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]);
-                        } else {
-                            funcLocals[argName] = (ixArg === ixArgLast ? [] : null);
-                        }
-                    }
-                }
-                return executeScriptHelper(statement.function.statements, fnOptions, funcLocals);
-            };
+            globals[statement.function.name] = (args, fnOptions) => scriptFunction(statement.function, args, fnOptions);
 
         // Include?
         } else if (statementKey === 'include') {
@@ -186,14 +133,33 @@ export function executeScriptHelper(statements, options, locals) {
 }
 
 
+// Runtime script function implementation
+export function scriptFunction(function_, args, options) {
+    const funcLocals = {};
+    if ('args' in function_) {
+        const argsLength = args.length;
+        const funcArgsLength = function_.args.length;
+        const ixArgLast = (function_.lastArgArray ?? null) &amp;&amp; (funcArgsLength - 1);
+        for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
+            const argName = function_.args[ixArg];
+            if (ixArg &lt; argsLength) {
+                funcLocals[argName] = (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]);
+            } else {
+                funcLocals[argName] = (ixArg === ixArgLast ? [] : null);
+            }
+        }
+    }
+    return executeScriptHelper(function_.statements, options, funcLocals);
+}
+
+
 /**
  * Evaluate an expression model
  *
- * @param {Object} expr - The [expression model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'}
- * @param {?Object} [options = null] - The [script execution options]{@link module:lib/runtime~ExecuteScriptOptions}
+ * @param {Object} expr - The [expression model](./model/#var.vName='Expression')
+ * @param {?Object} [options = null] - The [script execution options]{@link module:lib/options~ExecuteScriptOptions}
  * @param {?Object} [locals = null] - The local variables
- * @param {boolean} [builtins = true] - If true, include the
- *     [built-in expression functions]{@link https://craigahobbs.github.io/bare-script/library/expression.html}
+ * @param {boolean} [builtins = true] - If true, include the [built-in expression functions](./library/expression.html)
  * @returns The expression result
  * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
@@ -285,40 +251,90 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
         const binOp = expr.binary.op;
         const leftValue = evaluateExpression(expr.binary.left, options, locals, builtins);
 
-        // Short-circuiting binary operators - evaluate right expression only if necessary
+        // Short-circuiting "and" binary operator
         if (binOp === '&amp;&amp;') {
-            return leftValue &amp;&amp; evaluateExpression(expr.binary.right, options, locals, builtins);
+            if (!valueBoolean(leftValue)) {
+                return leftValue;
+            }
+            return evaluateExpression(expr.binary.right, options, locals, builtins);
+
+        // Short-circuiting "or" binary operator
         } else if (binOp === '||') {
-            return leftValue || evaluateExpression(expr.binary.right, options, locals, builtins);
+            if (valueBoolean(leftValue)) {
+                return leftValue;
+            }
+            return evaluateExpression(expr.binary.right, options, locals, builtins);
         }
 
         // Non-short-circuiting binary operators
         const rightValue = evaluateExpression(expr.binary.right, options, locals, builtins);
-        if (binOp === '**') {
-            return leftValue ** rightValue;
-        } else if (binOp === '*') {
-            return leftValue * rightValue;
-        } else if (binOp === '/') {
-            return leftValue / rightValue;
-        } else if (binOp === '%') {
-            return leftValue % rightValue;
-        } else if (binOp === '+') {
-            return leftValue + rightValue;
+        if (binOp === '+') {
+            // number + number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue + rightValue;
+
+            // string + string
+            } else if (typeof leftValue === 'string' &amp;&amp; typeof rightValue === 'string') {
+                return leftValue + rightValue;
+
+            // string + &lt;any>
+            } else if (typeof leftValue === 'string') {
+                return leftValue + valueString(rightValue);
+            } else if (typeof rightValue === 'string') {
+                return valueString(leftValue) + rightValue;
+
+            // datetime + number
+            } else if (leftValue instanceof Date &amp;&amp; typeof rightValue === 'number') {
+                return new Date(leftValue.getTime() + rightValue);
+            } else if (typeof leftValue === 'number' &amp;&amp; rightValue instanceof Date) {
+                return new Date(leftValue + rightValue.getTime());
+            }
         } else if (binOp === '-') {
-            return leftValue - rightValue;
-        } else if (binOp === '&lt;=') {
-            return leftValue &lt;= rightValue;
-        } else if (binOp === '&lt;') {
-            return leftValue &lt; rightValue;
-        } else if (binOp === '>=') {
-            return leftValue >= rightValue;
-        } else if (binOp === '>') {
-            return leftValue > rightValue;
+            // number - number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue - rightValue;
+
+            // datetime - datetime
+            } else if (leftValue instanceof Date &amp;&amp; rightValue instanceof Date) {
+                return leftValue - rightValue;
+            }
+        } else if (binOp === '*') {
+            // number * number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue * rightValue;
+            }
+        } else if (binOp === '/') {
+            // number / number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue / rightValue;
+            }
         } else if (binOp === '==') {
-            return leftValue === rightValue;
+            return valueCompare(leftValue, rightValue) === 0;
+        } else if (binOp === '!=') {
+            return valueCompare(leftValue, rightValue) !== 0;
+        } else if (binOp === '&lt;=') {
+            return valueCompare(leftValue, rightValue) &lt;= 0;
+        } else if (binOp === '&lt;') {
+            return valueCompare(leftValue, rightValue) &lt; 0;
+        } else if (binOp === '>=') {
+            return valueCompare(leftValue, rightValue) >= 0;
+        } else if (binOp === '>') {
+            return valueCompare(leftValue, rightValue) > 0;
+        } else if (binOp === '%') {
+            // number % number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue % rightValue;
+            }
+        } else {
+            // binOp === '**'
+            // number ** number
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue ** rightValue;
+            }
         }
-        // else if (binOp === '!=')
-        return leftValue !== rightValue;
+
+        // Invalid operation values
+        return null;
     }
 
     // Unary expression
@@ -326,10 +342,13 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
         const unaryOp = expr.unary.op;
         const value = evaluateExpression(expr.unary.expr, options, locals, builtins);
         if (unaryOp === '!') {
-            return !value;
+            return !valueBoolean(value);
+        } else if (unaryOp === '-' &amp;&amp; typeof value === 'number') {
+            return -value;
         }
-        // else if (unaryOp === '-')
-        return -value;
+
+        // Invalid operation value
+        return null;
     }
 
     // Expression group
@@ -364,7 +383,7 @@ export class BareScriptRuntimeError extends Error {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

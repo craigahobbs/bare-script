@@ -46,8 +46,21 @@
         <article><h1>bare-script</h1>
 <p><a href="https://www.npmjs.com/package/bare-script"><img src="https://img.shields.io/npm/v/bare-script" alt="npm"></a>
 <a href="https://github.com/craigahobbs/bare-script/blob/main/LICENSE"><img src="https://img.shields.io/github/license/craigahobbs/bare-script" alt="GitHub"></a></p>
-<p>The bare-script package is the JavaScript implementation of the
-<a href="https://craigahobbs.github.io/bare-script/language/">BareScript language</a>.</p>
+<p><a href="https://craigahobbs.github.io/bare-script/language/">BareScript</a>
+is a simple, lightweight, and portable programming language. Its Pythonic syntax is influenced by
+JavaScript, C, and the Unix Shell. BareScript also has a
+<a href="#the-barescript-library">library of built-in functions</a>
+for common programming operations. BareScript can be
+<a href="#markdownup-a-markdown-viewer-with-barescript">embedded within applications</a>
+or used as a
+stand-alone programming language using the
+<a href="#the-barescript-command-line-interface-cli">command-line interface</a>.</p>
+<p>There are two implementations of BareScript:
+<a href="https://github.com/craigahobbs/bare-script#readme">BareScript for JavaScript</a>
+(this package) and
+<a href="https://github.com/craigahobbs/bare-script-py#readme">BareScript for Python</a>.
+Both implementations have 100% unit test coverage with identical unit test suites, so you can be
+confident that BareScript will execute the same regardless of the underlying runtime environment.</p>
 <h2>Links</h2>
 <ul>
 <li><a href="https://craigahobbs.github.io/bare-script/language/">The BareScript Language</a></li>
@@ -99,7 +112,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Fetch the BareScript library documentation JSON
-docs = systemFetch('https://craigahobbs.github.io/bare-script/library/library.json')
+docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
 return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions')) + ' functions'
@@ -109,7 +122,7 @@ return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions'))
 console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 </code></pre>
 <p>This outputs:</p>
-<pre class="prettyprint source"><code>The BareScript Library has 100 functions
+<pre class="prettyprint source"><code>The BareScript Library has 105 functions
 </code></pre>
 <h2>Evaluating BareScript Expressions</h2>
 <p>To evaluate a
@@ -145,7 +158,11 @@ files use the &quot;.bare&quot; file extension.</p>
 </code></pre>
 <p><strong>Note:</strong> In the BareScript CLI, import statements and the
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>
-function read non-URL paths from the local file system.</p>
+function read non-URL paths from the local file system.
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>
+calls with a non-URL path and a
+<a href="https://craigahobbs.github.io/bare-script-py/library/model.html#var.vName='SystemFetchRequest'">request body</a>
+write the body to the path.</p>
 <h2>MarkdownUp, a Markdown Viewer with BareScript</h2>
 <p><a href="https://craigahobbs.github.io/markdown-up/">MarkdownUp</a>
 is a Markdown Viewer that executes BareScript embedded within Markdown documents.
@@ -177,7 +194,7 @@ It was started using <a href="https://github.com/craigahobbs/javascript-template
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

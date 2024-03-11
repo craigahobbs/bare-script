@@ -32,40 +32,12 @@
 /** @module lib/parser */
 
 
-// BareScript regex
-const rScriptLineSplit = /\r?\n/;
-const rScriptContinuation = /\\\s*$/;
-const rScriptComment = /^\s*(?:#.*)?$/;
-const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.+)$/;
-const rScriptFunctionBegin = new RegExp(
-    '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_]\\w*)\\s*\\(' +
-        '\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:\\s*$'
-);
-const rScriptFunctionArgSplit = /\s*,\s*/;
-const rScriptFunctionEnd = /^\s*endfunction\s*$/;
-const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
-const rScriptJump = /^(?&lt;jump>\s*(?:jump|jumpif\s*\((?&lt;expr>.+)\)))\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
-const rScriptReturn = /^(?&lt;return>\s*return(?:\s+(?&lt;expr>.+))?)\s*$/;
-const rScriptInclude = /^\s*include\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'\s*$/;
-const rScriptIncludeSystem = /^\s*include\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>\s*$/;
-const rScriptIfBegin = /^\s*if\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptIfElseIf = /^\s*elif\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptIfElse = /^\s*else\s*:\s*$/;
-const rScriptIfEnd = /^\s*endif\s*$/;
-const rScriptForBegin = /^\s*for\s+(?&lt;value>[A-Za-z_]\w*)(?:\s*,\s*(?&lt;index>[A-Za-z_]\w*))?\s+in\s+(?&lt;values>.+)\s*:\s*$/;
-const rScriptForEnd = /^\s*endfor\s*$/;
-const rScriptWhileBegin = /^\s*while\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptWhileEnd = /^\s*endwhile\s*$/;
-const rScriptBreak = /^\s*break\s*$/;
-const rScriptContinue = /^\s*continue\s*$/;
-
-
 /**
  * Parse a BareScript script
  *
- * @param {string|string[]} scriptText - The [script text]{@link https://craigahobbs.github.io/bare-script/language/}
+ * @param {string|string[]} scriptText - The [script text](./language/)
  * @param {number} [startLineNumber = 1] - The script's starting line number
- * @returns {Object} The [BareScript model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'}
+ * @returns {Object} The [BareScript model](./model/#var.vName='BareScript')
  * @throws [BareScriptParserError]{@link module:lib/parser.BareScriptParserError}
  */
 export function parseScript(scriptText, startLineNumber = 1) {
@@ -347,7 +319,10 @@ export function parseScript(scriptText, startLineNumber = 1) {
             // Add the for-each header statements
             statements.push(
                 {'expr': {'name': foreach.values, 'expr': parseExpression(matchForBegin.groups.values)}},
-                {'expr': {'name': foreach.length, 'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': foreach.values}]}}}},
+                {'expr': {
+                    'name': foreach.length,
+                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': foreach.values}]}}
+                }},
                 {'jump': {'label': foreach.done, 'expr': {'unary': {'op': '!', 'expr': {'variable': foreach.length}}}}},
                 {'expr': {'name': foreach.index, 'expr': {'number': 0}}},
                 {'label': foreach.loop},
@@ -498,48 +473,39 @@ export function parseScript(scriptText, startLineNumber = 1) {
 }
 
 
-// BareScript expression regex
-const rExprBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\|)/;
-const rExprUnaryOp = /^\s*(!|-)/;
-const rExprFunctionOpen = /^\s*([A-Za-z_]\w+)\s*\(/;
-const rExprFunctionSeparator = /^\s*,/;
-const rExprFunctionClose = /^\s*\)/;
-const rExprGroupOpen = /^\s*\(/;
-const rExprGroupClose = /^\s*\)/;
-const rExprNumber = /^\s*([+-]?\d+(?:\.\d*)?(?:e[+-]\d+)?)/;
-const rExprString = /^\s*'((?:\\\\|\\'|[^'])*)'/;
-const rExprStringEscape = /\\([\\'])/g;
-const rExprStringDouble = /^\s*"((?:\\\\|\\"|[^"])*)"/;
-const rExprStringDoubleEscape = /\\([\\"])/g;
-const rExprVariable = /^\s*([A-Za-z_]\w*)/;
-const rExprVariableEx = /^\s*\[\s*((?:\\\]|[^\]])+)\s*\]/;
-const rExprVariableExEscape = /\\([\\\]])/g;
-
-
-// Binary operator re-order map
-const binaryReorder = {
-    '**': new Set(['*', '/', '%', '+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '*': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '/': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '%': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '+': new Set(['&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '-': new Set(['&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
-    '&lt;=': new Set(['==', '!=', '&amp;&amp;', '||']),
-    '&lt;': new Set(['==', '!=', '&amp;&amp;', '||']),
-    '>=': new Set(['==', '!=', '&amp;&amp;', '||']),
-    '>': new Set(['==', '!=', '&amp;&amp;', '||']),
-    '==': new Set(['&amp;&amp;', '||']),
-    '!=': new Set(['&amp;&amp;', '||']),
-    '&amp;&amp;': new Set(['||']),
-    '||': new Set([])
-};
+// BareScript regex
+const rScriptLineSplit = /\r?\n/;
+const rScriptContinuation = /\\\s*$/;
+const rScriptComment = /^\s*(?:#.*)?$/;
+const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.+)$/;
+const rScriptFunctionBegin = new RegExp(
+    '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_]\\w*)\\s*\\(' +
+        '\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:\\s*$'
+);
+const rScriptFunctionArgSplit = /\s*,\s*/;
+const rScriptFunctionEnd = /^\s*endfunction\s*$/;
+const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
+const rScriptJump = /^(?&lt;jump>\s*(?:jump|jumpif\s*\((?&lt;expr>.+)\)))\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
+const rScriptReturn = /^(?&lt;return>\s*return(?:\s+(?&lt;expr>.+))?)\s*$/;
+const rScriptInclude = /^\s*include\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'\s*$/;
+const rScriptIncludeSystem = /^\s*include\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>\s*$/;
+const rScriptIfBegin = /^\s*if\s+(?&lt;expr>.+)\s*:\s*$/;
+const rScriptIfElseIf = /^\s*elif\s+(?&lt;expr>.+)\s*:\s*$/;
+const rScriptIfElse = /^\s*else\s*:\s*$/;
+const rScriptIfEnd = /^\s*endif\s*$/;
+const rScriptForBegin = /^\s*for\s+(?&lt;value>[A-Za-z_]\w*)(?:\s*,\s*(?&lt;index>[A-Za-z_]\w*))?\s+in\s+(?&lt;values>.+)\s*:\s*$/;
+const rScriptForEnd = /^\s*endfor\s*$/;
+const rScriptWhileBegin = /^\s*while\s+(?&lt;expr>.+)\s*:\s*$/;
+const rScriptWhileEnd = /^\s*endwhile\s*$/;
+const rScriptBreak = /^\s*break\s*$/;
+const rScriptContinue = /^\s*continue\s*$/;
 
 
 /**
  * Parse a BareScript expression
  *
- * @param {string} exprText - The [expression text]{@link https://craigahobbs.github.io/bare-script/language/#expressions}
- * @returns {Object} The [expression model]{@link https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'}
+ * @param {string} exprText - The [expression text](./language/#expressions)
+ * @returns {Object} The [expression model](./model/#var.vName='Expression')
  * @throws [BareScriptParserError]{@link module:lib/parser.BareScriptParserError}
  */
 export function parseExpression(exprText) {
@@ -599,6 +565,25 @@ function parseBinaryExpression(exprText, binLeftExpr = null) {
 }
 
 
+// Binary operator re-order map
+const binaryReorder = {
+    '**': new Set(['*', '/', '%', '+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '*': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '/': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '%': new Set(['+', '-', '&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '+': new Set(['&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '-': new Set(['&lt;=', '&lt;', '>=', '>', '==', '!=', '&amp;&amp;', '||']),
+    '&lt;=': new Set(['==', '!=', '&amp;&amp;', '||']),
+    '&lt;': new Set(['==', '!=', '&amp;&amp;', '||']),
+    '>=': new Set(['==', '!=', '&amp;&amp;', '||']),
+    '>': new Set(['==', '!=', '&amp;&amp;', '||']),
+    '==': new Set(['&amp;&amp;', '||']),
+    '!=': new Set(['&amp;&amp;', '||']),
+    '&amp;&amp;': new Set(['||']),
+    '||': new Set([])
+};
+
+
 // Helper function to parse a unary expression
 function parseUnaryExpression(exprText) {
     // Group open?
@@ -632,8 +617,7 @@ function parseUnaryExpression(exprText) {
     if (matchFunctionOpen !== null) {
         let argText = exprText.slice(matchFunctionOpen[0].length);
         const args = [];
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        while (true) { // eslint-disable-line no-constant-condition
             // Function close?
             const matchFunctionClose = argText.match(rExprFunctionClose);
             if (matchFunctionClose !== null) {
@@ -708,6 +692,24 @@ function parseUnaryExpression(exprText) {
 }
 
 
+// BareScript expression regex
+const rExprBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\|)/;
+const rExprUnaryOp = /^\s*(!|-)/;
+const rExprFunctionOpen = /^\s*([A-Za-z_]\w+)\s*\(/;
+const rExprFunctionSeparator = /^\s*,/;
+const rExprFunctionClose = /^\s*\)/;
+const rExprGroupOpen = /^\s*\(/;
+const rExprGroupClose = /^\s*\)/;
+const rExprNumber = /^\s*([+-]?\d+(?:\.\d*)?(?:e[+-]\d+)?)/;
+const rExprString = /^\s*'((?:\\\\|\\'|[^'])*)'/;
+const rExprStringEscape = /\\([\\'])/g;
+const rExprStringDouble = /^\s*"((?:\\\\|\\"|[^"])*)"/;
+const rExprStringDoubleEscape = /\\([\\"])/g;
+const rExprVariable = /^\s*([A-Za-z_]\w*)/;
+const rExprVariableEx = /^\s*\[\s*((?:\\\]|[^\]])+)\s*\]/;
+const rExprVariableExEscape = /\\([\\\]])/g;
+
+
 /**
  * A BareScript parser error
  *
@@ -774,7 +776,7 @@ ${' '.repeat(lineColumn - 1)}^
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

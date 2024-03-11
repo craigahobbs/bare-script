@@ -1,12 +1,7 @@
-[Home](https://github.com/craigahobbs/bare-script#readme)
-
-
 # The BareScript Language
 
-BareScript is a simple, line-based scripting language. Each line of a BareScript script is either a
-comment or a [statement](#statements). A statement is either an [expression](#expressions), a
-variable assignment, a jump, a return, or an include. Expressions include numbers, strings, variable
-lookups, function calls, binary expressions, unary expressions, or groups.
+BareScript is a simple, lightweight, and portable programming language. Its Pythonic syntax is
+influenced by JavaScript, C, and the Unix Shell.
 
 For example, the following script computes the first ten Fibonacci numbers and returns them as an
 array.
@@ -29,7 +24,8 @@ return fibonacci(10)
 
 ## Links
 
-- [BareScript Home](https://github.com/craigahobbs/bare-script)
+- [BareScript for JavaScript](https://github.com/craigahobbs/bare-script#readme)
+- [BareScript for Python](https://github.com/craigahobbs/bare-script-py#readme)
 - [The BareScript Library](../library/)
 - [The BareScript Expression Library](../library/expression.html)
 
