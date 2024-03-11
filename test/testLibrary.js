@@ -4,6 +4,7 @@
 /* eslint-disable id-length */
 
 import {expressionFunctions, scriptFunctions} from '../lib/library.js';
+import {valueJSON, valueParseDatetime} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -70,217 +71,314 @@ test('library, built-in expression functions', () => {
 
 test('library, arrayCopy', () => {
     const array = [1, 2, 3];
-    assert.deepEqual(scriptFunctions.arrayCopy([array]), [1, 2, 3]);
-});
+    const result = scriptFunctions.arrayCopy([array], null);
+    assert.deepEqual(result, [1, 2, 3]);
+    assert.notEqual(result, array);
 
-
-test('library, arrayCopy non-array', () => {
-    assert.deepEqual(scriptFunctions.arrayCopy([null]), []);
+    // Non-array
+    assert.equal(scriptFunctions.arrayCopy([null], null), null);
 });
 
 
 test('library, arrayExtend', () => {
     const array = [1, 2, 3];
     const array2 = [4, 5, 6];
-    assert.deepEqual(scriptFunctions.arrayExtend([array, array2]), [1, 2, 3, 4, 5, 6]);
-    assert.deepEqual(array, [1, 2, 3, 4, 5, 6]);
-});
+    const result = scriptFunctions.arrayExtend([array, array2], null);
+    assert.deepEqual(result, [1, 2, 3, 4, 5, 6]);
+    assert.equal(result, array);
 
+    // Non-array
+    assert.equal(scriptFunctions.arrayExtend([null, null], null), null);
 
-test('library, arrayExtend non-array', () => {
-    assert.equal(scriptFunctions.arrayExtend([null]), null);
-});
-
-
-test('library, arrayExtend non-array second', () => {
-    const array = [1, 2, 3];
-    assert.deepEqual(scriptFunctions.arrayExtend([array, null]), [1, 2, 3]);
-    assert.deepEqual(array, [1, 2, 3]);
+    // Second non-array
+    assert.equal(scriptFunctions.arrayExtend([array, null], null), null);
 });
 
 
 test('library, arrayGet', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayGet([array, 0]), 1);
-});
+    assert.equal(scriptFunctions.arrayGet([array, 0], null), 1);
+    assert.equal(scriptFunctions.arrayGet([array, 0.], null), 1);
+    assert.equal(scriptFunctions.arrayGet([array, 1], null), 2);
+    assert.equal(scriptFunctions.arrayGet([array, 2], null), 3);
 
+    // Non-array
+    assert.equal(scriptFunctions.arrayGet([null, 0], null), null);
 
-test('library, arrayGet invalid index', () => {
-    const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayGet([array, 3]), null);
-});
+    // Index outside valid range
+    assert.equal(scriptFunctions.arrayGet([array, -1], null), null);
+    assert.equal(scriptFunctions.arrayGet([array, 3], null), null);
 
+    // Non-number index
+    assert.equal(scriptFunctions.arrayGet([array, '1'], null), null);
 
-test('library, arrayGet non-array', () => {
-    assert.equal(scriptFunctions.arrayGet([null, 0]), null);
+    // Non-integer index
+    assert.equal(scriptFunctions.arrayGet([array, 1.5], null), null);
 });
 
 
 test('library, arrayIndexOf', () => {
-    const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2]), 1);
-});
-
-
-test('library, arrayIndexOf non-array', () => {
-    assert.equal(scriptFunctions.arrayIndexOf([null, 2]), -1);
-});
-
-
-test('library, arrayIndexOf index', () => {
     const array = [1, 2, 3, 2];
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 2]), 3);
+    assert.equal(scriptFunctions.arrayIndexOf([array, 1], null), 0);
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2], null), 1);
+    assert.equal(scriptFunctions.arrayIndexOf([array, 3], null), 2);
+
+    // Not found
+    assert.equal(scriptFunctions.arrayIndexOf([array, 4], null), -1);
+
+    // Index provided
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 2], null), 3);
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 2.], null), 3);
+
+    // Match function
+    function valueFn(args, valueOptions) {
+        assert.equal(args.length, 1);
+        assert.equal(valueOptions, options);
+        return args[0] === valueFnValue;
+    }
+    let valueFnValue = 2;
+    const options = {};
+    assert.equal(scriptFunctions.arrayIndexOf([array, valueFn], options), 1);
+
+    // Match function, not found
+    valueFnValue = 4;
+    assert.equal(scriptFunctions.arrayIndexOf([array, valueFn], options), -1);
+
+    // Match function, index provided
+    valueFnValue = 2;
+    assert.equal(scriptFunctions.arrayIndexOf([array, valueFn, 2], options), 3);
+    assert.equal(scriptFunctions.arrayIndexOf([array, valueFn, 2.], options), 3);
+
+    // Non-array
+    assert.equal(scriptFunctions.arrayIndexOf([null, 2], null), -1);
+
+    // Index outside valid range
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, -1], null), -1);
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 4], null), -1);
+
+    // Non-number index
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 'abc'], null), -1);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 1.5], null), -1);
 });
 
 
 test('library, arrayJoin', () => {
-    const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayJoin([array, ', ']), '1, 2, 3');
-});
+    const array = ['a', 2, null];
+    assert.equal(scriptFunctions.arrayJoin([array, ', '], null), 'a, 2, null');
 
+    // Non-array
+    assert.equal(scriptFunctions.arrayJoin([null, ', '], null), null);
 
-test('library, arrayJoin non-array', () => {
-    assert.equal(scriptFunctions.arrayJoin([null, ', ']), '');
+    // Non-string separator
+    assert.equal(scriptFunctions.arrayJoin([array, 1], null), null);
 });
 
 
 test('library, arrayLastIndexOf', () => {
-    const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2]), 1);
-});
-
-
-test('library, arrayLastIndexOf non-array', () => {
-    assert.equal(scriptFunctions.arrayLastIndexOf([null, 2]), -1);
-});
-
-
-test('library, arrayLastIndexOf index', () => {
     const array = [1, 2, 3, 2];
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 2]), 1);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 1], null), 0);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2], null), 3);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 3], null), 2);
+
+    // Not found
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 4], null), -1);
+
+    // Index provided
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 2], null), 1);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 2.], null), 1);
+
+    // Match function
+    function valueFn(args, valueOptions) {
+        assert.equal(args.length, 1);
+        assert.equal(valueOptions, options);
+        return args[0] === valueFnValue;
+    }
+    let valueFnValue = 2;
+    const options = {};
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, valueFn], options), 3);
+
+    // Match function, not found
+    valueFnValue = 4;
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, valueFn], options), -1);
+
+    // Match function, index provided
+    valueFnValue = 2;
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, valueFn, 2], options), 1);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, valueFn, 2.], options), 1);
+
+    // Non-array
+    assert.equal(scriptFunctions.arrayLastIndexOf([null, 2], null), -1);
+
+    // Index outside valid range
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, -1], null), -1);
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 4], null), -1);
+
+    // Non-number index
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 'abc'], null), -1);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 1.5], null), -1);
 });
 
 
 test('library, arrayLength', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayLength([array]), 3);
-});
+    assert.equal(scriptFunctions.arrayLength([array], null), 3);
 
-
-test('library, arrayLength non-array', () => {
-    assert.equal(scriptFunctions.arrayLength([null]), null);
+    // Non-array
+    assert.equal(scriptFunctions.arrayLength([null], null), 0);
 });
 
 
 test('library, arrayNew', () => {
-    assert.deepEqual(scriptFunctions.arrayNew([1, 2, 3]), [1, 2, 3]);
+    assert.deepEqual(scriptFunctions.arrayNew([], null), []);
+    assert.deepEqual(scriptFunctions.arrayNew([1, 2, 3], null), [1, 2, 3]);
 });
 
 
 test('library, arrayNewSize', () => {
-    assert.deepEqual(scriptFunctions.arrayNewSize([3]), [0, 0, 0]);
-});
+    assert.deepEqual(scriptFunctions.arrayNewSize([3], null), [0, 0, 0]);
+    assert.deepEqual(scriptFunctions.arrayNewSize([3.], null), [0, 0, 0]);
 
+    // Value provided
+    assert.deepEqual(scriptFunctions.arrayNewSize([3, 1], null), [1, 1, 1]);
 
-test('library, arrayNewSize value', () => {
-    assert.deepEqual(scriptFunctions.arrayNewSize([3, 1]), [1, 1, 1]);
+    // No args
+    assert.deepEqual(scriptFunctions.arrayNewSize([], null), []);
+
+    // Non-array
+    assert.equal(scriptFunctions.arrayNewSize([null], null), null);
+
+    // Negative size
+    assert.equal(scriptFunctions.arrayNewSize([-1], null), null);
+
+    // Non-number size
+    assert.equal(scriptFunctions.arrayNewSize(['abc'], null), null);
+
+    // Non-integer size
+    assert.equal(scriptFunctions.arrayNewSize([1.5], null), null);
 });
 
 
 test('library, arrayPop', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayPop([array]), 3);
+    assert.equal(scriptFunctions.arrayPop([array], null), 3);
     assert.deepEqual(array, [1, 2]);
-});
 
+    // Empty array
+    assert.equal(scriptFunctions.arrayPop([[]], null), null);
 
-test('library, arrayPop empty', () => {
-    const array = [];
-    assert.equal(scriptFunctions.arrayPop([array]), null);
-    assert.deepEqual(array, []);
-});
-
-
-test('library, arrayPop non-array', () => {
-    assert.equal(scriptFunctions.arrayPop([null]), null);
+    // Non-array
+    assert.equal(scriptFunctions.arrayPop([null], null), null);
 });
 
 
 test('library, arrayPush', () => {
     const array = [1, 2, 3];
-    assert.deepEqual(scriptFunctions.arrayPush([array, 5]), [1, 2, 3, 5]);
+    assert.deepEqual(scriptFunctions.arrayPush([array, 5], null), [1, 2, 3, 5]);
     assert.deepEqual(array, [1, 2, 3, 5]);
-});
 
-
-test('library, arrayPush non-array', () => {
-    assert.equal(scriptFunctions.arrayPush([null]), null);
+    // Non-array
+    assert.equal(scriptFunctions.arrayPush([null, 5], null), null);
 });
 
 
 test('library, arraySet', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arraySet([array, 1, 5]), 5);
+    assert.equal(scriptFunctions.arraySet([array, 1, 5], null), 5);
     assert.deepEqual(array, [1, 5, 3]);
-});
 
+    // Non-array
+    assert.equal(scriptFunctions.arraySet([null, 1, 5], null), null);
 
-test('library, arraySet non-array', () => {
-    assert.equal(scriptFunctions.arraySet([null, 1, 5]), 5);
+    // Non-number index
+    assert.equal(scriptFunctions.arraySort([array, 'abc'], null), null);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.arraySort([array, 1.5], null), null);
+
+    // Index outside valid range
+    assert.equal(scriptFunctions.arraySet([array, -1, 5], null), null);
+    assert.equal(scriptFunctions.arraySet([array, 3, 5], null), null);
 });
 
 
 test('library, arrayShift', () => {
     const array = [1, 2, 3];
-    assert.equal(scriptFunctions.arrayShift([array]), 1);
+    assert.equal(scriptFunctions.arrayShift([array], null), 1);
     assert.deepEqual(array, [2, 3]);
-});
 
+    // Empty array
+    assert.equal(scriptFunctions.arrayShift([[]], null), null);
 
-test('library, arrayShift empty', () => {
-    const array = [];
-    assert.equal(scriptFunctions.arrayShift([array]), null);
-    assert.deepEqual(array, []);
-});
-
-
-test('library, arrayShift non-array', () => {
-    assert.equal(scriptFunctions.arrayShift([null]), null);
+    // Non-array
+    assert.equal(scriptFunctions.arrayShift([null], null), null);
 });
 
 
 test('library, arraySlice', () => {
     const array = [1, 2, 3, 4];
-    assert.deepEqual(scriptFunctions.arraySlice([array, 1, 3]), [2, 3]);
-});
+    assert.deepEqual(scriptFunctions.arraySlice([array, 0, 2], null), [1, 2]);
+    assert.deepEqual(scriptFunctions.arraySlice([array, 0., 2.], null), [1, 2]);
+    assert.deepEqual(scriptFunctions.arraySlice([array, 1, 3], null), [2, 3]);
+    assert.deepEqual(scriptFunctions.arraySlice([array, 1, 4], null), [2, 3, 4]);
+    assert.deepEqual(scriptFunctions.arraySlice([array, 1], null), [2, 3, 4]);
 
+    // Empty slice
+    assert.deepEqual(scriptFunctions.arraySlice([array, 4], null), []);
+    assert.deepEqual(scriptFunctions.arraySlice([array, 1, 1], null), []);
 
-test('library, arraySlice non-array', () => {
-    assert.equal(scriptFunctions.arraySlice([null, 1, 3]), null);
+    // End index less than start index
+    assert.deepEqual(scriptFunctions.arraySlice([array, 2, 1], null), []);
+
+    // Non-array
+    assert.equal(scriptFunctions.arraySlice([null, 1, 3], null), null);
+
+    // Start index outside valid range
+    assert.equal(scriptFunctions.arraySlice([array, -1], null), null);
+    assert.equal(scriptFunctions.arraySlice([array, 5], null), null);
+
+    // Non-number start index
+    assert.equal(scriptFunctions.arraySlice([array, 'abc'], null), null);
+
+    // Non-integer start index
+    assert.equal(scriptFunctions.arraySlice([array, 1.5], null), null);
+
+    // End index outside valid range
+    assert.equal(scriptFunctions.arraySlice([array, 0, -1], null), null);
+    assert.equal(scriptFunctions.arraySlice([array, 0, 5], null), null);
+
+    // Non-number end index
+    assert.equal(scriptFunctions.arraySlice([array, 0, 'abc'], null), null);
+
+    // Non-integer end index
+    assert.equal(scriptFunctions.arraySlice([array, 0, 1.5], null), null);
 });
 
 
 test('library, arraySort', () => {
     const array = [3, 2, 1];
-    assert.deepEqual(scriptFunctions.arraySort([array]), [1, 2, 3]);
+    assert.deepEqual(scriptFunctions.arraySort([array], null), [1, 2, 3]);
     assert.deepEqual(array, [1, 2, 3]);
-});
 
-
-test('library, arraySort non-array', () => {
-    assert.equal(scriptFunctions.arraySort([null]), null);
-});
-
-
-test('library, arraySort compare function', () => {
-    const array = [1, 2, 3];
-    const compareFn = ([a, b], options) => {
-        assert.deepEqual(options, {});
-
+    // Compare function
+    function compareFn(args, compareOptions) {
+        const [a, b] = args;
+        assert.equal(compareOptions, options);
         /* c8 ignore next */
         return a < b ? 1 : (a === b ? 0 : -1);
-    };
-    assert.deepEqual(scriptFunctions.arraySort([array, compareFn], {}), [3, 2, 1]);
+    }
+    const options = {};
+    assert.deepEqual(scriptFunctions.arraySort([array, compareFn], options), [3, 2, 1]);
+    assert.deepEqual(array, [3, 2, 1]);
+
+    // Non-array
+    assert.equal(scriptFunctions.arraySort([null], null), null);
+
+    // Non-function cmopare function
+    assert.equal(scriptFunctions.arraySort([array, 'asdf'], null), null);
     assert.deepEqual(array, [3, 2, 1]);
 });
 
@@ -302,10 +400,27 @@ test('script library, dataAggregate', () => {
             {'field': 'b', 'function': 'sum', 'name': 'sum_b'}
         ]
     };
-    assert.deepEqual(scriptFunctions.dataAggregate([data, aggregation]), [
+    assert.deepEqual(scriptFunctions.dataAggregate([data, aggregation], null), [
         {'a': 1, 'sum_b': 7},
         {'a': 2, 'sum_b': 5}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataAggregate([null], null), null);
+
+    // Non-dict aggregation model
+    assert.equal(scriptFunctions.dataAggregate([data, 'invalid'], null), null);
+
+    // Invalid aggregation model
+    assert.throws(
+        () => {
+            scriptFunctions.dataAggregate([data, {}], null);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'measures' missing"
+        }
+    );
 });
 
 
@@ -320,70 +435,49 @@ test('script library, dataCalculatedField', () => {
         {'a': 1, 'b': 4, 'c': 4},
         {'a': 2, 'b': 5, 'c': 10}
     ]);
-});
 
-
-test('script library, dataCalculatedField variables', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const variables = {'d': 2};
-    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * d', variables], {}), [
+    // Variables
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'a * b * X', {'X': 2}], {}), [
         {'a': 1, 'b': 3, 'c': 6},
         {'a': 1, 'b': 4, 'c': 8},
-        {'a': 2, 'b': 5, 'c': 10}
+        {'a': 2, 'b': 5, 'c': 20}
     ]);
-});
 
-
-test('script library, dataCalculatedField globals', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const options = {'globals': {'e': 3}};
-    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * e'], options), [
-        {'a': 1, 'b': 3, 'c': 9},
-        {'a': 1, 'b': 4, 'c': 12},
-        {'a': 2, 'b': 5, 'c': 15}
+    // Globals
+    let options = {'globals': {'X': 2}};
+    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'a * b * X'], options), [
+        {'a': 1, 'b': 3, 'c': 6},
+        {'a': 1, 'b': 4, 'c': 8},
+        {'a': 2, 'b': 5, 'c': 20}
     ]);
-});
 
-
-test('script library, dataCalculatedField globals variables', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const variables = {'d': 2};
-    const options = {'globals': {'e': 3}};
-    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'c', 'b * d * e', variables], options), [
-        {'a': 1, 'b': 3, 'c': 18},
-        {'a': 1, 'b': 4, 'c': 24},
-        {'a': 2, 'b': 5, 'c': 30}
-    ]);
-});
-
-
-test('script library, dataCalculatedField runtime', () => {
-    const data = [
+    // Runtime integration
+    const dataRuntime = [
         {'a': '/foo'},
         {'a': 'bar'}
     ];
-    const options = {
+    options = {
         'globals': {
             'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
         },
         'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
     };
-    assert.deepEqual(scriptFunctions.dataCalculatedField([data, 'b', 'documentURL(a)'], options), [
+    assert.deepEqual(scriptFunctions.dataCalculatedField([dataRuntime, 'b', 'documentURL(a)'], options), [
         {'a': '/foo', 'b': '/foo'},
         {'a': 'bar', 'b': '/foo/bar'}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataCalculatedField([null, 'c', 'a * b'], null), null);
+
+    // Non-string field name
+    assert.equal(scriptFunctions.dataCalculatedField([data, null, 'a * b'], null), null);
+
+    // Non-string expression
+    assert.equal(scriptFunctions.dataCalculatedField([data, 'c', null], null), null);
+
+    // Non-dict variables
+    assert.equal(scriptFunctions.dataCalculatedField([data, 'c', 'a * b', 'invalid'], null), null);
 });
 
 
@@ -397,64 +491,42 @@ test('script library, dataFilter', () => {
         {'a': 1, 'b': 4},
         {'a': 2, 'b': 5}
     ]);
-});
 
-
-test('script library, dataFilter variables', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const variables = {'d': 3};
-    assert.deepEqual(scriptFunctions.dataFilter([data, 'b > d', variables], {}), [
+    // Variables
+    assert.deepEqual(scriptFunctions.dataFilter([data, 'b > d', {'d': 3}], {}), [
         {'a': 1, 'b': 4},
         {'a': 2, 'b': 5}
     ]);
-});
 
-
-test('script library, dataFilter globals', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const options = {'globals': {'c': 2}};
+    // Globals
+    let options = {'globals': {'c': 2}};
     assert.deepEqual(scriptFunctions.dataFilter([data, 'a == c'], options), [
         {'a': 2, 'b': 5}
     ]);
-});
 
-
-test('script library, dataFilter globals variables', () => {
-    const data = [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
-    ];
-    const variables = {'d': 1};
-    const options = {'globals': {'c': 1}};
-    assert.deepEqual(scriptFunctions.dataFilter([data, 'a == (c + d)', variables], options), [
-        {'a': 2, 'b': 5}
-    ]);
-});
-
-
-test('script library, dataFilter runtime', () => {
-    const data = [
+    // Runtime integration
+    const dataRuntime = [
         {'a': '/foo'},
         {'a': 'bar'}
     ];
-    const options = {
+    options = {
         'globals': {
             'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
         },
         'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
     };
-    assert.deepEqual(scriptFunctions.dataFilter([data, 'documentURL(a) == "/foo/bar"'], options), [
+    assert.deepEqual(scriptFunctions.dataFilter([dataRuntime, 'documentURL(a) == "/foo/bar"'], options), [
         {'a': 'bar'}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataFilter([null, 'a * b'], null), null);
+
+    // Non-string expression
+    assert.equal(scriptFunctions.dataFilter([data, null], null), null);
+
+    // Non-dict variables
+    assert.equal(scriptFunctions.dataFilter([data, 'a * b', 'invalid'], null), null);
 });
 
 
@@ -477,104 +549,101 @@ test('script library, dataJoin', () => {
         {'a': 2, 'b': 7, 'a2': 2, 'c': 12},
         {'a': 3, 'b': 8}
     ]);
-});
 
+    // Left join
+    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a', null, true], {}), [
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10},
+        {'a': 1, 'b': 6, 'a2': 1, 'c': 10},
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 11},
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 12}
+    ]);
 
-test('script library, dataJoin options', () => {
-    const leftData = [
-        {'a': 1, 'b': 5},
-        {'a': 1, 'b': 6},
-        {'a': 2, 'b': 7},
-        {'a': 3, 'b': 8}
-    ];
-    const rightData = [
-        {'a': 2, 'c': 10},
-        {'a': 4, 'c': 11},
-        {'a': 4, 'c': 12}
-    ];
+    // Right expression and variables - left join
     assert.deepEqual(
         scriptFunctions.dataJoin([leftData, rightData, 'a', 'a / denominator', true, {'denominator': 2}], {}),
         [
-            {'a': 1, 'b': 5, 'a2': 2, 'c': 10},
-            {'a': 1, 'b': 6, 'a2': 2, 'c': 10},
-            {'a': 2, 'b': 7, 'a2': 4, 'c': 11},
-            {'a': 2, 'b': 7, 'a2': 4, 'c': 12}
+            {'a': 1, 'a2': 2, 'b': 5, 'c': 11},
+            {'a': 1, 'a2': 2, 'b': 5, 'c': 12},
+            {'a': 1, 'a2': 2, 'b': 6, 'c': 11},
+            {'a': 1, 'a2': 2, 'b': 6, 'c': 12}
         ]
     );
-});
 
+    // Right expression and globals
+    let options = {'globals': {'denominator': 2}};
+    assert.deepEqual(
+        scriptFunctions.dataJoin([leftData, rightData, 'a', 'a / denominator'], options),
+        [
+            {'a': 1, 'a2': 2, 'b': 5, 'c': 11},
+            {'a': 1, 'a2': 2, 'b': 5, 'c': 12},
+            {'a': 1, 'a2': 2, 'b': 6, 'c': 11},
+            {'a': 1, 'a2': 2, 'b': 6, 'c': 12},
+            {'a': 2, 'b': 7},
+            {'a': 3, 'b': 8}
+        ]
+    );
 
-test('script library, dataJoin globals', () => {
-    const leftData = [
-        {'a': 1, 'c': 5},
-        {'a': 2, 'c': 6}
-    ];
-    const rightData = [
-        {'b': 1, 'd': 10},
-        {'b': 2, 'd': 11}
-    ];
-    const options = {'globals': {'e': 1}};
-    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a + e', 'b'], options), [
-        {'a': 1, 'b': 2, 'c': 5, 'd': 11},
-        {'a': 2, 'c': 6}
-    ]);
-});
-
-
-test('script library, dataJoin globals variables', () => {
-    const leftData = [
-        {'a': 1, 'c': 5},
-        {'a': 2, 'c': 6}
-    ];
-    const rightData = [
-        {'b': 2, 'd': 10},
-        {'b': 3, 'd': 11}
-    ];
-    const variables = {'f': 1};
-    const options = {'globals': {'e': 1}};
-    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'a + e + f', 'b', null, variables], options), [
-        {'a': 1, 'b': 3, 'c': 5, 'd': 11},
-        {'a': 2, 'c': 6}
-    ]);
-});
-
-
-test('script library, dataJoin runtime', () => {
-    const options = {
+    // Runtime integration
+    options = {
         'globals': {
             'documentURL': ([url], funcOptions) => funcOptions.urlFn(url)
         },
         'urlFn': (url) => (url.startsWith('/') ? url : `/foo/${url}`)
     };
-    const leftData = [
+    const leftDataRuntime = [
         {'a': '/foo', 'c': 5},
         {'a': 'bar', 'c': 6}
     ];
-    const rightData = [
+    const rightDataRuntime = [
         {'b': '/foo', 'd': 10},
         {'b': '/foo/bar', 'd': 11}
     ];
-    assert.deepEqual(scriptFunctions.dataJoin([leftData, rightData, 'documentURL(a)', 'b'], options), [
+    assert.deepEqual(scriptFunctions.dataJoin([leftDataRuntime, rightDataRuntime, 'documentURL(a)', 'b'], options), [
         {'a': '/foo', 'b': '/foo', 'c': 5, 'd': 10},
         {'a': 'bar', 'b': '/foo/bar', 'c': 6, 'd': 11}
     ]);
+
+    // Non-list left data
+    assert.equal(scriptFunctions.dataJoin([null, rightData, 'a'], null), null);
+
+    // Non-list right data
+    assert.equal(scriptFunctions.dataJoin([leftData, null, 'a'], null), null);
+
+    // Non-string expression
+    assert.equal(scriptFunctions.dataJoin([leftData, rightData, null], null), null);
+
+    // Non-string right expression
+    assert.equal(scriptFunctions.dataJoin([leftData, rightData, 'a', 7], null), null);
+
+    // Non-dict variables
+    assert.equal(scriptFunctions.dataFilter([leftData, rightData, 'a', null, false, 'invalid'], null), null);
 });
 
 
 test('script library, dataParseCSV', () => {
     const text = `\
-a,b
-1,3
+a,b, c
+1,3,abc
 `;
     const text2 = `\
-1,4
+1,4,
 2,5
 `;
-    assert.deepEqual(scriptFunctions.dataParseCSV([text, text2]), [
-        {'a': 1, 'b': 3},
-        {'a': 1, 'b': 4},
-        {'a': 2, 'b': 5}
+    assert.deepEqual(scriptFunctions.dataParseCSV([text, text2], null), [
+        {'a': 1, 'b': 3, 'c': 'abc'},
+        {'a': 1, 'b': 4, 'c': ''},
+        {'a': 2, 'b': 5, 'c': null}
     ]);
+
+    // null arg
+    assert.deepEqual(scriptFunctions.dataParseCSV([text, null, text2], null), [
+        {'a': 1, 'b': 3, 'c': 'abc'},
+        {'a': 1, 'b': 4, 'c': ''},
+        {'a': 2, 'b': 5, 'c': null}
+    ]);
+
+    // Non-string
+    assert.equal(scriptFunctions.dataParseCSV([text, 7, text2], null), null);
 });
 
 
@@ -586,13 +655,19 @@ test('script library, dataSort', () => {
         {'a': 3, 'b': 6},
         {'a': 4, 'b': 7}
     ];
-    assert.deepEqual(scriptFunctions.dataSort([data, [['a', true], ['b']]]), [
+    assert.deepEqual(scriptFunctions.dataSort([data, [['a', true], ['b']]], null), [
         {'a': 4, 'b': 7},
         {'a': 3, 'b': 6},
         {'a': 2, 'b': 5},
         {'a': 1, 'b': 3},
         {'a': 1, 'b': 4}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataSort([null, [['a', true], ['b']]], null), null);
+
+    // Non-list sorts
+    assert.equal(scriptFunctions.dataSort([data, null], null), null);
 });
 
 
@@ -604,17 +679,32 @@ test('script library, dataTop', () => {
         {'a': 3, 'b': 6},
         {'a': 4, 'b': 7}
     ];
-    assert.deepEqual(scriptFunctions.dataTop([data, 3]), [
+    assert.deepEqual(scriptFunctions.dataTop([data, 3], null), [
         {'a': 1, 'b': 3},
         {'a': 1, 'b': 4},
         {'a': 2, 'b': 5}
     ]);
-    assert.deepEqual(scriptFunctions.dataTop([data, 1, ['a']]), [
+    assert.deepEqual(scriptFunctions.dataTop([data, 1, ['a']], null), [
         {'a': 1, 'b': 3},
         {'a': 2, 'b': 5},
         {'a': 3, 'b': 6},
         {'a': 4, 'b': 7}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataTop([null], null), null);
+
+    // Non-number count
+    assert.equal(scriptFunctions.dataTop([data, null], null), null);
+
+    // Non-integer count
+    assert.equal(scriptFunctions.dataTop([data, 3.5], null), null);
+
+    // Negative count
+    assert.equal(scriptFunctions.dataTop([data, -3], null), null);
+
+    // Non-list category fields
+    assert.equal(scriptFunctions.dataTop([data, 3, 'invalid'], null), null);
 });
 
 
@@ -624,11 +714,14 @@ test('script library, dataValidate', () => {
         {'a': '1', 'b': 4},
         {'a': '2', 'b': 5}
     ];
-    assert.deepEqual(scriptFunctions.dataValidate([data]), [
+    assert.deepEqual(scriptFunctions.dataValidate([data], null), [
         {'a': '1', 'b': 3},
         {'a': '1', 'b': 4},
         {'a': '2', 'b': 5}
     ]);
+
+    // Non-list data
+    assert.equal(scriptFunctions.dataValidate([null], null), null);
 });
 
 
@@ -638,140 +731,230 @@ test('script library, dataValidate', () => {
 
 
 test('library, datetimeDay', () => {
-    assert.equal(scriptFunctions.datetimeDay([new Date(2022, 5, 21)]), 21);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeDay([dt], null), 21);
 
-
-test('library, datetimeDay UTC', () => {
-    assert.equal(scriptFunctions.datetimeDay([new Date(Date.UTC(2022, 5, 21)), true]), 21);
-});
-
-
-test('library, datetimeDay non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeDay([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeDay([null], null), null);
 });
 
 
 test('library, datetimeHour', () => {
-    assert.equal(scriptFunctions.datetimeHour([new Date(2022, 5, 21, 7)]), 7);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeHour([dt], null), 7);
 
-
-test('library, datetimeHour UTC', () => {
-    assert.equal(scriptFunctions.datetimeHour([new Date(Date.UTC(2022, 5, 21, 7)), true]), 7);
-});
-
-
-test('library, datetimeHour non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeHour([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeHour([null], null), null);
 });
 
 
 test('library, datetimeISOFormat', () => {
-    assert.equal(scriptFunctions.datetimeISOFormat([new Date(Date.UTC(2022, 7, 29, 15, 8))]), '2022-08-29T15:08:00.000Z');
-    assert.equal(scriptFunctions.datetimeISOFormat([new Date(2022, 7, 29, 15, 8), true]), '2022-08-29');
-    assert.equal(scriptFunctions.datetimeISOFormat([new Date(2022, 10, 9, 15, 8), true]), '2022-11-09');
+    assert.equal(
+        scriptFunctions.datetimeISOFormat([valueParseDatetime('2022-06-21T07:15:30+00:00')], null),
+        '2022-06-21T07:15:30+00:00'
+    );
+
+    // isDate
+    assert.equal(
+        scriptFunctions.datetimeISOFormat([new Date(2022, 5, 21), true], null),
+        '2022-06-21'
+    );
+    assert.equal(
+        scriptFunctions.datetimeISOFormat([new Date(2022, 9, 7), true], null),
+        '2022-10-07'
+    );
+
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeISOFormat([null], null), null);
 });
 
 
 test('library, datetimeISOParse', () => {
     assert.deepEqual(
-        scriptFunctions.datetimeISOFormat([scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00.000Z'])]),
-        '2022-08-29T15:08:00.000Z'
+        scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00+00:00'], null),
+        new Date('2022-08-29T15:08:00+00:00')
     );
-    assert.equal(scriptFunctions.datetimeISOParse(['invalid']), null);
+    assert.deepEqual(
+        scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00Z'], null),
+        new Date('2022-08-29T15:08:00+00:00')
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00-08:00'], null),
+        new Date('2022-08-29T15:08:00-08:00')
+    );
+
+    // Invalid datetime string
+    assert.equal(scriptFunctions.datetimeISOParse(['invalid'], null), null);
+
+    // Non-string datetime string
+    assert.equal(scriptFunctions.datetimeISOParse([null], null), null);
+});
+
+
+test('library, datetimeMillisecond', () => {
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeMillisecond([dt], null), 100);
+
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeMillisecond([null], null), null);
 });
 
 
 test('library, datetimeMinute', () => {
-    assert.equal(scriptFunctions.datetimeMinute([new Date(2022, 5, 21, 7, 15)]), 15);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeMinute([dt], null), 15);
 
-
-test('library, datetimeMinute UTC', () => {
-    assert.equal(scriptFunctions.datetimeMinute([new Date(Date.UTC(2022, 5, 21, 7, 15)), true]), 15);
-});
-
-
-test('library, datetimeMinute non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeMinute([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeMinute([null], null), null);
 });
 
 
 test('library, datetimeMonth', () => {
-    assert.equal(scriptFunctions.datetimeMonth([new Date(2022, 5, 21, 7, 15)]), 6);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeMonth([dt], null), 6);
 
-
-test('library, datetimeMonth UTC', () => {
-    assert.equal(scriptFunctions.datetimeMonth([new Date(Date.UTC(2022, 5, 21, 7, 15)), true]), 6);
-});
-
-
-test('library, datetimeMonth non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeMonth([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeMonth([null], null), null);
 });
 
 
 test('library, datetimeNew', () => {
-    assert.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21]), new Date(2022, 5, 21));
-});
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100], null),
+        new Date(2022, 5, 21, 12, 30, 15, 100)
+    );
 
+    // Required arguments only
+    assert.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21], null), new Date(2022, 5, 21));
 
-test('library, datetimeNew complete', () => {
-    assert.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100]), new Date(2022, 5, 21, 12, 30, 15, 100));
-});
+    // Extra months
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 26, 21, 12, 30, 15, 100], null),
+        new Date(2024, 1, 21, 12, 30, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, -14, 21, 12, 30, 15, 100], null),
+        new Date(2020, 9, 21, 12, 30, 15, 100)
+    );
 
+    // Extra days
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 50, 12, 30, 15, 100], null),
+        new Date(2022, 6, 20, 12, 30, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 250, 12, 30, 15, 100], null),
+        new Date(2023, 1, 5, 12, 30, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, -50, 12, 30, 15, 100], null),
+        new Date(2022, 3, 11, 12, 30, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, -250, 12, 30, 15, 100], null),
+        new Date(2021, 8, 23, 12, 30, 15, 100)
+    );
 
-test('library, datetimeNewUTC', () => {
-    assert.deepEqual(scriptFunctions.datetimeNewUTC([2022, 6, 21]), new Date(Date.UTC(2022, 5, 21)));
-});
+    // Extra hours
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 50, 30, 15, 100], null),
+        new Date(2022, 5, 23, 2, 30, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, -50, 30, 15, 100], null),
+        new Date(2022, 5, 18, 22, 30, 15, 100)
+    );
 
+    // Extra minutes
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 200, 15, 100], null),
+        new Date(2022, 5, 21, 15, 20, 15, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, -200, 15, 100], null),
+        new Date(2022, 5, 21, 8, 40, 15, 100)
+    );
 
-test('library, datetimeNewUTC complete', () => {
-    assert.deepEqual(scriptFunctions.datetimeNewUTC([2022, 6, 21, 12, 30, 15, 100]), new Date(Date.UTC(2022, 5, 21, 12, 30, 15, 100)));
+    // Extra seconds
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 200, 100], null),
+        new Date(2022, 5, 21, 12, 33, 20, 100)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, -200, 100], null),
+        new Date(2022, 5, 21, 12, 26, 40, 100)
+    );
+
+    // Extra milliseconds
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 2200], null),
+        new Date(2022, 5, 21, 12, 30, 17, 200)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, -2200], null),
+        new Date(2022, 5, 21, 12, 30, 12, 800)
+    );
+
+    // Extra everything
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2022, 12, 31, 23, 59, 59, 1000], null),
+        new Date(2023, 0, 1, 0, 0, 0, 0)
+    );
+    assert.deepEqual(
+        scriptFunctions.datetimeNew([2023, 1, 1, 0, 0, 0, -1000], null),
+        new Date(2022, 11, 31, 23, 59, 59, 0)
+    );
+
+    // Non-number arguments
+    assert.equal(scriptFunctions.datetimeNew(['2022', 6, 21, 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, '6', 21, 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, '21', 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, '12', 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, '30', 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, '15', 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, '100'], null), null);
+
+    // Non-integer arguments
+    assert.equal(scriptFunctions.datetimeNew([2022.5, 6, 21, 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6.5, 21, 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21.5, 12, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12.5, 30, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30.5, 15, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15.5, 100], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100.5], null), null);
 });
 
 
 test('library, datetimeNow', () => {
-    assert(scriptFunctions.datetimeNow([]) instanceof Date);
+    assert.equal(scriptFunctions.datetimeNow([], null) instanceof Date, true);
 });
 
 
 test('library, datetimeSecond', () => {
-    assert.equal(scriptFunctions.datetimeSecond([new Date(2022, 5, 21, 7, 15, 30)]), 30);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeSecond([dt], null), 30);
 
-
-test('library, datetimeSecond UTC', () => {
-    assert.equal(scriptFunctions.datetimeSecond([new Date(Date.UTC(2022, 5, 21, 7, 15, 30)), true]), 30);
-});
-
-
-test('library, datetimeSecond non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeSecond([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeSecond([null], null), null);
 });
 
 
 test('library, datetimeToday', () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    assert.deepEqual(scriptFunctions.datetimeToday([]), today);
+    const today = scriptFunctions.datetimeToday([], null);
+    assert.equal(today instanceof Date, true);
+    assert.equal(today.getHours(), 0);
+    assert.equal(today.getMinutes(), 0);
+    assert.equal(today.getSeconds(), 0);
+    assert.equal(today.getMilliseconds(), 0);
 });
 
 
 test('library, datetimeYear', () => {
-    assert.equal(scriptFunctions.datetimeYear([new Date(2022, 5, 21)]), 2022);
-});
+    const dt = new Date(2022, 5, 21, 7, 15, 30, 100);
+    assert.equal(scriptFunctions.datetimeYear([dt], null), 2022);
 
-
-test('library, datetimeYear UTC', () => {
-    assert.equal(scriptFunctions.datetimeYear([new Date(Date.UTC(2022, 5, 21)), true]), 2022);
-});
-
-
-test('library, datetimeYear non-datetime', () => {
-    assert.equal(scriptFunctions.datetimeYear([null]), null);
+    // Non-datetime
+    assert.equal(scriptFunctions.datetimeYear([null], null), null);
 });
 
 
@@ -782,38 +965,60 @@ test('library, datetimeYear non-datetime', () => {
 
 test('library, jsonParse', () => {
     assert.deepEqual(scriptFunctions.jsonParse(['{"a": 1, "b": 2}'], null), {'a': 1, 'b': 2});
-});
 
-
-test('library, jsonParse error', () => {
+    // Invalid JSON
     assert.throws(
         () => {
             scriptFunctions.jsonParse(['asdf'], null);
         },
         {
-            'name': 'SyntaxError'
+            'name': 'SyntaxError',
         }
     );
+
+    // Non-string
+    assert.equal(scriptFunctions.jsonParse([null], null), null);
 });
 
 
 test('library, jsonStringify', () => {
-    assert.equal(scriptFunctions.jsonStringify([{'b': 2, 'a': 1}]), '{"a":1,"b":2}');
-    assert.equal(scriptFunctions.jsonStringify([{'b': 2, 'a': {'d': 4, 'c': 3}}]), '{"a":{"c":3,"d":4},"b":2}');
-    assert.equal(scriptFunctions.jsonStringify([[{'b': 2, 'a': 1}]]), '[{"a":1,"b":2}]');
-    assert.equal(scriptFunctions.jsonStringify([[3, 2, 1]]), '[3,2,1]');
-    assert.equal(scriptFunctions.jsonStringify([123]), '123');
-    assert.equal(scriptFunctions.jsonStringify(['abc']), '"abc"');
-    assert.equal(scriptFunctions.jsonStringify([null]), 'null');
-});
+    assert.equal(scriptFunctions.jsonStringify([{'b': 2, 'a': 1}], null), '{"a":1,"b":2}');
+    assert.equal(scriptFunctions.jsonStringify([{'b': 2, 'a': {'d': 4, 'c': 3}}], null), '{"a":{"c":3,"d":4},"b":2}');
+    assert.equal(scriptFunctions.jsonStringify([[{'b': 2, 'a': 1}]], null), '[{"a":1,"b":2}]');
+    assert.equal(scriptFunctions.jsonStringify([[3, 2, 1]], null), '[3,2,1]');
+    assert.equal(scriptFunctions.jsonStringify([123], null), '123');
+    assert.equal(scriptFunctions.jsonStringify(['abc'], null), '"abc"');
+    assert.equal(scriptFunctions.jsonStringify([null], null), 'null');
 
-
-test('library, jsonStringify indent', () => {
-    assert.equal(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 4]), `\
+    // Non-zero indent
+    assert.equal(
+        scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 4], null),
+        `\
 {
     "a": 1,
     "b": 2
-}`);
+}`
+    );
+    assert.equal(
+        scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 4.], null),
+        `\
+{
+    "a": 1,
+    "b": 2
+}`
+    );
+
+    // Non-number indent
+    assert.equal(scriptFunctions.jsonStringify([null, 'abc'], null), null);
+
+    // Non-integer indent
+    assert.equal(scriptFunctions.jsonStringify([null, 4.5], null), null);
+
+    // Zero indent
+    assert.equal(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 0], null), null);
+
+    // Negative indent
+    assert.equal(scriptFunctions.jsonStringify([null, -4], null), null);
 });
 
 
@@ -823,112 +1028,193 @@ test('library, jsonStringify indent', () => {
 
 
 test('library, mathAbs', () => {
-    assert.equal(scriptFunctions.mathAbs([-3]), 3);
+    assert.equal(scriptFunctions.mathAbs([-3], null), 3);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathAbs(['abc'], null), null);
 });
 
 
 test('library, mathAcos', () => {
-    assert.equal(scriptFunctions.mathAcos([1]), 0);
+    assert.equal(scriptFunctions.mathAcos([1], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathAcos(['abc'], null), null);
 });
 
 
 test('library, mathAsin', () => {
-    assert.equal(scriptFunctions.mathAsin([0]), 0);
+    assert.equal(scriptFunctions.mathAsin([0], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathAsin(['abc'], null), null);
 });
 
 
 test('library, mathAtan', () => {
-    assert.equal(scriptFunctions.mathAtan([0]), 0);
+    assert.equal(scriptFunctions.mathAtan([0], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathAtan(['abc'], null), null);
 });
 
 
 test('library, mathAtan2', () => {
-    assert.equal(scriptFunctions.mathAtan2([0, 1]), 0);
+    assert.equal(scriptFunctions.mathAtan2([0, 1], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathAtan2(['abc', 1], null), null);
+    assert.equal(scriptFunctions.mathAtan2([0, 'abc'], null), null);
 });
 
 
 test('library, mathCeil', () => {
-    assert.equal(scriptFunctions.mathCeil([0.25]), 1);
+    assert.equal(scriptFunctions.mathCeil([0.25], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathCeil(['abc'], null), null);
 });
 
 
 test('library, mathCos', () => {
-    assert.equal(scriptFunctions.mathCos([0]), 1);
+    assert.equal(scriptFunctions.mathCos([0], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathCos(['abc'], null), null);
 });
 
 
 test('library, mathFloor', () => {
-    assert.equal(scriptFunctions.mathFloor([1.125]), 1);
+    assert.equal(scriptFunctions.mathFloor([1.125], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathFloor(['abc'], null), null);
 });
 
 
 test('library, mathLn', () => {
-    assert.equal(scriptFunctions.mathLn([Math.E]), 1);
+    assert.equal(scriptFunctions.mathLn([Math.E], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathLn(['abc'], null), null);
+
+    // Invalid value
+    assert.equal(scriptFunctions.mathLn([0], null), null);
+    assert.equal(scriptFunctions.mathLn([-10], null), null);
 });
 
 
 test('library, mathLog', () => {
-    assert.equal(scriptFunctions.mathLog([10]), 1);
-});
+    assert.equal(scriptFunctions.mathLog([10], null), 1);
 
+    // Base
+    assert.equal(scriptFunctions.mathLog([8, 2], null), 3);
+    assert.equal(scriptFunctions.mathLog([8, 0.5], null), -3);
 
-test('library, mathLog base', () => {
-    assert.equal(scriptFunctions.mathLog([8, 2]), 3);
+    // Non-number value
+    assert.equal(scriptFunctions.mathLog(['abc'], null), null);
+
+    // Non-number base
+    assert.equal(scriptFunctions.mathLog([10, 'abc'], null), null);
+
+    // Invalid value
+    assert.equal(scriptFunctions.mathLog([0], null), null);
+    assert.equal(scriptFunctions.mathLog([-10], null), null);
+
+    // Invalid base
+    assert.equal(scriptFunctions.mathLog([10, 1], null), null);
+    assert.equal(scriptFunctions.mathLog([10, 0], null), null);
+    assert.equal(scriptFunctions.mathLog([10, -10], null), null);
 });
 
 
 test('library, mathMax', () => {
-    assert.equal(scriptFunctions.mathMax([1, 2, 3]), 3);
+    assert.equal(scriptFunctions.mathMax([1, 2, 3], null), 3);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathMax(['abc', 2, 3], null), null);
+    assert.equal(scriptFunctions.mathMax([1, 'abc', 3], null), null);
+    assert.equal(scriptFunctions.mathMax([1, 2, 'abc'], null), null);
 });
 
 
 test('library, mathMin', () => {
-    assert.equal(scriptFunctions.mathMin([1, 2, 3]), 1);
+    assert.equal(scriptFunctions.mathMin([1, 2, 3], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathMin(['abc', 2, 3], null), null);
+    assert.equal(scriptFunctions.mathMin([1, 'abc', 3], null), null);
+    assert.equal(scriptFunctions.mathMin([1, 2, 'abc'], null), null);
 });
 
 
 test('library, mathPi', () => {
-    assert.equal(scriptFunctions.mathPi([]), Math.PI);
+    assert.equal(scriptFunctions.mathPi([], null), Math.PI);
 });
 
 
 test('library, mathRandom', () => {
-    assert.equal(typeof scriptFunctions.mathRandom([]), 'number');
+    const value = scriptFunctions.mathRandom([], null);
+    assert.equal(typeof value, 'number');
+    assert.equal(value >= 0, true);
+    assert.equal(value <= 1, true);
 });
 
 
 test('library, mathRound', () => {
-    assert.equal(scriptFunctions.mathRound([5.125]), 5);
-});
+    assert.equal(scriptFunctions.mathRound([5.125], null), 5);
 
+    // Digits
+    assert.equal(scriptFunctions.mathRound([5.25, 1], null), 5.3);
+    assert.equal(scriptFunctions.mathRound([5.25, 1.], null), 5.3);
+    assert.equal(scriptFunctions.mathRound([5.15, 1], null), 5.2);
 
-test('library, mathRound digits', () => {
-    assert.equal(scriptFunctions.mathRound([5.25, 1]), 5.3);
-});
+    // Non-number value
+    assert.equal(scriptFunctions.mathRound(['abc'], null), null);
 
+    // Non-number base
+    assert.equal(scriptFunctions.mathRound([5.125, 'abc'], null), null);
 
-test('library, mathRound digits 2', () => {
-    assert.equal(scriptFunctions.mathRound([5.15, 1]), 5.2);
+    // Non-integer base
+    assert.equal(scriptFunctions.mathRound([5.125, 1.5], null), null);
+
+    // Negative base
+    assert.equal(scriptFunctions.mathRound([5.125, -1], null), null);
 });
 
 
 test('library, mathSign', () => {
-    assert.equal(scriptFunctions.mathSign([5.125]), 1);
+    assert.equal(scriptFunctions.mathSign([5.125], null), 1);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathSign(['abc'], null), null);
 });
 
 
 test('library, mathSin', () => {
-    assert.equal(scriptFunctions.mathSin([0]), 0);
+    assert.equal(scriptFunctions.mathSin([0], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathSin(['abc'], null), null);
 });
 
 
 test('library, mathSqrt', () => {
-    assert.equal(scriptFunctions.mathSqrt([4]), 2);
+    assert.equal(scriptFunctions.mathSqrt([4], null), 2);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathSqrt(['abc'], null), null);
+
+    // Negative value
+    assert.equal(scriptFunctions.mathSqrt([-4], null), null);
 });
 
 
 test('library, mathTan', () => {
-    assert.equal(scriptFunctions.mathTan([0]), 0);
+    assert.equal(scriptFunctions.mathTan([0], null), 0);
+
+    // Non-number
+    assert.equal(scriptFunctions.mathTan(['abc'], null), null);
 });
 
 
@@ -938,39 +1224,70 @@ test('library, mathTan', () => {
 
 
 test('library, numberToFixed', () => {
-    assert.equal(scriptFunctions.numberToFixed([1.125, 1]), '1.1');
-    assert.equal(scriptFunctions.numberToFixed([1, 1]), '1.0');
-});
+    assert.equal(scriptFunctions.numberParseFloat(['123.45'], null), 123.45);
 
+    // Parse failure
+    assert.equal(scriptFunctions.numberParseFloat(['invalid'], null), null);
+    assert.equal(scriptFunctions.numberParseFloat(['1234.45asdf'], null), null);
+    assert.equal(scriptFunctions.numberParseFloat(['1234.45 asdf'], null), null);
 
-test('library, numberToFixed trim', () => {
-    assert.equal(scriptFunctions.numberToFixed([1.125, 1, true]), '1.1');
-    assert.equal(scriptFunctions.numberToFixed([1, 1, true]), '1');
-});
-
-
-test('library, numberToFixed non-number', () => {
-    assert.equal(scriptFunctions.numberToFixed([null, 1]), null);
-});
-
-
-test('library, numberToFixed default digits', () => {
-    assert.equal(scriptFunctions.numberToFixed([1.125]), '1.13');
+    // Non-string value
+    assert.equal(scriptFunctions.numberParseFloat([10], null), null);
 });
 
 
 test('library, numberParseInt', () => {
-    assert.equal(scriptFunctions.numberParseInt(['123']), 123);
-});
+    assert.equal(scriptFunctions.numberParseInt(['123'], null), 123);
 
+    // Radix
+    assert.equal(scriptFunctions.numberParseInt(['10', 2], null), 2);
+    assert.equal(scriptFunctions.numberParseInt(['10', 2.], null), 2);
 
-test('library, numberParseInt radix', () => {
-    assert.equal(scriptFunctions.numberParseInt(['10', 2]), 2);
+    // Parse failure
+    assert.equal(scriptFunctions.numberParseInt(['1234.45'], null), null);
+    assert.equal(scriptFunctions.numberParseInt(['asdf'], null), null);
+    assert.equal(scriptFunctions.numberParseInt(['1234asdf'], null), null);
+    assert.equal(scriptFunctions.numberParseInt(['1234.45 asdf'], null), null);
+
+    // Non-string value
+    assert.equal(scriptFunctions.numberParseInt([10], null), null);
+
+    // Non-number radix
+    assert.equal(scriptFunctions.numberParseInt(['10', 'abc'], null), null);
+
+    // Non-integer radix
+    assert.equal(scriptFunctions.numberParseInt(['10', 2.5], null), null);
+
+    // Invalid radix
+    assert.equal(scriptFunctions.numberParseInt(['10', 1], null), null);
+    assert.equal(scriptFunctions.numberParseInt(['10', 37], null), null);
 });
 
 
 test('library, numberParseFloat', () => {
-    assert.equal(scriptFunctions.numberParseFloat(['123.45']), 123.45);
+    assert.equal(scriptFunctions.numberToFixed([1.125], null), '1.13');
+
+    // Digits
+    assert.equal(scriptFunctions.numberToFixed([1.125, 0], null), '1');
+    assert.equal(scriptFunctions.numberToFixed([1.125, 0.], null), '1');
+    assert.equal(scriptFunctions.numberToFixed([1.125, 1], null), '1.1');
+    assert.equal(scriptFunctions.numberToFixed([1, 1], null), '1.0');
+
+    // Trim
+    assert.equal(scriptFunctions.numberToFixed([1.125, 1, true], null), '1.1');
+    assert.equal(scriptFunctions.numberToFixed([1, 1, true], null), '1');
+
+    // Non-number value
+    assert.equal(scriptFunctions.numberToFixed([null, 1], null), null);
+
+    // Non-number digits
+    assert.equal(scriptFunctions.numberToFixed([1.125, null], null), null);
+
+    // Non-integer digits
+    assert.equal(scriptFunctions.numberToFixed([1.125, 1.5], null), null);
+
+    // Negative digits
+    assert.equal(scriptFunctions.numberToFixed([1.125, -1], null), null);
 });
 
 
@@ -980,211 +1297,177 @@ test('library, numberParseFloat', () => {
 
 
 test('library, objectAssign', () => {
-    const obj = {'a': 1, 'b': 2};
+    let obj = {'a': 1, 'b': 2};
     const obj2 = {'b': 3, 'c': 4};
-    assert.deepEqual(scriptFunctions.objectAssign([obj, obj2]), {'a': 1, 'b': 3, 'c': 4});
+    assert.deepEqual(scriptFunctions.objectAssign([obj, obj2], null), {'a': 1, 'b': 3, 'c': 4});
     assert.deepEqual(obj, {'a': 1, 'b': 3, 'c': 4});
-});
 
-
-test('library, objectAssign null', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.deepEqual(scriptFunctions.objectAssign([obj, null]), obj);
+    // Null inputs
+    obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectAssign([null, obj], null), null);
+    assert.equal(scriptFunctions.objectAssign([obj, null], null), null);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
-    assert.equal(scriptFunctions.objectAssign([null, obj]), null);
+
+    // Number inputs
+    obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectAssign([0, obj], null), null);
+    assert.equal(scriptFunctions.objectAssign([obj, 0], null), null);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
-});
 
-
-test('library, objectAssign non-object', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.deepEqual(scriptFunctions.objectAssign([obj, 0]), obj);
-    assert.deepEqual(obj, {'a': 1, 'b': 2});
-    assert.deepEqual(scriptFunctions.objectAssign([0, obj]), 0);
-    assert.deepEqual(obj, {'a': 1, 'b': 2});
-});
-
-
-test('library, objectAssign array', () => {
-    const obj = {'a': 1, 'b': 2};
+    // Array inputs
+    obj = {'a': 1, 'b': 2};
     const array = ['c', 'd'];
-    assert.deepEqual(scriptFunctions.objectAssign([obj, array]), obj);
+    assert.equal(scriptFunctions.objectAssign([obj, array], null), null);
+    assert.equal(scriptFunctions.objectAssign([array, obj], null), null);
     assert.deepEqual(obj, {'a': 1, 'b': 2});
-    assert.deepEqual(scriptFunctions.objectAssign([array, obj]), array);
-    assert.deepEqual(obj, {'a': 1, 'b': 2});
+    assert.deepEqual(array, ['c', 'd']);
 });
 
 
 test('library, objectCopy', () => {
     const obj = {'a': 1, 'b': 2};
-    assert.deepEqual(scriptFunctions.objectCopy([obj]), obj);
-});
+    const objCopy = scriptFunctions.objectCopy([obj], null);
+    assert.deepEqual(objCopy, obj);
+    assert.notEqual(objCopy, obj);
 
+    // Null input
+    assert.equal(scriptFunctions.objectCopy([null], null), null);
 
-test('library, objectCopy null', () => {
-    assert.deepEqual(scriptFunctions.objectCopy([null]), {});
-});
+    // Number input
+    assert.equal(scriptFunctions.objectCopy([0], null), null);
 
-
-test('library, objectCopy non-object', () => {
-    assert.deepEqual(scriptFunctions.objectCopy([0]), {});
-});
-
-
-test('library, objectCopy array', () => {
-    assert.deepEqual(scriptFunctions.objectCopy([['a', 'b']]), {});
+    // Array input
+    assert.equal(scriptFunctions.objectCopy([['a', 'b']], null), null);
 });
 
 
 test('library, objectDelete', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectDelete([obj, 'a']), undefined);
+    let obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectDelete([obj, 'a'], null), null);
     assert.deepEqual(obj, {'b': 2});
-});
 
-
-test('library, objectDelete missing', () => {
-    const obj = {'b': 2};
-    assert.equal(scriptFunctions.objectDelete([obj, 'a']), undefined);
+    // Missing key
+    obj = {'b': 2};
+    assert.equal(scriptFunctions.objectDelete([obj, 'a'], null), null);
     assert.deepEqual(obj, {'b': 2});
+
+    // Null input
+    assert.equal(scriptFunctions.objectDelete([null, 'a'], null), null);
+
+    // Number input
+    assert.equal(scriptFunctions.objectDelete([0, 'a'], null), null);
+
+    // Array input
+    assert.equal(scriptFunctions.objectDelete([['a', 'b'], 'a'], null), null);
+
+    // Non-string key
+    assert.equal(scriptFunctions.objectDelete([obj, null], null), null);
 });
 
 
-test('library, objectDelete null', () => {
-    assert.equal(scriptFunctions.objectDelete([null, 'a']), undefined);
-});
-
-
-test('library, objectDelete non-object', () => {
-    assert.equal(scriptFunctions.objectDelete([0, 'a']), undefined);
-});
-
-
-test('library, objectDelete array', () => {
-    assert.equal(scriptFunctions.objectDelete([['a', 'b'], 'a']), undefined);
+test('library, objectGet2', () => {
+    assert.equal(scriptFunctions.objectGet([null, 'a', 1], null), 1);
 });
 
 
 test('library, objectGet', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectGet([obj, 'a']), 1);
-});
+    let obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectGet([obj, 'a'], null), 1);
 
+    // Missing key with/without default
+    obj = {};
+    assert.equal(scriptFunctions.objectGet([obj, 'a'], null), null);
+    assert.equal(scriptFunctions.objectGet([obj, 'a', 1], null), 1);
 
-test('library, objectGet default', () => {
-    const obj = {};
-    assert.equal(scriptFunctions.objectGet([obj, 'a']), null);
-    assert.equal(scriptFunctions.objectGet([obj, 'a', 1]), 1);
-});
+    // Null input
+    assert.equal(scriptFunctions.objectGet([null, 'a'], null), null);
+    assert.equal(scriptFunctions.objectGet([null, 'a', 1], null), 1);
 
+    // Number input
+    assert.equal(scriptFunctions.objectGet([0, 'a'], null), null);
+    assert.equal(scriptFunctions.objectGet([0, 'a', 1], null), 1);
 
-test('library, objectGet missing', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectGet([obj, 'c']), null);
-});
+    // Array input
+    assert.equal(scriptFunctions.objectGet([['a', 'b'], 'a'], null), null);
+    assert.equal(scriptFunctions.objectGet([['a', 'b'], 'a', 1], null), 1);
 
-
-test('library, objectGet null', () => {
-    assert.equal(scriptFunctions.objectGet([null, 'a']), null);
-});
-
-
-test('library, objectGet null default', () => {
-    assert.equal(scriptFunctions.objectGet([null, 'a', 1]), 1);
-});
-
-
-test('library, objectGet non-object', () => {
-    assert.equal(scriptFunctions.objectGet([0, 'a']), null);
-});
-
-
-test('library, objectGet array', () => {
-    assert.equal(scriptFunctions.objectGet([['a', 'b'], 'a']), null);
+    // Non-string key
+    obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectGet([obj, null], null), null);
+    assert.equal(scriptFunctions.objectGet([obj, null, 1], null), 1);
 });
 
 
 test('library, objectHas', () => {
-    const obj = {'a': 1, 'b': null, 'c': undefined};
-    assert.equal(scriptFunctions.objectHas([obj, 'a']), true);
-    assert.equal(scriptFunctions.objectHas([obj, 'b']), true);
-    assert.equal(scriptFunctions.objectHas([obj, 'c']), true);
-    assert.equal(scriptFunctions.objectHas([obj, 'd']), false);
-});
+    const obj = {'a': 1, 'b': null};
+    assert.equal(scriptFunctions.objectHas([obj, 'a'], null), true);
+    assert.equal(scriptFunctions.objectHas([obj, 'b'], null), true);
+    assert.equal(scriptFunctions.objectHas([obj, 'c'], null), false);
+    assert.equal(scriptFunctions.objectHas([obj, 'd'], null), false);
 
+    // Null input
+    assert.equal(scriptFunctions.objectHas([null, 'a'], null), false);
 
-test('library, objectHas null', () => {
-    assert.equal(scriptFunctions.objectHas([null, 'a']), false);
-});
+    // Number input
+    assert.equal(scriptFunctions.objectHas([0, 'a'], null), false);
 
+    // Array input
+    assert.equal(scriptFunctions.objectHas([['a', 'b'], 'a'], null), false);
 
-test('library, objectHas non-object', () => {
-    assert.equal(scriptFunctions.objectHas([0, 'a']), false);
-});
-
-
-test('library, objectHas array', () => {
-    assert.equal(scriptFunctions.objectHas([['a', 'b'], 'a']), false);
+    // Non-string key
+    assert.equal(scriptFunctions.objectHas([obj, null], null), false);
 });
 
 
 test('library, objectKeys', () => {
     const obj = {'a': 1, 'b': 2};
-    assert.deepEqual(scriptFunctions.objectKeys([obj]), ['a', 'b']);
-});
+    assert.deepEqual(scriptFunctions.objectKeys([obj], null), ['a', 'b']);
 
+    // Null input
+    assert.equal(scriptFunctions.objectKeys([null], null), null);
 
-test('library, objectKeys null', () => {
-    assert.equal(scriptFunctions.objectKeys([null]), null);
-});
+    // Number input
+    assert.equal(scriptFunctions.objectKeys([0], null), null);
 
-
-test('library, objectKeys non-object', () => {
-    assert.equal(scriptFunctions.objectKeys([0]), null);
-});
-
-
-test('library, objectKeys array', () => {
-    assert.equal(scriptFunctions.objectKeys([['a', 'b']]), null);
+    // Array input
+    assert.equal(scriptFunctions.objectKeys([['a', 'b']], null), null);
 });
 
 
 test('library, objectNew', () => {
-    assert.deepEqual(scriptFunctions.objectNew([]), {});
-});
+    assert.deepEqual(scriptFunctions.objectNew([], null), {});
 
+    // Key/values
+    assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b', 2], null), {'a': 1, 'b': 2});
 
-test('library, objectNew key/values', () => {
-    assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b', 2]), {'a': 1, 'b': 2});
-});
+    // Missing final value
+    assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b'], null), {'a': 1, 'b': null});
 
-
-test('library, objectNew odd', () => {
-    assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b']), {'a': 1, 'b': null});
+    // Non-string key
+    assert.equal(scriptFunctions.objectNew([0, 1, 'b'], null), null);
 });
 
 
 test('library, objectSet missing', () => {
-    const obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectSet([obj, 'c', 3]), 3);
+    let obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectSet([obj, 'c', 3], null), 3);
     assert.deepEqual(obj, {'a': 1, 'b': 2, 'c': 3});
-});
 
+    // Null input
+    assert.equal(scriptFunctions.objectSet([null, 'c', 3], null), null);
 
-test('library, objectSet null', () => {
-    assert.equal(scriptFunctions.objectSet([null, 'c', 3]), 3);
-});
+    // Number input
+    assert.equal(scriptFunctions.objectSet([0, 'c', 3], null), null);
 
-
-test('library, objectSet non-object', () => {
-    assert.equal(scriptFunctions.objectSet([0, 'c', 3]), 3);
-});
-
-
-test('library, objectSet array', () => {
+    // Array input
     const array = ['a', 'b'];
-    assert.equal(scriptFunctions.objectSet([array, 'c', 3]), 3);
+    assert.equal(scriptFunctions.objectSet([array, 'c', 3], null), null);
     assert.deepEqual(array, ['a', 'b']);
+
+    // Non-string key
+    obj = {'a': 1, 'b': 2};
+    assert.equal(scriptFunctions.objectSet([obj, null, 3], null), null);
+    assert.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
 
@@ -1194,49 +1477,133 @@ test('library, objectSet array', () => {
 
 
 test('library, regexEscape', () => {
-    assert.equal(scriptFunctions.regexEscape(['a*b']), 'a\\*b');
-});
+    assert.equal(scriptFunctions.regexEscape(['a*b'], null), 'a\\*b');
 
-
-test('library, regexEscape non-string', () => {
-    assert.equal(scriptFunctions.regexEscape([null]), null);
+    // Non-string
+    assert.equal(scriptFunctions.regexEscape([null], null), null);
 });
 
 
 test('library, regexMatch', () => {
-    assert.equal(scriptFunctions.regexMatch([/foo/, 'foo bar'])[0], 'foo');
-});
+    assert.deepEqual(
+        scriptFunctions.regexMatch([/foo/, 'foo bar'], null),
+        {
+            'index': 0,
+            'input': 'foo bar',
+            'groups': {'0': 'foo'},
+        }
+    );
 
+    // Named groups
+    assert.deepEqual(
+        scriptFunctions.regexMatch([/(?<first>\w+)(\s+)(?<last>\w+)/, 'foo bar thud'], null),
+        {
+            'index': 0,
+            'input': 'foo bar thud',
+            'groups': {'0': 'foo bar', '1': 'foo', '2': ' ', '3': 'bar', 'first': 'foo', 'last': 'bar'}
+        }
+    );
 
-test('library, regexMatch non-string', () => {
-    assert.equal(scriptFunctions.regexMatch([/foo/, null]), null);
+    // No match
+    assert.equal(scriptFunctions.regexMatch([/foo/, 'boo bar'], null), null);
+
+    // Non-regex
+    assert.equal(scriptFunctions.regexMatch([null, 'foo bar'], null), null);
+
+    // Non-string
+    assert.equal(scriptFunctions.regexMatch([/foo/, null], null), null);
 });
 
 
 test('library, regexMatchAll', () => {
-    assert.deepEqual(scriptFunctions.regexMatchAll([/foo/g, 'foo foo bar']).map((m) => m[0]), ['foo', 'foo']);
-});
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/(?<name>([fb])o+)/, 'foo boooo bar'], null),
+        [
+            {
+                'index': 0,
+                'input': 'foo boooo bar',
+                'groups': {'0': 'foo', '1': 'foo', '2': 'f', 'name': 'foo'}
+            },
+            {
+                'index': 4,
+                'input': 'foo boooo bar',
+                'groups': {'0': 'boooo', '1': 'boooo', '2': 'b', 'name': 'boooo'}
+            }
+        ]
+    );
 
+    // Global flag (shouldn't ever happen)
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/(?<name>([fb])o+)/g, 'foo boooo bar'], null),
+        [
+            {
+                'index': 0,
+                'input': 'foo boooo bar',
+                'groups': {'0': 'foo', '1': 'foo', '2': 'f', 'name': 'foo'}
+            },
+            {
+                'index': 4,
+                'input': 'foo boooo bar',
+                'groups': {'0': 'boooo', '1': 'boooo', '2': 'b', 'name': 'boooo'}
+            }
+        ]
+    );
 
-test('library, regexMatchAll no matches', () => {
-    assert.deepEqual(scriptFunctions.regexMatchAll([/foo/g, 'boo boo bar']).map((m) => m[0]), []);
-});
+    // No matches
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/foo/, 'boo boo bar'], null),
+        []
+    );
 
+    // Non-regex
+    assert.equal(scriptFunctions.regexMatchAll([null, 'abc'], null), null);
 
-test('library, regexMatchAll non-string', () => {
-    assert.equal(scriptFunctions.regexMatchAll([/foo/g, null]), null);
+    // Non-string
+    assert.equal(scriptFunctions.regexMatchAll([/foo/, null], null), null);
 });
 
 
 test('library, regexNew', () => {
-    assert(scriptFunctions.regexNew(['a*b']) instanceof RegExp);
-});
+    let regex = scriptFunctions.regexNew(['a*b'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, 'a*b');
+    assert.equal(regex.flags, '');
 
+    // Named groups
+    regex = scriptFunctions.regexNew(['(?<first>\\w+)(\\s+)(?<last>\\w+)'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, '(?<first>\\w+)(\\s+)(?<last>\\w+)');
+    assert.equal(regex.flags, '');
 
-test('library, regexNew flags', () => {
-    const regex = scriptFunctions.regexNew(['a*b', 'g']);
-    assert(regex instanceof RegExp);
-    assert.equal(regex.flags, 'g');
+    // Flag - "i"
+    regex = scriptFunctions.regexNew(['a*b', 'i'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, 'a*b');
+    assert.equal(regex.flags, 'i');
+
+    // Flag - "m"
+    regex = scriptFunctions.regexNew(['a*b', 'm'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, 'a*b');
+    assert.equal(regex.flags, 'm');
+
+    // Flag - "s"
+    regex = scriptFunctions.regexNew(['a*b', 's'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, 'a*b');
+    assert.equal(regex.flags, 's');
+
+    // Flag - unknown
+    assert.equal(scriptFunctions.regexNew(['a*b', 'iz'], null), null);
+
+    // Non-regex
+    assert.equal(scriptFunctions.regexNew([null], null), null);
+
+    // Non-string pattern
+    assert.equal(scriptFunctions.regexNew([null], null), null);
+
+    // Non-string flags
+    assert.equal(scriptFunctions.regexNew(['a*b', 5], null), null);
 });
 
 
@@ -1289,106 +1656,151 @@ test('library, regexSplit', () => {
 });
 
 
-test('library, regexTest', () => {
-    assert(scriptFunctions.regexTest([/a*b/, 'caaabc']));
-});
-
-
-test('library, regexTest non-regexp', () => {
-    assert.equal(scriptFunctions.regexTest([null, 'caaabc']), null);
-});
-
-
 //
 // Schema functions
 //
 
 
 test('script library, schemaParse', () => {
-    assert.deepEqual(
-        scriptFunctions.schemaParse(
-            [
-                '# My struct',
-                'struct MyStruct',
-                '',
-                '  # An integer\n  int a'
-            ],
-            {}
-        ),
+    const types = scriptFunctions.schemaParse(['typedef int MyType', 'typedef MyType MyType2'], null);
+    assert.deepEqual(types, {
+        'MyType': {'typedef': {'name': 'MyType', 'type': {'builtin': 'int'}}},
+        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
+    });
+
+    // Syntax error
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParse(['asdf'], null);
+        },
         {
-            'MyStruct': {
-                'struct': {
-                    'name': 'MyStruct',
-                    'doc': ['My struct'],
-                    'members': [
-                        {
-                            'name': 'a',
-                            'doc': ['An integer'],
-                            'type': {'builtin': 'int'}
-                        }
-                    ]
-                }
-            }
+            'name': 'SchemaMarkdownParserError',
+            'message': ':1: error: Syntax error'
         }
     );
 });
 
 
 test('script library, schemaParseEx', () => {
-    const types = scriptFunctions.schemaParse(
-        [
-            'typedef int MyType'
-        ],
-        {}
-    );
-    const types2 = scriptFunctions.schemaParseEx(
-        [
-            [
-                'struct MyStruct',
-                '    MyType a'
-            ],
-            types
-        ],
-        {}
-    );
-    assert.equal(types, types2);
-    assert.deepEqual(types2, {
-        'MyStruct': {
-            'struct': {
-                'name': 'MyStruct',
-                'members': [
-                    {
-                        'name': 'a',
-                        'type': {'user': 'MyType'}
-                    }
-                ]
-            }
-        },
-        'MyType': {
-            'typedef': {
-                'name': 'MyType',
-                'type': {
-                    'builtin': 'int'
-                }
-            }
-        }
+    // List input
+    let types = scriptFunctions.schemaParseEx([['typedef int MyType', 'typedef MyType MyType2']], null);
+    assert.deepEqual(types, {
+        'MyType': {'typedef': {'name': 'MyType', 'type': {'builtin': 'int'}}},
+        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
     });
+
+    // String input
+    types = scriptFunctions.schemaParseEx(['typedef int MyType'], null);
+    assert.deepEqual(types, {
+        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}
+    });
+
+    // Types provided
+    types = scriptFunctions.schemaParseEx(['typedef int MyType'], null);
+    const types2 = scriptFunctions.schemaParseEx(['typedef MyType MyType2', types], null);
+    assert.deepEqual(types, {
+        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}},
+        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
+    });
+    assert.equal(types, types2);
+
+    // Filename provided
+    types = scriptFunctions.schemaParseEx(['typedef int MyType', {}, 'test.smd'], null);
+    assert.deepEqual(types, {
+        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}
+    });
+
+    // Syntax error
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParseEx(['asdf'], null);
+        },
+        {
+            'name': 'SchemaMarkdownParserError',
+            'message': ':1: error: Syntax error'
+        }
+    );
+
+    // Syntax error with filename
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParseEx(['asdf', {}, 'test.smd'], null);
+        },
+        {
+            'name': 'SchemaMarkdownParserError',
+            'message': 'test.smd:1: error: Syntax error'
+        }
+    );
+
+    // Non-list/string input
+    assert.equal(scriptFunctions.schemaParseEx([null], null), null);
+
+    // Non-doct types
+    assert.equal(scriptFunctions.schemaParseEx(['', null], null), null);
+
+    // Non-string filename
+    assert.equal(scriptFunctions.schemaParseEx(['', {}, null], null), null);
 });
 
 
 test('script library, schemaTypeModel', () => {
-    assert('Types' in scriptFunctions.schemaTypeModel([], {}));
+    const typeModel = scriptFunctions.schemaTypeModel([], null);
+    assert.equal('Types' in typeModel, true);
+    assert.deepEqual(scriptFunctions.schemaValidateTypeModel([typeModel], null), typeModel);
 });
 
+
 test('script library, schemaValidate', () => {
-    const types = scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], {});
-    assert.deepEqual(scriptFunctions.schemaValidate([types, 'MyStruct', {'a': 5}], {}), {'a': 5});
+    const types = scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], null);
+    assert.deepEqual(scriptFunctions.schemaValidate([types, 'MyStruct', {'a': 5}], null), {'a': 5});
+
+    // Invalid types
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidate([{}, 'MyStruct', {}], null);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Invalid value {} (type 'object'), expected type 'Types' [len > 0]"
+        }
+    );
+
+    // Invalid value
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidate([types, 'MyStruct', {}], null);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'a' missing"
+        }
+    );
+
+    // Non-dict types
+    assert.equal(scriptFunctions.schemaValidate([null, 'MyStruct', null], null), null);
+
+    // Non-string type
+    assert.equal(scriptFunctions.schemaValidate([{}, null, null], null), null);
 });
 
 
 test('script library, schemaValidateTypeModel', () => {
-    const typeModel = scriptFunctions.schemaTypeModel([], {});
-    assert.deepEqual(scriptFunctions.schemaValidateTypeModel([typeModel], {}), typeModel);
+    const types = {'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}};
+    assert.deepEqual(scriptFunctions.schemaValidateTypeModel([types], null), types);
+
+    // Invalid types
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidateTypeModel([{}], null);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Invalid value {} (type 'object'), expected type 'Types' [len > 0]"
+        }
+    );
+
+    // Non-dict types
+    assert.equal(scriptFunctions.schemaValidateTypeModel([null], null), null);
 });
 
 
@@ -1398,182 +1810,264 @@ test('script library, schemaValidateTypeModel', () => {
 
 
 test('library, stringCharCodeAt', () => {
-    assert.equal(scriptFunctions.stringCharCodeAt(['A', 0]), 65);
-});
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 0], null), 97);
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 0.], null), 97);
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 1], null), 98);
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 2], null), 99);
 
+    // Invalid index
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', -1], null), null);
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 4], null), null);
 
-test('library, stringCharCodeAt non-string', () => {
-    assert.equal(scriptFunctions.stringCharCodeAt([null, 0]), null);
+    // Non-string value
+    assert.equal(scriptFunctions.stringCharCodeAt([null, 0], null), null);
+
+    // Non-number index
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', null], null), null);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.stringCharCodeAt(['abc', 1.5], null), null);
 });
 
 
 test('library, stringEndsWith', () => {
-    assert(scriptFunctions.stringEndsWith(['foo bar', 'bar']));
-});
+    assert.equal(scriptFunctions.stringEndsWith(['foo bar', 'bar'], null), true);
+    assert.equal(scriptFunctions.stringEndsWith(['foo bar', 'foo'], null), false);
 
+    // Non-string value
+    assert.equal(scriptFunctions.stringEndsWith([null, 'bar'], null), null);
 
-test('library, stringEndsWith non-string', () => {
-    assert.equal(scriptFunctions.stringEndsWith([null, 'bar']), null);
-});
-
-
-test('library, stringIndexOf', () => {
-    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar']), 4);
-});
-
-
-test('library, stringIndexOf non-string', () => {
-    assert.equal(scriptFunctions.stringIndexOf([null, 'bar']), -1);
-});
-
-
-test('library, stringIndexOf position', () => {
-    assert.equal(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 5]), 8);
+    // Non-string search
+    assert.equal(scriptFunctions.stringEndsWith(['foo bar', null], null), null);
 });
 
 
 test('library, stringFromCharCode', () => {
-    assert.equal(scriptFunctions.stringFromCharCode([65, 66, 67]), 'ABC');
+    assert.equal(scriptFunctions.stringFromCharCode([97, 98, 99], null), 'abc');
+    assert.equal(scriptFunctions.stringFromCharCode([97., 98., 99.], null), 'abc');
+
+    // Non-number code
+    assert.equal(scriptFunctions.stringFromCharCode([97, 'b', 99], null), null);
+
+    // Non-integer code
+    assert.equal(scriptFunctions.stringFromCharCode([97, 98.5, 99], null), null);
+
+    // Negative code
+    assert.equal(scriptFunctions.stringFromCharCode([97, -98, 99], null), null);
+});
+
+
+test('library, stringIndexOf', () => {
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar'], null), 4);
+
+    // Index provided
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 5], null), 8);
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 5.], null), 8);
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 4], null), 4);
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar bar', 'bar', 0], null), 4);
+
+    // Not Found
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bonk'], null), -1);
+
+    // Not Found with index
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', 5], null), -1);
+
+    // Non-string value
+    assert.equal(scriptFunctions.stringIndexOf([null, 'bar'], null), -1);
+
+    // Non-string search
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', null], null), -1);
+
+    // Non-number index
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', null], null), -1);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', 1.5], null), -1);
+
+    // Out-of-range index
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', -1], null), -1);
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', 7], null), -1);
 });
 
 
 test('library, stringLastIndexOf', () => {
-    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar']), 8);
-});
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar'], null), 8);
 
+    // Index provided
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 10], null), 8);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 10.0], null), 8);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 9], null), 8);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 8], null), 8);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 7], null), 4);
 
-test('library, stringLastIndexOf non-string', () => {
-    assert.equal(scriptFunctions.stringLastIndexOf([null, 'bar']), -1);
+    // Not Found
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bonk'], null), -1);
+
+    // Not Found with index
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 3], null), -1);
+
+    // Non-string value
+    assert.equal(scriptFunctions.stringLastIndexOf([null, 'bar'], null), -1);
+
+    // Non-string search
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', null], null), -1);
+
+    // Non-number index
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 'abc'], null), -1);
+
+    // Non-integer index
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 5.5], null), -1);
+
+    // Out-of-range index
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bar', -1], null), -1);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 7], null), -1);
 });
 
 
 test('library, stringLength', () => {
-    assert.equal(scriptFunctions.stringLength(['foo']), 3);
-});
+    assert.equal(scriptFunctions.stringLength(['foo'], null), 3);
 
-
-test('library, stringLength non-string', () => {
-    assert.equal(scriptFunctions.stringLength([null]), null);
+    // Non-string value
+    assert.equal(scriptFunctions.stringLength([null], null), 0);
 });
 
 
 test('library, stringLower', () => {
-    assert.equal(scriptFunctions.stringLower(['Foo']), 'foo');
-});
+    assert.equal(scriptFunctions.stringLower(['Foo'], null), 'foo');
 
-
-test('library, stringLower non-string', () => {
-    assert.equal(scriptFunctions.stringLower([null]), null);
+    // Non-string value
+    assert.equal(scriptFunctions.stringLower([null], null), null);
 });
 
 
 test('library, stringNew', () => {
-    assert.equal(scriptFunctions.stringNew([123]), '123');
+    assert.equal(scriptFunctions.stringNew([123], null), '123');
+
+    // Non-string value
+    assert.equal(scriptFunctions.stringNew([null], null), 'null');
+    assert.equal(scriptFunctions.stringNew([true], null), 'true');
+    assert.equal(scriptFunctions.stringNew([false], null), 'false');
+    assert.equal(scriptFunctions.stringNew([0], null), '0');
+    assert.equal(scriptFunctions.stringNew([0.], null), '0');
+    const dt = valueParseDatetime('2022-06-21T12:30:15.100+00:00');
+    assert.equal(scriptFunctions.stringNew([dt], null), '2022-06-21T12:30:15.100+00:00');
+    assert.equal(scriptFunctions.stringNew([{'b': 2, 'a': 1}], null), '{"a":1,"b":2}');
+    assert.equal(scriptFunctions.stringNew([[1, 2, 3]], null), '[1,2,3]');
+    assert.equal(scriptFunctions.stringNew([scriptFunctions.stringNew], null), '<function>');
+    assert.equal(scriptFunctions.stringNew([/^test/], null), '<regex>');
 });
 
 
 test('library, stringRepeat', () => {
-    assert.equal(scriptFunctions.stringRepeat(['*', 3]), '***');
-});
+    assert.equal(scriptFunctions.stringRepeat(['abc', 2], null), 'abcabc');
+    assert.equal(scriptFunctions.stringRepeat(['abc', 2.], null), 'abcabc');
+    assert.equal(scriptFunctions.stringRepeat(['abc', 1], null), 'abc');
+    assert.equal(scriptFunctions.stringRepeat(['abc', 0], null), '');
 
+    // Non-string value
+    assert.equal(scriptFunctions.stringRepeat([null, 3], null), null);
 
-test('library, stringRepeat non-string', () => {
-    assert.equal(scriptFunctions.stringRepeat([null, 3]), null);
+    // Non-number count
+    assert.equal(scriptFunctions.stringRepeat(['abc', null], null), null);
+
+    // Non-integer count
+    assert.equal(scriptFunctions.stringRepeat(['abc', 1.5], null), null);
+
+    // Negative count
+    assert.equal(scriptFunctions.stringRepeat(['abc', -2], null), null);
 });
 
 
 test('library, stringReplace', () => {
-    assert.equal(scriptFunctions.stringReplace(['foo bar', 'bar', 'bonk']), 'foo bonk');
-});
+    assert.equal(scriptFunctions.stringReplace(['foo bar', 'bar', 'bonk'], null), 'foo bonk');
+    assert.equal(scriptFunctions.stringReplace(['foo bar bar', 'bar', 'bonk'], null), 'foo bonk bonk');
 
+    // Not found
+    assert.equal(scriptFunctions.stringReplace(['foo bar', 'abc', 'bonk'], null), 'foo bar');
 
-test('library, stringReplace non-string', () => {
-    assert.equal(scriptFunctions.stringReplace([null, 'bar', 'bonk']), null);
-});
+    // Non-string value
+    assert.equal(scriptFunctions.stringReplace([null, 'bar', 'bonk'], null), null);
 
+    // Non-string search
+    assert.equal(scriptFunctions.stringReplace(['foo bar', null, 'bonk'], null), null);
 
-test('library, stringReplace regex', () => {
-    assert.equal(scriptFunctions.stringReplace(['foo bar', /\s+bar/g, ' bonk']), 'foo bonk');
-});
-
-
-test('library, stringReplace regex replacer function', () => {
-    const replacerFunction = (args, options) => {
-        assert.deepEqual(args, [' bar', 3, 'foo bar']);
-        assert.deepEqual(options, {});
-        return ' bonk';
-    };
-    assert.equal(scriptFunctions.stringReplace(['foo bar', /\s+bar/g, replacerFunction], {}), 'foo bonk');
-});
-
-
-test('library, stringReplace replacer function', () => {
-    const replacerFunction = (args, options) => {
-        assert.deepEqual(args, ['bar', 4, 'foo bar']);
-        assert.deepEqual(options, {});
-        return 'bonk';
-    };
-    assert.equal(scriptFunctions.stringReplace(['foo bar', 'bar', replacerFunction], {}), 'foo bonk');
+    // Non-string replacement
+    assert.equal(scriptFunctions.stringReplace(['foo bar', 'bar', null], null), null);
 });
 
 
 test('library, stringSlice', () => {
-    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 5]), 'oo b');
-});
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 5], null), 'oo b');
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1., 5.], null), 'oo b');
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 0, 7], null), 'foo bar');
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 6], null), 'oo ba');
 
+    // Empty slice
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 7], null), '');
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 1], null), '');
 
-test('library, stringSlice non-string', () => {
-    assert.equal(scriptFunctions.stringSlice([null, 1, 5]), null);
+    // No end index
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1], null), 'oo bar');
+
+    // Non-string value
+    assert.equal(scriptFunctions.stringSlice([null, 1, 5], null), null);
+
+    // Non-number begin/end
+    assert.equal(scriptFunctions.stringSlice(['foo bar', null, 5], null), null);
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 'abc'], null), null);
+
+    // Non-integer begin/end
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1.5, 5], null), null);
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 5.5], null), null);
+
+    // Out-of-range begin/end
+    assert.equal(scriptFunctions.stringSlice(['foo bar', -1, 5], null), null);
+    assert.equal(scriptFunctions.stringSlice(['foo bar', 1, 8], null), null);
 });
 
 
 test('library, stringSplit', () => {
-    assert.deepEqual(scriptFunctions.stringSplit(['foo, bar', ', ']), ['foo', 'bar']);
-});
+    assert.deepEqual(scriptFunctions.stringSplit(['foo, bar', ', '], null), ['foo', 'bar']);
+    assert.deepEqual(scriptFunctions.stringSplit(['foo, bar, bonk', ', '], null), ['foo', 'bar', 'bonk']);
 
+    // Not found
+    assert.deepEqual(scriptFunctions.stringSplit(['foo', ', '], null), ['foo']);
 
-test('library, stringSplit non-string', () => {
-    assert.equal(scriptFunctions.stringSplit([null, ', ']), null);
-});
+    // Non-string value
+    assert.equal(scriptFunctions.stringSplit([null, ', '], null), null);
 
-
-test('library, stringSplit regex', () => {
-    assert.deepEqual(scriptFunctions.stringSplit(['foo, bar', /,\s*/]), ['foo', 'bar']);
-});
-
-
-test('library, stringSplit limit', () => {
-    assert.deepEqual(scriptFunctions.stringSplit(['foo, bar, bonk', /,\s*/, 2]), ['foo', 'bar']);
+    // Non-string separator
+    assert.equal(scriptFunctions.stringSplit(['foo, bar', null], null), null);
 });
 
 
 test('library, stringStartsWith', () => {
-    assert(scriptFunctions.stringStartsWith(['foo bar', 'foo']));
-});
+    assert.equal(scriptFunctions.stringStartsWith(['foo bar', 'foo'], null), true);
+    assert.equal(scriptFunctions.stringStartsWith(['foo bar', 'bar'], null), false);
 
+    // Non-string value
+    assert.equal(scriptFunctions.stringStartsWith([null, 'foo'], null), null);
 
-test('library, stringStartsWith non-string', () => {
-    assert.equal(scriptFunctions.stringStartsWith([null, 'foo']), null);
+    // Non-string search
+    assert.equal(scriptFunctions.stringStartsWith(['foo bar', null], null), null);
 });
 
 
 test('library, stringTrim', () => {
-    assert.equal(scriptFunctions.stringTrim([' abc ']), 'abc');
-});
+    assert.equal(scriptFunctions.stringTrim([' abc  '], null), 'abc');
+    assert.equal(scriptFunctions.stringTrim(['\tabc\n'], null), 'abc');
+    assert.equal(scriptFunctions.stringTrim(['abc'], null), 'abc');
 
-
-test('library, stringTrim non-string', () => {
-    assert.equal(scriptFunctions.stringTrim([null]), null);
+    //  Non-string value
+    assert.equal(scriptFunctions.stringTrim([null], null), null);
 });
 
 
 test('library, stringUpper', () => {
-    assert.equal(scriptFunctions.stringUpper(['Foo']), 'FOO');
-});
+    assert.equal(scriptFunctions.stringUpper(['Foo'], null), 'FOO');
 
-
-test('library, stringUpper non-string', () => {
-    assert.equal(scriptFunctions.stringUpper([null]), null);
+    // Non-string value
+    assert.equal(scriptFunctions.stringUpper([null], null), null);
 });
 
 
@@ -1582,424 +2076,375 @@ test('library, stringUpper non-string', () => {
 //
 
 
+test('library, systemBoolean', () => {
+    assert.equal(scriptFunctions.systemBoolean([[1, 2, 3]], null), true);
+    assert.equal(scriptFunctions.systemBoolean([[]], null), false);
+    assert.equal(scriptFunctions.systemBoolean([true], null), true);
+    assert.equal(scriptFunctions.systemBoolean([false], null), false);
+    assert.equal(scriptFunctions.systemBoolean([new Date()], null), true);
+    assert.equal(scriptFunctions.systemBoolean([scriptFunctions.systemBoolean], null), true);
+    assert.equal(scriptFunctions.systemBoolean([null], null), false);
+    assert.equal(scriptFunctions.systemBoolean([0], null), false);
+    assert.equal(scriptFunctions.systemBoolean([1], null), true);
+    assert.equal(scriptFunctions.systemBoolean([0.], null), false);
+    assert.equal(scriptFunctions.systemBoolean([1.], null), true);
+    assert.equal(scriptFunctions.systemBoolean([{}], null), true);
+    assert.equal(scriptFunctions.systemBoolean([/^abc$/], null), true);
+    assert.equal(scriptFunctions.systemBoolean(['abc'], null), true);
+    assert.equal(scriptFunctions.systemBoolean([''], null), false);
+    assert.equal(scriptFunctions.systemBoolean([new Set()], null), true);
+});
+
+
+test('library, systemCompare', () => {
+    // null
+    assert.equal(scriptFunctions.systemCompare([null, null], null), 0);
+    assert.equal(scriptFunctions.systemCompare([null, 0], null), -1);
+    assert.equal(scriptFunctions.systemCompare([0, null], null), 1);
+
+    // number
+    assert.equal(scriptFunctions.systemCompare([5, 5], null), 0);
+    assert.equal(scriptFunctions.systemCompare([5, 5.], null), 0);
+    assert.equal(scriptFunctions.systemCompare([5., 5.], null), 0);
+    assert.equal(scriptFunctions.systemCompare([5, 6], null), -1);
+    assert.equal(scriptFunctions.systemCompare([5, 6.], null), -1);
+    assert.equal(scriptFunctions.systemCompare([5., 6], null), -1);
+    assert.equal(scriptFunctions.systemCompare([6, 5], null), 1);
+    assert.equal(scriptFunctions.systemCompare([6, 5.], null), 1);
+    assert.equal(scriptFunctions.systemCompare([6., 5], null), 1);
+
+    // object
+    const o1 = {'a': 1};
+    const o2 = {'a': 1};
+    assert.equal(scriptFunctions.systemCompare([o1, o1], null), 0);
+    assert.equal(scriptFunctions.systemCompare([o1, o2], null), 0);
+});
+
+
 test('library, systemFetch', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const options = {fetchFn};
-    assert.deepEqual(await scriptFunctions.systemFetch(['test.json'], options), jsonObject);
-});
-
-
-test('library, systemFetch options', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url, fetchFnOptions) => {
-        assert.equal(url, 'test.json');
-        assert.equal(fetchFnOptions, fetchOptions);
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const options = {fetchFn};
-    const fetchOptions = {'method': 'POST'};
-    assert.deepEqual(await scriptFunctions.systemFetch(['test.json', fetchOptions], options), jsonObject);
-});
-
-
-test('library, systemFetch text', async () => {
-    const text = 'asdf';
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'text': async () => text
-        };
-    };
-    const options = {fetchFn};
-    assert.equal(await scriptFunctions.systemFetch(['test.txt', null, true], options), text);
-});
-
-
-test('library, systemFetch array', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert(url === 'test.json' || url === 'test2.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const options = {fetchFn};
-    assert.deepEqual(await scriptFunctions.systemFetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, systemFetch array options', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url, fetchFnOptions) => {
-        assert(url === 'test.json' || url === 'test2.json');
-        assert.equal(fetchFnOptions, fetchOptions);
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const options = {fetchFn};
-    const fetchOptions = {'method': 'POST'};
-    assert.deepEqual(await scriptFunctions.systemFetch([['test.json', 'test2.json'], fetchOptions], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, systemFetch urlFn', async () => {
-    const jsonObject = {'a': 1, 'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'urlFn-test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (jsonObject)
-        };
-    };
-    const urlFn = (url) => `urlFn-${url}`;
-    const options = {fetchFn, urlFn};
-    assert.deepEqual(await scriptFunctions.systemFetch(['test.json'], options), jsonObject);
-});
-
-
-test('library, systemFetch array urlFn', async () => {
-    const jsonObject = {'a': 1};
-    const jsonObject2 = {'b': 2};
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert(url === 'urlFn-test.json' || url === 'urlFn-test2.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => (url === 'urlFn-test.json' ? jsonObject : jsonObject2)
-        };
-    };
-    const urlFn = (url) => `urlFn-${url}`;
-    const options = {fetchFn, urlFn};
-    assert.deepEqual(await scriptFunctions.systemFetch([['test.json', 'test2.json']], options), [jsonObject, jsonObject2]);
-});
-
-
-test('library, systemFetch null ExecuteScriptOptions', async () => {
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], null), null);
-});
-
-
-test('library, systemFetch null options log', async () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, systemFetch null options log no-debug', async () => {
-    const logs = [];
-    /* c8 ignore next 2 */
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {logFn, 'debug': false};
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], options), null);
-    assert.deepEqual(logs, []);
-});
-
-
-test('library, systemFetch null array options log', async () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {logFn, 'debug': true};
-    assert.deepEqual(await scriptFunctions.systemFetch([['test.json', 'test2.json']], options), [null, null]);
-    assert.deepEqual(logs, [
-        'BareScript: Function "systemFetch" failed for JSON resource "test.json"',
-        'BareScript: Function "systemFetch" failed for JSON resource "test2.json"'
-    ]);
-});
-
-
-test('library, systemFetch options no fetchFn', async () => {
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], {}), null);
-});
-
-
-test('library, systemFetch array null ExecuteScriptOptions', async () => {
-    assert.deepEqual(await scriptFunctions.systemFetch([['test.json', 'test2.json']], null), [null, null]);
-});
-
-
-test('library, systemFetch response not-ok', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {'ok': false, 'statusText': 'Not Found'};
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, systemFetch response json error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.json');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => {
-                throw new Error('invalid json');
-            }
-        };
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.json'], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for JSON resource "test.json"']);
-});
-
-
-test('library, systemFetch text response not-ok', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {'ok': false, 'statusText': 'Not Found'};
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, systemFetch response text error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        return {
-            'ok': true,
-            // eslint-disable-next-line require-await
-            'text': async () => {
-                throw new Error('invalid text');
-            }
-        };
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, systemFetch response error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        assert.equal(url, 'test.txt');
-        throw new Error('systemFetch failed');
-    };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {fetchFn, logFn, 'debug': true};
-    assert.equal(await scriptFunctions.systemFetch(['test.txt', null, true], options), null);
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for text resource "test.txt"']);
-});
-
-
-test('library, systemFetch array response error', async () => {
-    // eslint-disable-next-line require-await
-    const fetchFn = async (url) => {
-        if (url === 'test.txt') {
-            throw new Error('systemFetch failed');
+    const fetchFn = (fetchURL, fetchOptions) => {
+        if (fetchURL.startsWith('fail')) {
+            return {'ok': false};
         }
+        if (fetchURL.startsWith('raise')) {
+            throw Error(fetchURL);
+        }
+
+        const body = fetchOptions.body ?? null;
+        const headers = fetchOptions.headers ?? null;
+        const method = body !== null ? 'POST' : 'GET';
+        const bodyMsg = body !== null ? ` - ${body}` : '';
+        const headersMsg = headers !== null ? ` - ${valueJSON(headers)}` : '';
         return {
             'ok': true,
-            // eslint-disable-next-line require-await
-            'json': async () => ({'foo': 'bar'})
+            'text': () => {
+                if (fetchURL.startsWith('textRaise')) {
+                    throw Error(fetchURL);
+                }
+                return `${method} ${fetchURL}${bodyMsg}${headersMsg}`;
+            }
         };
     };
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
+
+    let logs;
+    const logFn = (message) => {
+        logs.push(message);
     };
-    const options = {fetchFn, logFn, 'debug': true};
+
+    const urlFn = (url) => `dir/${url}`;
+
+    const options = {'debug': true, fetchFn, logFn};
+
+    // URL
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], options), 'GET test.txt');
+    assert.deepEqual(logs, []);
+
+    // Request model
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.txt'}], options), 'GET test.txt');
+    assert.deepEqual(logs, []);
+
+    // Array
+    logs = [];
     assert.deepEqual(
-        await scriptFunctions.systemFetch([['test.txt', 'test2.txt']], options),
-        [null, {'foo': 'bar'}]
+        await scriptFunctions.systemFetch([['test.txt', {'url': 'test2.txt', 'body': 'abc'}]], options),
+        ['GET test.txt', 'POST test2.txt - abc']
     );
-    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for JSON resource "test.txt"']);
+    assert.deepEqual(logs, []);
+
+    // Headers
+    logs = [];
+    assert.equal(
+        await scriptFunctions.systemFetch([{'url': 'test.txt', 'headers': {'HEADER': 'VALUE'}}], options),
+        'GET test.txt - {"HEADER":"VALUE"}'
+    );
+    assert.deepEqual(logs, []);
+
+    // Empty array
+    logs = [];
+    assert.deepEqual(await scriptFunctions.systemFetch([[]], options), []);
+    assert.deepEqual(logs, []);
+
+    // URL function
+    logs = [];
+    const optionsURLFn = {'debug': true, fetchFn, logFn, urlFn};
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], optionsURLFn), 'GET dir/test.txt');
+    assert.deepEqual(logs, []);
+
+    // Failure
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['fail.txt'], options), null);
+    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for resource "fail.txt"']);
+
+    // Exception failure
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['raise.txt'], options), null);
+    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for resource "raise.txt"']);
+
+    // Text exception failure
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['textRaise.txt'], options), null);
+    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for resource "textRaise.txt"']);
+
+    // Null options failure
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], null), null);
+    assert.deepEqual(logs, []);
+
+    // Null fetch function failure
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], {'debug': true, logFn}), null);
+    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for resource "test.txt"']);
+
+    // Failure with null log function
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], {'debug': true}), null);
+    assert.deepEqual(logs, []);
+
+    // Failure with debug off
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch(['test.txt'], {logFn}), null);
+    assert.deepEqual(logs, []);
+
+    // Invalid request model
+    logs = [];
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'url' missing"
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Invalid array of request models
+    logs = [];
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([[{}]], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'url' missing"
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Unexpected input type
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch([null], {logFn}), null);
+    assert.deepEqual(logs, []);
 });
 
 
 test('library, systemGlobalGet', () => {
-    const options = {'globals': {'a': 1}};
+    let options = {'globals': {'a': 1}};
     assert.equal(scriptFunctions.systemGlobalGet(['a'], options), 1);
-});
 
-
-test('library, systemGlobalGet unknown', () => {
-    const options = {'globals': {}};
+    // Unknown
+    options = {'globals': {}};
     assert.equal(scriptFunctions.systemGlobalGet(['a'], options), null);
-});
 
+    // Default value
+    options = {'globals': {'a': 1}};
+    assert.equal(scriptFunctions.systemGlobalGet(['a', 2], options), 1);
+    assert.equal(scriptFunctions.systemGlobalGet(['b', 2], options), 2);
 
-test('library, systemGlobalGet no globals', () => {
-    const options = {};
+    // No globals
+    options = {};
     assert.equal(scriptFunctions.systemGlobalGet(['a'], options), null);
-});
+    assert.equal(scriptFunctions.systemGlobalGet(['a', 2], options), 2);
 
-
-test('library, systemGlobalGet no options', () => {
+    // Null options
     assert.equal(scriptFunctions.systemGlobalGet(['a'], null), null);
+    assert.equal(scriptFunctions.systemGlobalGet(['a', 2], null), 2);
+
+    // Non-string name
+    options = {'globals': {'a': 1}};
+    assert.equal(scriptFunctions.systemGlobalGet([null], options), null);
 });
 
 
 test('library, systemGlobalSet', () => {
-    const options = {'globals': {}};
+    let options = {'globals': {}};
     assert.equal(scriptFunctions.systemGlobalSet(['a', 1], options), 1);
     assert.deepEqual(options.globals, {'a': 1});
-});
+    assert.equal(scriptFunctions.systemGlobalSet(['a', 2], options), 2);
+    assert.deepEqual(options.globals, {'a': 2});
 
-
-test('library, systemGlobalSet no globals', () => {
-    const options = {};
+    // No globals
+    options = {};
     assert.equal(scriptFunctions.systemGlobalSet(['a', 1], options), 1);
+
+    // Null options
+    assert.equal(scriptFunctions.systemGlobalSet(['a', 1], null), 1);
+
+    // Non-string name
+    options = {'globals': {}};
+    assert.equal(scriptFunctions.systemGlobalSet([null], options), null);
 });
 
 
-test('library, systemGlobalSet no options', () => {
-    assert.equal(scriptFunctions.systemGlobalSet(['a', 1], null), 1);
+test('library, systemIs', () => {
+    // null
+    assert.equal(scriptFunctions.systemIs([null, null], null), true);
+    assert.equal(scriptFunctions.systemIs([null, 0], null), false);
+
+    // number
+    assert.equal(scriptFunctions.systemIs([5, 5], null), true);
+    assert.equal(scriptFunctions.systemIs([5, 5.], null), true);
+    assert.equal(scriptFunctions.systemIs([5, 6], null), false);
+
+    // object
+    const o1 = {'a': 1};
+    const o2 = {'a': 1};
+    assert.equal(scriptFunctions.systemIs([o1, o1], null), true);
+    assert.equal(scriptFunctions.systemIs([o1, o2], null), false);
 });
 
 
 test('library, systemLog', () => {
-    const logs = [];
-    const logFn = (string) => {
+    let logs = [];
+    function logFn(string) {
         logs.push(string);
-    };
-    const options = {logFn, 'debug': true};
+    }
+
+    let options = {'logFn': logFn};
     assert.equal(scriptFunctions.systemLog(['Hello'], options), undefined);
     assert.deepEqual(logs, ['Hello']);
-});
 
-
-test('library, systemLog no-debug', () => {
-    const logs = [];
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {logFn, 'debug': false};
+    // Debug
+    logs = [];
+    options = {'logFn': logFn, 'debug': true};
     assert.equal(scriptFunctions.systemLog(['Hello'], options), undefined);
     assert.deepEqual(logs, ['Hello']);
-});
 
+    // No-debug
+    logs = [];
+    options = {'logFn': logFn, 'debug': false};
+    assert.equal(scriptFunctions.systemLog(['Hello'], options), undefined);
+    assert.deepEqual(logs, ['Hello']);
 
-test('library, systemLog null options', () => {
-    assert.equal(scriptFunctions.systemLog(['Hello'], null), undefined);
-});
+    // Null options
+    logs = [];
+    options = null;
+    assert.equal(scriptFunctions.systemLog(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
 
+    // No log function
+    logs = [];
+    options = {};
+    assert.equal(scriptFunctions.systemLog(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
 
-test('library, systemLog no log function', () => {
-    assert.equal(scriptFunctions.systemLog(['Hello'], {}), undefined);
+    // Non-string message
+    logs = [];
+    options = {'logFn': logFn};
+    assert.equal(scriptFunctions.systemLog([null], options), undefined);
+    assert.deepEqual(logs, ['null']);
 });
 
 
 test('library, systemLogDebug', () => {
-    const logs = [];
-    const logFn = (string) => {
+    let logs = [];
+    function logFn(string) {
         logs.push(string);
-    };
-    const options = {logFn, 'debug': true};
-    assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
-    assert.deepEqual(logs, ['Hello']);
-});
+    }
 
-
-test('library, systemLogDebug no-debug', () => {
-    const logs = [];
-    /* c8 ignore next 2 */
-    const logFn = (string) => {
-        logs.push(string);
-    };
-    const options = {logFn, 'debug': false};
+    let options = {'logFn': logFn};
     assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
     assert.deepEqual(logs, []);
-});
 
+    // Debug
+    logs = [];
+    options = {'logFn': logFn, 'debug': true};
+    assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, ['Hello']);
 
-test('library, systemLogDebug null options', () => {
-    assert.equal(scriptFunctions.systemLogDebug(['Hello'], null), undefined);
-});
+    // No-debug
+    logs = [];
+    options = {'logFn': logFn, 'debug': false};
+    assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
 
+    // Null options
+    logs = [];
+    options = null;
+    assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
 
-test('library, systemLogDebug no log function', () => {
-    assert.equal(scriptFunctions.systemLogDebug(['Hello'], {}), undefined);
+    // No log function
+    logs = [];
+    options = {'debug': true};
+    assert.equal(scriptFunctions.systemLogDebug(['Hello'], options), undefined);
+    assert.deepEqual(logs, []);
+
+    // Non-string message
+    logs = [];
+    options = {'logFn': logFn, 'debug': true};
+    assert.equal(scriptFunctions.systemLogDebug([null], options), undefined);
+    assert.deepEqual(logs, ['null']);
 });
 
 
 test('library, systemPartial', () => {
-    const testFunc = ([name, number], options) => {
+    function testFn(args, options) {
+        const [name, number] = args;
         assert.equal(name, 'test');
         assert.equal(number, 1);
         assert.deepEqual(options, {'debug': false});
         return `${name}-${number}`;
-    };
-    const partialFunc = scriptFunctions.systemPartial([testFunc, 'test'], {'debug': false});
-    assert.deepEqual(partialFunc([1], {'debug': false}), 'test-1');
+    }
+
+    const partialFn = scriptFunctions.systemPartial([testFn, 'test'], null);
+    assert.equal(partialFn([1], {'debug': false}), 'test-1');
+
+    // Non-function
+    assert.equal(scriptFunctions.systemPartial([null, 'test'], null), null);
+
+    // No args
+    assert.equal(scriptFunctions.systemPartial([testFn], null), null);
 });
 
 
 test('library, systemType', () => {
-    assert.equal(scriptFunctions.systemType([[1, 2, 3]], {}), 'array');
-    assert.equal(scriptFunctions.systemType([true], {}), 'boolean');
-    assert.equal(scriptFunctions.systemType([new Date()], {}), 'datetime');
-    assert.equal(scriptFunctions.systemType([() => null], {}), 'function');
-    assert.equal(scriptFunctions.systemType([null], {}), 'null');
-    assert.equal(scriptFunctions.systemType([3.14], {}), 'number');
-    assert.equal(scriptFunctions.systemType([{}], {}), 'object');
-    assert.equal(scriptFunctions.systemType([/^abc$/], {}), 'regex');
-    assert.equal(scriptFunctions.systemType(['abc'], {}), 'string');
+    assert.equal(scriptFunctions.systemType([[1, 2, 3]], null), 'array');
+    assert.equal(scriptFunctions.systemType([true], null), 'boolean');
+    assert.equal(scriptFunctions.systemType([false], null), 'boolean');
+    assert.equal(scriptFunctions.systemType([new Date()], null), 'datetime');
+    assert.equal(scriptFunctions.systemType([scriptFunctions.systemType], null), 'function');
+    assert.equal(scriptFunctions.systemType([null], null), 'null');
+    assert.equal(scriptFunctions.systemType([0], null), 'number');
+    assert.equal(scriptFunctions.systemType([0.], null), 'number');
+    assert.equal(scriptFunctions.systemType([{}], null), 'object');
+    assert.equal(scriptFunctions.systemType([/^abc$/], null), 'regex');
+    assert.equal(scriptFunctions.systemType(['abc'], null), 'string');
+    assert.equal(scriptFunctions.systemType([new Set()], null), null);
 });
 
 
@@ -2010,47 +2455,49 @@ test('library, systemType', () => {
 
 test('script library, urlEncode', () => {
     assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this & that'], {}),
-        'https://foo.com/this%20&%20that'
+        scriptFunctions.urlEncode(["https://foo.com/this & 'that'"], null),
+        "https://foo.com/this%20&%20'that'"
     );
     assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this (& that)'], {}),
+        scriptFunctions.urlEncode(['https://foo.com/this (& that)'], null),
         'https://foo.com/this%20(&%20that%29'
     );
-});
 
-
-test('script library, urlEncode no extra', () => {
+    // No extra
     assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this & that', false], {}),
+        scriptFunctions.urlEncode(['https://foo.com/this & that', false], null),
         'https://foo.com/this%20&%20that'
     );
     assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this (& that)', false], {}),
+        scriptFunctions.urlEncode(['https://foo.com/this (& that)', false], null),
         'https://foo.com/this%20(&%20that)'
     );
+
+    // Non-string URL
+    assert.equal(scriptFunctions.urlEncode([null], null), null);
 });
 
 
 test('script library, urlEncodeComponent', () => {
     assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that'], {}),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
+        scriptFunctions.urlEncodeComponent(["https://foo.com/this & 'that'"], null),
+        "https%3A%2F%2Ffoo.com%2Fthis%20%26%20'that'"
     );
     assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)'], {}),
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)'], null),
         'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that%29'
     );
-});
 
-
-test('script library, urlEncodeComponent no extra', () => {
+    // No extra
     assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that', false], {}),
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that', false], null),
         'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
     );
     assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)', false], {}),
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)', false], null),
         'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
     );
+
+    // Non-string URL
+    assert.equal(scriptFunctions.urlEncodeComponent([null], null), null);
 });

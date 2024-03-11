@@ -1,40 +1,81 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import {main, parseBaredoc} from '../lib/baredoc.js';
+import {helpText, main, parseArgs} from '../lib/baredoc.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
+import {valueJSON} from '../lib/value.js';
+
+
+test('baredoc.main, help', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'baredoc.js', '-h'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [helpText]);
+});
+
+
+test('baredoc.main, argument error', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'baredoc.js', '--unknown'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['error: unrecognized arguments: --unknown']);
+});
 
 
 test('baredoc.main', async () => {
     const output = [];
+    const testJSON = [];
     const exitCode = await main({
-        'argv': ['node', 'bare.js', 'test.bare'],
-        'fetchFn': (url) => {
-            assert.equal(url, 'test.bare');
+        'argv': ['node', 'bare.js', 'test.bare', '-o', 'test.json'],
+        'fetchFn': (url, options) => {
+            assert(url === 'test.bare' || url === 'test.json');
+            if (url === 'test.json') {
+                testJSON.push(options.body);
+                return {'ok': true, 'text': () => '{}'};
+            }
             return {
                 'ok': true,
                 'text': () => `\
-    // $function: myFunc
-    // $group: My Group
-    // $doc: My function
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function.
+# $doc:
+# $doc: More on the function.
+# $arg arg1: The first argument
+# $arg arg2: The second argument.
+# $arg arg2:
+# $arg arg2: More on the second argument.
+# $return: The message
+function myFunction(arg1, arg2)
+    message = 'Hello'
+    systemLog(message)
+    return message
+endfunction
 `
             };
-        },
-        'logFn': (message) => {
-            output.push(message);
         }
     });
     assert.equal(exitCode, 0);
-    assert.deepEqual(output, [
-        JSON.stringify({
+    assert.deepEqual(output, []);
+    assert.deepEqual(testJSON, [
+        valueJSON({
             'functions': [
                 {
-                    'name': 'myFunc',
+                    'args':[
+                        {'name':'arg1', 'doc':['The first argument']},
+                        {'name':'arg2', 'doc':['The second argument.','','More on the second argument.']}
+                    ],
+                    'doc': ['This is my function.','','More on the function.'],
                     'group': 'My Group',
-                    'doc': [
-                        'My function'
-                    ]
+                    'name': 'myFunction',
+                    'return':['The message']
                 }
             ]
         })
@@ -42,25 +83,38 @@ test('baredoc.main', async () => {
 });
 
 
-test('baredoc.main, error', async () => {
+test('baredoc.main, stdout', async () => {
     const output = [];
     const exitCode = await main({
         'argv': ['node', 'bare.js', 'test.bare'],
         'fetchFn': (url) => {
-            assert.equal(url, 'test.bare');
+            assert(url === 'test.bare');
             return {
                 'ok': true,
                 'text': () => `\
-// $group: My Group
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function
+function myFunction()
+    systemLog('Hello')
+endfunction
 `
             };
         },
-        'logFn': (message) => {
-            output.push(message);
-        }
+        'logFn': (message) => output.push(message)
     });
-    assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['test.bare:1: group keyword outside function\nerror: No library functions']);
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        valueJSON({
+            'functions': [
+                {
+                    'doc': ['This is my function'],
+                    'group': 'My Group',
+                    'name': 'myFunction'
+                }
+            ]
+        })
+    ]);
 });
 
 
@@ -72,12 +126,14 @@ test('baredoc.main, fetch error', async () => {
             assert.equal(url, 'test.bare');
             throw new Error();
         },
-        'logFn': (message) => {
-            output.push(message);
-        }
+        'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['Failed to load "test.bare"']);
+    assert.deepEqual(output, [
+        `\
+Failed to load "test.bare"
+error: No library functions`
+    ]);
 });
 
 
@@ -89,12 +145,14 @@ test('baredoc.main, fetch text error', async () => {
             assert.equal(url, 'test.bare');
             return {'ok': false};
         },
-        'logFn': (message) => {
-            output.push(message);
-        }
+        'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['Failed to load "test.bare"']);
+    assert.deepEqual(output, [
+        `\
+Failed to load "test.bare"
+error: No library functions`
+    ]);
 });
 
 
@@ -111,374 +169,483 @@ test('baredoc.main, fetch text error 2', async () => {
                 }
             };
         },
-        'logFn': (message) => {
-            output.push(message);
-        }
+        'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['Failed to load "test.bare"']);
+    assert.deepEqual(output, [
+        `\
+Failed to load "test.bare"
+error: No library functions`
+    ]);
 });
 
 
-test('parseBaredoc', () => {
-    assert.deepEqual(
-        parseBaredoc([
-            [
-                'library.js',
-                `\
-{
-    // $function: myFuncA
-    // $group: AC Group
-    // $doc: The A function
-    // $doc: that does something useful
-    // $arg a: The "a" arg
-    // $arg b: The "b" arg
-    // $arg a: which is blue
-    // $arg c: The "c" arg
-    // $return: The answer
-    'myFuncA': null,
-
-    // $function: myFuncC
-    // $group: AC Group
-    // $doc: The C function
-    'myFuncC': null,
-
-    // $function: myFuncB
-    // $group: B Group
-    // $doc: The B function
-    'myFuncB': null
-}
+test('baredoc.main, write error', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare', '-o', 'test.json'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare' || url === 'test.json');
+            if (url === 'test.json') {
+                throw new Error();
+            }
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function.
+function myFunction()
+endfunction
 `
-            ]
-        ]),
-        {
-            'functions': [
-                {
-                    'name': 'myFuncA',
-                    'group': 'AC Group',
-                    'doc': ['The A function', 'that does something useful'],
-                    'args': [
-                        {
-                            'name': 'a',
-                            'doc': ['The "a" arg', 'which is blue']
-                        },
-                        {
-                            'name': 'b',
-                            'doc': ['The "b" arg']
-                        },
-                        {
-                            'name': 'c',
-                            'doc': ['The "c" arg']
-                        }
-                    ],
-                    'return': ['The answer']
-                },
-                {
-                    'name': 'myFuncB',
-                    'group': 'B Group',
-                    'doc': ['The B function']
-                },
-                {
-                    'name': 'myFuncC',
-                    'group': 'AC Group',
-                    'doc': ['The C function']
-                }
-            ]
-        }
-    );
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['error: Failed to write "test.json"']);
 });
 
 
-test('parseBaredoc, lastArgArray', () => {
-    assert.deepEqual(
-        parseBaredoc([
-            [
-                'library.js',
-                `\
-    // $function: myFunc
-    // $group: My Group
-    // $doc: The function
-    // $arg args...: The many
-    // $arg args...: args
+test('baredoc.main, write text error 1', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare', '-o', 'test.json'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare' || url === 'test.json');
+            if (url === 'test.json') {
+                return {'ok': false};
+            }
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function.
+function myFunction()
+endfunction
 `
-            ]
-        ]),
-        {
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['error: Failed to write "test.json"']);
+});
+
+
+test('baredoc.main, write text error 2', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare', '-o', 'test.json'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare' || url === 'test.json');
+            if (url === 'test.json') {
+                return {
+                    'ok': true,
+                    'text': () => {
+                        throw new Error();
+                    }
+                };
+            }
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function.
+function myFunction()
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, ['error: Failed to write "test.json"']);
+});
+
+
+test('baredoc.main, function doc leading trim', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc:
+# $doc: This is my function
+# $doc:
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        valueJSON({
             'functions': [
                 {
-                    'name': 'myFunc',
+                    'doc': ['This is my function', ''],
                     'group': 'My Group',
-                    'doc': ['The function'],
-                    'args': [
-                        {
-                            'name': 'args...',
-                            'doc': ['The many', 'args']
-                        }
-                    ]
+                    'name': 'myFunction'
                 }
             ]
-        }
-    );
+        })
+    ]);
 });
 
 
-test('parseBaredoc, blank lines', () => {
-    assert.deepEqual(
-        parseBaredoc([
-            [
-                'library.js',
-                `\
-{
-    // $function: myFuncA
-    // $group: A Group
-    // $doc:
-    // $doc: The A function
-    // $doc:
-    // $doc: and more
-    // $arg a:
-    // $arg a: The "a" arg
-    // $arg a:
-    // $arg a: or less
-    // $return:
-    // $return: The answer
-    // $return:
-    // $return: and then some
-    'myFuncA': null
-}
+test('baredoc.main, arg doc leading trim', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function
+# $arg arg:
+# $arg arg: The first argument
+# $arg arg:
+function myFunction()
+    systemLog('Hello')
+endfunction
 `
-            ]
-        ]),
-        {
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        valueJSON({
             'functions': [
                 {
-                    'name': 'myFuncA',
-                    'group': 'A Group',
-                    'doc': ['The A function', '', 'and more'],
-                    'args': [
-                        {
-                            'name': 'a',
-                            'doc': ['The "a" arg', '', 'or less']
-                        }
-                    ],
-                    'return': ['The answer', '', 'and then some']
+                    'args':[{'doc':['The first argument',''], 'name':'arg'}],
+                    'doc': ['This is my function'],
+                    'group': 'My Group',
+                    'name': 'myFunction'
                 }
             ]
-        }
-    );
+        })
+    ]);
 });
 
 
-test('parseBaredoc, error keyword outside function', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $group: A Group
-// $doc: A Group
-// $return: A Group
-`
-                ]
-            ]);
+test('baredoc.main, error no functions', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => ''
+            };
         },
-        {
-            'name': 'Error',
-            'message': `\
-library.js:1: group keyword outside function
-library.js:2: doc keyword outside function
-library.js:3: return keyword outside function
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'error: No library functions'
+    ]);
+});
+
+
+test('baredoc.main, error missing function members', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        `\
+error: Function "myFunction" missing group
+error: Function "myFunction" missing documentation`
+    ]);
+});
+
+
+test('baredoc.main, error keyword outside function', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $group: My Group
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        `\
+test.bare:1: group keyword outside function
 error: No library functions`
-        }
-    );
+    ]);
 });
 
 
-test('parseBaredoc, error arg outside function', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $arg x: The X arg
+test('baredoc.main, error empty group', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group:
+# $doc: This is my function
+function myFunction()
+    systemLog('Hello')
+endfunction
 `
-                ]
-            ]);
+            };
         },
-        {
-            'name': 'Error',
-            'message': `\
-library.js:1: Function argument "x" outside function
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        `\
+test.bare:2: Invalid function group name ""
+error: Function "myFunction" missing group`
+    ]);
+});
+
+
+test('baredoc.main, error group redefinition', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $group: My Other Group
+# $doc: This is my function
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'test.bare:3: Function "myFunction" group redefinition'
+    ]);
+});
+
+
+test('baredoc.main, error empty function', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function:
+# $group: My Group
+# $doc: This is my function
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        `\
+test.bare:1: Invalid function name ""
+test.bare:2: group keyword outside function
+test.bare:3: doc keyword outside function
 error: No library functions`
-        }
-    );
+    ]);
 });
 
 
-test('parseBaredoc, error empty function name', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function:${'  '}
+test('baredoc.main, error function redefinition', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function
+function myFunction()
+    systemLog('Hello')
+endfunction
+
+# $function: myFunction
 `
-                ]
-            ]);
+            };
         },
-        {
-            'name': 'Error',
-            'message': `\
-library.js:1: Invalid function name ""
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'test.bare:8: Function "myFunction" redefinition'
+    ]);
+});
+
+
+test('baredoc.main, error arg outside function', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $arg arg: My arg
+function myFunction()
+    systemLog('Hello')
+endfunction
+`
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        `\
+test.bare:1: Function argument "arg" outside function
 error: No library functions`
-        }
-    );
+    ]);
 });
 
 
-test('parseBaredoc, error function redefinition', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function: myFunc
-// $group: Group A
-// $doc: The function
-
-// $function: myFunc
-// $group: Group B
-// $doc: The other function
+test('baredoc.main, error invalid keyword', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', 'test.bare'],
+        'fetchFn': (url) => {
+            assert(url === 'test.bare');
+            return {
+                'ok': true,
+                'text': () => `\
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function
+# $returns: Bad return keyword
+function myFunction()
+    systemLog('Hello')
+endfunction
 `
-                ]
-            ]);
+            };
+        },
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'test.bare:4: Invalid documentation comment "returns"'
+    ]);
+});
+
+
+test('parseArgs', () => {
+    assert.deepEqual(
+        parseArgs(['node', 'baredoc.js', 'test.js']),
+        {'files': ['test.js'], 'output': '-'}
+    );
+});
+
+
+test('parseArgs, output', () => {
+    assert.deepEqual(
+        parseArgs(['node', 'baredoc.js', 'test.js', 'test2.js', '-o', 'test.json']),
+        {'files': ['test.js', 'test2.js'], 'output': 'test.json'}
+    );
+});
+
+
+test('parseArgs, help', () => {
+    assert.deepEqual(
+        parseArgs(['node', 'baredoc.js', '-h']),
+        {'help': true, 'files': [], 'output': '-'}
+    );
+});
+
+
+test('parseArgs, error files', () => {
+    assert.throws(
+        () => {
+            parseArgs(['node', 'baredoc.js']);
         },
         {
             'name': 'Error',
-            'message': `\
-library.js:5: Function "myFunc" redefinition
-library.js:6: Function "myFunc" group redefinition`
+            'message': 'the following arguments are required: file'
         }
     );
 });
 
 
-test('parseBaredoc, error empty group name', () => {
+test('parseArgs, error output', () => {
     assert.throws(
         () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function: myFunc
-// $group:
-// $doc: The function
-`
-                ]
-            ]);
+            parseArgs(['node', 'baredoc.js', '-o']);
         },
         {
             'name': 'Error',
-            'message': `\
-library.js:2: Invalid function group name ""
-error: Function "myFunc" missing group`
+            'message': 'argument -o: expected one argument'
         }
     );
 });
 
 
-test('parseBaredoc, error group redefinition', () => {
+test('parseArgs, error unknown', () => {
     assert.throws(
         () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function: myFunc
-// $group: My Group
-// $group: Other Group
-// $doc: The function
-`
-                ]
-            ]);
+            parseArgs(['node', 'baredoc.js', '--unknown']);
         },
         {
             'name': 'Error',
-            'message': `\
-library.js:3: Function "myFunc" group redefinition`
-        }
-    );
-});
-
-
-test('parseBaredoc, error no functions', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    ''
-                ]
-            ]);
-        },
-        {
-            'name': 'Error',
-            'message': 'error: No library functions'
-        }
-    );
-});
-
-
-test('parseBaredoc, error function missing group/doc', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function: myFunc
-
-// $function: myFunc2
-// $group: FuncGroup
-// $doc: My second function
-`
-                ]
-            ]);
-        },
-        {
-            'name': 'Error',
-            'message': `\
-error: Function "myFunc" missing group
-error: Function "myFunc" missing documentation`
-        }
-    );
-});
-
-
-test('parseBaredoc, invalid doc comment', () => {
-    assert.throws(
-        () => {
-            parseBaredoc([
-                [
-                    'library.js',
-                    `\
-// $function: myFunc
-// $group: My Group
-// $doc: The function
-// $arg args ...: The args
-// $returns: The value
-`
-                ]
-            ]);
-        },
-        {
-            'name': 'Error',
-            'message': `\
-library.js:4: Invalid documentation comment "arg args ..."
-library.js:5: Invalid documentation comment "returns"`
+            'message': 'unrecognized arguments: --unknown'
         }
     );
 });

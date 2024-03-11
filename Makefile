@@ -35,49 +35,76 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	if ! $(NODE_DOCKER) npx baredoc lib/library.js > build/doc/library/library.json; then cat build/doc/library/library.json; exit 1; fi
+	$(NODE_DOCKER) npx baredoc lib/library.js -o build/doc/library/library.json
 
     # Generate the expression library documentation
-	cat build/doc/library/library.json | $(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" > build/doc/library/expression.json
+	$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library.json build/doc/library/expression.json
 
     # Generate the library model documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" > build/doc/library/model.json
+	$(NODE_DOCKER) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" build/doc/library/model.json
 
     # Generate the runtime model documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" > build/doc/model/model.json
+	$(NODE_DOCKER) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" build/doc/model/model.json
 
 
 # JavaScript to generate the expression library documentation
 define DOC_EXPR_JS
-import {expressionFunctionMap} from "./lib/library.js";
-import {readFileSync} from 'node:fs';
+import {readFileSync, writeFileSync} from 'node:fs';
+import {argv} from 'node:process';
+import {expressionFunctionMap} from './lib/library.js';
+import {valueJSON} from './lib/value.js';
 
-// Read the script library documentation JSON from stdin
-const library = JSON.parse(readFileSync(0).toString());
-const libraryFunctionMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
+// Command-line arguments
+const [, libraryPath, expressionPath] = argv;
 
-// Output the expression library documentation
+// Read the script library documentation model
+const library = JSON.parse(readFileSync(libraryPath, {'encoding': 'utf-8'}));
+
+// Create the expression documentation model
+const libraryMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
 const libraryExpr = {'functions': []};
 for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) {
-	libraryExpr.functions.push({...libraryFunctionMap[scriptFnName], 'name': exprFnName});
+    libraryExpr.functions.push({...libraryMap[scriptFnName], 'name': exprFnName});
 }
-console.log(JSON.stringify(libraryExpr));
+
+// Write the expression documentation model
+writeFileSync(expressionPath, valueJSON(libraryExpr));
 endef
 export DOC_EXPR_JS
 
 
 # JavaScript to generate the library model documentation
 define DOC_LIBRARY_MODEL_JS
-import {aggregationTypes} from "./lib/data.js";
-console.log(JSON.stringify(aggregationTypes));
+import {regexMatchTypes, systemFetchTypes} from './lib/library.js';
+import {aggregationTypes} from './lib/data.js';
+import {argv} from 'node:process';
+import {valueJSON} from './lib/value.js';
+import {writeFileSync} from 'node:fs';
+
+// Command-line arguments
+const [, typeModelPath] = argv;
+
+// Create the library type model
+const types = {...aggregationTypes, ...regexMatchTypes, ...systemFetchTypes};
+
+// Write the library type model
+writeFileSync(typeModelPath, valueJSON(types));
 endef
 export DOC_LIBRARY_MODEL_JS
 
 
 # JavaScript to generate the runtime model documentation
 define DOC_RUNTIME_MODEL_JS
-import {bareScriptTypes} from "./lib/model.js";
-console.log(JSON.stringify(bareScriptTypes));
+import {argv} from 'node:process';
+import {bareScriptTypes} from './lib/model.js';
+import {valueJSON} from './lib/value.js';
+import {writeFileSync} from 'node:fs';
+
+// Command-line arguments
+const [, typeModelPath] = argv;
+
+// Write the runtime type model
+writeFileSync(typeModelPath, valueJSON(bareScriptTypes));
 endef
 export DOC_RUNTIME_MODEL_JS
 
@@ -114,15 +141,15 @@ import {readFileSync} from 'node:fs';
 // Read the performance test data
 const bestTimings = {};
 for (const {language, timeMs}  of JSON.parse(readFileSync('$(PERF_JSON)'))) {
-	if (language !== null && (!(language in bestTimings) || timeMs < bestTimings[language])) {
-		bestTimings[language] = timeMs;
-	}
+    if (language !== null && (!(language in bestTimings) || timeMs < bestTimings[language])) {
+        bestTimings[language] = timeMs;
+    }
 }
 
 // Report the timing multiples
 for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], [, timeMs2]) => timeMs2 - timeMs1)) {
-	const report = `$${language} - $${timeMs.toFixed(3)} milliseconds`;
-	console.log(language === 'BareScript' ? report : `$${report} ($${(bestTimings.BareScript / timeMs).toFixed(0)}x)`);
+    const report = `$${language} - $${timeMs.toFixed(3)} milliseconds`;
+    console.log(language === 'BareScript' ? report : `$${report} ($${(bestTimings.BareScript / timeMs).toFixed(0)}x)`);
 }
 endef
 export PERF_JS

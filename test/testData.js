@@ -2,10 +2,11 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    addCalculatedField, aggregateData, compareValues, filterData, joinData, parseCSV, sortData, topData, validateAggregation, validateData
+    addCalculatedField, aggregateData, filterData, joinData, parseCSV, sortData, topData, validateData
 } from '../lib/data.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
+import {valueParseDatetime} from '../lib/value.js';
 
 
 test('parseCSV', () => {
@@ -41,7 +42,7 @@ a2
 `);
     assert.deepEqual(data, [
         {'A': 'a1', 'B': 'b1'},
-        {'A': 'a2', 'B': 'null'}
+        {'A': 'a2', 'B': null}
     ]);
 });
 
@@ -129,7 +130,8 @@ test('validateData, csv', () => {
     const data = [
         {'A': 1, 'B': '5', 'C': 10},
         {'A': 2, 'B': 6, 'C': null},
-        {'A': 3, 'B': '7', 'C': 'null'}
+        {'A': 3, 'B': '7', 'C': 'null'},
+        {'A': 4, 'B': 8, 'C': ''}
     ];
     assert.deepEqual(validateData(data, true), {
         'A': 'number',
@@ -139,14 +141,15 @@ test('validateData, csv', () => {
     assert.deepEqual(data, [
         {'A': 1, 'B': 5, 'C': 10},
         {'A': 2, 'B': 6, 'C': null},
-        {'A': 3, 'B': 7, 'C': null}
+        {'A': 3, 'B': 7, 'C': null},
+        {'A': 4, 'B': 8, 'C': null}
     ]);
 });
 
 
 test('validateData, datetime', () => {
     const data = [
-        {'date': new Date(Date.UTC(2022, 7, 30))},
+        {'date': valueParseDatetime('2022-08-30T00:00:00+00:00')},
         {'date': '2022-08-30'},
         {'date': '2022-08-30T11:04:00Z'},
         {'date': '2022-08-30T11:04:00-07:00'},
@@ -156,15 +159,11 @@ test('validateData, datetime', () => {
         'date': 'datetime'
     });
 
-    // Fixup the date-format above as its affected by the current time zone
-    const [, {date}] = data;
-    data[1].date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-
     assert.deepEqual(data, [
-        {'date': new Date(Date.UTC(2022, 7, 30))},
-        {'date': new Date(Date.UTC(2022, 7, 30))},
-        {'date': new Date(Date.UTC(2022, 7, 30, 11, 4))},
-        {'date': new Date(Date.UTC(2022, 7, 30, 18, 4))},
+        {'date': valueParseDatetime('2022-08-30T00:00:00+00:00')},
+        {'date': valueParseDatetime('2022-08-30')},
+        {'date': valueParseDatetime('2022-08-30T11:04:00+00:00')},
+        {'date': valueParseDatetime('2022-08-30T18:04:00+00:00')},
         {'date': null}
     ]);
 });
@@ -173,25 +172,104 @@ test('validateData, datetime', () => {
 test('validateData, datetime string', () => {
     const data = [
         {'date': '2022-08-30'},
-        {'date': new Date(Date.UTC(2022, 7, 30))},
+        {'date': valueParseDatetime('2022-08-30T00:00:00+00:00')},
         {'date': '2022-08-30T11:04:00Z'},
         {'date': '2022-08-30T11:04:00-07:00'},
-        {'date': null}
+        {'date': null},
+        {'date': 'null'},
+        {'date': ''}
     ];
     assert.deepEqual(validateData(data, true), {
         'date': 'datetime'
     });
 
-    // Fixup the date-format above as its affected by the current time zone
-    const [{date}] = data;
-    data[0].date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-
     assert.deepEqual(data, [
-        {'date': new Date(Date.UTC(2022, 7, 30))},
-        {'date': new Date(Date.UTC(2022, 7, 30))},
-        {'date': new Date(Date.UTC(2022, 7, 30, 11, 4))},
-        {'date': new Date(Date.UTC(2022, 7, 30, 18, 4))},
+        {'date': valueParseDatetime('2022-08-30')},
+        {'date': valueParseDatetime('2022-08-30T00:00:00+00:00')},
+        {'date': valueParseDatetime('2022-08-30T11:04:00+00:00')},
+        {'date': valueParseDatetime('2022-08-30T18:04:00+00:00')},
+        {'date': null},
+        {'date': null},
         {'date': null}
+    ]);
+});
+
+
+test('validateData, bool', () => {
+    const data = [
+        {'A': 1, 'B': true},
+        {'A': 2, 'B': false},
+        {'A': 3, 'B': 'true'},
+        {'A': 4, 'B': 'false'},
+        {'A': 5, 'B': null}
+    ];
+    assert.deepEqual(validateData(data, true), {
+        'A': 'number',
+        'B': 'boolean'
+    });
+    assert.deepEqual(data, [
+        {'A': 1, 'B': true},
+        {'A': 2, 'B': false},
+        {'A': 3, 'B': true},
+        {'A': 4, 'B': false},
+        {'A': 5, 'B': null}
+    ]);
+});
+
+
+test('validateData, bool string', () => {
+    const data = [
+        {'A': 1, 'B': 'true'},
+        {'A': 2, 'B': 'false'},
+        {'A': 3, 'B': true},
+        {'A': 4, 'B': false},
+        {'A': 5, 'B': null},
+        {'A': 5, 'B': 'null'},
+        {'A': 5, 'B': ''}
+    ];
+    assert.deepEqual(validateData(data, true), {
+        'A': 'number',
+        'B': 'boolean'
+    });
+    assert.deepEqual(data, [
+        {'A': 1, 'B': true},
+        {'A': 2, 'B': false},
+        {'A': 3, 'B': true},
+        {'A': 4, 'B': false},
+        {'A': 5, 'B': null},
+        {'A': 5, 'B': null},
+        {'A': 5, 'B': null}
+    ]);
+});
+
+
+test('validateData, unknown', () => {
+    const data = [
+        {'A': 1, 'B': /^foo/},
+        {'A': 2, 'B': /^bar/}
+    ];
+    assert.deepEqual(validateData(data, true), {
+        'A': 'number'
+    });
+    assert.deepEqual(data, [
+        {'A': 1, 'B': /^foo/},
+        {'A': 2, 'B': /^bar/}
+    ]);
+});
+
+
+test('validateData, undetermined', () => {
+    const data = [
+        {'A': '', 'B': 'null'},
+        {'A': 2, 'B': ''}
+    ];
+    assert.deepEqual(validateData(data, true), {
+        'A': 'number',
+        'B': 'string'
+    });
+    assert.deepEqual(data, [
+        {'A': null, 'B': null},
+        {'A': 2, 'B': ''}
     ]);
 });
 
@@ -208,6 +286,23 @@ test('validateData, number error', () => {
         {
             'name': 'Error',
             'message': 'Invalid "A" field value "2", expected type number'
+        }
+    );
+});
+
+
+test('validateData, number error bool', () => {
+    const data = [
+        {'A': 1},
+        {'A': true}
+    ];
+    assert.throws(
+        () => {
+            validateData(data);
+        },
+        {
+            'name': 'Error',
+            'message': 'Invalid "A" field value true, expected type number'
         }
     );
 });
@@ -232,7 +327,7 @@ test('validateData, number error csv', () => {
 
 test('validateData, datetime error', () => {
     const data = [
-        {'A': new Date(Date.UTC(2022, 7, 30))},
+        {'A': valueParseDatetime('2022-07-30T00:00:00+00:00')},
         {'A': 2}
     ];
     assert.throws(
@@ -249,7 +344,7 @@ test('validateData, datetime error', () => {
 
 test('validateData, datetime error csv', () => {
     const data = [
-        {'A': new Date(Date.UTC(2022, 7, 30))},
+        {'A': valueParseDatetime('2022-07-30T00:00:00+00:00')},
         {'A': 'abc'}
     ];
     assert.throws(
@@ -259,6 +354,40 @@ test('validateData, datetime error csv', () => {
         {
             'name': 'Error',
             'message': 'Invalid "A" field value "abc", expected type datetime'
+        }
+    );
+});
+
+
+test('validateData, boolean error', () => {
+    const data = [
+        {'A': false},
+        {'A': 2}
+    ];
+    assert.throws(
+        () => {
+            validateData(data);
+        },
+        {
+            'name': 'Error',
+            'message': 'Invalid "A" field value 2, expected type boolean'
+        }
+    );
+});
+
+
+test('validateData, boolean error csv', () => {
+    const data = [
+        {'A': true},
+        {'A': 'abc'}
+    ];
+    assert.throws(
+        () => {
+            validateData(data, true);
+        },
+        {
+            'name': 'Error',
+            'message': 'Invalid "A" field value "abc", expected type boolean'
         }
     );
 });
@@ -303,12 +432,29 @@ test('joinData', () => {
 });
 
 
-test('joinData, options', () => {
+test('joinData, left', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 2, 'b': 7}
+    ];
+    const rightData = [
+        {'a': 1, 'c': 10}
+    ];
+    assert.deepEqual(joinData(leftData, rightData, 'a'), [
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10},
+        {'a': 2, 'b': 7}
+    ]);
+    assert.deepEqual(joinData(leftData, rightData, 'a', null, true), [
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10}
+    ]);
+});
+
+
+test('joinData, variables', () => {
     const leftData = [
         {'a': 1, 'b': 5},
         {'a': 1, 'b': 6},
-        {'a': 2, 'b': 7},
-        {'a': 3, 'b': 8}
+        {'a': 2, 'b': 7}
     ];
     const rightData = [
         {'a': 2, 'c': 10},
@@ -316,7 +462,7 @@ test('joinData, options', () => {
         {'a': 4, 'c': 12}
     ];
     assert.deepEqual(
-        joinData(leftData, rightData, 'a', 'a / denominator', true, {'denominator': 2}),
+        joinData(leftData, rightData, 'a', 'a / denominator', null, {'denominator': 2}),
         [
             {'a': 1, 'b': 5, 'a2': 2, 'c': 10},
             {'a': 1, 'b': 6, 'a2': 2, 'c': 10},
@@ -324,6 +470,74 @@ test('joinData, options', () => {
             {'a': 2, 'b': 7, 'a2': 4, 'c': 12}
         ]
     );
+});
+
+
+test('joinData, globals', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 1, 'b': 6},
+        {'a': 2, 'b': 7}
+    ];
+    const rightData = [
+        {'a': 2, 'c': 10},
+        {'a': 4, 'c': 11},
+        {'a': 4, 'c': 12}
+    ];
+    assert.deepEqual(
+        joinData(leftData, rightData, 'a', 'a / denominator', null, null, {'globals': {'denominator': 2}}),
+        [
+            {'a': 1, 'b': 5, 'a2': 2, 'c': 10},
+            {'a': 1, 'b': 6, 'a2': 2, 'c': 10},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 11},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 12}
+        ]
+    );
+});
+
+
+test('joinData, globals variables', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 1, 'b': 6},
+        {'a': 2, 'b': 7}
+    ];
+    const rightData = [
+        {'a': 2, 'c': 10},
+        {'a': 4, 'c': 11},
+        {'a': 4, 'c': 12}
+    ];
+    assert.deepEqual(
+        joinData(leftData, rightData, 'a', 'a / (d1 + d2)', false, {'d1': 1.5}, {'globals': {'d2': 0.5}}),
+        [
+            {'a': 1, 'b': 5, 'a2': 2, 'c': 10},
+            {'a': 1, 'b': 6, 'a2': 2, 'c': 10},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 11},
+            {'a': 2, 'b': 7, 'a2': 4, 'c': 12}
+        ]
+    );
+});
+
+
+test('joinData, unique', () => {
+    const leftData = [
+        {'a': 1, 'b': 5},
+        {'a': 1, 'b': 6},
+        {'a': 2, 'b': 7},
+        {'a': 3, 'b': 8}
+    ];
+    const rightData = [
+        {'a': 1, 'a2': 0, 'c': 10},
+        {'a': 2, 'a2': 0, 'c': 11},
+        {'a': 2, 'a2': 0, 'c': 12}
+    ];
+    assert.deepEqual(joinData(leftData, rightData, 'a'), [
+        {'a': 1, 'b': 5, 'a2': 0, 'a3': 1, 'c': 10},
+        {'a': 1, 'b': 6, 'a2': 0, 'a3': 1, 'c': 10},
+        {'a': 2, 'b': 7, 'a2': 0, 'a3': 2, 'c': 11},
+        {'a': 2, 'b': 7, 'a2': 0, 'a3': 2, 'c': 12},
+        {'a': 3, 'b': 8}
+    ]);
 });
 
 
@@ -347,6 +561,18 @@ test('addCalculatedField, variables', () => {
     assert.deepEqual(addCalculatedField(data, 'C', 'A * B', {'B': 5}), [
         {'A': 1, 'C': 5},
         {'A': 2, 'C': 10}
+    ]);
+});
+
+
+test('addCalculatedField, globals', () => {
+    const data = [
+        {'A': 1},
+        {'A': 2}
+    ];
+    assert.deepEqual(addCalculatedField(data, 'C', 'A * B * X', {'B': 5}, {'globals': {'X': 2}}), [
+        {'A': 1, 'C': 10},
+        {'A': 2, 'C': 20}
     ]);
 });
 
@@ -375,29 +601,15 @@ test('filterData, variables', () => {
 });
 
 
-test('validateAggregation', () => {
-    const aggregation = {
-        'categories': ['A', 'B'],
-        'measures': [
-            {'field': 'C', 'function': 'average'},
-            {'field': 'C', 'function': 'average', 'name': 'Average(C)'}
-        ]
-    };
-    assert.deepEqual(validateAggregation(aggregation), aggregation);
-});
-
-
-test('validateAggregation, error', () => {
-    const aggregation = {};
-    assert.throws(
-        () => {
-            validateAggregation(aggregation);
-        },
-        {
-            'name': 'ValidationError',
-            'message': "Required member 'measures' missing"
-        }
-    );
+test('filterData, globals', () => {
+    const data = [
+        {'A': 1, 'B': 5},
+        {'A': 6, 'B': 2},
+        {'A': 3, 'B': 7}
+    ];
+    assert.deepEqual(filterData(data, 'A > test * X', {'test': 2.5}, {'globals': {'X': 2}}), [
+        {'A': 6, 'B': 2}
+    ]);
 });
 
 
@@ -412,7 +624,6 @@ test('aggregateData', () => {
             {'field': 'C', 'function': 'average'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'C': 4.5}
     ]);
@@ -437,7 +648,6 @@ test('aggregateData, categories', () => {
             {'field': 'C', 'function': 'average', 'name': 'Average(C)'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 4.5, 'Average(C)': 4.5},
         {'A': 1, 'B': 2, 'C': 7.5, 'Average(C)': 7.5},
@@ -464,7 +674,6 @@ test('aggregateData, count', () => {
             {'field': 'C', 'function': 'count'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 2},
         {'A': 1, 'B': 2, 'C': 2},
@@ -492,7 +701,6 @@ test('aggregateData, max', () => {
             {'field': 'C', 'function': 'max'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 6},
         {'A': 1, 'B': 2, 'C': 8},
@@ -520,7 +728,6 @@ test('aggregateData, min', () => {
             {'field': 'C', 'function': 'min'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 4},
         {'A': 1, 'B': 2, 'C': 7},
@@ -547,7 +754,6 @@ test('aggregateData, stddev', () => {
             {'field': 'C', 'function': 'stddev'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 0.5},
         {'A': 1, 'B': 2, 'C': 1.5},
@@ -574,13 +780,25 @@ test('aggregateData, sum', () => {
             {'field': 'C', 'function': 'sum'}
         ]
     };
-    validateAggregation(aggregation);
     assert.deepEqual(aggregateData(data, aggregation), [
         {'A': 1, 'B': 1, 'C': 11},
         {'A': 1, 'B': 2, 'C': 15},
         {'A': 2, 'B': 1, 'C': 19},
         {'A': 2, 'B': 2, 'C': null}
     ]);
+});
+
+
+test('aggregateData, invalid model', () => {
+    assert.throws(
+        () => {
+            aggregateData([], {});
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Required member 'measures' missing"
+        }
+    );
 });
 
 
@@ -636,26 +854,4 @@ test('topData', () => {
         {'A': 'abc', 'B': 1, 'C': 2},
         {'A': 'abc', 'B': 1, 'C': 3}
     ]);
-});
-
-
-test('compareValues', () => {
-    assert.equal(compareValues(1, 1), 0);
-    assert.equal(compareValues(1, 2), -1);
-    assert.equal(compareValues(2, 1), 1);
-    assert.equal(compareValues(null, null), 0);
-    assert.equal(compareValues(null, 1), -1);
-    assert.equal(compareValues(1, null), 1);
-});
-
-
-test('compareValues, date', () => {
-    const value1 = new Date(Date.UTC(2022, 6, 30));
-    const value2 = new Date(Date.UTC(2022, 7, 30));
-    assert.equal(compareValues(value1, value1), 0);
-    assert.equal(compareValues(value1, value2), -1);
-    assert.equal(compareValues(value2, value1), 1);
-    assert.equal(compareValues(null, null), 0);
-    assert.equal(compareValues(null, value1), -1);
-    assert.equal(compareValues(value1, null), 1);
 });

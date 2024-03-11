@@ -21,6 +21,23 @@ test('executeScript', () => {
 });
 
 
+test('executeScript, global override', () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'systemFetch', 'args': [{'string': 'the-url'}]}}
+            }}
+        ]
+    });
+    const options = {
+        'globals': {
+            'systemFetch': (args) => `Hello, ${args[0]}!`
+        }
+    };
+    assert.equal(executeScript(script, options), 'Hello, the-url!');
+});
+
+
 test('executeScript, function', () => {
     const script = validateScript({
         'statements': [
@@ -328,9 +345,7 @@ test('executeScript, jump error unknown label', () => {
         ]
     });
     assert.throws(
-        () => {
-            executeScript(script);
-        },
+        () => executeScript(script),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Unknown jump label "unknownLabel"'
@@ -370,9 +385,7 @@ test('executeScript, include', () => {
     const fetchFn = () => ({'ok': true, 'text': () => ''});
     const options = {fetchFn};
     assert.throws(
-        () => {
-            executeScript(script, options);
-        },
+        () => executeScript(script, options),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Include of "test.mds" within non-async scope'
@@ -388,27 +401,7 @@ test('executeScript, include no fetchFn', () => {
         ]
     });
     assert.throws(
-        () => {
-            executeScript(script);
-        },
-        {
-            'name': 'BareScriptRuntimeError',
-            'message': 'Include of "test.mds" within non-async scope'
-        }
-    );
-});
-
-
-test('executeScript, include no fetchFn, system', () => {
-    const script = validateScript({
-        'statements': [
-            {'include': {'includes': [{'url': 'test.mds', 'system': true}]}}
-        ]
-    });
-    assert.throws(
-        () => {
-            executeScript(script);
-        },
+        () => executeScript(script),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Include of "test.mds" within non-async scope'
@@ -433,9 +426,7 @@ test('executeScript, error maxStatements', () => {
         ]
     });
     assert.throws(
-        () => {
-            executeScript(script, {'maxStatements': 3});
-        },
+        () => executeScript(script, {'maxStatements': 3}),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Exceeded maximum script statements (3)'
@@ -457,18 +448,15 @@ test('evaluateExpression', () => {
                     'left': {'number': 3},
                     'right': {
                         'function': {
-                            'name': 'ceil',
-                            'args': [
-                                {'variable': 'varName'}
-                            ]
+                            'name': 'testNumber'
                         }
                     }
                 }
             }
         }
     });
-    const options = {'globals': {'varName': 4}};
-    assert.equal(evaluateExpression(expr, options), 19);
+    const options = {'globals': {testNumber}};
+    assert.equal(evaluateExpression(expr, options), 13);
 });
 
 
@@ -572,13 +560,14 @@ test('evaluateExpression, function if', () => {
             'args': [
                 {'variable': 'test'},
                 {'function': {'name': 'testValue', 'args': [{'string': 'a'}]}},
-                {'function': {'name': 'testValue', 'args': [{'string': 'b'}]}}
+                {'function': {'name': 'testValue', 'args': [{'function': {'name': 'testString'}}]}}
             ]
         }
     });
     const testValues = [];
     const options = {
         'globals': {
+            testString,
             'test': true,
             'testValue': ([value]) => {
                 testValues.push(value);
@@ -589,8 +578,8 @@ test('evaluateExpression, function if', () => {
     assert.equal(evaluateExpression(expr, options), 'a');
     assert.deepEqual(testValues, ['a']);
     options.globals.test = false;
-    assert.equal(evaluateExpression(expr, options), 'b');
-    assert.deepEqual(testValues, ['a', 'b']);
+    assert.equal(evaluateExpression(expr, options), 'abc');
+    assert.deepEqual(testValues, ['a', 'abc']);
 });
 
 
@@ -609,11 +598,12 @@ test('evaluateExpression, function if no true expression', () => {
         'function': {
             'name': 'if',
             'args': [
-                {'variable': 'true'}
+                {'function': {'name': 'testNumber'}}
             ]
         }
     });
-    assert.equal(evaluateExpression(expr), null);
+    const options = {'globals': {testNumber}};
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
@@ -622,12 +612,13 @@ test('evaluateExpression, function if no false expression', () => {
         'function': {
             'name': 'if',
             'args': [
-                {'variable': 'false'},
+                {'function': {'name': 'testFalse'}},
                 {'number': 1}
             ]
         }
     });
-    assert.equal(evaluateExpression(expr), null);
+    const options = {'globals': {testFalse}};
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
@@ -636,11 +627,12 @@ test('evaluateExpression, function builtin', () => {
         'function': {
             'name': 'abs',
             'args': [
-                {'number': -1}
+                {'function': {'name': 'testNumber'}}
             ]
         }
     });
-    assert.equal(evaluateExpression(expr), 1);
+    const options = {'globals': {testNumber}};
+    assert.equal(evaluateExpression(expr, options), 2);
 });
 
 
@@ -649,14 +641,13 @@ test('evaluateExpression, function no-builtins', () => {
         'function': {
             'name': 'abs',
             'args': [
-                {'number': -1}
+                {'function': {'name': 'testNumber'}}
             ]
         }
     });
+    const options = {'globals': {testNumber}};
     assert.throws(
-        () => {
-            evaluateExpression(expr, null, null, false);
-        },
+        () => evaluateExpression(expr, options, null, false),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Undefined function "abs"'
@@ -670,12 +661,12 @@ test('evaluateExpression, function global', () => {
         'function': {
             'name': 'fnName',
             'args': [
-                {'number': 3}
+                {'function': {'name': 'testNumber'}}
             ]
         }
     });
-    const options = {'globals': {'fnName': ([number]) => 2 * number}};
-    assert.equal(evaluateExpression(expr, options), 6);
+    const options = {'globals': {testNumber, 'fnName': ([number]) => 2 * number}};
+    assert.equal(evaluateExpression(expr, options), 4);
 });
 
 
@@ -684,27 +675,29 @@ test('evaluateExpression, function local', () => {
         'function': {
             'name': 'fnLocal',
             'args': [
-                {'number': 3}
+                {'function': {'name': 'testNumber'}}
             ]
         }
     });
+    const options = {'globals': {testNumber}};
     const locals = {'fnLocal': ([number]) => 2 * number};
-    assert.equal(evaluateExpression(expr, null, locals), 6);
+    assert.equal(evaluateExpression(expr, options, locals), 4);
 });
 
 
 test('evaluateExpression, function local null', () => {
     const expr = validateExpression({
         'function': {
-            'name': 'fnLocal'
+            'name': 'fnLocal',
+            'args': [
+                {'function': {'name': 'testString'}}
+            ]
         }
     });
-    const options = {'globals': {'fnLocal': 'abc'}};
+    const options = {'globals': {testString, 'fnLocal': 'abc'}};
     const locals = {'fnLocal': null};
     assert.throws(
-        () => {
-            evaluateExpression(expr, options, locals);
-        },
+        () => evaluateExpression(expr, options, locals),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Undefined function "fnLocal"'
@@ -716,10 +709,13 @@ test('evaluateExpression, function local null', () => {
 test('evaluateExpression, function non-function', () => {
     const expr = validateExpression({
         'function': {
-            'name': 'fnLocal'
+            'name': 'fnLocal',
+            'args': [
+                {'function': {'name': 'testString'}}
+            ]
         }
     });
-    const options = {'globals': {'fnLocal': 'abc'}};
+    const options = {'globals': {testString, 'fnLocal': 'abc'}};
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -727,14 +723,17 @@ test('evaluateExpression, function non-function', () => {
 test('evaluateExpression, function non-function logFn', () => {
     const expr = validateExpression({
         'function': {
-            'name': 'fnLocal'
+            'name': 'fnLocal',
+            'args': [
+                {'function': {'name': 'testString'}}
+            ]
         }
     });
     const logs = [];
     const logFn = (message) => {
         logs.push(message);
     };
-    const options = {'globals': {'fnLocal': 'abc'}, logFn, 'debug': true};
+    const options = {'globals': {testString, 'fnLocal': 'abc'}, logFn, 'debug': true};
     assert.equal(evaluateExpression(expr, options), null);
     assert.deepEqual(logs, ['BareScript: Function "fnLocal" failed with error: funcValue is not a function']);
 });
@@ -743,13 +742,36 @@ test('evaluateExpression, function non-function logFn', () => {
 test('evaluateExpression, function unknown', () => {
     const expr = validateExpression({
         'function': {
-            'name': 'fnUnknown'
+            'name': 'fnUnknown',
+            'args': [
+                {'function': {'name': 'testString'}}
+            ]
         }
     });
+    const options = {'globals': {}};
+    const locals = {testString};
     assert.throws(
-        () => {
-            evaluateExpression(expr);
-        },
+        () => evaluateExpression(expr, options, locals),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Undefined function "fnUnknown"'
+        }
+    );
+});
+
+
+test('evaluateExpression, function unknown no globals', () => {
+    const expr = validateExpression({
+        'function': {
+            'name': 'fnUnknown',
+            'args': [
+                {'function': {'name': 'testString'}}
+            ]
+        }
+    });
+    const locals = {testString};
+    assert.throws(
+        () => evaluateExpression(expr, null, locals),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Undefined function "fnUnknown"'
@@ -769,9 +791,7 @@ test('evaluateExpression, function async', () => {
     // eslint-disable-next-line require-await
     const options = {'globals': {'fnAsync': async () => null}};
     assert.throws(
-        () => {
-            evaluateExpression(expr, options);
-        },
+        () => evaluateExpression(expr, options),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Async function "fnAsync" called within non-async scope'
@@ -794,9 +814,7 @@ test('evaluateExpression, function runtime error', () => {
         }
     };
     assert.throws(
-        () => {
-            evaluateExpression(expr, options);
-        },
+        () => evaluateExpression(expr, options),
         {
             'name': 'BareScriptRuntimeError',
             'message': 'Test error'
@@ -810,12 +828,13 @@ test('evaluateExpression, binary logical and', () => {
         'binary': {
             'op': '&&',
             'left': {'variable': 'leftValue'},
-            'right': {'function': {'name': 'testValue', 'args': [{'string': 'abc'}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'function': {'name': 'testString'}}]}}
         }
     });
     const testValues = [];
     const options = {
         'globals': {
+            testString,
             'testValue': ([value]) => {
                 testValues.push(value);
                 return value;
@@ -835,12 +854,13 @@ test('evaluateExpression, binary logical or', () => {
         'binary': {
             'op': '||',
             'left': {'variable': 'leftValue'},
-            'right': {'function': {'name': 'testValue', 'args': [{'string': 'abc'}]}}
+            'right': {'function': {'name': 'testValue', 'args': [{'function': {'name': 'testString'}}]}}
         }
     });
     const testValues = [];
     const options = {
         'globals': {
+            testString,
             'leftValue': true,
             'testValue': ([value]) => {
                 testValues.push(value);
@@ -856,109 +876,213 @@ test('evaluateExpression, binary logical or', () => {
 });
 
 
-test('evaluateExpression, binary exponentiation', () => {
-    const expr = validateExpression({'binary': {'op': '**', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 100);
-});
-
-
-test('evaluateExpression, binary multiplication', () => {
-    const expr = validateExpression({'binary': {'op': '*', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 20);
-});
-
-
-test('evaluateExpression, binary division', () => {
-    const expr = validateExpression({'binary': {'op': '/', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 5);
-});
-
-
-test('evaluateExpression, binary modulus', () => {
-    const expr = validateExpression({'binary': {'op': '%', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 0);
-});
-
-
 test('evaluateExpression, binary addition', () => {
-    const expr = validateExpression({'binary': {'op': '+', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 12);
+    const options = {'globals': {testDate, testNumber, testString}};
+
+    // number + number
+    let expr = validateExpression({'binary': {'op': '+', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 12);
+
+    // string + string
+    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testString'}}}});
+    assert.equal(evaluateExpression(expr, options), 'fooabc');
+
+    // string + <non-string>
+    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 'foo2');
+
+    // <non-string> + string
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'string': 'foo'}}});
+    assert.equal(evaluateExpression(expr, options), '2foo');
+
+    // datetime + number
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'number': 86400000}}});
+    assert.deepEqual(evaluateExpression(expr, options), new Date(2024, 1, 7));
+
+    // number + datetime
+    expr = validateExpression({'binary': {'op': '+', 'left': {'number': -86400000}, 'right': {'function': {'name': 'testDate'}}}});
+    assert.deepEqual(evaluateExpression(expr, options), new Date(2024, 1, 5));
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, binary subtraction', () => {
-    const expr = validateExpression({'binary': {'op': '-', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), 8);
+    const options = {'globals': {'dt2': new Date(2024, 1, 7), testDate, testNumber}};
+
+    // number - number
+    let expr = validateExpression({'binary': {'op': '-', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 8);
+
+    // datetime - datetime
+    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
+    assert.equal(evaluateExpression(expr, options), 86400000);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
-test('evaluateExpression, binary less-than or equal-to', () => {
-    const expr = validateExpression({'binary': {'op': '<=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), false);
+test('evaluateExpression, binary multiplication', () => {
+    const options = {'globals': {testNumber}};
+
+    // number * number
+    let expr = validateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 20);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
-test('evaluateExpression, binary less-than', () => {
-    const expr = validateExpression({'binary': {'op': '<', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), false);
-});
+test('evaluateExpression, binary division', () => {
+    const options = {'globals': {testNumber}};
 
+    // number / number
+    let expr = validateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 5);
 
-test('evaluateExpression, binary greater-than or equal-to', () => {
-    const expr = validateExpression({'binary': {'op': '>=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), true);
-});
-
-
-test('evaluateExpression, binary greater-than', () => {
-    const expr = validateExpression({'binary': {'op': '>', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), true);
+    // Invalid
+    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, binary equality', () => {
-    const expr = validateExpression({'binary': {'op': '==', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), false);
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '==', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), false);
 });
 
 
 test('evaluateExpression, binary inequality', () => {
-    const expr = validateExpression({'binary': {'op': '!=', 'left': {'number': '10'}, 'right': {'number': 2}}});
-    assert.equal(evaluateExpression(expr), true);
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '!=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), true);
+});
+
+
+test('evaluateExpression, binary less-than-or-equal-to', () => {
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '<=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), false);
+});
+
+
+test('evaluateExpression, binary less-than', () => {
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), false);
+});
+
+
+test('evaluateExpression, binary greater-than-or-equal-to', () => {
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '>=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), true);
+});
+
+
+test('evaluateExpression, binary greater-than', () => {
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'binary': {'op': '>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), true);
+});
+
+
+test('evaluateExpression, binary modulus', () => {
+    const options = {'globals': {testNumber}};
+
+    // number % number
+    let expr = validateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 0);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary exponentiation', () => {
+    const options = {'globals': {testNumber}};
+
+    // number ** number
+    let expr = validateExpression({'binary': {'op': '**', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 100);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, unary not', () => {
-    const expr = validateExpression({'unary': {'op': '!', 'expr': {'variable': 'false'}}});
-    assert.equal(evaluateExpression(expr), true);
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), false);
 });
 
 
 test('evaluateExpression, unary negate', () => {
-    const expr = validateExpression({'unary': {'op': '-', 'expr': {'number': 1}}});
-    assert.equal(evaluateExpression(expr), -1);
+    const options = {'globals': {testNumber, testString}};
+
+    // - number
+    let expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), -2);
+
+    // Invalid
+    expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, group', () => {
-    const expr = validateExpression(
-        {
-            'group': {
-                'binary': {
-                    'op': '*',
-                    'left': {'number': 2},
-                    'right': {
-                        'group': {
-                            'binary': {
-                                'op': '+',
-                                'left': {'number': 3},
-                                'right': {'number': 5}
-                            }
+    const options = {'globals': {testNumber}};
+    const expr = validateExpression({
+        'group': {
+            'binary': {
+                'op': '*',
+                'left': {'function': {'name': 'testNumber'}},
+                'right': {
+                    'group': {
+                        'binary': {
+                            'op': '+',
+                            'left': {'number': 3},
+                            'right': {'number': 5}
                         }
                     }
                 }
             }
         }
-    );
-    assert.equal(evaluateExpression(expr), 16);
+    });
+    assert.equal(evaluateExpression(expr, options), 16);
 });
+
+
+//
+// Helper functions to get test values of specific types
+//
+
+
+function testDate() {
+    return new Date(2024, 1, 6);
+}
+
+
+function testFalse() {
+    return false;
+}
+
+
+function testNumber() {
+    return 2;
+}
+
+
+function testString() {
+    return 'abc';
+}

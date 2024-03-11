@@ -3,8 +3,22 @@
 [![npm](https://img.shields.io/npm/v/bare-script)](https://www.npmjs.com/package/bare-script)
 [![GitHub](https://img.shields.io/github/license/craigahobbs/bare-script)](https://github.com/craigahobbs/bare-script/blob/main/LICENSE)
 
-The bare-script package is the JavaScript implementation of the
-[BareScript language](https://craigahobbs.github.io/bare-script/language/).
+[BareScript](https://craigahobbs.github.io/bare-script/language/)
+is a simple, lightweight, and portable programming language. Its Pythonic syntax is influenced by
+JavaScript, C, and the Unix Shell. BareScript also has a
+[library of built-in functions](#the-barescript-library)
+for common programming operations. BareScript can be
+[embedded within applications](#markdownup-a-markdown-viewer-with-barescript)
+or used as a
+stand-alone programming language using the
+[command-line interface](#the-barescript-command-line-interface-cli).
+
+There are two implementations of BareScript:
+[BareScript for JavaScript](https://github.com/craigahobbs/bare-script#readme)
+(this package) and
+[BareScript for Python](https://github.com/craigahobbs/bare-script-py#readme).
+Both implementations have 100% unit test coverage with identical unit test suites, so you can be
+confident that BareScript will execute the same regardless of the underlying runtime environment.
 
 
 ## Links
@@ -70,7 +84,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 // Parse the script
 const script = parseScript(`\
 # Fetch the BareScript library documentation JSON
-docs = systemFetch('https://craigahobbs.github.io/bare-script/library/library.json')
+docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
 return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions')) + ' functions'
@@ -83,7 +97,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ~~~
-The BareScript Library has 100 functions
+The BareScript Library has 105 functions
 ~~~
 
 
@@ -136,6 +150,10 @@ bare script.bare
 **Note:** In the BareScript CLI, import statements and the
 [systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
 function read non-URL paths from the local file system.
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
+calls with a non-URL path and a
+[request body](https://craigahobbs.github.io/bare-script-py/library/model.html#var.vName='SystemFetchRequest')
+write the body to the path.
 
 
 ## MarkdownUp, a Markdown Viewer with BareScript
