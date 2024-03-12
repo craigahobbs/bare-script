@@ -69,8 +69,36 @@ test('valueString', () => {
     assert.equal(valueString(0.), '0');
 
     // datetime
-    assert.equal(valueString(valueParseDatetime('2024-01-12T06:09:00+00:00')), '2024-01-12T06:09:00+00:00');
-    assert.equal(valueString(valueParseDatetime('2024-01-12T06:09:00.123+00:00')), '2024-01-12T06:09:00.123+00:00');
+    const d1 = new Date(2024, 0, 12, 6, 9);
+    const d2 = new Date(2023, 11, 7, 16, 19, 23, 123);
+    const d3 = new Date(2023, 11, 7, 16, 19, 23, 12);
+    const d4 = new Date(2023, 11, 7, 16, 19, 23, 1);
+    const d5 = new Date(Date.UTC(
+        d1.getFullYear(),
+        d1.getMonth(),
+        d1.getDate(),
+        d1.getHours(),
+        d1.getMinutes() + d1.getTimezoneOffset(),
+        d1.getSeconds(),
+        d1.getMilliseconds()
+    ));
+    const tzSuffix = (dt) => {
+        const tzOffset = dt.getTimezoneOffset();
+        /* c8 ignore next */
+        const tzSign = tzOffset < 0 ? '-' : '+';
+        const tzHour = Math.floor(Math.abs(tzOffset) / 60);
+        /* c8 ignore next */
+        const tzHourStr = `${tzHour < 10 ? '0' : ''}${tzHour}`;
+        const tzMinute = Math.abs(tzOffset) - tzHour * 60;
+        /* c8 ignore next */
+        const tzMinuteStr = `${tzMinute < 10 ? '0' : ''}${tzMinute}`;
+        return `${tzSign}${tzHourStr}:${tzMinuteStr}`;
+    };
+    assert.equal(valueString(d1), `2024-01-12T06:09:00${tzSuffix(d1)}`);
+    assert.equal(valueString(d2), `2023-12-07T16:19:23.123${tzSuffix(d2)}`);
+    assert.equal(valueString(d3), `2023-12-07T16:19:23.012${tzSuffix(d3)}`);
+    assert.equal(valueString(d4), `2023-12-07T16:19:23.001${tzSuffix(d4)}`);
+    assert.equal(valueString(d5), `2024-01-12T06:09:00${tzSuffix(d1)}`);
 
     // object
     assert.equal(valueString({'value': 1}), '{"value":1}');
@@ -100,7 +128,20 @@ test('valueJSON', () => {
     assert.equal(valueJSON({'value': 1}, 2), '{\n  "value": 1\n}');
 
     // Datetime
-    assert.equal(valueJSON(valueParseDatetime('2024-01-12T06:09:00+00:00')), '"2024-01-12T06:09:00+00:00"');
+    const d1 = new Date(2024, 0, 12, 6, 9);
+    const d2 = new Date(2023, 11, 7, 16, 19, 23, 123);
+    const d3 = new Date(Date.UTC(
+        d1.getFullYear(),
+        d1.getMonth(),
+        d1.getDate(),
+        d1.getHours(),
+        d1.getMinutes() + d1.getTimezoneOffset(),
+        d1.getSeconds(),
+        d1.getMilliseconds()
+    ));
+    assert.equal(valueJSON(d1), `"${valueString(d1)}"`);
+    assert.equal(valueJSON(d2), `"${valueString(d2)}"`);
+    assert.equal(valueJSON(d3), `"${valueString(d3)}"`);
 
     // Number
     assert.equal(valueJSON(5), '5');
@@ -395,17 +436,21 @@ test('valueParseInteger', () => {
 
 
 test('valueParseDatetime', () => {
-    assert.equal(
-        valueString(valueParseDatetime('2022-08-29T15:08:00+00:00')),
-        '2022-08-29T15:08:00+00:00'
+    assert.deepEqual(
+        valueParseDatetime('2022-08-29T15:08:00+00:00'),
+        new Date(Date.UTC(2022, 7, 29, 15, 8))
     );
-    assert.equal(
-        valueString(valueParseDatetime('2022-08-29T15:08:00Z')),
-        '2022-08-29T15:08:00+00:00'
+    assert.deepEqual(
+        valueParseDatetime('2022-08-29T15:08:00Z'),
+        new Date(Date.UTC(2022, 7, 29, 15, 8))
     );
-    assert.equal(
-        valueString(valueParseDatetime('2022-08-29T15:08:00-08:00')),
-        '2022-08-29T23:08:00+00:00'
+    assert.deepEqual(
+        valueParseDatetime('2022-08-29T15:08:00.123+00:00'),
+        new Date(Date.UTC(2022, 7, 29, 15, 8, 0, 123))
+    );
+    assert.deepEqual(
+        valueParseDatetime('2022-08-29T15:08:00.123567+00:00'),
+        new Date(Date.UTC(2022, 7, 29, 15, 8, 0, 123))
     );
 
     // Date
@@ -415,5 +460,6 @@ test('valueParseDatetime', () => {
     );
 
     // Parse failure
+    assert.equal(valueParseDatetime('2022-08-29T15:08:00'), null);
     assert.equal(valueParseDatetime('invalid'), null);
 });

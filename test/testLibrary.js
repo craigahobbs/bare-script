@@ -4,7 +4,7 @@
 /* eslint-disable id-length */
 
 import {expressionFunctions, scriptFunctions} from '../lib/library.js';
-import {valueJSON, valueParseDatetime} from '../lib/value.js';
+import {valueJSON, valueParseDatetime, valueString} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -749,10 +749,10 @@ test('library, datetimeHour', () => {
 
 
 test('library, datetimeISOFormat', () => {
-    assert.equal(
-        scriptFunctions.datetimeISOFormat([valueParseDatetime('2022-06-21T07:15:30+00:00')], null),
-        '2022-06-21T07:15:30+00:00'
-    );
+    const d1 = valueParseDatetime('2022-06-21T07:15:30+00:00');
+    const d2 = valueParseDatetime('2022-06-21T07:15:30.123567+00:00');
+    assert.equal(scriptFunctions.datetimeISOFormat([d1], null), valueString(d1));
+    assert.equal(scriptFunctions.datetimeISOFormat([d2], null), valueString(d2));
 
     // isDate
     assert.equal(
@@ -1950,7 +1950,7 @@ test('library, stringNew', () => {
     assert.equal(scriptFunctions.stringNew([0], null), '0');
     assert.equal(scriptFunctions.stringNew([0.], null), '0');
     const dt = valueParseDatetime('2022-06-21T12:30:15.100+00:00');
-    assert.equal(scriptFunctions.stringNew([dt], null), '2022-06-21T12:30:15.100+00:00');
+    assert.equal(scriptFunctions.stringNew([dt], null), valueString(dt));
     assert.equal(scriptFunctions.stringNew([{'b': 2, 'a': 1}], null), '{"a":1,"b":2}');
     assert.equal(scriptFunctions.stringNew([[1, 2, 3]], null), '[1,2,3]');
     assert.equal(scriptFunctions.stringNew([scriptFunctions.stringNew], null), '<function>');
