@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1 (2024-03-12)
+
+- [2d4bda6](https://github.com/craigahobbs/bare-script/commit/2d4bda6) - datetime iso format now uses local timezone
+
 ## 3.0.0 (2024-03-11)
 
 - [6efffb9](https://github.com/craigahobbs/bare-script/commit/6efffb9) - bare-script 3.0
