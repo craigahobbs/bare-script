@@ -85,7 +85,7 @@ test('valueString', () => {
     const tzSuffix = (dt) => {
         const tzOffset = dt.getTimezoneOffset();
         /* c8 ignore next */
-        const tzSign = tzOffset < 0 ? '-' : '+';
+        const tzSign = tzOffset < 0 ? '+' : '-';
         const tzHour = Math.floor(Math.abs(tzOffset) / 60);
         /* c8 ignore next */
         const tzHourStr = `${tzHour < 10 ? '0' : ''}${tzHour}`;
