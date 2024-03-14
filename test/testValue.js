@@ -82,16 +82,17 @@ test('valueString', () => {
         d1.getSeconds(),
         d1.getMilliseconds()
     ));
+    const d6 = new Date(900, 0, 1);
     const tzSuffix = (dt) => {
         const tzOffset = dt.getTimezoneOffset();
         /* c8 ignore next */
         const tzSign = tzOffset < 0 ? '+' : '-';
         const tzHour = Math.floor(Math.abs(tzOffset) / 60);
         /* c8 ignore next */
-        const tzHourStr = `${tzHour < 10 ? '0' : ''}${tzHour}`;
+        const tzHourStr = String(tzHour).padStart(2, '0');
         const tzMinute = Math.abs(tzOffset) - tzHour * 60;
         /* c8 ignore next */
-        const tzMinuteStr = `${tzMinute < 10 ? '0' : ''}${tzMinute}`;
+        const tzMinuteStr = String(tzMinute).padStart(2, '0');
         return `${tzSign}${tzHourStr}:${tzMinuteStr}`;
     };
     assert.equal(valueString(d1), `2024-01-12T06:09:00${tzSuffix(d1)}`);
@@ -99,6 +100,7 @@ test('valueString', () => {
     assert.equal(valueString(d3), `2023-12-07T16:19:23.012${tzSuffix(d3)}`);
     assert.equal(valueString(d4), `2023-12-07T16:19:23.001${tzSuffix(d4)}`);
     assert.equal(valueString(d5), `2024-01-12T06:09:00${tzSuffix(d1)}`);
+    assert.equal(valueString(d6), `0900-01-01T00:00:00${tzSuffix(d6)}`);
 
     // object
     assert.equal(valueString({'value': 1}), '{"value":1}');

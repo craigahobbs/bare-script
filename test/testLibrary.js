@@ -763,6 +763,10 @@ test('library, datetimeISOFormat', () => {
         scriptFunctions.datetimeISOFormat([new Date(2022, 9, 7), true], null),
         '2022-10-07'
     );
+    assert.equal(
+        scriptFunctions.datetimeISOFormat([new Date(900, 9, 7), true], null),
+        '0900-10-07'
+    );
 
     // Non-datetime
     assert.equal(scriptFunctions.datetimeISOFormat([null], null), null);
@@ -904,6 +908,9 @@ test('library, datetimeNew', () => {
         scriptFunctions.datetimeNew([2023, 1, 1, 0, 0, 0, -1000], null),
         new Date(2022, 11, 31, 23, 59, 59, 0)
     );
+
+    // Invalid year
+    assert.equal(scriptFunctions.datetimeNew([90, 6, 21, 12, 30, 15, 100], null), null);
 
     // Non-number arguments
     assert.equal(scriptFunctions.datetimeNew(['2022', 6, 21, 12, 30, 15, 100], null), null);
