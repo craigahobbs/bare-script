@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.3 (2024-03-14)
+
+- [a702690](https://github.com/craigahobbs/bare-script/commit/a702690) - datetime improvements
+
 ## 3.0.2 (2024-03-13)
 
 - [2303663](https://github.com/craigahobbs/bare-script/commit/2303663) - fix valueString for datetime - sign was reversed
