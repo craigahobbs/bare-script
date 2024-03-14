@@ -5,7 +5,7 @@ include '../app.mds'
 
 
 # Test library
-testBaredocLibrary = objectNew( \
+testBaredocLibrary = jsonStringify(objectNew( \
     'functions', arrayNew( \
         objectNew( \
             'name', 'func_c', \
@@ -37,7 +37,7 @@ testBaredocLibrary = objectNew( \
             'return', arrayNew('The return value') \
         ) \
     ) \
-)
+))
 
 
 async function testBaredocMain_index():
@@ -64,7 +64,7 @@ async function testBaredocMain_index_urlArray():
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
             'library.json', testBaredocLibrary, \
-            'library2.json', objectNew( \
+            'library2.json', jsonStringify(objectNew( \
                 'functions', arrayNew( \
                     objectNew( \
                         'name', 'funcB', \
@@ -72,7 +72,7 @@ async function testBaredocMain_index_urlArray():
                         'doc', arrayNew('Test function B') \
                     ) \
                 ) \
-            ) \
+            )) \
         ) \
     ))
 
@@ -97,7 +97,7 @@ async function testBaredocMain_index_urlArrayMerge():
     unittestMockAll(objectNew( \
         'systemFetch', objectNew( \
             'library.json', testBaredocLibrary, \
-            'library2.json', objectNew( \
+            'library2.json', jsonStringify(objectNew( \
                 'functions', arrayNew( \
                     objectNew( \
                         'name', 'funcB', \
@@ -105,7 +105,7 @@ async function testBaredocMain_index_urlArrayMerge():
                         'doc', arrayNew('Test function A') \
                     ) \
                 ) \
-            ) \
+            )) \
         ) \
     ))
 
@@ -203,7 +203,7 @@ async function testBaredocMain_index_content():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md', null, true)), \
+        arrayNew('systemFetch', arrayNew('index.md')), \
         arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
         arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -244,7 +244,7 @@ async function testBaredocMain_index_contentError():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md', null, true)), \
+        arrayNew('systemFetch', arrayNew('index.md')), \
         arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "index.md"')), \
         arrayNew('markdownPrint', arrayNew('', "## [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew('', "## [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -396,7 +396,7 @@ async function testBaredocMain_group_content():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)', '', '# C Group')), \
-        arrayNew('systemFetch', arrayNew('c.md', null, true)), \
+        arrayNew('systemFetch', arrayNew('c.md')), \
         arrayNew('markdownPrint', arrayNew('', 'These are the C functions.')), \
         arrayNew('markdownPrint', arrayNew('', '## Function Index')), \
         arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
@@ -430,7 +430,7 @@ async function testBaredocMain_group_contentError():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
         arrayNew('markdownPrint', arrayNew('[Index](#var=)', '', '# C Group')), \
-        arrayNew('systemFetch', arrayNew('c.md', null, true)), \
+        arrayNew('systemFetch', arrayNew('c.md')), \
         arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "c.md"')), \
         arrayNew('markdownPrint', arrayNew('', '## Function Index')), \
         arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
