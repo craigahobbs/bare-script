@@ -720,6 +720,13 @@ test('script library, dataValidate', () => {
         {'a': '2', 'b': 5}
     ]);
 
+    // CSV
+    assert.deepEqual(scriptFunctions.dataValidate([data, true], null), [
+        {'a': 1, 'b': 3},
+        {'a': 1, 'b': 4},
+        {'a': 2, 'b': 5}
+    ]);
+
     // Non-list data
     assert.equal(scriptFunctions.dataValidate([null], null), null);
 });
