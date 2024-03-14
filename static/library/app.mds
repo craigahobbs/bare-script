@@ -29,8 +29,8 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     # Fetch and validate the library documentation resource
     groups = objectNew()
     urls = if(systemType(url) == 'array', url, arrayNew(url))
-    for libraryPart, ixLibrary in systemFetch(urls):
-        libraryPart = schemaValidate(baredocTypes, 'Library', libraryPart)
+    for libraryText, ixLibrary in systemFetch(urls):
+        libraryPart = schemaValidate(baredocTypes, 'Library', jsonParse(libraryText))
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -124,7 +124,7 @@ async function baredocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the index Markdown, if any
     if objectHas(groupURLs, ''):
         rootURL = objectGet(groupURLs, '')
-        rootMarkdown = systemFetch(rootURL, null, true)
+        rootMarkdown = systemFetch(rootURL)
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
     endif
 
@@ -156,7 +156,7 @@ async function baredocGroupPage(title, groupURLs, groups, groupName):
     # Render the group Markdown, if any
     if objectHas(groupURLs, groupName):
         groupURL = objectGet(groupURLs, groupName)
-        groupMarkdown = systemFetch(groupURL, null, true)
+        groupMarkdown = systemFetch(groupURL)
         markdownPrint('', if(groupMarkdown != null, groupMarkdown, '**Error:** Failed to load "' + markdownEscape(groupURL) + '"'))
     endif
 
