@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.5 (2024-03-15)
+
+- [c48ac51](https://github.com/craigahobbs/bare-script/commit/c48ac51) - add bare cli no-scripts test
+
 ## 3.0.4 (2024-03-14)
 
 - [9d0dc0b](https://github.com/craigahobbs/bare-script/commit/9d0dc0b) - add dataValidate csv argument
