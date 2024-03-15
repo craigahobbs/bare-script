@@ -17,6 +17,17 @@ test('bare.main, help', async () => {
 });
 
 
+test('bare.main, help no scripts', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [helpText]);
+});
+
+
 test('bare.main, argument error', async () => {
     const output = [];
     const exitCode = await main({
