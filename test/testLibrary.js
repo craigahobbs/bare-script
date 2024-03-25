@@ -668,11 +668,27 @@ test('script library, dataAggregate', () => {
         {'a': 2, 'sum_b': 5}
     ]);
 
-    // Non-list data
-    assert.equal(scriptFunctions.dataAggregate([null], null), null);
+    // Non-array data
+    assert.throws(
+        () => {
+            scriptFunctions.dataAggregate([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataAggregate" called with invalid "data" argument value, null'
+        }
+    );
 
-    // Non-dict aggregation model
-    assert.equal(scriptFunctions.dataAggregate([data, 'invalid'], null), null);
+    // Non-object aggregation model
+    assert.throws(
+        () => {
+            scriptFunctions.dataAggregate([data, 'invalid'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataAggregate" called with invalid "aggregation" argument value, "invalid"'
+        }
+    );
 
     // Invalid aggregation model
     assert.throws(
@@ -731,16 +747,48 @@ test('script library, dataCalculatedField', () => {
     ]);
 
     // Non-list data
-    assert.equal(scriptFunctions.dataCalculatedField([null, 'c', 'a * b'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataCalculatedField([null, 'c', 'a * b'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataCalculatedField" called with invalid "data" argument value, null'
+        }
+    );
 
     // Non-string field name
-    assert.equal(scriptFunctions.dataCalculatedField([data, null, 'a * b'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataCalculatedField([data, null, 'a * b'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataCalculatedField" called with invalid "fieldName" argument value, null'
+        }
+    );
 
     // Non-string expression
-    assert.equal(scriptFunctions.dataCalculatedField([data, 'c', null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataCalculatedField([data, 'c', null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataCalculatedField" called with invalid "expr" argument value, null'
+        }
+    );
 
     // Non-dict variables
-    assert.equal(scriptFunctions.dataCalculatedField([data, 'c', 'a * b', 'invalid'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataCalculatedField([data, 'c', 'a * b', 'invalid'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataCalculatedField" called with invalid "variables" argument value, "invalid"'
+        }
+    );
 });
 
 
@@ -782,14 +830,38 @@ test('script library, dataFilter', () => {
         {'a': 'bar'}
     ]);
 
-    // Non-list data
-    assert.equal(scriptFunctions.dataFilter([null, 'a * b'], null), null);
+    // Non-array data
+    assert.throws(
+        () => {
+            scriptFunctions.dataFilter([null, 'a * b'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataFilter" called with invalid "data" argument value, null'
+        }
+    );
 
     // Non-string expression
-    assert.equal(scriptFunctions.dataFilter([data, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataFilter([data, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataFilter" called with invalid "expr" argument value, null'
+        }
+    );
 
-    // Non-dict variables
-    assert.equal(scriptFunctions.dataFilter([data, 'a * b', 'invalid'], null), null);
+    // Non-object variables
+    assert.throws(
+        () => {
+            scriptFunctions.dataFilter([data, 'a * b', 'invalid'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataFilter" called with invalid "variables" argument value, "invalid"'
+        }
+    );
 });
 
 
@@ -867,19 +939,59 @@ test('script library, dataJoin', () => {
     ]);
 
     // Non-list left data
-    assert.equal(scriptFunctions.dataJoin([null, rightData, 'a'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataJoin([null, rightData, 'a'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataJoin" called with invalid "leftData" argument value, null'
+        }
+    );
 
     // Non-list right data
-    assert.equal(scriptFunctions.dataJoin([leftData, null, 'a'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataJoin([leftData, null, 'a'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataJoin" called with invalid "rightData" argument value, null'
+        }
+    );
 
     // Non-string expression
-    assert.equal(scriptFunctions.dataJoin([leftData, rightData, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataJoin([leftData, rightData, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataJoin" called with invalid "joinExpr" argument value, null'
+        }
+    );
 
     // Non-string right expression
-    assert.equal(scriptFunctions.dataJoin([leftData, rightData, 'a', 7], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataJoin([leftData, rightData, 'a', 7], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataJoin" called with invalid "rightExpr" argument value, 7'
+        }
+    );
 
     // Non-dict variables
-    assert.equal(scriptFunctions.dataFilter([leftData, rightData, 'a', null, false, 'invalid'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataJoin([leftData, rightData, 'a', null, false, 'invalid'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataJoin" called with invalid "variables" argument value, "invalid"'
+        }
+    );
 });
 
 
@@ -906,7 +1018,15 @@ a,b, c
     ]);
 
     // Non-string
-    assert.equal(scriptFunctions.dataParseCSV([text, 7, text2], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataParseCSV([text, 7, text2], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataParseCSV" called with invalid "text" argument value, 7'
+        }
+    );
 });
 
 
@@ -927,10 +1047,26 @@ test('script library, dataSort', () => {
     ]);
 
     // Non-list data
-    assert.equal(scriptFunctions.dataSort([null, [['a', true], ['b']]], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataSort([null, [['a', true], ['b']]], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataSort" called with invalid "data" argument value, null'
+        }
+    );
 
     // Non-list sorts
-    assert.equal(scriptFunctions.dataSort([data, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataSort([data, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataSort" called with invalid "sorts" argument value, null'
+        }
+    );
 });
 
 
@@ -955,19 +1091,59 @@ test('script library, dataTop', () => {
     ]);
 
     // Non-list data
-    assert.equal(scriptFunctions.dataTop([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataTop([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataTop" called with invalid "data" argument value, null'
+        }
+    );
 
     // Non-number count
-    assert.equal(scriptFunctions.dataTop([data, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataTop([data, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataTop" called with invalid "count" argument value, null'
+        }
+    );
 
     // Non-integer count
-    assert.equal(scriptFunctions.dataTop([data, 3.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataTop([data, 3.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataTop" called with invalid "count" argument value, 3.5'
+        }
+    );
 
     // Negative count
-    assert.equal(scriptFunctions.dataTop([data, -3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataTop([data, -3], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataTop" called with invalid "count" argument value, -3'
+        }
+    );
 
     // Non-list category fields
-    assert.equal(scriptFunctions.dataTop([data, 3, 'invalid'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataTop([data, 3, 'invalid'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataTop" called with invalid "categoryFields" argument value, "invalid"'
+        }
+    );
 });
 
 
@@ -991,7 +1167,15 @@ test('script library, dataValidate', () => {
     ]);
 
     // Non-list data
-    assert.equal(scriptFunctions.dataValidate([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.dataValidate([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "dataValidate" called with invalid "data" argument value, null'
+        }
+    );
 });
 
 
