@@ -76,7 +76,15 @@ test('library, arrayCopy', () => {
     assert.notEqual(result, array);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayCopy([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayCopy([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayCopy" called with invalid "array" argument value, null'
+        }
+    );
 });
 
 
@@ -88,10 +96,26 @@ test('library, arrayExtend', () => {
     assert.equal(result, array);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayExtend([null, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayExtend([null, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayExtend" called with invalid "array" argument value, null'
+        }
+    );
 
     // Second non-array
-    assert.equal(scriptFunctions.arrayExtend([array, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayExtend([array, null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayExtend" called with invalid "array2" argument value, null'
+        }
+    );
 });
 
 
@@ -103,17 +127,57 @@ test('library, arrayGet', () => {
     assert.equal(scriptFunctions.arrayGet([array, 2], null), 3);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayGet([null, 0], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayGet([null, 0], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayGet" called with invalid "array" argument value, null'
+        }
+    );
 
     // Index outside valid range
-    assert.equal(scriptFunctions.arrayGet([array, -1], null), null);
-    assert.equal(scriptFunctions.arrayGet([array, 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayGet([array, -1], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayGet" called with invalid "index" argument value, -1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arrayGet([array, 3], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayGet" called with invalid "index" argument value, 3'
+        }
+    );
 
     // Non-number index
-    assert.equal(scriptFunctions.arrayGet([array, '1'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayGet([array, '1'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayGet" called with invalid "index" argument value, "1"'
+        }
+    );
 
     // Non-integer index
-    assert.equal(scriptFunctions.arrayGet([array, 1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayGet([array, 1.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayGet" called with invalid "index" argument value, 1.5'
+        }
+    );
 });
 
 
@@ -169,10 +233,26 @@ test('library, arrayJoin', () => {
     assert.equal(scriptFunctions.arrayJoin([array, ', '], null), 'a, 2, null');
 
     // Non-array
-    assert.equal(scriptFunctions.arrayJoin([null, ', '], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayJoin([null, ', '], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayJoin" called with invalid "array" argument value, null'
+        }
+    );
 
     // Non-string separator
-    assert.equal(scriptFunctions.arrayJoin([array, 1], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayJoin([array, 1], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayJoin" called with invalid "separator" argument value, 1'
+        }
+    );
 });
 
 
@@ -249,16 +329,48 @@ test('library, arrayNewSize', () => {
     assert.deepEqual(scriptFunctions.arrayNewSize([], null), []);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayNewSize([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayNewSize([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayNewSize" called with invalid "size" argument value, null'
+        }
+    );
 
     // Negative size
-    assert.equal(scriptFunctions.arrayNewSize([-1], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayNewSize([-1], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayNewSize" called with invalid "size" argument value, -1'
+        }
+    );
 
     // Non-number size
-    assert.equal(scriptFunctions.arrayNewSize(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayNewSize(['abc'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayNewSize" called with invalid "size" argument value, "abc"'
+        }
+    );
 
     // Non-integer size
-    assert.equal(scriptFunctions.arrayNewSize([1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayNewSize([1.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayNewSize" called with invalid "size" argument value, 1.5'
+        }
+    );
 });
 
 
@@ -271,7 +383,15 @@ test('library, arrayPop', () => {
     assert.equal(scriptFunctions.arrayPop([[]], null), null);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayPop([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayPop([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayPop" called with invalid "array" argument value, null'
+        }
+    );
 });
 
 
@@ -281,7 +401,15 @@ test('library, arrayPush', () => {
     assert.deepEqual(array, [1, 2, 3, 5]);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayPush([null, 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayPush([null, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayPush" called with invalid "array" argument value, null'
+        }
+    );
 });
 
 
@@ -291,17 +419,57 @@ test('library, arraySet', () => {
     assert.deepEqual(array, [1, 5, 3]);
 
     // Non-array
-    assert.equal(scriptFunctions.arraySet([null, 1, 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySet([null, 1, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySet" called with invalid "array" argument value, null'
+        }
+    );
 
     // Non-number index
-    assert.equal(scriptFunctions.arraySort([array, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySet([array, 'abc'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySet" called with invalid "index" argument value, "abc"'
+        }
+    );
 
     // Non-integer index
-    assert.equal(scriptFunctions.arraySort([array, 1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySet([array, 1.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySet" called with invalid "index" argument value, 1.5'
+        }
+    );
 
     // Index outside valid range
-    assert.equal(scriptFunctions.arraySet([array, -1, 5], null), null);
-    assert.equal(scriptFunctions.arraySet([array, 3, 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySet([array, -1, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySet" called with invalid "index" argument value, -1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arraySet([array, 3, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySet" called with invalid "index" argument value, 3'
+        }
+    );
 });
 
 
@@ -314,7 +482,15 @@ test('library, arrayShift', () => {
     assert.equal(scriptFunctions.arrayShift([[]], null), null);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayShift([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayShift([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arrayShift" called with invalid "array" argument value, null'
+        }
+    );
 });
 
 
@@ -334,27 +510,99 @@ test('library, arraySlice', () => {
     assert.deepEqual(scriptFunctions.arraySlice([array, 2, 1], null), []);
 
     // Non-array
-    assert.equal(scriptFunctions.arraySlice([null, 1, 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([null, 1, 3], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "array" argument value, null'
+        }
+    );
 
     // Start index outside valid range
-    assert.equal(scriptFunctions.arraySlice([array, -1], null), null);
-    assert.equal(scriptFunctions.arraySlice([array, 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, -1], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "start" argument value, -1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "start" argument value, 5'
+        }
+    );
 
     // Non-number start index
-    assert.equal(scriptFunctions.arraySlice([array, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 'abc'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "start" argument value, "abc"'
+        }
+    );
 
     // Non-integer start index
-    assert.equal(scriptFunctions.arraySlice([array, 1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 1.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "start" argument value, 1.5'
+        }
+    );
 
     // End index outside valid range
-    assert.equal(scriptFunctions.arraySlice([array, 0, -1], null), null);
-    assert.equal(scriptFunctions.arraySlice([array, 0, 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 0, -1], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "end" argument value, -1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 0, 5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "end" argument value, 5'
+        }
+    );
 
     // Non-number end index
-    assert.equal(scriptFunctions.arraySlice([array, 0, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 0, 'abc'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "end" argument value, "abc"'
+        }
+    );
 
     // Non-integer end index
-    assert.equal(scriptFunctions.arraySlice([array, 0, 1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySlice([array, 0, 1.5], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySlice" called with invalid "end" argument value, 1.5'
+        }
+    );
 });
 
 
@@ -375,11 +623,26 @@ test('library, arraySort', () => {
     assert.deepEqual(array, [3, 2, 1]);
 
     // Non-array
-    assert.equal(scriptFunctions.arraySort([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySort([null], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySort" called with invalid "array" argument value, null'
+        }
+    );
 
     // Non-function cmopare function
-    assert.equal(scriptFunctions.arraySort([array, 'asdf'], null), null);
-    assert.deepEqual(array, [3, 2, 1]);
+    assert.throws(
+        () => {
+            scriptFunctions.arraySort([array, 'asdf'], null);
+        },
+        {
+            'name': 'Error',
+            'message': 'Function "arraySort" called with invalid "compareFn" argument value, "asdf"'
+        }
+    );
 });
 
 
