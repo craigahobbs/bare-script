@@ -3222,13 +3222,40 @@ test('script library, schemaParseEx', () => {
     );
 
     // Non-list/string input
-    assert.equal(scriptFunctions.schemaParseEx([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParseEx([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "lines" argument value, null',
+            'returnValue': null
+        }
+    );
 
-    // Non-doct types
-    assert.equal(scriptFunctions.schemaParseEx(['', null], null), null);
+    // Non-object types
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParseEx(['', 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "types" argument value, "abc"',
+            'returnValue': null
+        }
+    );
 
     // Non-string filename
-    assert.equal(scriptFunctions.schemaParseEx(['', {}, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.schemaParseEx(['', {}, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "filename" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -3266,10 +3293,28 @@ test('script library, schemaValidate', () => {
     );
 
     // Non-dict types
-    assert.equal(scriptFunctions.schemaValidate([null, 'MyStruct', null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidate([null, 'MyStruct', null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "types" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string type
-    assert.equal(scriptFunctions.schemaValidate([{}, null, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidate([{}, null, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "typeName" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -3289,7 +3334,16 @@ test('script library, schemaValidateTypeModel', () => {
     );
 
     // Non-dict types
-    assert.equal(scriptFunctions.schemaValidateTypeModel([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.schemaValidateTypeModel([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "types" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
