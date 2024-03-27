@@ -2784,15 +2784,7 @@ test('library, objectNew', () => {
     assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b'], null), {'a': 1, 'b': null});
 
     // Non-string key
-    assert.throws(
-        () => {
-            scriptFunctions.objectNew([0, 1, 'b'], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "keyValues" argument value, 0'
-        }
-    );
+    assert.deepEqual(scriptFunctions.objectNew([0, 1, 'b'], null), {'0': 1, 'b': null});
 });
 
 
