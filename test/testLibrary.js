@@ -4199,6 +4199,7 @@ test('library, systemFetch', async () => {
     assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([null], {logFn});
+            /* c8 ignore next */
         },
         {
             'name': 'ValueArgsError',
