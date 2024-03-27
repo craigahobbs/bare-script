@@ -81,8 +81,8 @@ test('library, arrayCopy', () => {
             scriptFunctions.arrayCopy([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayCopy" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 });
@@ -101,8 +101,8 @@ test('library, arrayExtend', () => {
             scriptFunctions.arrayExtend([null, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayExtend" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -112,8 +112,8 @@ test('library, arrayExtend', () => {
             scriptFunctions.arrayExtend([array, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayExtend" called with invalid "array2" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array2" argument value, null'
         }
     );
 });
@@ -132,8 +132,8 @@ test('library, arrayGet', () => {
             scriptFunctions.arrayGet([null, 0], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayGet" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -143,8 +143,8 @@ test('library, arrayGet', () => {
             scriptFunctions.arrayGet([array, -1], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayGet" called with invalid "index" argument value, -1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1'
         }
     );
     assert.throws(
@@ -152,8 +152,8 @@ test('library, arrayGet', () => {
             scriptFunctions.arrayGet([array, 3], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayGet" called with invalid "index" argument value, 3'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 3'
         }
     );
 
@@ -163,8 +163,8 @@ test('library, arrayGet', () => {
             scriptFunctions.arrayGet([array, '1'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayGet" called with invalid "index" argument value, "1"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, "1"'
         }
     );
 
@@ -174,8 +174,8 @@ test('library, arrayGet', () => {
             scriptFunctions.arrayGet([array, 1.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayGet" called with invalid "index" argument value, 1.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5'
         }
     );
 });
@@ -214,17 +214,62 @@ test('library, arrayIndexOf', () => {
     assert.equal(scriptFunctions.arrayIndexOf([array, valueFn, 2.], options), 3);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayIndexOf([null, 2], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayIndexOf([null, 2], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null',
+            'returnValue': -1
+        }
+    );
 
     // Index outside valid range
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2, -1], null), -1);
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 4], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayIndexOf([array, 2, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1',
+            'returnValue': -1
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arrayIndexOf([array, 2, 4], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 4',
+            'returnValue': -1
+        }
+    );
 
     // Non-number index
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 'abc'], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayIndexOf([array, 2, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, "abc"',
+            'returnValue': -1
+        }
+    );
 
     // Non-integer index
-    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 1.5], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayIndexOf([array, 2, 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5',
+            'returnValue': -1
+        }
+    );
 });
 
 
@@ -238,8 +283,8 @@ test('library, arrayJoin', () => {
             scriptFunctions.arrayJoin([null, ', '], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayJoin" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -249,8 +294,8 @@ test('library, arrayJoin', () => {
             scriptFunctions.arrayJoin([array, 1], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayJoin" called with invalid "separator" argument value, 1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "separator" argument value, 1'
         }
     );
 });
@@ -289,17 +334,62 @@ test('library, arrayLastIndexOf', () => {
     assert.equal(scriptFunctions.arrayLastIndexOf([array, valueFn, 2.], options), 1);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayLastIndexOf([null, 2], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLastIndexOf([null, 2], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null',
+            'returnValue': -1
+        }
+    );
 
     // Index outside valid range
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, -1], null), -1);
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 4], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLastIndexOf([array, 2, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1',
+            'returnValue': -1
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLastIndexOf([array, 2, 4], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 4',
+            'returnValue': -1
+        }
+    );
 
     // Non-number index
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 'abc'], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLastIndexOf([array, 2, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, "abc"',
+            'returnValue': -1
+        }
+    );
 
     // Non-integer index
-    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 1.5], null), -1);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLastIndexOf([array, 2, 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5',
+            'returnValue': -1
+        }
+    );
 });
 
 
@@ -308,7 +398,16 @@ test('library, arrayLength', () => {
     assert.equal(scriptFunctions.arrayLength([array], null), 3);
 
     // Non-array
-    assert.equal(scriptFunctions.arrayLength([null], null), 0);
+    assert.throws(
+        () => {
+            scriptFunctions.arrayLength([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null',
+            'returnValue': 0
+        }
+    );
 });
 
 
@@ -334,8 +433,8 @@ test('library, arrayNewSize', () => {
             scriptFunctions.arrayNewSize([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayNewSize" called with invalid "size" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "size" argument value, null'
         }
     );
 
@@ -345,8 +444,8 @@ test('library, arrayNewSize', () => {
             scriptFunctions.arrayNewSize([-1], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayNewSize" called with invalid "size" argument value, -1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "size" argument value, -1'
         }
     );
 
@@ -356,8 +455,8 @@ test('library, arrayNewSize', () => {
             scriptFunctions.arrayNewSize(['abc'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayNewSize" called with invalid "size" argument value, "abc"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "size" argument value, "abc"'
         }
     );
 
@@ -367,8 +466,8 @@ test('library, arrayNewSize', () => {
             scriptFunctions.arrayNewSize([1.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayNewSize" called with invalid "size" argument value, 1.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "size" argument value, 1.5'
         }
     );
 });
@@ -388,8 +487,8 @@ test('library, arrayPop', () => {
             scriptFunctions.arrayPop([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayPop" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 });
@@ -406,8 +505,8 @@ test('library, arrayPush', () => {
             scriptFunctions.arrayPush([null, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayPush" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 });
@@ -424,8 +523,8 @@ test('library, arraySet', () => {
             scriptFunctions.arraySet([null, 1, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySet" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -435,8 +534,8 @@ test('library, arraySet', () => {
             scriptFunctions.arraySet([array, 'abc'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySet" called with invalid "index" argument value, "abc"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, "abc"'
         }
     );
 
@@ -446,8 +545,8 @@ test('library, arraySet', () => {
             scriptFunctions.arraySet([array, 1.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySet" called with invalid "index" argument value, 1.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5'
         }
     );
 
@@ -457,8 +556,8 @@ test('library, arraySet', () => {
             scriptFunctions.arraySet([array, -1, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySet" called with invalid "index" argument value, -1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1'
         }
     );
     assert.throws(
@@ -466,8 +565,8 @@ test('library, arraySet', () => {
             scriptFunctions.arraySet([array, 3, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySet" called with invalid "index" argument value, 3'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 3'
         }
     );
 });
@@ -487,8 +586,8 @@ test('library, arrayShift', () => {
             scriptFunctions.arrayShift([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arrayShift" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 });
@@ -515,8 +614,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([null, 1, 3], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -526,8 +625,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, -1], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "start" argument value, -1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "start" argument value, -1'
         }
     );
     assert.throws(
@@ -535,8 +634,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "start" argument value, 5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "start" argument value, 5'
         }
     );
 
@@ -546,8 +645,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 'abc'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "start" argument value, "abc"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "start" argument value, "abc"'
         }
     );
 
@@ -557,8 +656,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 1.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "start" argument value, 1.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "start" argument value, 1.5'
         }
     );
 
@@ -568,8 +667,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 0, -1], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "end" argument value, -1'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "end" argument value, -1'
         }
     );
     assert.throws(
@@ -577,8 +676,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 0, 5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "end" argument value, 5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "end" argument value, 5'
         }
     );
 
@@ -588,8 +687,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 0, 'abc'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "end" argument value, "abc"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "end" argument value, "abc"'
         }
     );
 
@@ -599,8 +698,8 @@ test('library, arraySlice', () => {
             scriptFunctions.arraySlice([array, 0, 1.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySlice" called with invalid "end" argument value, 1.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "end" argument value, 1.5'
         }
     );
 });
@@ -628,8 +727,8 @@ test('library, arraySort', () => {
             scriptFunctions.arraySort([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySort" called with invalid "array" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
         }
     );
 
@@ -639,8 +738,8 @@ test('library, arraySort', () => {
             scriptFunctions.arraySort([array, 'asdf'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "arraySort" called with invalid "compareFn" argument value, "asdf"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "compareFn" argument value, "asdf"'
         }
     );
 });
@@ -674,8 +773,8 @@ test('script library, dataAggregate', () => {
             scriptFunctions.dataAggregate([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataAggregate" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 
@@ -685,8 +784,8 @@ test('script library, dataAggregate', () => {
             scriptFunctions.dataAggregate([data, 'invalid'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataAggregate" called with invalid "aggregation" argument value, "invalid"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "aggregation" argument value, "invalid"'
         }
     );
 
@@ -752,8 +851,8 @@ test('script library, dataCalculatedField', () => {
             scriptFunctions.dataCalculatedField([null, 'c', 'a * b'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataCalculatedField" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 
@@ -763,8 +862,8 @@ test('script library, dataCalculatedField', () => {
             scriptFunctions.dataCalculatedField([data, null, 'a * b'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataCalculatedField" called with invalid "fieldName" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "fieldName" argument value, null'
         }
     );
 
@@ -774,8 +873,8 @@ test('script library, dataCalculatedField', () => {
             scriptFunctions.dataCalculatedField([data, 'c', null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataCalculatedField" called with invalid "expr" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "expr" argument value, null'
         }
     );
 
@@ -785,8 +884,8 @@ test('script library, dataCalculatedField', () => {
             scriptFunctions.dataCalculatedField([data, 'c', 'a * b', 'invalid'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataCalculatedField" called with invalid "variables" argument value, "invalid"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "variables" argument value, "invalid"'
         }
     );
 });
@@ -836,8 +935,8 @@ test('script library, dataFilter', () => {
             scriptFunctions.dataFilter([null, 'a * b'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataFilter" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 
@@ -847,8 +946,8 @@ test('script library, dataFilter', () => {
             scriptFunctions.dataFilter([data, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataFilter" called with invalid "expr" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "expr" argument value, null'
         }
     );
 
@@ -858,8 +957,8 @@ test('script library, dataFilter', () => {
             scriptFunctions.dataFilter([data, 'a * b', 'invalid'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataFilter" called with invalid "variables" argument value, "invalid"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "variables" argument value, "invalid"'
         }
     );
 });
@@ -944,8 +1043,8 @@ test('script library, dataJoin', () => {
             scriptFunctions.dataJoin([null, rightData, 'a'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataJoin" called with invalid "leftData" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "leftData" argument value, null'
         }
     );
 
@@ -955,8 +1054,8 @@ test('script library, dataJoin', () => {
             scriptFunctions.dataJoin([leftData, null, 'a'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataJoin" called with invalid "rightData" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "rightData" argument value, null'
         }
     );
 
@@ -966,8 +1065,8 @@ test('script library, dataJoin', () => {
             scriptFunctions.dataJoin([leftData, rightData, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataJoin" called with invalid "joinExpr" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "joinExpr" argument value, null'
         }
     );
 
@@ -977,8 +1076,8 @@ test('script library, dataJoin', () => {
             scriptFunctions.dataJoin([leftData, rightData, 'a', 7], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataJoin" called with invalid "rightExpr" argument value, 7'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "rightExpr" argument value, 7'
         }
     );
 
@@ -988,8 +1087,8 @@ test('script library, dataJoin', () => {
             scriptFunctions.dataJoin([leftData, rightData, 'a', null, false, 'invalid'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataJoin" called with invalid "variables" argument value, "invalid"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "variables" argument value, "invalid"'
         }
     );
 });
@@ -1023,8 +1122,8 @@ a,b, c
             scriptFunctions.dataParseCSV([text, 7, text2], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataParseCSV" called with invalid "text" argument value, 7'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "text" argument value, 7'
         }
     );
 });
@@ -1052,8 +1151,8 @@ test('script library, dataSort', () => {
             scriptFunctions.dataSort([null, [['a', true], ['b']]], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataSort" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 
@@ -1063,8 +1162,8 @@ test('script library, dataSort', () => {
             scriptFunctions.dataSort([data, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataSort" called with invalid "sorts" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "sorts" argument value, null'
         }
     );
 });
@@ -1096,8 +1195,8 @@ test('script library, dataTop', () => {
             scriptFunctions.dataTop([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataTop" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 
@@ -1107,8 +1206,8 @@ test('script library, dataTop', () => {
             scriptFunctions.dataTop([data, null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataTop" called with invalid "count" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "count" argument value, null'
         }
     );
 
@@ -1118,8 +1217,8 @@ test('script library, dataTop', () => {
             scriptFunctions.dataTop([data, 3.5], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataTop" called with invalid "count" argument value, 3.5'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "count" argument value, 3.5'
         }
     );
 
@@ -1129,8 +1228,8 @@ test('script library, dataTop', () => {
             scriptFunctions.dataTop([data, -3], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataTop" called with invalid "count" argument value, -3'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "count" argument value, -3'
         }
     );
 
@@ -1140,8 +1239,8 @@ test('script library, dataTop', () => {
             scriptFunctions.dataTop([data, 3, 'invalid'], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataTop" called with invalid "categoryFields" argument value, "invalid"'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "categoryFields" argument value, "invalid"'
         }
     );
 });
@@ -1172,8 +1271,8 @@ test('script library, dataValidate', () => {
             scriptFunctions.dataValidate([null], null);
         },
         {
-            'name': 'Error',
-            'message': 'Function "dataValidate" called with invalid "data" argument value, null'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "data" argument value, null'
         }
     );
 });
@@ -1189,7 +1288,15 @@ test('library, datetimeDay', () => {
     assert.equal(scriptFunctions.datetimeDay([dt], null), 21);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeDay([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeDay([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1198,7 +1305,15 @@ test('library, datetimeHour', () => {
     assert.equal(scriptFunctions.datetimeHour([dt], null), 7);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeHour([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeHour([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1223,7 +1338,15 @@ test('library, datetimeISOFormat', () => {
     );
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeISOFormat([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeISOFormat([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1245,7 +1368,15 @@ test('library, datetimeISOParse', () => {
     assert.equal(scriptFunctions.datetimeISOParse(['invalid'], null), null);
 
     // Non-string datetime string
-    assert.equal(scriptFunctions.datetimeISOParse([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeISOParse([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null'
+        }
+    );
 });
 
 
@@ -1254,7 +1385,15 @@ test('library, datetimeMillisecond', () => {
     assert.equal(scriptFunctions.datetimeMillisecond([dt], null), 100);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeMillisecond([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeMillisecond([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1263,7 +1402,15 @@ test('library, datetimeMinute', () => {
     assert.equal(scriptFunctions.datetimeMinute([dt], null), 15);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeMinute([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeMinute([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1272,7 +1419,15 @@ test('library, datetimeMonth', () => {
     assert.equal(scriptFunctions.datetimeMonth([dt], null), 6);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeMonth([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeMonth([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1364,25 +1519,145 @@ test('library, datetimeNew', () => {
     );
 
     // Invalid year
-    assert.equal(scriptFunctions.datetimeNew([90, 6, 21, 12, 30, 15, 100], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([90, 6, 21, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "year" argument value, 90'
+        }
+    );
 
     // Non-number arguments
-    assert.equal(scriptFunctions.datetimeNew(['2022', 6, 21, 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, '6', 21, 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, '21', 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, '12', 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, '30', 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, '15', 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, '100'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew(['2022', 6, 21, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "year" argument value, "2022"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, '6', 21, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "month" argument value, "6"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, '21', 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "day" argument value, "21"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, '12', 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "hour" argument value, "12"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, '30', 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "minute" argument value, "30"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, '15', 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "second" argument value, "15"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, '100'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "millisecond" argument value, "100"'
+        }
+    );
 
     // Non-integer arguments
-    assert.equal(scriptFunctions.datetimeNew([2022.5, 6, 21, 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6.5, 21, 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21.5, 12, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12.5, 30, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30.5, 15, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15.5, 100], null), null);
-    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022.5, 6, 21, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "year" argument value, 2022.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6.5, 21, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "month" argument value, 6.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21.5, 12, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "day" argument value, 21.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12.5, 30, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "hour" argument value, 12.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, 30.5, 15, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "minute" argument value, 30.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15.5, 100], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "second" argument value, 15.5'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeNew([2022, 6, 21, 12, 30, 15, 100.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "millisecond" argument value, 100.5'
+        }
+    );
 });
 
 
@@ -1396,7 +1671,15 @@ test('library, datetimeSecond', () => {
     assert.equal(scriptFunctions.datetimeSecond([dt], null), 30);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeSecond([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeSecond([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1415,7 +1698,15 @@ test('library, datetimeYear', () => {
     assert.equal(scriptFunctions.datetimeYear([dt], null), 2022);
 
     // Non-datetime
-    assert.equal(scriptFunctions.datetimeYear([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.datetimeYear([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "datetime" argument value, null'
+        }
+    );
 });
 
 
@@ -1438,7 +1729,15 @@ test('library, jsonParse', () => {
     );
 
     // Non-string
-    assert.equal(scriptFunctions.jsonParse([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.jsonParse([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null'
+        }
+    );
 });
 
 
@@ -1470,16 +1769,48 @@ test('library, jsonStringify', () => {
     );
 
     // Non-number indent
-    assert.equal(scriptFunctions.jsonStringify([null, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.jsonStringify([null, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "indent" argument value, "abc"'
+        }
+    );
 
     // Non-integer indent
-    assert.equal(scriptFunctions.jsonStringify([null, 4.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.jsonStringify([null, 4.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "indent" argument value, 4.5'
+        }
+    );
 
     // Zero indent
-    assert.equal(scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 0], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.jsonStringify([{'a': 1, 'b': 2}, 0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "indent" argument value, 0'
+        }
+    );
 
     // Negative indent
-    assert.equal(scriptFunctions.jsonStringify([null, -4], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.jsonStringify([null, -4], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "indent" argument value, -4'
+        }
+    );
 });
 
 
@@ -1492,7 +1823,15 @@ test('library, mathAbs', () => {
     assert.equal(scriptFunctions.mathAbs([-3], null), 3);
 
     // Non-number
-    assert.equal(scriptFunctions.mathAbs(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathAbs(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1500,7 +1839,15 @@ test('library, mathAcos', () => {
     assert.equal(scriptFunctions.mathAcos([1], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathAcos(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathAcos(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1508,7 +1855,15 @@ test('library, mathAsin', () => {
     assert.equal(scriptFunctions.mathAsin([0], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathAsin(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathAsin(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1516,7 +1871,15 @@ test('library, mathAtan', () => {
     assert.equal(scriptFunctions.mathAtan([0], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathAtan(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathAtan(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1524,8 +1887,24 @@ test('library, mathAtan2', () => {
     assert.equal(scriptFunctions.mathAtan2([0, 1], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathAtan2(['abc', 1], null), null);
-    assert.equal(scriptFunctions.mathAtan2([0, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathAtan2(['abc', 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "y" argument value, "abc"'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.mathAtan2([0, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1533,7 +1912,15 @@ test('library, mathCeil', () => {
     assert.equal(scriptFunctions.mathCeil([0.25], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathCeil(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathCeil(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1541,7 +1928,15 @@ test('library, mathCos', () => {
     assert.equal(scriptFunctions.mathCos([0], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathCos(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathCos(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1549,7 +1944,15 @@ test('library, mathFloor', () => {
     assert.equal(scriptFunctions.mathFloor([1.125], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathFloor(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathFloor(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1557,11 +1960,35 @@ test('library, mathLn', () => {
     assert.equal(scriptFunctions.mathLn([Math.E], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathLn(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLn(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 
     // Invalid value
-    assert.equal(scriptFunctions.mathLn([0], null), null);
-    assert.equal(scriptFunctions.mathLn([-10], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLn([0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, 0'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.mathLn([-10], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, -10'
+        }
+    );
 });
 
 
@@ -1573,19 +2000,75 @@ test('library, mathLog', () => {
     assert.equal(scriptFunctions.mathLog([8, 0.5], null), -3);
 
     // Non-number value
-    assert.equal(scriptFunctions.mathLog(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 
     // Non-number base
-    assert.equal(scriptFunctions.mathLog([10, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([10, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "base" argument value, "abc"'
+        }
+    );
 
     // Invalid value
-    assert.equal(scriptFunctions.mathLog([0], null), null);
-    assert.equal(scriptFunctions.mathLog([-10], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, 0'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([-10], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, -10'
+        }
+    );
 
     // Invalid base
-    assert.equal(scriptFunctions.mathLog([10, 1], null), null);
-    assert.equal(scriptFunctions.mathLog([10, 0], null), null);
-    assert.equal(scriptFunctions.mathLog([10, -10], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([10, 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "base" argument value, 1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([10, 0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "base" argument value, 0'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.mathLog([10, -10], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "base" argument value, -10'
+        }
+    );
 });
 
 
@@ -1593,9 +2076,9 @@ test('library, mathMax', () => {
     assert.equal(scriptFunctions.mathMax([1, 2, 3], null), 3);
 
     // Non-number
-    assert.equal(scriptFunctions.mathMax(['abc', 2, 3], null), null);
-    assert.equal(scriptFunctions.mathMax([1, 'abc', 3], null), null);
-    assert.equal(scriptFunctions.mathMax([1, 2, 'abc'], null), null);
+    assert.equal(scriptFunctions.mathMax(['abc', 2, 3], null), 'abc');
+    assert.equal(scriptFunctions.mathMax([1, 'abc', 3], null), 'abc');
+    assert.equal(scriptFunctions.mathMax([1, 2, 'abc'], null), 'abc');
 });
 
 
@@ -1603,9 +2086,9 @@ test('library, mathMin', () => {
     assert.equal(scriptFunctions.mathMin([1, 2, 3], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathMin(['abc', 2, 3], null), null);
-    assert.equal(scriptFunctions.mathMin([1, 'abc', 3], null), null);
-    assert.equal(scriptFunctions.mathMin([1, 2, 'abc'], null), null);
+    assert.equal(scriptFunctions.mathMin(['abc', 2, 3], null), 2);
+    assert.equal(scriptFunctions.mathMin([1, 'abc', 3], null), 1);
+    assert.equal(scriptFunctions.mathMin([1, 2, 'abc'], null), 1);
 });
 
 
@@ -1631,16 +2114,48 @@ test('library, mathRound', () => {
     assert.equal(scriptFunctions.mathRound([5.15, 1], null), 5.2);
 
     // Non-number value
-    assert.equal(scriptFunctions.mathRound(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathRound(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 
-    // Non-number base
-    assert.equal(scriptFunctions.mathRound([5.125, 'abc'], null), null);
+    // Non-number digits
+    assert.throws(
+        () => {
+            scriptFunctions.mathRound([5.125, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, "abc"'
+        }
+    );
 
-    // Non-integer base
-    assert.equal(scriptFunctions.mathRound([5.125, 1.5], null), null);
+    // Non-integer digits
+    assert.throws(
+        () => {
+            scriptFunctions.mathRound([5.125, 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, 1.5'
+        }
+    );
 
-    // Negative base
-    assert.equal(scriptFunctions.mathRound([5.125, -1], null), null);
+    // Negative digits
+    assert.throws(
+        () => {
+            scriptFunctions.mathRound([5.125, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, -1'
+        }
+    );
 });
 
 
@@ -1648,7 +2163,15 @@ test('library, mathSign', () => {
     assert.equal(scriptFunctions.mathSign([5.125], null), 1);
 
     // Non-number
-    assert.equal(scriptFunctions.mathSign(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathSign(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1656,7 +2179,15 @@ test('library, mathSin', () => {
     assert.equal(scriptFunctions.mathSin([0], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathSin(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathSin(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1664,10 +2195,26 @@ test('library, mathSqrt', () => {
     assert.equal(scriptFunctions.mathSqrt([4], null), 2);
 
     // Non-number
-    assert.equal(scriptFunctions.mathSqrt(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathSqrt(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 
     // Negative value
-    assert.equal(scriptFunctions.mathSqrt([-4], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathSqrt([-4], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, -4'
+        }
+    );
 });
 
 
@@ -1675,7 +2222,15 @@ test('library, mathTan', () => {
     assert.equal(scriptFunctions.mathTan([0], null), 0);
 
     // Non-number
-    assert.equal(scriptFunctions.mathTan(['abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.mathTan(['abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, "abc"'
+        }
+    );
 });
 
 
@@ -1693,7 +2248,15 @@ test('library, numberToFixed', () => {
     assert.equal(scriptFunctions.numberParseFloat(['1234.45 asdf'], null), null);
 
     // Non-string value
-    assert.equal(scriptFunctions.numberParseFloat([10], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseFloat([10], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, 10'
+        }
+    );
 });
 
 
@@ -1711,17 +2274,57 @@ test('library, numberParseInt', () => {
     assert.equal(scriptFunctions.numberParseInt(['1234.45 asdf'], null), null);
 
     // Non-string value
-    assert.equal(scriptFunctions.numberParseInt([10], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseInt([10], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, 10'
+        }
+    );
 
     // Non-number radix
-    assert.equal(scriptFunctions.numberParseInt(['10', 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseInt(['10', 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, "abc"'
+        }
+    );
 
     // Non-integer radix
-    assert.equal(scriptFunctions.numberParseInt(['10', 2.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseInt(['10', 2.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 2.5'
+        }
+    );
 
     // Invalid radix
-    assert.equal(scriptFunctions.numberParseInt(['10', 1], null), null);
-    assert.equal(scriptFunctions.numberParseInt(['10', 37], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseInt(['10', 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.numberParseInt(['10', 37], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 37'
+        }
+    );
 });
 
 
@@ -1739,16 +2342,48 @@ test('library, numberParseFloat', () => {
     assert.equal(scriptFunctions.numberToFixed([1, 1, true], null), '1');
 
     // Non-number value
-    assert.equal(scriptFunctions.numberToFixed([null, 1], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberToFixed([null, 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, null'
+        }
+    );
 
     // Non-number digits
-    assert.equal(scriptFunctions.numberToFixed([1.125, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberToFixed([1.125, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, null'
+        }
+    );
 
     // Non-integer digits
-    assert.equal(scriptFunctions.numberToFixed([1.125, 1.5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberToFixed([1.125, 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, 1.5'
+        }
+    );
 
     // Negative digits
-    assert.equal(scriptFunctions.numberToFixed([1.125, -1], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.numberToFixed([1.125, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "digits" argument value, -1'
+        }
+    );
 });
 
 
@@ -1765,21 +2400,75 @@ test('library, objectAssign', () => {
 
     // Null inputs
     obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectAssign([null, obj], null), null);
-    assert.equal(scriptFunctions.objectAssign([obj, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([null, obj], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([obj, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object2" argument value, null',
+            'returnValue': null
+        }
+    );
     assert.deepEqual(obj, {'a': 1, 'b': 2});
 
     // Number inputs
     obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectAssign([0, obj], null), null);
-    assert.equal(scriptFunctions.objectAssign([obj, 0], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([0, obj], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([obj, 0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object2" argument value, 0',
+            'returnValue': null
+        }
+    );
     assert.deepEqual(obj, {'a': 1, 'b': 2});
 
     // Array inputs
     obj = {'a': 1, 'b': 2};
     const array = ['c', 'd'];
-    assert.equal(scriptFunctions.objectAssign([obj, array], null), null);
-    assert.equal(scriptFunctions.objectAssign([array, obj], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([obj, array], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object2" argument value, ["c","d"]',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectAssign([array, obj], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["c","d"]',
+            'returnValue': null
+        }
+    );
     assert.deepEqual(obj, {'a': 1, 'b': 2});
     assert.deepEqual(array, ['c', 'd']);
 });
@@ -1792,13 +2481,40 @@ test('library, objectCopy', () => {
     assert.notEqual(objCopy, obj);
 
     // Null input
-    assert.equal(scriptFunctions.objectCopy([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectCopy([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectCopy([0], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectCopy([0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': null
+        }
+    );
 
     // Array input
-    assert.equal(scriptFunctions.objectCopy([['a', 'b']], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectCopy([['a', 'b']], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -1813,21 +2529,52 @@ test('library, objectDelete', () => {
     assert.deepEqual(obj, {'b': 2});
 
     // Null input
-    assert.equal(scriptFunctions.objectDelete([null, 'a'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectDelete([null, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectDelete([0, 'a'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectDelete([0, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': null
+        }
+    );
 
     // Array input
-    assert.equal(scriptFunctions.objectDelete([['a', 'b'], 'a'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectDelete([['a', 'b'], 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]',
+            'returnValue': null
+        }
+    );
 
     // Non-string key
-    assert.equal(scriptFunctions.objectDelete([obj, null], null), null);
-});
-
-
-test('library, objectGet2', () => {
-    assert.equal(scriptFunctions.objectGet([null, 'a', 1], null), 1);
+    assert.throws(
+        () => {
+            scriptFunctions.objectDelete([obj, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "key" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -1841,21 +2588,93 @@ test('library, objectGet', () => {
     assert.equal(scriptFunctions.objectGet([obj, 'a', 1], null), 1);
 
     // Null input
-    assert.equal(scriptFunctions.objectGet([null, 'a'], null), null);
-    assert.equal(scriptFunctions.objectGet([null, 'a', 1], null), 1);
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([null, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([null, 'a', 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': 1
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectGet([0, 'a'], null), null);
-    assert.equal(scriptFunctions.objectGet([0, 'a', 1], null), 1);
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([0, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([0, 'a', 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': 1
+        }
+    );
 
     // Array input
-    assert.equal(scriptFunctions.objectGet([['a', 'b'], 'a'], null), null);
-    assert.equal(scriptFunctions.objectGet([['a', 'b'], 'a', 1], null), 1);
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([['a', 'b'], 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([['a', 'b'], 'a', 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]',
+            'returnValue': 1
+        }
+    );
 
     // Non-string key
     obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectGet([obj, null], null), null);
-    assert.equal(scriptFunctions.objectGet([obj, null, 1], null), 1);
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([obj, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "key" argument value, null',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.objectGet([obj, null, 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "key" argument value, null',
+            'returnValue': 1
+        }
+    );
 });
 
 
@@ -1867,16 +2686,52 @@ test('library, objectHas', () => {
     assert.equal(scriptFunctions.objectHas([obj, 'd'], null), false);
 
     // Null input
-    assert.equal(scriptFunctions.objectHas([null, 'a'], null), false);
+    assert.throws(
+        () => {
+            scriptFunctions.objectHas([null, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null',
+            'returnValue': false
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectHas([0, 'a'], null), false);
+    assert.throws(
+        () => {
+            scriptFunctions.objectHas([0, 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0',
+            'returnValue': false
+        }
+    );
 
     // Array input
-    assert.equal(scriptFunctions.objectHas([['a', 'b'], 'a'], null), false);
+    assert.throws(
+        () => {
+            scriptFunctions.objectHas([['a', 'b'], 'a'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]',
+            'returnValue': false
+        }
+    );
 
     // Non-string key
-    assert.equal(scriptFunctions.objectHas([obj, null], null), false);
+    assert.throws(
+        () => {
+            scriptFunctions.objectHas([obj, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "key" argument value, null',
+            'returnValue': false
+        }
+    );
 });
 
 
@@ -1885,13 +2740,37 @@ test('library, objectKeys', () => {
     assert.deepEqual(scriptFunctions.objectKeys([obj], null), ['a', 'b']);
 
     // Null input
-    assert.equal(scriptFunctions.objectKeys([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectKeys([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null'
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectKeys([0], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectKeys([0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0'
+        }
+    );
 
     // Array input
-    assert.equal(scriptFunctions.objectKeys([['a', 'b']], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectKeys([['a', 'b']], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]'
+        }
+    );
 });
 
 
@@ -1905,7 +2784,15 @@ test('library, objectNew', () => {
     assert.deepEqual(scriptFunctions.objectNew(['a', 1, 'b'], null), {'a': 1, 'b': null});
 
     // Non-string key
-    assert.equal(scriptFunctions.objectNew([0, 1, 'b'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectNew([0, 1, 'b'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "keyValues" argument value, 0'
+        }
+    );
 });
 
 
@@ -1915,19 +2802,51 @@ test('library, objectSet missing', () => {
     assert.deepEqual(obj, {'a': 1, 'b': 2, 'c': 3});
 
     // Null input
-    assert.equal(scriptFunctions.objectSet([null, 'c', 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectSet([null, 'c', 3], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, null'
+        }
+    );
 
     // Number input
-    assert.equal(scriptFunctions.objectSet([0, 'c', 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectSet([0, 'c', 3], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, 0'
+        }
+    );
 
     // Array input
     const array = ['a', 'b'];
-    assert.equal(scriptFunctions.objectSet([array, 'c', 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectSet([array, 'c', 3], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "object" argument value, ["a","b"]'
+        }
+    );
     assert.deepEqual(array, ['a', 'b']);
 
     // Non-string key
     obj = {'a': 1, 'b': 2};
-    assert.equal(scriptFunctions.objectSet([obj, null, 3], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.objectSet([obj, null, 3], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "key" argument value, null'
+        }
+    );
     assert.deepEqual(obj, {'a': 1, 'b': 2});
 });
 
