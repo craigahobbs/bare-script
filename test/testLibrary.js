@@ -4392,10 +4392,28 @@ test('library, systemPartial', () => {
     assert.equal(partialFn([1], {'debug': false}), 'test-1');
 
     // Non-function
-    assert.equal(scriptFunctions.systemPartial([null, 'test'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.systemPartial([null, 'test'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "func" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // No args
-    assert.equal(scriptFunctions.systemPartial([testFn], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.systemPartial([testFn], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "args" argument value, []',
+            'returnValue': null
+        }
+    );
 });
 
 
