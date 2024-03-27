@@ -2852,7 +2852,16 @@ test('library, regexEscape', () => {
     assert.equal(scriptFunctions.regexEscape(['a*b'], null), 'a\\*b');
 
     // Non-string
-    assert.equal(scriptFunctions.regexEscape([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexEscape([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -2880,10 +2889,28 @@ test('library, regexMatch', () => {
     assert.equal(scriptFunctions.regexMatch([/foo/, 'boo bar'], null), null);
 
     // Non-regex
-    assert.equal(scriptFunctions.regexMatch([null, 'foo bar'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexMatch([null, 'foo bar'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "regex" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string
-    assert.equal(scriptFunctions.regexMatch([/foo/, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexMatch([/foo/, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -2928,10 +2955,28 @@ test('library, regexMatchAll', () => {
     );
 
     // Non-regex
-    assert.equal(scriptFunctions.regexMatchAll([null, 'abc'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexMatchAll([null, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "regex" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string
-    assert.equal(scriptFunctions.regexMatchAll([/foo/, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexMatchAll([/foo/, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -2969,13 +3014,40 @@ test('library, regexNew', () => {
     assert.equal(scriptFunctions.regexNew(['a*b', 'iz'], null), null);
 
     // Non-regex
-    assert.equal(scriptFunctions.regexNew([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexNew([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "pattern" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string pattern
-    assert.equal(scriptFunctions.regexNew([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexNew([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "pattern" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string flags
-    assert.equal(scriptFunctions.regexNew(['a*b', 5], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexNew(['a*b', 5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "flags" argument value, 5',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -3007,13 +3079,40 @@ test('library, regexReplace', () => {
     assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2\\$1'], null), 'b\\a');
 
     // Non-regex
-    assert.equal(scriptFunctions.regexReplace([null, 'ab', '$2$1'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexReplace([null, 'ab', '$2$1'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "regex" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string
-    assert.equal(scriptFunctions.regexReplace([/(a*)(b)/, null, '$2$1'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexReplace([/(a*)(b)/, null, '$2$1'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string substr
-    assert.equal(scriptFunctions.regexReplace([/(a*)(b)/, 'ab', null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexReplace([/(a*)(b)/, 'ab', null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "substr" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -3021,10 +3120,28 @@ test('library, regexSplit', () => {
     assert.deepEqual(scriptFunctions.regexSplit([/\s*,\s*/, '1,2, 3 , 4'], null), ['1', '2', '3', '4']);
 
     // Non-regex
-    assert.equal(scriptFunctions.regexSplit([null, '1,2'], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexSplit([null, '1,2'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "regex" argument value, null',
+            'returnValue': null
+        }
+    );
 
     // Non-string
-    assert.equal(scriptFunctions.regexSplit([/\s*,\s*/, null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.regexSplit([/\s*,\s*/, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
