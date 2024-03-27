@@ -4440,7 +4440,16 @@ test('script library, urlEncode', () => {
     );
 
     // Non-string URL
-    assert.equal(scriptFunctions.urlEncode([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.urlEncode([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -4465,5 +4474,14 @@ test('script library, urlEncodeComponent', () => {
     );
 
     // Non-string URL
-    assert.equal(scriptFunctions.urlEncodeComponent([null], null), null);
+    assert.throws(
+        () => {
+            scriptFunctions.urlEncodeComponent([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, null',
+            'returnValue': null
+        }
+    );
 });
