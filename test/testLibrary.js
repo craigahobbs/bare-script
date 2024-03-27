@@ -4196,7 +4196,16 @@ test('library, systemFetch', async () => {
 
     // Unexpected input type
     logs = [];
-    assert.equal(await scriptFunctions.systemFetch([null], {logFn}), null);
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([null], {logFn});
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, null',
+            'returnValue': null
+        }
+    );
     assert.deepEqual(logs, []);
 });
 
@@ -4225,7 +4234,16 @@ test('library, systemGlobalGet', () => {
 
     // Non-string name
     options = {'globals': {'a': 1}};
-    assert.equal(scriptFunctions.systemGlobalGet([null], options), null);
+    assert.throws(
+        () => {
+            scriptFunctions.systemGlobalGet([null], options);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "name" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
@@ -4245,7 +4263,16 @@ test('library, systemGlobalSet', () => {
 
     // Non-string name
     options = {'globals': {}};
-    assert.equal(scriptFunctions.systemGlobalSet([null], options), null);
+    assert.throws(
+        () => {
+            scriptFunctions.systemGlobalSet([null], options);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "name" argument value, null',
+            'returnValue': null
+        }
+    );
 });
 
 
