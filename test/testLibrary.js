@@ -2075,6 +2075,9 @@ test('library, mathLog', () => {
 test('library, mathMax', () => {
     assert.equal(scriptFunctions.mathMax([1, 2, 3], null), 3);
 
+    // Empty values
+    assert.equal(scriptFunctions.mathMax([], null), null);
+
     // Non-number
     assert.equal(scriptFunctions.mathMax(['abc', 2, 3], null), 'abc');
     assert.equal(scriptFunctions.mathMax([1, 'abc', 3], null), 'abc');
@@ -2084,6 +2087,9 @@ test('library, mathMax', () => {
 
 test('library, mathMin', () => {
     assert.equal(scriptFunctions.mathMin([1, 2, 3], null), 1);
+
+    // Empty values
+    assert.equal(scriptFunctions.mathMin([], null), null);
 
     // Non-number
     assert.equal(scriptFunctions.mathMin(['abc', 2, 3], null), 2);
@@ -3895,6 +3901,26 @@ test('library, stringSlice', () => {
         {
             'name': 'ValueArgsError',
             'message': 'Invalid "start" argument value, -1',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.stringSlice(['foo bar', 8, 5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "start" argument value, 8',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.stringSlice(['foo bar', 1, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "end" argument value, -1',
             'returnValue': null
         }
     );

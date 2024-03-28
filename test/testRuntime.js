@@ -3,6 +3,7 @@
 
 import {BareScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
+import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -245,6 +246,22 @@ test('executeScript, function error', () => {
     };
     const options = {'globals': {errorFunction}};
     assert.equal(executeScript(script, options), null);
+});
+
+
+test('executeScript, function argument error', () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = () => {
+        throw new ValueArgsError('myArg', null, -1);
+    };
+    const options = {'globals': {errorFunction}};
+    assert.equal(executeScript(script, options), -1);
 });
 
 
