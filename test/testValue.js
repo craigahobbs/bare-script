@@ -391,6 +391,7 @@ test('valueArgsValidate', () => {
     const functionValue = (() => 'Hello');
     const args = [5, 'abc', arrayValue, objectValue, datetimeValue, regexValue, functionValue];
     const argsValid = valueArgsValidate(fnArgs, args);
+    assert.equal(functionValue(), 'Hello');
     assert.equal(argsValid, args);
     assert.deepEqual(
         argsValid,
@@ -718,6 +719,18 @@ test('ValueArgsError', () => {
             'message': 'Invalid "myArg" argument value, null',
             'returnValue': -1
         }
+    );
+});
+
+
+test('valueArgsValidate, extra arguments', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'str', 'type': 'string'},
+        {'name': 'num', 'type': 'number'}
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 1, 2, 3]),
+        ['abc', 1]
     );
 });
 
