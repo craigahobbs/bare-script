@@ -5,8 +5,8 @@
 
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
 import {validateExpression, validateScript} from '../lib/model.js';
-import {ValueArgsError} from '../lib/value.js';
 import {BareScriptRuntimeError} from '../lib/runtime.js';
+import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
