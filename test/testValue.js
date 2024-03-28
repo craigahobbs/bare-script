@@ -412,6 +412,18 @@ test('valueArgsValidate', () => {
                 'returnValue': null
             }
         );
+
+        // Return value
+        assert.throws(
+            () => {
+                valueArgsValidate(fnArgs, argsInvalid, -1);
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "${fnArg.name}" argument value, ${valueJSON(argInvalid)}`,
+                'returnValue': -1
+            }
+        );
     }
 
     // Missing arguments
@@ -426,7 +438,241 @@ test('valueArgsValidate', () => {
                 'returnValue': null
             }
         );
+
+        // Return value
+        assert.throws(
+            () => {
+                valueArgsValidate(fnArgs, args.slice(0, ixArg), -1);
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "${fnArg.name}" argument value, null`,
+                'returnValue': -1
+            }
+        );
     }
+});
+
+
+test('valueArgsValidate, lastArgArray', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'str', 'type': 'string'},
+        {'name': 'arr', 'lastArgArray': true}
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 1, 2, 3]),
+        ['abc', [1, 2, 3]]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 1]),
+        ['abc', [1]]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc']),
+        ['abc', []]
+    );
+});
+
+
+test('valueArgsValidate, default and nullable', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'str', 'type': 'string', 'nullable': true},
+        {'name': 'str2', 'type': 'string', 'default': ''}
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 'def']),
+        ['abc', 'def']
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc']),
+        ['abc', '']
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [null]),
+        [null, '']
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, []),
+        [null, '']
+    );
+
+    // Non-nullable
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [null, null]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "str2" argument value, null',
+            'returnValue': null
+        }
+    );
+
+    // Non-nullable with return value
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [null, null], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "str2" argument value, null',
+            'returnValue': -1
+        }
+    );
+});
+
+
+test('valueArgsValidate, any and boolean', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'any'},
+        {'name': 'bool', 'type': 'boolean'}
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 1]),
+        ['abc', true]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [5, 0]),
+        [5, false]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [null, null]),
+        [null, false]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, []),
+        [null, false]
+    );
+});
+
+
+test('valueArgsValidate, number constraints', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'int', 'type': 'number', 'integer': true, 'gt': 0, 'lt': 5},
+        {'name': 'num', 'type': 'number', 'gte': 0, 'lte': 5},
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [2, 3.5]),
+        [2, 3.5]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [2, 0]),
+        [2, 0]
+    );
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, [2, 5]),
+        [2, 5]
+    );
+
+    // Non-integer
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2.5, 3.5]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 2.5',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2.5, 3.5], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 2.5',
+            'returnValue': -1
+        }
+    );
+
+    // Greater-than error
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [0, 3.5]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 0',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [0, 3.5], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 0',
+            'returnValue': -1
+        }
+    );
+
+    // Less-than error
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [5, 3.5]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 5',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [5, 3.5], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, 5',
+            'returnValue': -1
+        }
+    );
+
+    // Greater-than-or-equal-to error
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2, -1]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "num" argument value, -1',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2, -1], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "num" argument value, -1',
+            'returnValue': -1
+        }
+    );
+
+    // Less-than-or-equal-to error
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2, 6]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "num" argument value, 6',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2, 6], -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "num" argument value, 6',
+            'returnValue': -1
+        }
+    );
 });
 
 
