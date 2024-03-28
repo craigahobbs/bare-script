@@ -2,8 +2,8 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    valueBoolean, valueCompare, valueIs, valueJSON, valueParseDatetime, valueParseInteger,
-    valueParseNumber, valueRoundNumber, valueString, valueType
+    ValueArgsError, valueArgsModel, valueArgsValidate, valueBoolean, valueCompare, valueIs, valueJSON,
+    valueParseDatetime, valueParseInteger, valueParseNumber, valueRoundNumber, valueString, valueType
 } from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -371,6 +371,141 @@ test('valueCompareInvalid', () => {
     // string < unknown
     assert.equal(valueCompare('abc', new Set([1, 2, 3])), -1);
     assert.equal(valueCompare(new Set([1, 2, 3]), 'abc'), 1);
+});
+
+
+test('valueArgsValidate', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'argNumber', 'type': 'number'},
+        {'name': 'argString', 'type': 'string'},
+        {'name': 'argArray', 'type': 'array'},
+        {'name': 'argObject', 'type': 'object'},
+        {'name': 'argDatetime', 'type': 'datetime'},
+        {'name': 'argRegex', 'type': 'regex'},
+        {'name': 'argFunction', 'type': 'function'}
+    ]);
+    const arrayValue = [];
+    const objectValue = {};
+    const datetimeValue = new Date();
+    const regexValue = /^abc$/;
+    const functionValue = (() => 'Hello');
+    const args = [5, 'abc', arrayValue, objectValue, datetimeValue, regexValue, functionValue];
+    const argsValid = valueArgsValidate(fnArgs, args);
+    assert.equal(argsValid, args);
+    assert.deepEqual(
+        argsValid,
+        [5, 'abc', arrayValue, objectValue, datetimeValue, regexValue, functionValue]
+    );
+
+    // Invalid arguments
+    for (const [ixArg, fnArg] of fnArgs.entries()) {
+        const argInvalid = fnArg.type === 'string' ? 5 : 'abc';
+        const argsInvalid = [...args];
+        argsInvalid[ixArg] = argInvalid;
+        assert.throws(
+            () => {
+                valueArgsValidate(fnArgs, argsInvalid);
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "${fnArg.name}" argument value, ${valueJSON(argInvalid)}`,
+                'returnValue': null
+            }
+        );
+    }
+
+    // Missing arguments
+    for (const [ixArg, fnArg] of fnArgs.entries()) {
+        assert.throws(
+            () => {
+                valueArgsValidate(fnArgs, args.slice(0, ixArg));
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "${fnArg.name}" argument value, null`,
+                'returnValue': null
+            }
+        );
+    }
+});
+
+
+test('ValueArgsError', () => {
+    assert.throws(
+        () => {
+            throw new ValueArgsError('myArg', null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "myArg" argument value, null',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            throw new ValueArgsError('myArg', 'abc');
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "myArg" argument value, "abc"',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            throw new ValueArgsError('myArg', [1, 2, 3]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "myArg" argument value, [1,2,3]',
+            'returnValue': null
+        }
+    );
+
+    // Return value
+    assert.throws(
+        () => {
+            throw new ValueArgsError('myArg', null, -1);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "myArg" argument value, null',
+            'returnValue': -1
+        }
+    );
+});
+
+
+test('valueArgsModel', () => {
+    const fnArgs = [
+        {'name': 'str', 'type': 'string'},
+        {'name': 'num', 'type': 'number', 'default': 0}
+    ];
+    assert.equal(valueArgsModel(fnArgs), fnArgs);
+
+    // Invalid function arguments model
+    assert.throws(
+        () => {
+            valueArgsModel([]);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Invalid value [] (type 'object'), expected type 'FunctionArguments' [len > 0]"
+        }
+    );
+
+    // Null default argument value error
+    assert.throws(
+        () => {
+            valueArgsModel([
+                {'name': 'num', 'type': 'number', 'default': null}
+            ]);
+        },
+        {
+            'name': 'Error',
+            'message': 'Argument "num" has default value of null - use nullable instead'
+        }
+    );
 });
 
 
