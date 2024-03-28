@@ -677,6 +677,18 @@ test('valueArgsValidate, number constraints', () => {
 });
 
 
+test('valueArgsValidate, extra arguments', () => {
+    const fnArgs = valueArgsModel([
+        {'name': 'str', 'type': 'string'},
+        {'name': 'num', 'type': 'number'}
+    ]);
+    assert.deepEqual(
+        valueArgsValidate(fnArgs, ['abc', 1, 2, 3]),
+        ['abc', 1]
+    );
+});
+
+
 test('ValueArgsError', () => {
     assert.throws(
         () => {
@@ -719,18 +731,6 @@ test('ValueArgsError', () => {
             'message': 'Invalid "myArg" argument value, null',
             'returnValue': -1
         }
-    );
-});
-
-
-test('valueArgsValidate, extra arguments', () => {
-    const fnArgs = valueArgsModel([
-        {'name': 'str', 'type': 'string'},
-        {'name': 'num', 'type': 'number'}
-    ]);
-    assert.deepEqual(
-        valueArgsValidate(fnArgs, ['abc', 1, 2, 3]),
-        ['abc', 1]
     );
 });
 
