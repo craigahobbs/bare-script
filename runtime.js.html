@@ -31,8 +31,8 @@
 
 /** @module lib/runtime */
 
+import {ValueArgsError, valueBoolean, valueCompare, valueString} from './value.js';
 import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './library.js';
-import {valueBoolean, valueCompare, valueString} from './value.js';
 
 
 /**
@@ -238,6 +238,9 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
                 // Log and return null
                 if (options !== null &amp;&amp; 'logFn' in options &amp;&amp; options.debug) {
                     options.logFn(`BareScript: Function "${funcName}" failed with error: ${error.message}`);
+                }
+                if (error instanceof ValueArgsError) {
+                    return error.returnValue;
                 }
                 return null;
             }
