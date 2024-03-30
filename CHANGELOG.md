@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.6 (2024-03-30)
+
+- [cfd62f6](https://github.com/craigahobbs/bare-script/commit/cfd62f6) - improved library function argument validation
+
 ## 3.0.5 (2024-03-15)
 
 - [c48ac51](https://github.com/craigahobbs/bare-script/commit/c48ac51) - add bare cli no-scripts test
