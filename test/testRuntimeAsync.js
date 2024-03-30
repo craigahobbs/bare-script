@@ -6,6 +6,7 @@
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import {BareScriptRuntimeError} from '../lib/runtime.js';
+import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -248,6 +249,22 @@ test('executeScriptAsync, function error', async () => {
     };
     const options = {'globals': {errorFunction}};
     assert.equal(await executeScriptAsync(script, options), null);
+});
+
+
+test('executeScriptAsync, function argument error', async () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'errorFunction'}}
+            }}
+        ]
+    });
+    const errorFunction = async () => {
+        throw new ValueArgsError('myArg', null, -1);
+    };
+    const options = {'globals': {errorFunction}};
+    assert.equal(await executeScriptAsync(script, options), -1);
 });
 
 
