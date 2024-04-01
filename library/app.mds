@@ -29,8 +29,9 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     # Fetch and validate the library documentation resource
     groups = objectNew()
     urls = if(systemType(url) == 'array', url, arrayNew(url))
-    for libraryText, ixLibrary in systemFetch(urls):
-        libraryPart = schemaValidate(baredocTypes, 'Library', jsonParse(libraryText))
+    for libraryJSON, ixLibrary in systemFetch(urls):
+        libraryPart = if(libraryJSON != null, jsonParse(libraryJSON))
+        libraryPart = if(libraryPart != null, schemaValidate(baredocTypes, 'Library', libraryPart))
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -50,11 +51,13 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     endfor
 
     # Add an empty group for any missing group URLs
-    for groupName in objectKeys(groupURLs):
-        if groupName != '' && !objectHas(groups, groupName):
-            objectSet(groups, groupName, arrayNew())
-        endif
-    endfor
+    if groupURLs != null:
+        for groupName in objectKeys(groupURLs):
+            if groupName != '' && !objectHas(groups, groupName):
+                objectSet(groups, groupName, arrayNew())
+            endif
+        endfor
+    endif
 
     # Sort the group functions
     for groupName in objectKeys(groups):
@@ -111,7 +114,7 @@ endfunction
 async function baredocIndexPage(title, menuLinks, groupURLs, groups):
     # Render the menu and title
     documentSetTitle(title)
-    if arrayLength(menuLinks) > 0:
+    if menuLinks != null && arrayLength(menuLinks) > 0:
         for menuLink, ixMenuLink in menuLinks:
             menuLinkText = arrayGet(menuLink, 0)
             menuLinkURL = arrayGet(menuLink, 1)
@@ -122,7 +125,7 @@ async function baredocIndexPage(title, menuLinks, groupURLs, groups):
     markdownPrint('# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
-    if objectHas(groupURLs, ''):
+    if groupURLs != null && objectHas(groupURLs, ''):
         rootURL = objectGet(groupURLs, '')
         rootMarkdown = systemFetch(rootURL)
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
@@ -154,7 +157,7 @@ async function baredocGroupPage(title, groupURLs, groups, groupName):
     )
 
     # Render the group Markdown, if any
-    if objectHas(groupURLs, groupName):
+    if groupURLs != null && objectHas(groupURLs, groupName):
         groupURL = objectGet(groupURLs, groupName)
         groupMarkdown = systemFetch(groupURL)
         markdownPrint('', if(groupMarkdown != null, groupMarkdown, '**Error:** Failed to load "' + markdownEscape(groupURL) + '"'))
