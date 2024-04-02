@@ -222,6 +222,26 @@ test('lintScript, function variable used before assignment arg ok', () => {
 });
 
 
+test('lintScript, function variable used before assignment reassign ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'expr': {'name': 'a', 'expr': {'number': 1}}},
+                        {'expr': {'expr': {'function': {'name': 'mathSqrt', 'args': [{'variable': 'a'}]}}}},
+                        {'expr': {'name': 'a', 'expr': {'number': 2}}},
+                        {'expr': {'expr': {'function': {'name': 'mathSqrt', 'args': [{'variable': 'a'}]}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    assert.deepEqual(lintScript(validateScript(script)), []);
+});
+
+
 test('lintScript, global variable used before assignment', () => {
     const script = {
         'statements': [
