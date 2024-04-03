@@ -5,13 +5,9 @@
 
 [BareScript](https://craigahobbs.github.io/bare-script/language/)
 is a simple, lightweight, and portable programming language. Its Pythonic syntax is influenced by
-JavaScript, C, and the Unix Shell. BareScript also has a
-[library of built-in functions](#the-barescript-library)
-for common programming operations. BareScript can be
-[embedded within applications](#markdownup-a-markdown-viewer-with-barescript)
-or used as a
-stand-alone programming language using the
-[command-line interface](#the-barescript-command-line-interface-cli).
+JavaScript, C, and the Unix Shell. BareScript also has a library of built-in functions for common
+programming operations. BareScript can be embedded within applications or used as a stand-alone
+programming language using the command-line interface.
 
 There are two implementations of BareScript:
 [BareScript for JavaScript](https://github.com/craigahobbs/bare-script#readme)
@@ -152,7 +148,7 @@ bare script.bare
 function read non-URL paths from the local file system.
 [systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
 calls with a non-URL path and a
-[request body](https://craigahobbs.github.io/bare-script-py/library/model.html#var.vName='SystemFetchRequest')
+[request body](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='SystemFetchRequest')
 write the body to the path.
 
 
