@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.8 (2024-04-04)
+
+- [1b27b5e](https://github.com/craigahobbs/bare-script/commit/1b27b5e) - cache regex that are re-compiled with the global flag
+
 ## 3.0.7 (2024-04-03)
 
 - [1ba0171](https://github.com/craigahobbs/bare-script/commit/1ba0171) - update readme
