@@ -12,7 +12,7 @@ endef
 WGET_CMD = if which wget; then wget -q -c $(1); else curl -f -Os $(1); fi
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/Makefile.base))
 $(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/jsdoc.json))
-$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/.eslintrc.cjs))
+$(eval $(call WGET, https://raw.githubusercontent.com/craigahobbs/javascript-build/main/eslint.config.js))
 
 
 # Include javascript-build
@@ -27,7 +27,7 @@ help:
 
 
 clean:
-	rm -rf Makefile.base jsdoc.json .eslintrc.cjs
+	rm -rf Makefile.base jsdoc.json eslint.config.js
 
 
 doc:

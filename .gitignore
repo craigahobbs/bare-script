@@ -1,7 +1,7 @@
 /build/
 /node_modules/
-/.eslintrc.cjs
 /Makefile.base
+/eslint.config.js
 /jsdoc.json
 /package-lock.json
 .DS_Store
