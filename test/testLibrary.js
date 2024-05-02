@@ -4109,7 +4109,7 @@ test('library, systemFetch', async () => {
 
         const body = fetchOptions.body ?? null;
         const headers = fetchOptions.headers ?? null;
-        const method = body !== null ? 'POST' : 'GET';
+        const method = fetchOptions.method ?? 'GET';
         const bodyMsg = body !== null ? ` - ${body}` : '';
         const headersMsg = headers !== null ? ` - ${valueJSON(headers)}` : '';
         return {
