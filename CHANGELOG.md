@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.9 (2024-05-02)
+
+- [ba99df7](https://github.com/craigahobbs/bare-script/commit/ba99df7) - fix systemFetch for POST requests
+
 ## 3.0.8 (2024-04-04)
 
 - [1b27b5e](https://github.com/craigahobbs/bare-script/commit/1b27b5e) - cache regex that are re-compiled with the global flag
