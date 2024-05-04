@@ -4417,7 +4417,7 @@ test('library, systemLogDebug', () => {
 });
 
 
-test('library, systemPartial', () => {
+test('library, systemPartial', async () => {
     function testFn(args, options) {
         const [name, number] = args;
         assert.equal(name, 'test');
@@ -4425,9 +4425,21 @@ test('library, systemPartial', () => {
         assert.deepEqual(options, {'debug': false});
         return `${name}-${number}`;
     }
-
     const partialFn = scriptFunctions.systemPartial([testFn, 'test'], null);
     assert.equal(partialFn([1], {'debug': false}), 'test-1');
+
+    // Async function
+    // eslint-disable-next-line require-await
+    async function asyncTestFn(args, options) {
+        const [name, number] = args;
+        assert.equal(name, 'test');
+        assert.equal(number, 1);
+        assert.deepEqual(options, {'debug': false});
+        return `${name}-${number}`;
+    }
+    const asyncPartialFn = scriptFunctions.systemPartial([asyncTestFn, 'test'], null);
+    assert.equal(await asyncPartialFn([1], {'debug': false}), 'test-1');
+
 
     // Non-function
     assert.throws(
