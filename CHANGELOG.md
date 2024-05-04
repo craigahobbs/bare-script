@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.10 (2024-05-03)
+
+- [b2068b1](https://github.com/craigahobbs/bare-script/commit/b2068b1) - fix systemPartial for async functions
+
 ## 3.0.9 (2024-05-02)
 
 - [ba99df7](https://github.com/craigahobbs/bare-script/commit/ba99df7) - fix systemFetch for POST requests
