@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.11 (2024-05-07)
+
+- [da59cd2](https://github.com/craigahobbs/bare-script/commit/da59cd2) - fix async function definitions
+
 ## 3.0.10 (2024-05-03)
 
 - [b2068b1](https://github.com/craigahobbs/bare-script/commit/b2068b1) - fix systemPartial for async functions
