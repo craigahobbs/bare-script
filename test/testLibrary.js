@@ -4426,6 +4426,8 @@ test('library, systemPartial', async () => {
         return `${name}-${number}`;
     }
     const partialFn = scriptFunctions.systemPartial([testFn, 'test'], null);
+    assert.equal(typeof partialFn, 'function');
+    assert.equal(partialFn.constructor.name, 'Function');
     assert.equal(partialFn([1], {'debug': false}), 'test-1');
 
     // Async function
@@ -4438,6 +4440,8 @@ test('library, systemPartial', async () => {
         return `${name}-${number}`;
     }
     const asyncPartialFn = scriptFunctions.systemPartial([asyncTestFn, 'test'], null);
+    assert.equal(typeof asyncPartialFn, 'function');
+    assert.equal(asyncPartialFn.constructor.name, 'AsyncFunction');
     assert.equal(await asyncPartialFn([1], {'debug': false}), 'test-1');
 
 
