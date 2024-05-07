@@ -43,6 +43,7 @@ test('executeScriptAsync, global override', async () => {
 
 
 test('executeScriptAsync, function', async () => {
+    const options = {'globals': {}};
     const script = validateScript({
         'statements': [
             {
@@ -62,7 +63,9 @@ test('executeScriptAsync, function', async () => {
             }}
         ]
     });
-    assert.equal(await executeScriptAsync(script), 35);
+    assert.equal(await executeScriptAsync(script, options), 35);
+    assert.equal(typeof options.globals.multiplyNumbers, 'function');
+    assert.equal(options.globals.multiplyNumbers.constructor.name, 'Function');
 });
 
 
@@ -138,6 +141,7 @@ test('executeScriptAsync, function lastArgArray missing', async () => {
 
 
 test('executeScriptAsync, function async', async () => {
+    const options = {'globals': {}};
     const script = validateScript({
         'statements': [
             {
@@ -158,7 +162,9 @@ test('executeScriptAsync, function async', async () => {
             }}
         ]
     });
-    assert.equal(await executeScriptAsync(script), 35);
+    assert.equal(await executeScriptAsync(script, options), 35);
+    assert.equal(typeof options.globals.multiplyNumbers, 'function');
+    assert.equal(options.globals.multiplyNumbers.constructor.name, 'AsyncFunction');
 });
 
 
