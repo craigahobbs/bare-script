@@ -4512,6 +4512,12 @@ test('script library, urlEncode', () => {
         'https://foo.com/this%20(&%20that)'
     );
 
+    // Plus
+    assert.equal(
+        scriptFunctions.urlEncode(['https://foo.com/this + that', false], null),
+        'https://foo.com/this%20+%20that'
+    );
+
     // Non-string URL
     assert.throws(
         () => {
@@ -4544,6 +4550,12 @@ test('script library, urlEncodeComponent', () => {
     assert.equal(
         scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)', false], null),
         'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
+    );
+
+    // Plus
+    assert.equal(
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this + that', false], null),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%2B%20that'
     );
 
     // Non-string URL
