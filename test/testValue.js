@@ -644,9 +644,15 @@ test('valueArgsValidate, extra arguments', () => {
         {'name': 'str', 'type': 'string'},
         {'name': 'num', 'type': 'number'}
     ]);
-    assert.deepEqual(
-        valueArgsValidate(fnArgs, ['abc', 1, 2, 3]),
-        ['abc', 1]
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, ['abc', 1, 2, 3]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Too many arguments (4)',
+            'returnValue': null
+        }
     );
 });
 

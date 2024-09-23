@@ -4494,28 +4494,12 @@ test('library, systemType', () => {
 
 test('script library, urlEncode', () => {
     assert.equal(
-        scriptFunctions.urlEncode(["https://foo.com/this & 'that'"], null),
-        "https://foo.com/this%20&%20'that'"
+        scriptFunctions.urlEncode(["https://foo.com/this & 'that' + 2"], null),
+        "https://foo.com/this%20&%20'that'%20+%202"
     );
     assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this (& that)'], null),
-        'https://foo.com/this%20(&%20that%29'
-    );
-
-    // No extra
-    assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this & that', false], null),
-        'https://foo.com/this%20&%20that'
-    );
-    assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this (& that)', false], null),
-        'https://foo.com/this%20(&%20that)'
-    );
-
-    // Plus
-    assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this + that', false], null),
-        'https://foo.com/this%20+%20that'
+        scriptFunctions.urlEncode(['https://foo.com/this (& that) + 2'], null),
+        'https://foo.com/this%20%28&%20that%29%20+%202'
     );
 
     // Non-string URL
@@ -4534,28 +4518,12 @@ test('script library, urlEncode', () => {
 
 test('script library, urlEncodeComponent', () => {
     assert.equal(
-        scriptFunctions.urlEncodeComponent(["https://foo.com/this & 'that'"], null),
-        "https%3A%2F%2Ffoo.com%2Fthis%20%26%20'that'"
+        scriptFunctions.urlEncodeComponent(["https://foo.com/this & 'that' + 2"], null),
+        "https%3A%2F%2Ffoo.com%2Fthis%20%26%20'that'%20%2B%202"
     );
     assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)'], null),
-        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that%29'
-    );
-
-    // No extra
-    assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this & that', false], null),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%26%20that'
-    );
-    assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that)', false], null),
-        'https%3A%2F%2Ffoo.com%2Fthis%20(%26%20that)'
-    );
-
-    // Plus
-    assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this + that', false], null),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%2B%20that'
+        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that) + 2'], null),
+        'https%3A%2F%2Ffoo.com%2Fthis%20%28%26%20that%29%20%2B%202'
     );
 
     // Non-string URL
