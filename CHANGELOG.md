@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.12 (2024-09-23)
+
+- [20927d2](https://github.com/craigahobbs/bare-script/commit/20927d2) - - eliminate `extra` argument from urlEncode and urlEncodeComponent - fail function calls with too many arguments
+
 ## 3.0.11 (2024-05-07)
 
 - [da59cd2](https://github.com/craigahobbs/bare-script/commit/da59cd2) - fix async function definitions
