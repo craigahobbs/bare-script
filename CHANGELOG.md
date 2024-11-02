@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.13 (2024-11-02)
+
+- [0accf7c](https://github.com/craigahobbs/bare-script/commit/0accf7c) - add arrayDelete function
+
 ## 3.0.12 (2024-09-23)
 
 - [20927d2](https://github.com/craigahobbs/bare-script/commit/20927d2) - - eliminate `extra` argument from urlEncode and urlEncodeComponent - fail function calls with too many arguments
