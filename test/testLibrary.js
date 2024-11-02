@@ -88,6 +88,67 @@ test('library, arrayCopy', () => {
 });
 
 
+test('library, arrayDelete', () => {
+    const array = [1, 2, 2, 3];
+    assert.equal(scriptFunctions.arrayDelete([array, 1], null), undefined);
+    assert.equal(scriptFunctions.arrayDelete([array, 1.0], null), undefined);
+    assert.deepEqual(array, [1, 3]);
+
+    // Non-array
+    assert.throws(
+        () => {
+            scriptFunctions.arrayDelete([null, 0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
+        }
+    );
+
+    // Index outside valid range
+    assert.throws(
+        () => {
+            scriptFunctions.arrayDelete([array, -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.arrayDelete([array, 3], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 3'
+        }
+    );
+
+    // Non-number index
+    assert.throws(
+        () => {
+            scriptFunctions.arrayDelete([array, '1'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, "1"'
+        }
+    );
+
+    // Non-integer index
+    assert.throws(
+        () => {
+            scriptFunctions.arrayDelete([array, 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5'
+        }
+    );
+});
+
+
 test('library, arrayExtend', () => {
     const array = [1, 2, 3];
     const array2 = [4, 5, 6];
