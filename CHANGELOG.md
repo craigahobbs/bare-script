@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.14 (2024-11-08)
+
+- [ed7af2c](https://github.com/craigahobbs/bare-script/commit/ed7af2c) - update schema-markdown usage
+
 ## 3.0.13 (2024-11-02)
 
 - [0accf7c](https://github.com/craigahobbs/bare-script/commit/0accf7c) - add arrayDelete function
