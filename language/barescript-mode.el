@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.7
+;; Version: 0.8
 
 ;;; Commentary:
 
@@ -25,6 +25,11 @@
    'symbols)
   )
 
+;; Keywords that should trigger indentation
+(defconst barescript-indent-keywords
+  '("if" "elif" "else" "for" "while" "function")
+  "Keywords that trigger indentation when followed by a colon.")
+
 (defconst barescript-font-lock-keywords
   (list
    (cons barescript-keywords 'font-lock-keyword-face)
@@ -36,6 +41,46 @@
    '("^\\s-*\\([_A-Za-z][_A-Za-z0-9]*\\)\\s-*:\\s-*$" 1 'font-lock-constant-face)
    )
   )
+
+(defun barescript-should-indent-next-line ()
+  "Return t if current line should trigger indentation."
+  (save-excursion
+    (beginning-of-line)
+    (and (looking-at ".*:\\s-*$")
+         (cl-some (lambda (keyword)
+                   (looking-at (concat ".*\\b" keyword "\\b.*:\\s-*$")))
+                 barescript-indent-keywords))))
+
+(defun barescript-previous-indentation ()
+  "Get indentation of previous non-empty line."
+  (save-excursion
+    (forward-line -1)
+    (while (and (not (bobp))
+                (looking-at "^\\s-*\\(?:$\\|#\\)"))
+      (forward-line -1))
+    (current-indentation)))
+
+(defun barescript-indent-line ()
+  "Indent current line according to BareScript rules."
+  (interactive)
+  (let* ((cur (current-indentation))
+         (prev (barescript-previous-indentation))
+         (default (if (save-excursion
+                       (forward-line -1)
+                       (barescript-should-indent-next-line))
+                     (+ prev tab-width)
+                   prev)))
+    (indent-line-to
+     (cond ((= cur 0) default)
+           ((> cur default) (- default tab-width))
+           ((> cur (- default tab-width)) (+ default tab-width))
+           (t (max 0 (- cur tab-width)))))))
+
+(defun barescript-newline-and-indent ()
+  "Insert newline and indent the new line."
+  (interactive)
+  (newline)
+  (barescript-indent-line))
 
 (defun barescript-open-language ()
   "Open BareScript language documentation"
@@ -100,10 +145,15 @@
   (setq-local comment-start "#")
   (setq-local comment-start-skip "#+\\s-*")
 
+  ;; Set indentation function
+  (setq-local indent-line-function 'barescript-indent-line)
+
   ;; Apply font-lock rules for syntax highlighting
   (setq-local font-lock-defaults '(barescript-font-lock-keywords))
 
-  ;; Bind the key for browsing documentation
+  ;; Define key bindings
+  (define-key barescript-mode-map (kbd "TAB") 'barescript-indent-line)
+  (define-key barescript-mode-map (kbd "RET") 'barescript-newline-and-indent)
   (define-key barescript-mode-map (kbd "C-c C-h") 'barescript-open-language)
   (define-key barescript-mode-map (kbd "C-c C-l") 'barescript-open-markdownup-library)
   (define-key barescript-mode-map (kbd "C-c C-n") 'barescript-open-markdownup-include)
