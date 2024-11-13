@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8
+;; Version: 0.8.1
 
 ;;; Commentary:
 
@@ -79,6 +79,7 @@
 (defun barescript-newline-and-indent ()
   "Insert newline and indent the new line."
   (interactive)
+  (delete-horizontal-space t)
   (newline)
   (barescript-indent-line))
 
