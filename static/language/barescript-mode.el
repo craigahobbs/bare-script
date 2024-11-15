@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8.3
+;; Version: 0.8.4
 
 ;;; Commentary:
 
@@ -37,7 +37,7 @@
    )
   )
 
-(defun barescript-indent-line ()
+(defun barescript-indent-line (&optional after-newline)
   "Indent current line according to BareScript rules."
   (interactive)
   (let* ((cur (current-indentation))
@@ -48,8 +48,8 @@
                  (current-indentation))))
     (indent-line-to
      (cond ((< (point) (+ (line-beginning-position) (current-indentation))) cur)
-           ((= cur 0) prev)
-           ((> cur prev) (- prev tab-width))
+           ((= cur 0) (if (and (= prev 0) (not after-newline)) tab-width prev))
+           ((> cur prev) (max 0 (- prev tab-width)))
            ((> cur (- prev tab-width)) (+ prev tab-width))
            (t (max 0 (- cur tab-width)))))))
 
@@ -58,7 +58,7 @@
   (interactive)
   (delete-horizontal-space t)
   (newline)
-  (barescript-indent-line))
+  (barescript-indent-line t))
 
 (defun barescript-open-language ()
   "Open BareScript language documentation"
