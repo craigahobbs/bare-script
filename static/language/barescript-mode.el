@@ -43,8 +43,7 @@
   (let* ((cur (current-indentation))
          (prev (save-excursion
                  (forward-line -1)
-                 (while (and (not (bobp)) (looking-at "^\\s-*\\(?:$\\|#\\)"))
-                   (forward-line -1))
+                 (while (and (not (bobp)) (looking-at "^\\s-*$")) (forward-line -1))
                  (current-indentation))))
     (indent-line-to
      (cond ((< (point) (+ (line-beginning-position) (current-indentation))) cur)
