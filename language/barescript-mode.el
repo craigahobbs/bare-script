@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8.1
+;; Version: 0.8.2
 
 ;;; Commentary:
 
@@ -71,7 +71,8 @@
                      (+ prev tab-width)
                    prev)))
     (indent-line-to
-     (cond ((= cur 0) default)
+     (cond ((< (point) (+ (line-beginning-position) (current-indentation))) cur)
+           ((= cur 0) default)
            ((> cur default) (- default tab-width))
            ((> cur (- default tab-width)) (+ default tab-width))
            (t (max 0 (- cur tab-width)))))))
