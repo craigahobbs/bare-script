@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8.2
+;; Version: 0.8.3
 
 ;;; Commentary:
 
@@ -25,11 +25,6 @@
    'symbols)
   )
 
-;; Keywords that should trigger indentation
-(defconst barescript-indent-keywords
-  '("if" "elif" "else" "for" "while" "function")
-  "Keywords that trigger indentation when followed by a colon.")
-
 (defconst barescript-font-lock-keywords
   (list
    (cons barescript-keywords 'font-lock-keyword-face)
@@ -42,39 +37,20 @@
    )
   )
 
-(defun barescript-should-indent-next-line ()
-  "Return t if current line should trigger indentation."
-  (save-excursion
-    (beginning-of-line)
-    (and (looking-at ".*:\\s-*$")
-         (cl-some (lambda (keyword)
-                   (looking-at (concat ".*\\b" keyword "\\b.*:\\s-*$")))
-                 barescript-indent-keywords))))
-
-(defun barescript-previous-indentation ()
-  "Get indentation of previous non-empty line."
-  (save-excursion
-    (forward-line -1)
-    (while (and (not (bobp))
-                (looking-at "^\\s-*\\(?:$\\|#\\)"))
-      (forward-line -1))
-    (current-indentation)))
-
 (defun barescript-indent-line ()
   "Indent current line according to BareScript rules."
   (interactive)
   (let* ((cur (current-indentation))
-         (prev (barescript-previous-indentation))
-         (default (if (save-excursion
-                       (forward-line -1)
-                       (barescript-should-indent-next-line))
-                     (+ prev tab-width)
-                   prev)))
+         (prev (save-excursion
+                 (forward-line -1)
+                 (while (and (not (bobp)) (looking-at "^\\s-*\\(?:$\\|#\\)"))
+                   (forward-line -1))
+                 (current-indentation))))
     (indent-line-to
      (cond ((< (point) (+ (line-beginning-position) (current-indentation))) cur)
-           ((= cur 0) default)
-           ((> cur default) (- default tab-width))
-           ((> cur (- default tab-width)) (+ default tab-width))
+           ((= cur 0) prev)
+           ((> cur prev) (- prev tab-width))
+           ((> cur (- prev tab-width)) (+ prev tab-width))
            (t (max 0 (- cur tab-width)))))))
 
 (defun barescript-newline-and-indent ()
