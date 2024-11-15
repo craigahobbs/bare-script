@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8.4
+;; Version: 0.8.5
 
 ;;; Commentary:
 
@@ -43,8 +43,7 @@
   (let* ((cur (current-indentation))
          (prev (save-excursion
                  (forward-line -1)
-                 (while (and (not (bobp)) (looking-at "^\\s-*\\(?:$\\|#\\)"))
-                   (forward-line -1))
+                 (while (and (not (bobp)) (looking-at "^\\s-*$")) (forward-line -1))
                  (current-indentation))))
     (indent-line-to
      (cond ((< (point) (+ (line-beginning-position) (current-indentation))) cur)
