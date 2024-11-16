@@ -1,6 +1,6 @@
 ;;; barescript-mode.el --- Major mode for editing BareScript files
 
-;; Version: 0.8.5
+;; Version: 0.8.6
 
 ;;; Commentary:
 
@@ -103,19 +103,19 @@
 (define-derived-mode barescript-mode prog-mode "BareScript"
   "Major mode for editing BareScript files"
 
-  ; Change single quote syntax to behave like double quotes
+  ;; Change single quote syntax to behave like double quotes
   (modify-syntax-entry ?' "\"" barescript-mode-syntax-table)
 
-  ; Ensure double quotes are treated as string delimiters
+  ;; Ensure double quotes are treated as string delimiters
   (modify-syntax-entry ?\" "\"" barescript-mode-syntax-table)
 
-  ; Ensure backslashes are treated as escape characters
+  ;; Ensure backslashes are treated as escape characters
   (modify-syntax-entry ?\\ "\\" barescript-mode-syntax-table)
 
-  ; Specify that comments start with '#'
+  ;; Specify that comments start with '#'
   (modify-syntax-entry ?# "<" barescript-mode-syntax-table)
 
-  ; Specify that comments end with a newline
+  ;; Specify that comments end with a newline
   (modify-syntax-entry ?\n ">" barescript-mode-syntax-table)
 
   ;; Set comment-related variables
