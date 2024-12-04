@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.15 (2024-12-04)
+
+- [c3ac248](https://github.com/craigahobbs/bare-script/commit/c3ac248) - fix systemFetch for url arrays with certain sparse failures
+
 ## 3.0.14 (2024-11-08)
 
 - [ed7af2c](https://github.com/craigahobbs/bare-script/commit/ed7af2c) - update schema-markdown usage
