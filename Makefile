@@ -35,16 +35,16 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_DOCKER) npx baredoc lib/library.js -o build/doc/library/library.json
+	$(NODE_SHELL) npx baredoc lib/library.js -o build/doc/library/library.json
 
     # Generate the expression library documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library.json build/doc/library/expression.json
+	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library.json build/doc/library/expression.json
 
     # Generate the library model documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" build/doc/library/model.json
+	$(NODE_SHELL) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" build/doc/library/model.json
 
     # Generate the runtime model documentation
-	$(NODE_DOCKER) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" build/doc/model/model.json
+	$(NODE_SHELL) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" build/doc/model/model.json
 
 
 # JavaScript to generate the expression library documentation
@@ -112,8 +112,8 @@ export DOC_RUNTIME_MODEL_JS
 .PHONY: test-doc
 commit: test-doc
 test-doc: build/npm.build
-	$(NODE_DOCKER) npx bare -s static/library/*.mds static/library/test/*.mds
-	$(NODE_DOCKER) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -s static/library/*.mds static/library/test/*.mds
+	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Run performance tests
@@ -121,12 +121,12 @@ test-doc: build/npm.build
 perf: build/npm.build
 	mkdir -p $(dir $(PERF_JSON))
 	echo "[" > $(PERF_JSON)
-	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript", "timeMs": '$$($(NODE_DOCKER) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
-	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "JavaScript", "timeMs": '$$($(NODE_DOCKER) node perf/test.js)'},' >> $(PERF_JSON); done
-	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "Python", "timeMs": '$$($(PYTHON_DOCKER) python3 perf/test.py)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript", "timeMs": '$$($(NODE_SHELL) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "JavaScript", "timeMs": '$$($(NODE_SHELL) node perf/test.js)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "Python", "timeMs": '$$($(PYTHON_SHELL) python3 perf/test.py)'},' >> $(PERF_JSON); done
 	echo '{"language": null, "timeMs": null}' >> $(PERF_JSON)
 	echo "]" >> $(PERF_JSON)
-	$(NODE_DOCKER) node --input-type=module -e "$$PERF_JS"
+	$(NODE_SHELL) node --input-type=module -e "$$PERF_JS"
 
 
 # Performance test constants
