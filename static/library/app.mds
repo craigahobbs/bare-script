@@ -17,6 +17,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     args = argsParse(baredocArguments)
     group = objectGet(args, 'group')
     name = objectGet(args, 'name')
+    single = objectGet(args, 'single')
     url = objectGet(args, 'url', url)
 
     # Render library JSON documentation page?
@@ -85,10 +86,12 @@ async function baredocMain(url, title, menuLinks, groupURLs):
 
     # Render the page
     title = if(title != null && !objectHas(args, 'url'), title, url)
-    if group != null:
-        baredocGroupPage(title, groupURLs, groups, group)
+    if single:
+        baredocSinglePage(args, title, groupURLs, groups)
+    elif group != null:
+        baredocGroupPage(args, title, groupURLs, groups, group)
     else:
-        baredocIndexPage(title, menuLinks, groupURLs, groups)
+        baredocIndexPage(args, title, menuLinks, groupURLs, groups)
     endif
 endfunction
 
@@ -98,6 +101,8 @@ baredocArguments = argsValidate(arrayNew( \
     objectNew('name', 'doc', 'type', 'bool', 'default', false), \
     objectNew('name', 'group'), \
     objectNew('name', 'name'), \
+    objectNew('name', 'publish', 'type', 'bool', 'default', false), \
+    objectNew('name', 'single', 'type', 'bool', 'default', false), \
     objectNew('name', 'url', 'global', 'vURL') \
 ))
 
@@ -111,7 +116,9 @@ endfunction
 
 
 # Render a library documentation index page
-async function baredocIndexPage(title, menuLinks, groupURLs, groups):
+async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
+    publish = objectGet(args, 'publish')
+
     # Render the menu and title
     documentSetTitle(title)
     if menuLinks != null && arrayLength(menuLinks) > 0:
@@ -121,6 +128,9 @@ async function baredocIndexPage(title, menuLinks, groupURLs, groups):
             markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
         endfor
         markdownPrint('')
+    endif
+    if !publish:
+        markdownPrint(argsLink(baredocArguments, 'Single Page', objectNew('single', true)), '')
     endif
     markdownPrint('# ' + markdownEscape(title))
 
@@ -132,29 +142,73 @@ async function baredocIndexPage(title, menuLinks, groupURLs, groups):
     endif
 
     # Render the library function index
-    for groupKey in arraySort(objectKeys(groups)):
-        markdownPrint('', '## ' + argsLink(baredocArguments, groupKey, objectNew('group', groupKey), false, argsTopHeaderId))
+    markdownPrint('', '## Table of Contents', '')
+    for groupName in arraySort(objectKeys(groups)):
+        markdownPrint('- ' + argsLink(baredocArguments, groupName, objectNew('group', groupName), false, argsTopHeaderId))
+    endfor
+endfunction
+
+
+# Render the single-page library documentation
+async function baredocSinglePage(args, title, groupURLs, groups):
+    publish = objectGet(args, 'publish')
+
+    # Render the menu and title
+    documentSetTitle(title)
+    if !publish:
+        markdownPrint(argsLink(baredocArguments, 'Multi Page', objectNew('single', false)), '')
+    endif
+    markdownPrint('# ' + markdownEscape(title))
+
+    # Render the index Markdown, if any
+    if groupURLs != null && objectHas(groupURLs, ''):
+        rootURL = objectGet(groupURLs, '')
+        rootMarkdown = systemFetch(rootURL)
+        markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
+    endif
+
+    # The table of contents
+    markdownPrint('', '## Table of Contents', '')
+    for groupName in arraySort(objectKeys(groups)):
+        groupFunctions = objectGet(groups, groupName)
+        if arrayLength(groupFunctions):
+            markdownPrint('- ' + argsLink(baredocArguments, groupName, null, false, groupName))
+        endif
+    endfor
+
+    # Render the library function index
+    for groupName in arraySort(objectKeys(groups)):
+        markdownPrint('', '---', '')
+        baredocGroupPage(args, title, groupURLs, groups, groupName, true)
     endfor
 endfunction
 
 
 # Render a library documentation group page
-async function baredocGroupPage(title, groupURLs, groups, groupName):
-    # Set the document title
-    documentSetTitle(title + ' - ' + groupName)
+async function baredocGroupPage(args, title, groupURLs, groups, groupName):
+    single = objectGet(args, 'single')
+    baseHeader = if(single, '##', '#')
 
-    # Group exist?
-    if !objectHas(groups, groupName):
-        markdownPrint('', '**Error:** Unknown group "' + markdownEscape(groupName) + '"')
-        return
+    if !single:
+        # Set the document title
+        documentSetTitle(title + ' - ' + groupName)
+
+        # Group exist?
+        if !objectHas(groups, groupName):
+            markdownPrint('', '**Error:** Unknown group "' + markdownEscape(groupName) + '"')
+            return
+        endif
     endif
 
     # Render the menu and title
-    markdownPrint( \
-        argsLink(baredocArguments, 'Index', objectNew('group', null)), \
-        '', \
-        '# ' + markdownEscape(groupName) \
-    )
+    if !single:
+        markdownPrint(argsLink(baredocArguments, 'Index', objectNew('group', null)), '')
+    endif
+    markdownPrint(baseHeader + ' ' + markdownEscape(groupName))
+    if single:
+        markdownPrint('', argsLink(baredocArguments, 'Back to top', null, false, '_top'))
+    endif
+
 
     # Render the group Markdown, if any
     if groupURLs != null && objectHas(groupURLs, groupName):
@@ -166,7 +220,7 @@ async function baredocGroupPage(title, groupURLs, groups, groupName):
     # Render the group function index
     groupFunctions = objectGet(groups, groupName)
     if arrayLength(groupFunctions) != 0:
-        markdownPrint('', '## Function Index')
+        markdownPrint('', baseHeader + '# Function Index', '')
     endif
     for function_, ixFunction in groupFunctions:
         functionName = objectGet(function_, 'name')
@@ -180,13 +234,13 @@ async function baredocGroupPage(title, groupURLs, groups, groupName):
             '', \
             '---', \
             '', \
-            '## ' + markdownEscape(objectGet(function_, 'name')), \
+            baseHeader + '# ' + markdownEscape(objectGet(function_, 'name')), \
             '', \
             objectGet(function_, 'doc') \
         )
 
         # Render the functions's argument documentation
-        markdownPrint('', '### Arguments')
+        markdownPrint('', baseHeader + '## Arguments')
         arguments = objectGet(function_, 'args')
         if arguments != null:
             for argument in arguments:
@@ -197,7 +251,7 @@ async function baredocGroupPage(title, groupURLs, groups, groupName):
         endif
 
         # Render the function's return documentation
-        markdownPrint('', '### Returns')
+        markdownPrint('', baseHeader + '## Returns')
         returnDoc = objectGet(function_, 'return')
         markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
     endfor

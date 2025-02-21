@@ -37,8 +37,22 @@ doc:
     # Generate the library documentation
 	$(NODE_SHELL) npx baredoc lib/library.js -o build/doc/library/library.json
 
+    # Generate the single-page library documentation
+	cd build/doc/library/ && \
+	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" app.mds \
+		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+		-c "baredocMain('library.json', 'The BareScript Library', null, objectNew('', 'content/intro.md'))" \
+		> barescript-library.md
+
     # Generate the expression library documentation
 	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library.json build/doc/library/expression.json
+
+    # Generate the single-page expression library documentation
+	cd build/doc/library/ && \
+	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" app.mds \
+		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, objectNew('', 'content/introExpression.md'))" \
+		> barescript-expression-library.md
 
     # Generate the library model documentation
 	$(NODE_SHELL) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" build/doc/library/model.json
