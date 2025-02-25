@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0 (2025-02-25)
+
+- [a962802](https://github.com/craigahobbs/bare-script/commit/a962802) - include MarkdownUp include library in package and add -m argument
+
 ## 3.0.15 (2024-12-04)
 
 - [c3ac248](https://github.com/craigahobbs/bare-script/commit/c3ac248) - fix systemFetch for url arrays with certain sparse failures
