@@ -1,0 +1,466 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+
+# Include sentinel
+if systemGlobalGet('markdownUpSentinel'):
+    return
+endif
+markdownUpSentinel = true
+
+
+# Constants
+markdownUpPixelsPerPoint = 4 / 3
+markdownUpDefaultFontSizePx = 12 * markdownUpPixelsPerPoint
+markdownUpFontWidthRatio = 0.6
+markdownUpWindowHeight = 768
+markdownUpWindowWidth = 1024
+
+
+# The simulated MarkdownUp state
+markdownUpState = objectNew( \
+    'drawingFontSizePx', markdownUpDefaultFontSizePx, \
+    'drawingHeight', 480, \
+    'drawingWidth', 640, \
+    'localStorage', objectNew(), \
+    'sessionStorage', objectNew(), \
+    'windowClipboard', '' \
+)
+
+
+#
+# Data functions
+#
+
+
+function dataLineChart(data, lineChart):
+    width = objectGet(lineChart, 'width', 640)
+    height = objectGet(lineChart, 'height', 320)
+    title = objectGet(lineChart, 'title')
+    systemLog('')
+    systemLog('<LineChart ' + width + 'x' + height + ', ' + arrayLength(data) + ' rows' + if(title, ' - ' + title, '') + '>')
+endfunction
+
+
+function dataTable(data, model):
+    # Validate the data
+    data = dataValidate(data)
+    if data == null:
+        return
+    endif
+
+    # Determine the table fields
+    fields = arrayNew()
+    modelFields = if(model != null, objectGet(model, 'fields'))
+    modelCategories = if(model != null, objectGet(model, 'categories'))
+    if modelFields != null || modelCategories != null:
+        arrayExtend(fields, modelCategories)
+        arrayExtend(fields, modelFields)
+    elif arrayLength(data) > 0:
+        arrayExtend(fields, objectKeys(arrayGet(data, 0)))
+    endif
+    if !arrayLength(fields):
+        return
+    endif
+
+    # Get precision and formatting
+    precisionDatetime = if(model != null, objectGet(model, 'datetime'))
+    precisionNumber = if(model != null, objectGet(model, 'precision', 2), 2)
+    precisionTrim = if(model != null, objectGet(model, 'trim', true), true)
+    formats = if(model != null, objectGet(model, 'formats'))
+
+    # Compute the field header widths
+    widths = objectNew()
+    for field in fields:
+        fieldWidth = stringLength(field)
+        if !objectHas(widths, field) || fieldWidth > objectGet(widths, field):
+            objectSet(widths, field, fieldWidth)
+        endif
+    endfor
+
+    # Compute the formatted field value strings and widths
+    dataFormat = arrayNew()
+    for row in data:
+        rowFormat = objectNew()
+        arrayPush(dataFormat, rowFormat)
+        for field in fields:
+            # Format the value
+            value = objectGet(row, field)
+            valueType = systemType(value)
+            if valueType == 'string':
+                valueFormat = value
+            elif valueType == 'number':
+                valueFormat = numberToFixed(value, precisionNumber, precisionTrim)
+            elif valueType == 'datetime':
+                valueFormat = datetimeISOFormat(value, precisionDatetime != null)
+            else:
+                valueFormat = stringNew(value)
+            endif
+            objectSet(rowFormat, field, valueFormat)
+
+            # Update the field width
+            valueWidth = stringLength(valueFormat)
+            if !objectHas(widths, field) || valueWidth > objectGet(widths, field):
+                objectSet(widths, field, valueWidth)
+            endif
+        endfor
+    endfor
+
+    # Compute the field header separator
+    headerSeparator = ''
+    for field in fields:
+        width = objectGet(widths, field)
+        format = if(formats != null, objectGet(formats, field))
+        align = if(format != null, objectGet(format, 'align'))
+        headerSeparator = headerSeparator + '+=' + markdownUpValueField('', width, align, '=') + '='
+    endfor
+    headerSeparator = headerSeparator + '+'
+
+    # Compute the table header fields
+    headerFields = ''
+    for field in fields:
+        width = objectGet(widths, field)
+        format = if(formats != null, objectGet(formats, field))
+        align = if(format != null, objectGet(format, 'align'))
+        header = if(format != null, objectGet(format, 'header', field), field)
+        headerFields = headerFields + '| ' + markdownUpValueField(header, width, align, ' ') + ' '
+    endfor
+    headerFields = headerFields + '|'
+
+    # Output the table header
+    systemLog('')
+    systemLog(headerSeparator)
+    systemLog(headerFields)
+    systemLog(headerSeparator)
+
+    # Output each row
+    for row in dataFormat:
+        line = ''
+        for field in fields:
+            width = objectGet(widths, field)
+            format = if(formats != null, objectGet(formats, field))
+            align = if(format != null, objectGet(format, 'align'))
+            line = line + '| ' + markdownUpValueField(objectGet(row, field), width, align, ' ') + ' '
+        endfor
+        line = line + '|'
+        systemLog(line)
+    endfor
+
+    # Output the table footer
+    systemLog(headerSeparator)
+endfunction
+
+
+function markdownUpValueField(value, width, align, fill):
+    spaces = width - stringLength(value)
+    if align == 'right':
+        return stringRepeat(fill, spaces) + value
+    elif align == 'center':
+        spacesLeft = mathFloor(spaces / 2)
+        spacesRight = spaces - spacesLeft
+        return stringRepeat(fill, spacesLeft) + value + stringRepeat(fill, spacesRight)
+    endif
+    return value + stringRepeat(fill, spaces)
+endfunction
+
+
+#
+# Document functions
+#
+
+
+function documentFontSize():
+    return markdownUpDefaultFontSizePx
+endfunction
+
+
+function documentInputValue():
+endfunction
+
+
+function documentSetFocus():
+endfunction
+
+
+function documentSetReset():
+endfunction
+
+
+function documentSetTitle():
+endfunction
+
+
+function documentURL(url):
+    return url
+endfunction
+
+
+#
+# Drawing functions
+#
+
+
+function drawArc():
+endfunction
+
+
+function drawCircle():
+endfunction
+
+
+function drawClose():
+endfunction
+
+
+function drawEllipse():
+endfunction
+
+
+function drawHLine():
+endfunction
+
+
+function drawHeight():
+    return objectGet(markdownUpState, 'drawingHeight')
+endfunction
+
+
+function drawImage():
+endfunction
+
+
+function drawLine():
+endfunction
+
+
+function drawMove():
+endfunction
+
+
+function drawNew(width, height):
+    objectSet(markdownUpState, 'drawingWidth', width)
+    objectSet(markdownUpState, 'drawingHeight', height)
+    systemLog('')
+    systemLog('<Drawing ' + width + 'x' + height + '>')
+endfunction
+
+
+function drawOnClick():
+endfunction
+
+
+function drawPathRect():
+endfunction
+
+
+function drawRect():
+endfunction
+
+
+function drawStyle():
+endfunction
+
+
+function drawText():
+endfunction
+
+
+function drawTextHeight(text, width):
+    if width > 0:
+        return width / (markdownUpFontWidthRatio * stringLength(text))
+    endif
+    return objectGet(markdownUpState, 'drawingFontSizePx')
+endfunction
+
+
+function drawTextStyle(fontSizePx):
+    objectSet(markdownUpState, 'drawingFontSizePx', if(fontSizePx != null, fontSizePx, markdownUpDefaultFontSizePx))
+endfunction
+
+
+function drawTextWidth(text, fontSizePx):
+    return markdownUpFontWidthRatio * fontSizePx * stringLength(text)
+endfunction
+
+
+function drawVLine():
+endfunction
+
+
+function drawWidth():
+    return objectGet(markdownUpState, 'drawingWidth')
+endfunction
+
+
+#
+# Element Model functions
+#
+
+
+function elementModelRender():
+endfunction
+
+
+#
+# Local storage functions
+#
+
+
+function localStorageClear():
+    objectSet(markdownUpState, 'localStorage', objectNew())
+endfunction
+
+
+function localStorageGet(key):
+    return objectGet(objectGet(markdownUpState, 'localStorage'), key)
+endfunction
+
+
+function localStorageRemove(key):
+    objectDelete(objectGet(markdownUpState, 'localStorage'), key)
+endfunction
+
+
+function localStorageSet(key, value):
+    objectSet(objectGet(markdownUpState, 'localStorage'), key, value)
+endfunction
+
+
+#
+# Markdown functions
+#
+
+
+function markdownEscape(text):
+    return regexReplace(markdownUp_markdownEscapeRegex, text, '\\$1')
+endfunction
+
+markdownUp_markdownEscapeRegex = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
+
+
+function markdownHeaderId(text):
+    result = stringLower(text)
+    result = regexReplace(markdownUp_markdownHeaderId_start, result, '')
+    result = regexReplace(markdownUp_markdownHeaderId_end, result, '')
+    result = regexReplace(markdownUp_markdownHeaderId_remove, result, '')
+    return regexReplace(markdownUp_markdownHeaderId_dash, result, '-')
+endfunction
+
+markdownUp_markdownHeaderId_start = regexNew('^[^a-z0-9]+')
+markdownUp_markdownHeaderId_end = regexNew('[^a-z0-9]+$')
+markdownUp_markdownHeaderId_remove = regexNew('[\'"]')
+markdownUp_markdownHeaderId_dash = regexNew('[^a-z0-9]+')
+
+
+function markdownParse():
+endfunction
+
+
+function markdownPrint(lines...):
+    markdownUp_markdownPrintHelper(lines)
+endfunction
+
+function markdownUp_markdownPrintHelper(lines):
+    for line in lines:
+        if systemType(line) == 'array':
+            markdownUp_markdownPrintHelper(line)
+        else:
+            systemLog(line)
+        endif
+    endfor
+endfunction
+
+
+function markdownTitle():
+endfunction
+
+
+#
+# Schema functions
+#
+
+
+function schemaElements(types, typeName):
+    userType = objectGet(types, typeName)
+    userTypeKey = arrayGet(objectKeys(userType), 0)
+    if userTypeKey == 'struct' && objectGet(objectGet(userType, 'struct'), 'union'):
+        userTypeKey = 'union'
+    endif
+    return arrayNew( \
+        arrayNew( \
+            objectNew('html', 'h1', 'elem', objectNew('text', userTypeKey + ' ' + typeName)) \
+        ) \
+    )
+endfunction
+
+
+#
+# Session storage functions
+#
+
+
+function sessionStorageClear():
+    objectSet(markdownUpState, 'sessionStorage', objectNew())
+endfunction
+
+
+function sessionStorageGet(key):
+    return objectGet(objectGet(markdownUpState, 'sessionStorage'), key)
+endfunction
+
+
+function sessionStorageRemove(key):
+    objectDelete(objectGet(markdownUpState, 'sessionStorage'), key)
+endfunction
+
+
+function sessionStorageSet(key, value):
+    objectSet(objectGet(markdownUpState, 'sessionStorage'), key, value)
+endfunction
+
+
+#
+# URL functions
+#
+
+
+function urlObjectCreate(data, contentType):
+    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
+endfunction
+
+
+#
+# Window functions
+#
+
+
+function windowClipboardRead():
+    return objectGet(markdownUpState, 'windowClipboard')
+endfunction
+
+
+function windowClipboardWrite(text):
+    return objectSet(markdownUpState, 'windowClipboard', text)
+endfunction
+
+
+function windowHeight():
+    return markdownUpWindowHeight
+endfunction
+
+
+function windowSetLocation():
+endfunction
+
+
+function windowSetResize():
+endfunction
+
+
+function windowSetTimeout():
+endfunction
+
+
+function windowWidth():
+    return markdownUpWindowWidth
+endfunction

@@ -39,7 +39,7 @@ doc:
 
     # Generate the single-page library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" app.mds \
+	$(NODE_SHELL) npx bare -m app.mds \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('library.json', 'The BareScript Library', null, objectNew('', 'content/intro.md'))" \
 		> barescript-library.md
@@ -49,7 +49,7 @@ doc:
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" app.mds \
+	$(NODE_SHELL) npx bare -m app.mds \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, objectNew('', 'content/introExpression.md'))" \
 		> barescript-expression-library.md
@@ -127,7 +127,7 @@ export DOC_RUNTIME_MODEL_JS
 commit: test-doc
 test-doc: build/npm.build
 	$(NODE_SHELL) npx bare -s static/library/*.mds static/library/test/*.mds
-	$(NODE_SHELL) npx bare -c "include <markdownUp.bare>" static/library/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -m static/library/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Run performance tests
@@ -167,3 +167,13 @@ for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], 
 }
 endef
 export PERF_JS
+
+
+# Update the MarkdownUp include library tarball
+.PHONY: markdown-up
+markdown-up:
+	mkdir -p build/
+	rm -rf build/markdown-up
+	cd build && $(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz) && tar xzvf markdown-up.tar.gz
+	rm -rf lib/include/
+	cp -R build/markdown-up/include lib/

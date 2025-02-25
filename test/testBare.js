@@ -68,6 +68,28 @@ test('bare.main, inline fetch', async () => {
 });
 
 
+test('bare.main, system include', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-c', 'include <markdownUp.bare>', '-c', "markdownPrint('Hello')"],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, ['Hello']);
+});
+
+
+test('bare.main, markdownUp', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-m', '-c', "markdownPrint('Hello')"],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, ['Hello']);
+});
+
+
 test('bare.main, file', async () => {
     const output = [];
     const exitCode = await main({
