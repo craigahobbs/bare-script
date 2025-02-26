@@ -10,7 +10,7 @@ include <args.mds>
 # url - The library documentation JSON resource URL
 # title - The library title
 # menuLinks - Optional array of text/URL menu link tuples
-# groupURLs - Optional map of group name to group Markdown content URL ('' is index)
+# groupURLs - Optional map of group name to group Markdown content URL ('' is index) or JSON resource URL
 #
 async function baredocMain(url, title, menuLinks, groupURLs):
     # Parse arguments
@@ -51,8 +51,14 @@ async function baredocMain(url, title, menuLinks, groupURLs):
         endfor
     endfor
 
-    # Add an empty group for any missing group URLs
+    # Group URLs?
     if groupURLs != null:
+        # Fetch the group URLs, if necessary
+        if systemType(groupURLs) == 'string':
+            groupURLs = jsonParse(systemFetch(groupURLs))
+        endif
+
+        # Add an empty group for any missing group URLs
         for groupName in objectKeys(groupURLs):
             if groupName != '' && !objectHas(groups, groupName):
                 objectSet(groups, groupName, arrayNew())

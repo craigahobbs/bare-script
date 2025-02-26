@@ -339,6 +339,36 @@ endfunction
 unittestRunTestAsync('testBaredocMain_index_content')
 
 
+async function testBaredocMain_index_content_fetch():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'library.json', testBaredocLibrary, \
+            'libraryContent.json', '{"": "index.md", "A Group": "testGroup.md"}', \
+            'index.md', 'This is the index.' \
+        ) \
+    ))
+
+    # Render the index
+    baredocMain('library.json', 'The Test Library', null, 'libraryContent.json')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
+        arrayNew('systemFetch', arrayNew('libraryContent.json')), \
+        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('systemFetch', arrayNew('index.md')), \
+        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
+        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
+        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
+    ))
+endfunction
+unittestRunTestAsync('testBaredocMain_index_content_fetch')
+
+
 async function testBaredocMain_index_contentEmpty():
     # Setup mocks
     unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))

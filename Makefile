@@ -41,7 +41,7 @@ doc:
 	cd build/doc/library/ && \
 	$(NODE_SHELL) npx bare -m app.mds \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
-		-c "baredocMain('library.json', 'The BareScript Library', null, objectNew('', 'content/intro.md'))" \
+		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
 		> barescript-library.md
 
     # Generate the expression library documentation
@@ -51,7 +51,7 @@ doc:
 	cd build/doc/library/ && \
 	$(NODE_SHELL) npx bare -m app.mds \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
-		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, objectNew('', 'content/introExpression.md'))" \
+		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
 		> barescript-expression-library.md
 
     # Generate the library model documentation
