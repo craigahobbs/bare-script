@@ -86,10 +86,10 @@ async function baredocMain(url, title, menuLinks, groupURLs):
 
     # Render the page
     title = if(title != null && !objectHas(args, 'url'), title, url)
-    if single:
-        baredocSinglePage(args, title, groupURLs, groups)
-    elif group != null:
+    if group != null:
         baredocGroupPage(args, title, groupURLs, groups, group)
+    elif single:
+        baredocSinglePage(args, title, menuLinks, groupURLs, groups)
     else:
         baredocIndexPage(args, title, menuLinks, groupURLs, groups)
     endif
@@ -121,16 +121,14 @@ async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
 
     # Render the menu and title
     documentSetTitle(title)
-    if menuLinks != null && arrayLength(menuLinks) > 0:
+    if menuLinks != null && arrayLength(menuLinks) > 0 && !publish:
+        menuSpacer = '&nbsp;|&nbsp;'
         for menuLink, ixMenuLink in menuLinks:
             menuLinkText = arrayGet(menuLink, 0)
             menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint(if(ixMenuLink == 0, '', '| ') + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
+            markdownPrint(if(ixMenuLink == 0, '', menuSpacer) + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
         endfor
         markdownPrint('')
-    endif
-    if !publish:
-        markdownPrint(argsLink(baredocArguments, 'Single Page', objectNew('single', true)), '')
     endif
     markdownPrint('# ' + markdownEscape(title))
 
@@ -139,6 +137,11 @@ async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
         rootURL = objectGet(groupURLs, '')
         rootMarkdown = systemFetch(rootURL)
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
+    endif
+
+    # Render the single page toggle
+    if !publish:
+        markdownPrint('', argsLink(baredocArguments, 'Single Page', objectNew('single', true)))
     endif
 
     # Render the library function index
@@ -150,13 +153,19 @@ endfunction
 
 
 # Render the single-page library documentation
-async function baredocSinglePage(args, title, groupURLs, groups):
+async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
     publish = objectGet(args, 'publish')
 
     # Render the menu and title
     documentSetTitle(title)
-    if !publish:
-        markdownPrint(argsLink(baredocArguments, 'Multi Page', objectNew('single', false)), '')
+    if menuLinks != null && arrayLength(menuLinks) > 0 && !publish:
+        menuSpacer = '&nbsp;|&nbsp;'
+        for menuLink, ixMenuLink in menuLinks:
+            menuLinkText = arrayGet(menuLink, 0)
+            menuLinkURL = arrayGet(menuLink, 1)
+            markdownPrint(if(ixMenuLink == 0, '', menuSpacer) + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
+        endfor
+        markdownPrint('')
     endif
     markdownPrint('# ' + markdownEscape(title))
 
@@ -165,6 +174,11 @@ async function baredocSinglePage(args, title, groupURLs, groups):
         rootURL = objectGet(groupURLs, '')
         rootMarkdown = systemFetch(rootURL)
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
+    endif
+
+    # Render the single page toggle
+    if !publish:
+        markdownPrint('', argsLink(baredocArguments, 'Multi Page', objectNew('single', false)))
     endif
 
     # The table of contents
