@@ -51,8 +51,8 @@ async function testBaredocMain_index():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -74,8 +74,8 @@ async function testBaredocMain_single():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Multi Page](#var=)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Multi Page](#var=)')), \
         arrayNew('markdownPrint', arrayNew('','## Table of Contents','')), \
         arrayNew('markdownPrint', arrayNew('- [A Group](#var.vSingle=true&a-group)')), \
         arrayNew('markdownPrint', arrayNew('- [C Group](#var.vSingle=true&c-group)')), \
@@ -198,8 +198,8 @@ async function testBaredocMain_index_urlArray():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [B Group](#var.vGroup='B%20Group'&_top)")), \
@@ -233,8 +233,8 @@ async function testBaredocMain_index_urlArrayMerge():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -254,8 +254,8 @@ async function testBaredocMain_index_noTitle():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('library.json')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# library.json')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -276,10 +276,10 @@ async function testBaredocMain_index_menuLinks():
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
-        arrayNew("markdownPrint", arrayNew('| [Link \\_2\\_](page2.html)')), \
+        arrayNew("markdownPrint", arrayNew('&nbsp;|&nbsp;[Link \\_2\\_](page2.html)')), \
         arrayNew('markdownPrint', arrayNew('')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -301,8 +301,8 @@ async function testBaredocMain_index_menuLinksOne():
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
         arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
         arrayNew('markdownPrint', arrayNew('')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -327,16 +327,46 @@ async function testBaredocMain_index_content():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
         arrayNew('systemFetch', arrayNew('index.md')), \
         arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
     ))
 endfunction
 unittestRunTestAsync('testBaredocMain_index_content')
+
+
+async function testBaredocMain_index_content_fetch():
+    # Setup mocks
+    unittestMockAll(objectNew( \
+        'systemFetch', objectNew( \
+            'library.json', testBaredocLibrary, \
+            'libraryContent.json', '{"": "index.md", "A Group": "testGroup.md"}', \
+            'index.md', 'This is the index.' \
+        ) \
+    ))
+
+    # Render the index
+    baredocMain('library.json', 'The Test Library', null, 'libraryContent.json')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), arrayNew( \
+        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
+        arrayNew('systemFetch', arrayNew('libraryContent.json')), \
+        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('systemFetch', arrayNew('index.md')), \
+        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
+        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
+        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
+        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
+    ))
+endfunction
+unittestRunTestAsync('testBaredocMain_index_content_fetch')
 
 
 async function testBaredocMain_index_contentEmpty():
@@ -350,8 +380,8 @@ async function testBaredocMain_index_contentEmpty():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [B Group](#var.vGroup='B%20Group'&_top)")), \
@@ -372,10 +402,10 @@ async function testBaredocMain_index_contentError():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Single Page](#var.vSingle=true)', '')), \
         arrayNew('markdownPrint', arrayNew('# The Test Library')), \
         arrayNew('systemFetch', arrayNew('index.md')), \
         arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "index.md"')), \
+        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
@@ -397,8 +427,8 @@ async function testBaredocMain_index_urlArgument():
     unittestDeepEqual(unittestMockEnd(), arrayNew( \
         arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
         arrayNew('documentSetTitle', arrayNew('library.json')), \
-        arrayNew('markdownPrint', arrayNew("[Single Page](#var.vSingle=true&var.vURL='library.json')", '')), \
         arrayNew('markdownPrint', arrayNew('# library.json')), \
+        arrayNew('markdownPrint', arrayNew('', "[Single Page](#var.vSingle=true&var.vURL='library.json')")), \
         arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
         arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&var.vURL='library.json'&_top)")), \
         arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&var.vURL='library.json'&_top)")) \
