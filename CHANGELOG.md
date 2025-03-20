@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.0 (2025-03-20)
+
+- [de64f21](https://github.com/craigahobbs/bare-script/commit/de64f21) - JSON-serialize function values
+
+- [a65b92e](https://github.com/craigahobbs/bare-script/commit/a65b92e) - deep compare for object values
+
 ## 3.1.0 (2025-02-25)
 
 - [a962802](https://github.com/craigahobbs/bare-script/commit/a962802) - include MarkdownUp include library in package and add -m argument
