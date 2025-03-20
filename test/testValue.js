@@ -156,6 +156,9 @@ test('valueJSON', () => {
     "b": 6
 }`);
 
+    // Function
+    assert.equal(valueJSON(valueBoolean), '"<function>"');
+
     // Invalid
     assert.equal(valueJSON({'A': 1, 'B': /^$/}), '{"A":1,"B":null}');
     assert.equal(valueJSON(/^$/), 'null');
