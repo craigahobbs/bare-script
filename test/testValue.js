@@ -301,8 +301,12 @@ test('valueCompare', () => {
 
     // object
     assert.equal(valueCompare({'value': 1}, {'value': 1}), 0);
-    assert.equal(valueCompare({'value': 1}, {'value': 2}), 0);
-    assert.equal(valueCompare({'value': 2}, {'value': 1}), 0);
+    assert.equal(valueCompare({'value': 1}, {'value': 2}), -1);
+    assert.equal(valueCompare({'value': 2}, {'value': 1}), 1);
+    assert.equal(valueCompare({'a': 1}, {'b': 1}), -1);
+    assert.equal(valueCompare({'b': 1}, {'a': 1}), 1);
+    assert.equal(valueCompare({'a': 1}, {'b': 2, 'a': 1}), -1);
+    assert.equal(valueCompare({'b': 2, 'a': 1}, {'a': 1}), 1);
 
     // array
     assert.equal(valueCompare([1, 2, 3], [1, 2, 3]), 0);
@@ -319,6 +323,11 @@ test('valueCompare', () => {
     assert.equal(valueCompare(/^test1/, /^test1/), 0);
     assert.equal(valueCompare(/^test1/, /^test2/), 0);
     assert.equal(valueCompare(/^test2/, /^test1/), 0);
+
+    // Nested
+    assert.equal(valueCompare({'a': [{'d': 1}]}, {'a': [{'d': 1}]}), 0);
+    assert.equal(valueCompare({'a': [{'d': 1}]}, {'a': [{'d': 2}]}), -1);
+    assert.equal(valueCompare({'a': [{'d': 2}]}, {'a': [{'d': 1}]}), 1);
 });
 
 
