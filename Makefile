@@ -175,6 +175,9 @@ export PERF_JS
 markdown-up:
 	mkdir -p build/
 	rm -rf build/markdown-up
-	cd build && $(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz) && tar xzvf markdown-up.tar.gz
+	cd build && \
+		rm -f markdown-up.tar.gz && \
+		$(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz) && \
+		tar xzvf markdown-up.tar.gz
 	rm -rf lib/include/
 	cp -R build/markdown-up/include lib/
