@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1 (2025-03-22)
+
+- [1ab6d5a](https://github.com/craigahobbs/bare-script/commit/1ab6d5a) - improve object value comparison
+
 ## 3.2.0 (2025-03-20)
 
 - [de64f21](https://github.com/craigahobbs/bare-script/commit/de64f21) - JSON-serialize function values
