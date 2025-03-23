@@ -308,7 +308,9 @@ test('valueCompare', () => {
     assert.equal(valueCompare({'value': 2}, {'value': 1}), 1);
     assert.equal(valueCompare({'a': 1}, {'b': 1}), -1);
     assert.equal(valueCompare({'b': 1}, {'a': 1}), 1);
+    assert.equal(valueCompare({'a': 1}, {'a': 1, 'b': 2}), -1);
     assert.equal(valueCompare({'a': 1}, {'b': 2, 'a': 1}), -1);
+    assert.equal(valueCompare({'a': 1, 'b': 2}, {'a': 1}), 1);
     assert.equal(valueCompare({'b': 2, 'a': 1}, {'a': 1}), 1);
 
     // array
