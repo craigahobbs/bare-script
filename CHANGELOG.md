@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.2 (2025-03-23)
+
+- [5f52472](https://github.com/craigahobbs/bare-script/commit/5f52472) - make object comparison stable across locales
+
 ## 3.2.1 (2025-03-22)
 
 - [1ab6d5a](https://github.com/craigahobbs/bare-script/commit/1ab6d5a) - improve object value comparison
