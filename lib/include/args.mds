@@ -11,7 +11,7 @@ argsSentinel = true
 
 # The URL arguments model
 argsTypes = schemaParse( \
-    'group "Args"', \
+    'group "args.mds"', \
     '', \
     '', \
     '# An argument model list', \

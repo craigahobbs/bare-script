@@ -1,0 +1,155 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+
+# Include sentinel
+if systemGlobalGet('diffSentinel'):
+    return
+endif
+diffSentinel = true
+
+
+# The text line difference model
+diffTypes = schemaParse( \
+    'group "diff.bare"', \
+    '', \
+    '', \
+    '# A list of text line differences', \
+    'typedef Difference[] Differences', \
+    '', \
+    '', \
+    '# A difference', \
+    'struct Difference', \
+    '', \
+    '    # The type of difference', \
+    '    DifferenceType type', \
+    '', \
+    '    # The text lines of this difference', \
+    '    string[] lines', \
+    '', \
+    '', \
+    '# A difference type', \
+    'enum DifferenceType', \
+    '', \
+    '    # The lines are identical', \
+    '    Identical', \
+    '', \
+    '    # The lines were added', \
+    '    Add', \
+    '', \
+    '    # The lines were removed', \
+    '    Remove' \
+)
+
+
+# $function: diffLines
+# $group: diff.bare
+# $doc: Compute the line-differences of two strings or arrays of strings
+# $arg left: The "left" string or array of strings
+# $arg right: The "right" string or array of strings
+# $return: The array of [difference models](includeModel.html#var.vName='Differences')
+function diffLines(left, right):
+    diffs = arrayNew()
+
+    # Split the left into an array of lines
+    if systemType(left) == 'array':
+        leftLines = arrayNew()
+        for leftPart in left:
+            arrayExtend(leftLines, regexSplit(diffRegexLineSplit, leftPart))
+        endfor
+    else:
+        leftLines = regexSplit(diffRegexLineSplit, left)
+    endif
+
+    # Split the right into an array of lines
+    if systemType(right) == 'array':
+        rightLines = arrayNew()
+        for rightPart in right:
+            arrayExtend(rightLines, regexSplit(diffRegexLineSplit, rightPart))
+        endfor
+    else:
+        rightLines = regexSplit(diffRegexLineSplit, right)
+    endif
+
+    # Compute the differences
+    ixLeft = 0
+    ixRight = 0
+    leftLength = arrayLength(leftLines)
+    rightLength = arrayLength(rightLines)
+    while ixLeft < leftLength || ixRight < rightLength:
+        # If we've run out of lines on either side
+        if ixLeft >= leftLength:
+            if ixRight < rightLength:
+                arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight)))
+            endif
+            break
+        endif
+        if ixRight >= rightLength:
+            if ixLeft < leftLength:
+                arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft)))
+            endif
+            break
+        endif
+
+        # Find consecutive identical lines
+        identicalLines = arrayNew()
+        while ixLeft < leftLength && ixRight < rightLength && arrayGet(leftLines, ixLeft) == arrayGet(rightLines, ixRight):
+            arrayPush(identicalLines, arrayGet(leftLines, ixLeft))
+            ixLeft = ixLeft + 1
+            ixRight = ixRight + 1
+        endwhile
+        if identicalLines:
+            arrayPush(objectdiffs, objectNew('type', 'Identical', 'lines', identicalLines))
+            continue
+        endif
+
+        # Look ahead to find next matching point
+        foundMatch = False
+        ixLeftTmp = ixLeft
+        while ixLeftTmp < leftLength:
+            ixRightTmp = ixRight
+            while ixRightTmp < rightLength:
+                if arrayGet(leftLines, ixLeftTmp) == arrayGet(rightLines, ixRightTmp):
+                    foundMatch = true
+                    break
+                endif
+                ixRightTmp = ixRightTmp + 1
+            endwhile
+            if foundMatch:
+                break
+            endif
+            ixLeftTmp = ixLeftTmp + 1
+        endwhile
+
+        # If no match found, use remaining lines
+        if !foundMatch:
+            if ixLeft < leftLength:
+                arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft)))
+                ixLeft = leftLength
+            endif
+            if ixRight < rightLength:
+                arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight)))
+                ixRight = rightLength
+            endif
+            continue
+        endif
+
+        # Add removed lines if any
+        if ixLeftTmp > ixLeft:
+            arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft, ixLeftTmp)))
+            ixLeft = ixLeftTmp
+        endif
+
+        # Add added lines if any
+        if ixRightTmp > ixRight:
+            arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight, ixRightTmp)))
+            ixRight = ixRightTmp
+        endif
+    endwhile
+
+    return diffs
+endfunction
+
+
+# Regex for splitting lines
+diffRegexLineSplit = regexNew(stringFromCharCode(13) + '?' + stringFromCharCode(10))

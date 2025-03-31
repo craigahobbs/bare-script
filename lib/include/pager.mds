@@ -13,7 +13,7 @@ pagerSentinel = true
 
 # The pager model
 pagerTypes = schemaParse( \
-    'group "Pager"', \
+    'group "pager.mds"', \
     '', \
     '', \
     '# A pager application model', \

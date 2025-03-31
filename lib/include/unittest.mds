@@ -9,6 +9,9 @@ endif
 unittestSentinel = true
 
 
+include 'diff.bare'
+
+
 # Test statistics
 unittestTests = objectNew()
 unittestWarnings = arrayNew()
@@ -116,7 +119,7 @@ function unittestReport():
                             arrayPush(failureLines, '')
                             arrayPush(failureLines, '- ' + errorLine)
                         else:
-                            arrayPush(failureLines, '  ' + errorLine)
+                            arrayPush(failureLines, if(errorLine, '  ' + errorLine, ''))
                         endif
                     endfor
                 endfor
@@ -148,8 +151,27 @@ endfunction
 # $arg expected: The expected value
 # $arg description: The description of the assertion
 function unittestEqual(actual, expected, description):
-    if actual != expected:
-        unittestRecordError(jsonStringify(actual), jsonStringify(expected), description)
+    if actual == expected:
+        return
+    endif
+
+    # Add the test failure error lines
+    testFailures = objectGet(unittestTests, unittestTestName)
+    errorLines = arrayNew( \
+        'Equal:', \
+        '', \
+        '```', \
+        jsonStringify(actual), \
+        '```', \
+        '', \
+        '```', \
+        jsonStringify(expected), \
+        '```' \
+    )
+    if description != null:
+        arrayPush(testFailures, arrayExtend(arrayNew(markdownEscape(description), errorLines)))
+    else:
+        arrayPush(testFailures, errorLines)
     endif
 endfunction
 
@@ -161,28 +183,44 @@ endfunction
 # $arg expected: The expected value
 # $arg description: The description of the assertion
 function unittestDeepEqual(actual, expected, description):
-    actualJSON = jsonStringify(actual)
-    expectedJSON = jsonStringify(expected)
-    if actualJSON != expectedJSON:
-        unittestRecordError(actualJSON, expectedJSON, description)
+    # Serialize as JSON
+    actualJSON = if(systemType(actual) == 'string', actual, jsonStringify(actual, 4))
+    expectedJSON = if(systemType(expected) == 'string', expected, jsonStringify(expected, 4))
+    if actualJSON == expectedJSON:
+        return
     endif
-endfunction
 
+    # Compute the difference lines
+    errorLines = arrayNew()
+    diffErrorLines = arrayNew()
+    for diff in diffLines(actualJSON, expectedJSON):
+        diffType = objectGet(diff, 'type')
+        if diffType == 'Remove':
+            for diffLine in objectGet(diff, 'lines'):
+                arrayPush(diffErrorLines, '--- ' + diffLine)
+            endfor
+        elif diffType == 'Add':
+            for diffLine in objectGet(diff, 'lines'):
+                arrayPush(diffErrorLines, '+++ ' + diffLine)
+            endfor
+        else:
+            # diffType == 'Identical'
+            if diffErrorLines:
+                arrayExtend(errorLines, arrayNew('Deep-equal:', '', '```'))
+                arrayExtend(errorLines, diffErrorLines)
+                arrayPush(errorLines, '```')
+                diffErrorLines = arrayNew()
+            endif
+        endif
+    endfor
+    if diffErrorLines:
+        arrayExtend(errorLines, arrayNew('Deep-equal:', '', '```'))
+        arrayExtend(errorLines, diffErrorLines)
+        arrayPush(errorLines, '```')
+    endif
 
-# Helper function to record a unit test error
-function unittestRecordError(actualStr, expectedStr, description):
+    # Add the test failure error lines
     testFailures = objectGet(unittestTests, unittestTestName)
-    errorLines = arrayNew( \
-        '~~~', \
-        actualStr, \
-        '~~~', \
-        '', \
-        '!=', \
-        '', \
-        '~~~', \
-        expectedStr, \
-        '~~~' \
-    )
     if description != null:
         arrayPush(testFailures, arrayExtend(arrayNew(markdownEscape(description), errorLines)))
     else:
