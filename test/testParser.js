@@ -1415,11 +1415,11 @@ Continue statement outside of loop, line number 2:
 
 test('parseScript, include statement', () => {
     const script = validateScript(parseScript(`\
-include 'fi\\'le.mds'
+include 'fi\\'le.bare'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': [{'url': "fi'le.mds"}]}}
+            {'include': {'includes': [{'url': "fi'le.bare"}]}}
         ]
     });
 });
@@ -1427,11 +1427,11 @@ include 'fi\\'le.mds'
 
 test('parseScript, include statement, system', () => {
     const script = validateScript(parseScript(`\
-include <file.mds>
+include <file.bare>
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': [{'url': 'file.mds', 'system': true}]}}
+            {'include': {'includes': [{'url': 'file.bare', 'system': true}]}}
         ]
     });
 });
@@ -1441,18 +1441,18 @@ test('parseScript, include statement, double-quotes', () => {
     assert.throws(
         () => {
             parseScript(`\
-include "file.mds"
+include "file.bare"
 `);
         },
         {
             'name': 'BareScriptParserError',
             'message': `\
 Syntax error, line number 1:
-include "file.mds"
+include "file.bare"
        ^
 `,
             'error': 'Syntax error',
-            'line': 'include "file.mds"',
+            'line': 'include "file.bare"',
             'columnNumber': 8,
             'lineNumber': 1
         }
@@ -1462,13 +1462,13 @@ include "file.mds"
 
 test('parseScript, include statement multiple', () => {
     const script = validateScript(parseScript(`\
-include 'test.mds'
-include <test2.mds>
-include 'test3.mds'
+include 'test.bare'
+include <test2.bare>
+include 'test3.bare'
 `));
     assert.deepEqual(script, {
         'statements': [
-            {'include': {'includes': [{'url': 'test.mds'}, {'url': 'test2.mds', 'system': true}, {'url': 'test3.mds'}]}}
+            {'include': {'includes': [{'url': 'test.bare'}, {'url': 'test2.bare', 'system': true}, {'url': 'test3.bare'}]}}
         ]
     });
 });

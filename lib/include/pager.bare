@@ -1,0 +1,236 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+
+# Include sentinel
+if systemGlobalGet('pagerSentinel'):
+    return
+endif
+pagerSentinel = true
+
+
+include 'args.bare'
+
+
+# The pager model
+pagerTypes = schemaParse( \
+    'group "pager.bare"', \
+    '', \
+    '', \
+    '# A pager application model', \
+    'struct Pager', \
+    '', \
+    "    # The application's pages", \
+    '    PagerPage[len > 0] pages', \
+    '', \
+    '', \
+    '# A page model', \
+    'struct PagerPage', \
+    '', \
+    '    # The page name', \
+    '    string name', \
+    '', \
+    '    # If true, the page is hidden', \
+    '    optional bool hidden', \
+    '', \
+    '    # The page type', \
+    '    PagerPageType type', \
+    '', \
+    '', \
+    '# The page type', \
+    'union PagerPageType', \
+    '', \
+    '    # A function page', \
+    '    PagerPageFunction function', \
+    '', \
+    '    # A markdown resource page', \
+    '    PagerPageMarkdown markdown', \
+    '', \
+    '    # A navigation link', \
+    '    PagerPageLink link', \
+    '', \
+    '', \
+    '# A page function', \
+    'struct PagerPageFunction', \
+    '', \
+    '    # The page function', \
+    '    object function', \
+    '', \
+    '    # The page title', \
+    '    optional string title', \
+    '', \
+    '', \
+    '# A Markdown resource page', \
+    'struct PagerPageMarkdown', \
+    '', \
+    '    # The Markdown resource URL', \
+    '    string url', \
+    '', \
+    '', \
+    '# A page link', \
+    'struct PagerPageLink', \
+    '', \
+    '    # The link URL', \
+    '    string url' \
+)
+
+
+# $function: pagerValidate
+# $group: pager.bare
+# $doc: Validate a pager model
+# $arg pagerModel: The [pager model](includeModel.html#var.vName='Pager')
+# $return: The validated [pager model](includeModel.html#var.vName='Pager') or null if validation fails
+function pagerValidate(pagerModel):
+    return schemaValidate(pagerTypes, 'Pager', pagerModel)
+endfunction
+
+
+# $function: pagerMain
+# $group: pager.bare
+# $doc: The pager application main entry point
+# $arg pagerModel: The [pager model](includeModel.html#var.vName='Pager')
+# $arg options: The pager application options. The following options are available:
+# $arg options: - **arguments** - The [arguments model](includeModel.html#var.vName='ArgsArguments').
+# $arg options:   Must contain a string argument named "page".
+# $arg options: - **hideMenu** - Hide the menu links
+# $arg options: - **hideNav** - Hide the navigation links
+# $arg options: - **start** - The start page name
+async function pagerMain(pagerModel, options):
+    if options == null:
+        options = objectNew()
+    endif
+
+    # Validate the pager model
+    pagerModel = pagerValidate(pagerModel)
+    if pagerModel == null:
+        return
+    endif
+
+    # Compute the visible and navigable pages
+    pages = objectGet(pagerModel, 'pages')
+    visiblePages = arrayNew()
+    navPages = arrayNew()
+    for page in pages:
+        # Visible page?
+        if !objectGet(page, 'hidden'):
+            arrayPush(visiblePages, page)
+
+            # Navigable page?
+            pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
+            if pageTypeKey != 'link':
+                arrayPush(navPages, page)
+            endif
+        endif
+    endfor
+
+    # Parse arguments
+    startPageName = objectGet(options, 'start', if(arrayLength(navPages), objectGet(arrayGet(navPages, 0), 'name'), null))
+    if objectHas(options, 'arguments'):
+        arguments = argsValidate(objectGet(options, 'arguments'))
+        if arguments == null:
+            return
+        endif
+    else:
+        arguments = arrayNew(objectNew('name', 'page', 'default', startPageName))
+    endif
+    args = argsParse(arguments)
+
+    # Determine the current page
+    curPage = null
+    startPage = null
+    for page in pages:
+        if objectGet(page, 'name') == objectGet(args, 'page'):
+            curPage = page
+        endif
+        if objectGet(page, 'name') == startPageName:
+            startPage = page
+        endif
+    endfor
+    if startPage == null:
+        systemLogDebug('MarkdownUp - pager.bare: Unknown start page' + if(startPageName != null, '"' + startPageName + '"', ''))
+        return
+    endif
+    if curPage == null:
+        curPage = startPage
+    endif
+
+    # Determine the current page's navigable index, if any
+    ixCurPage = -1
+    for navPage, ixNavPage in navPages:
+        if objectGet(navPage, 'name') == objectGet(curPage, 'name'):
+            ixCurPage = ixNavPage
+            break
+        endif
+    endfor
+
+    # Render the menu
+    if !objectGet(options, 'hideMenu'):
+        for page, ixPage in visiblePages:
+            pageName = objectGet(page, 'name')
+            pageType = objectGet(page, 'type')
+            pageTypeKey = arrayGet(objectKeys(pageType), 0)
+
+            # Render the menu link
+            pageNameNbsp = stringReplace(pageName, ' ', '&nbsp;')
+            separator = if(ixPage != arrayLength(visiblePages) - 1, '&nbsp;|', '')
+            if pageTypeKey == 'link':
+                pageLinkURL = objectGet(objectGet(pageType, 'link'), 'url')
+                markdownPrint('[' + markdownEscape(pageNameNbsp) + '](' + urlEncode(pageLinkURL) + ')' + separator)
+            elif pageName == objectGet(curPage, 'name'):
+                markdownPrint(markdownEscape(pageNameNbsp) + separator)
+            else:
+                markdownPrint(argsLink(arguments, pageNameNbsp, objectNew('page', pageName)) + separator)
+            endif
+        endfor
+        markdownPrint('')
+    endif
+
+    # Render the start/next/prev buttons
+    if !objectGet(options, 'hideNav') && arrayLength(navPages) > 1 && ixCurPage != -1:
+        if startPageName == objectGet(curPage, 'name'):
+            startPageName = null
+        endif
+        prevPageName = if(ixCurPage != -1 && ixCurPage - 1 >= 0, objectGet(arrayGet(navPages, ixCurPage - 1), 'name'), null)
+        nextPageName = if(ixCurPage != -1 && ixCurPage + 1 < arrayLength(navPages), objectGet(arrayGet(navPages, ixCurPage + 1), 'name'), null)
+        markdownPrint( \
+            '(&nbsp;' + if(startPageName != null, argsLink(arguments, 'Start', objectNew('page', startPageName)), 'Start') + '&nbsp;|', \
+            if(prevPageName != null, argsLink(arguments, 'Previous', objectNew('page', prevPageName)), 'Previous') + '&nbsp;|', \
+            if(nextPageName != null, argsLink(arguments, 'Next', objectNew('page', nextPageName)), 'Next') + '&nbsp;)', \
+            '' \
+        )
+    endif
+
+    # Function page?
+    curPageType = objectGet(curPage, 'type')
+    curPageTypeKey = arrayGet(objectKeys(curPageType), 0)
+    if curPageTypeKey == 'function':
+        # Set the title
+        title = objectGet(objectGet(curPageType, 'function'), 'title')
+        if title != null:
+            documentSetTitle(title)
+            markdownPrint('# ' + markdownEscape(title), '')
+        endif
+
+        # Call the page function
+        pageFn = objectGet(objectGet(curPageType, 'function'), 'function')
+        pageFn(args)
+    elif curPageTypeKey == 'markdown':
+        # Fetch the Markdown text
+        url = objectGet(objectGet(curPageType, 'markdown'), 'url')
+        markdownText = systemFetch(url)
+        if markdownText == null:
+            markdownPrint('**Error:** Failed to load "' + url + '"')
+        else:
+            # Compute and set the page title
+            markdownModel = markdownParse(markdownText)
+            title = markdownTitle(markdownModel)
+            if title == null:
+                title = 'No Title'
+            endif
+            documentSetTitle(title)
+
+            # Render the Markdown text
+            markdownPrint('', markdownText)
+        endif
+    endif
+endfunction

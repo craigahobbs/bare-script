@@ -425,5 +425,5 @@ your .emacs file:
     (url-copy-file "https://craigahobbs.github.io/bare-script/language/barescript-mode.el" mode-file t)
     (package-install-file mode-file)
     (delete-file mode-file)))
-(add-to-list 'auto-mode-alist '("\\.\\(?:bare\\|mds\\)\\'" . barescript-mode))
+(add-to-list 'auto-mode-alist '("\\.bare\\'" . barescript-mode))
 ~~~

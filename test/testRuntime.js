@@ -394,7 +394,7 @@ test('executeScript, return blank', () => {
 test('executeScript, include', () => {
     const script = validateScript({
         'statements': [
-            {'include': {'includes': [{'url': 'test.mds'}]}}
+            {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
     });
 
@@ -405,7 +405,7 @@ test('executeScript, include', () => {
         () => executeScript(script, options),
         {
             'name': 'BareScriptRuntimeError',
-            'message': 'Include of "test.mds" within non-async scope'
+            'message': 'Include of "test.bare" within non-async scope'
         }
     );
 });
@@ -414,14 +414,14 @@ test('executeScript, include', () => {
 test('executeScript, include no fetchFn', () => {
     const script = validateScript({
         'statements': [
-            {'include': {'includes': [{'url': 'test.mds'}]}}
+            {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
     });
     assert.throws(
         () => executeScript(script),
         {
             'name': 'BareScriptRuntimeError',
-            'message': 'Include of "test.mds" within non-async scope'
+            'message': 'Include of "test.bare" within non-async scope'
         }
     );
 });

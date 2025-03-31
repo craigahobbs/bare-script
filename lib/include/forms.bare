@@ -1,0 +1,79 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+
+# Include sentinel
+if systemGlobalGet('formsSentinel'):
+    return
+endif
+formsSentinel = true
+
+
+# $function: formsTextElements
+# $group: forms.bare
+# $doc: Create a text input [element model](https://github.com/craigahobbs/element-model#readme)
+# $arg id: The text input element ID
+# $arg text: The initial text of the text input element
+# $arg size: Optional (default is null). The size, in characters, of the text input element
+# $arg onEnter: Optional (default is null). The text input element on-enter event handler
+# $return: The text input [element model](https://github.com/craigahobbs/element-model#readme)
+function formsTextElements(id, text, size, onEnter):
+    return objectNew( \
+        'html', 'input', \
+        'attr', objectNew( \
+            'autocomplete', 'off', \
+            'id', id, \
+            'style', 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
+            'type', 'text', \
+            'value', text, \
+            'size', size \
+        ), \
+        'callback', if(onEnter != null, objectNew('keyup', systemPartial(formsTextOnKeyup, onEnter))) \
+    )
+endfunction
+
+
+async function formsTextOnKeyup(onEnter, keyCode):
+    if keyCode == 13:
+        onEnter()
+    endif
+endfunction
+
+
+# $function: formsLinkButtonElements
+# $group: forms.bare
+# $doc: Create a link button [element model](https://github.com/craigahobbs/element-model#readme)
+# $arg text: The link button's text
+# $arg onClick: The link button's click event handler
+# $return: The link button [element model](https://github.com/craigahobbs/element-model#readme)
+function formsLinkButtonElements(text, onClick):
+    return objectNew( \
+        'html', 'a', \
+        'attr', objectNew('style', 'cursor: pointer; user-select: none;'), \
+        'elem', objectNew('text', text), \
+        'callback', objectNew('click', onClick) \
+    )
+endfunction
+
+
+# $function: formsLinkElements
+# $group: forms.bare
+# $doc: Create a link [element model](https://github.com/craigahobbs/element-model#readme)
+# $arg text: The link's text
+# $arg url: The link's URL. If null, the link is rendered as text.
+# $return: The link [element model](https://github.com/craigahobbs/element-model#readme)
+function formsLinkElements(text, url):
+    if url == null:
+        return objectNew( \
+            'html', 'span', \
+            'attr', objectNew('style', 'user-select: none;'), \
+            'elem', objectNew('text', text) \
+        )
+    endif
+
+    return objectNew( \
+        'html', 'a', \
+        'attr', objectNew('href', documentURL(url)), \
+        'elem', objectNew('text', text) \
+    )
+endfunction

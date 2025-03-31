@@ -40,7 +40,7 @@ doc:
 
     # Generate the single-page library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m app.mds \
+	$(NODE_SHELL) npx bare -m app.bare \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
 		> barescript-library.md
@@ -50,7 +50,7 @@ doc:
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m app.mds \
+	$(NODE_SHELL) npx bare -m app.bare \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
 		> barescript-expression-library.md
@@ -127,8 +127,8 @@ export DOC_RUNTIME_MODEL_JS
 .PHONY: test-doc
 commit: test-doc
 test-doc: build/npm.build
-	$(NODE_SHELL) npx bare -s static/library/*.mds static/library/test/*.mds
-	$(NODE_SHELL) npx bare -m static/library/test/runTests.mds$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -s static/library/*.bare static/library/test/*.bare
+	$(NODE_SHELL) npx bare -m static/library/test/runTests.bare$(if $(DEBUG), -d)$(if $(TEST), -v vTest "'$(TEST)'")
 
 
 # Run performance tests
