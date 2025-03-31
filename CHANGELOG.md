@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.0 (2025-03-31)
+
+- [82c7704](https://github.com/craigahobbs/bare-script/commit/82c7704) - eliminate use of .mds
+
+- [79f82ab](https://github.com/craigahobbs/bare-script/commit/79f82ab) - eliminate use of .mds
+
 ## 3.2.3 (2025-03-31)
 
 - [9d66f58](https://github.com/craigahobbs/bare-script/commit/9d66f58) - update markdown-up include
