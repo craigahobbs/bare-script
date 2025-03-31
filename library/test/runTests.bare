@@ -5,7 +5,7 @@ include <unittest.mds>
 include <unittestMock.mds>
 
 # Test includes
-include 'testApp.mds'
+include 'testApp.bare'
 
 # Test report
 return unittestReport()
