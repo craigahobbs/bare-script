@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.2.3 (2025-03-31)
+
+- [9d66f58](https://github.com/craigahobbs/bare-script/commit/9d66f58) - update markdown-up include
+
+- [b948521](https://github.com/craigahobbs/bare-script/commit/b948521) - value compare function cleanup
+
 ## 3.2.2 (2025-03-23)
 
 - [5f52472](https://github.com/craigahobbs/bare-script/commit/5f52472) - make object comparison stable across locales
