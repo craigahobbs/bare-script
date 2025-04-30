@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.1 (2025-04-30)
+
+- [8c67757](https://github.com/craigahobbs/bare-script/commit/8c67757) - simplify native function calls
+
 ## 3.3.0 (2025-03-31)
 
 - [82c7704](https://github.com/craigahobbs/bare-script/commit/82c7704) - eliminate use of .mds
