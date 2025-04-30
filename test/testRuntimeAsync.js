@@ -317,6 +317,57 @@ test('executeScriptAsync, function error log no-debug', async () => {
 });
 
 
+test('executeScriptAsync, function native call', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'multiplyNumbers',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                        }}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    executeScriptAsync(script, {globals});
+    const options = {globals};
+    assert.equal(globals.multiplyNumbers([2, 3], options), 6);
+    assert.equal(options.statementCount, 2);
+});
+
+
+test('executeScriptAsync, function async native call', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'multiplyNumbers',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                        }}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    await executeScriptAsync(script, {globals});
+    const options = {globals};
+    assert.equal(await globals.multiplyNumbers([2, 3], options), 6);
+    assert.equal(options.statementCount, 2);
+});
+
+
 test('executeScriptAsync, jump', async () => {
     const script = validateScript({
         'statements': [

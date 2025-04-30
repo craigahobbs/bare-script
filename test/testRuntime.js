@@ -308,6 +308,31 @@ test('executeScript, function error log no-debug', () => {
 });
 
 
+test('executeScript, function native call', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'multiplyNumbers',
+                    'args': ['a', 'b'],
+                    'statements': [
+                        {'expr': {'name': 'c', 'expr': {'variable': 'b'}}},
+                        {'return': {
+                            'expr': {'binary': {'op': '*', 'left': {'variable': 'a'}, 'right': {'variable': 'c'}}}
+                        }}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    executeScript(script, {'globals': globals});
+    const options = {'globals': globals};
+    assert.equal(globals.multiplyNumbers([2, 3], options), 6);
+    assert.equal(options.statementCount, 2);
+});
+
+
 test('executeScript, jump', () => {
     const script = validateScript({
         'statements': [
