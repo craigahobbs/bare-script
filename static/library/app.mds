@@ -1,6 +1,0 @@
-# Licensed under the MIT License
-# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
-
-
-systemLog('bare-script: app.mds is now app.bare - please update before 2025-06-01')
-include 'app.bare'
