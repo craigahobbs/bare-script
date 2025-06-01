@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.2 (2025-06-01)
+
+- [dea491b](https://github.com/craigahobbs/bare-script/commit/dea491b) - eliminate library .mds files
+
 ## 3.3.1 (2025-04-30)
 
 - [8c67757](https://github.com/craigahobbs/bare-script/commit/8c67757) - simplify native function calls
