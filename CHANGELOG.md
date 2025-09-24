@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.1 (2025-09-24)
+
+- [a17908c](https://github.com/craigahobbs/bare-script/commit/a17908c) - update include library
+
 ## 3.5.0 (2025-09-24)
 
 - [843362e](https://github.com/craigahobbs/bare-script/commit/843362e) - add bitwise operators, add hex numeric literals, fix bugs
