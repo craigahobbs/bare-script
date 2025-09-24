@@ -50,6 +50,7 @@ function unittestMockAll(data):
     unittestMockOne('documentFontSize', unittestMock_documentFontSize)
     unittestMockOne('documentInputValue', systemPartial(unittestMock_documentInputValue, if(data != null, objectGet(data, 'documentInputValue'))))
     unittestMockOneGeneric('documentSetFocus')
+    unittestMockOneGeneric('documentSetKeyDown')
     unittestMockOneGeneric('documentSetReset')
     unittestMockOneGeneric('documentSetTitle')
     unittestMockOne('documentURL', unittestMock_documentURL)

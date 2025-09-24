@@ -182,6 +182,10 @@ function documentSetFocus():
 endfunction
 
 
+function documentSetKeyDown():
+endfunction
+
+
 function documentSetReset():
 endfunction
 
