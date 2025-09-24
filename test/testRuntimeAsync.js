@@ -1256,7 +1256,7 @@ test('evaluateExpressionAsync, binary logical or', async () => {
 });
 
 
-test('evaluateExpression, binary addition', async () => {
+test('evaluateExpressionAsync, binary addition', async () => {
     const options = {'globals': {testDate, testNumber, testString}};
 
     // number + number
@@ -1283,6 +1283,22 @@ test('evaluateExpression, binary addition', async () => {
     expr = validateExpression({'binary': {'op': '+', 'left': {'number': -86400000}, 'right': {'function': {'name': 'testDate'}}}});
     assert.deepEqual(await evaluateExpressionAsync(expr, options), new Date(2024, 1, 5));
 
+    // Invalid - bool + number
+    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number + bool
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - datetime + bool
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - bool + datetime
+    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
@@ -1300,6 +1316,14 @@ test('evaluateExpressionAsync, binary subtraction', async () => {
     expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 86400000);
 
+    // Invalid - bool - number
+    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number - bool
+    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
@@ -1313,6 +1337,14 @@ test('evaluateExpressionAsync, binary multiplication', async () => {
     let expr = validateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 20);
 
+    // Invalid - bool * number
+    expr = validateExpression({'binary': {'op': '*', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number * bool
+    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
@@ -1325,6 +1357,14 @@ test('evaluateExpressionAsync, binary division', async () => {
     // number / number
     let expr = validateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 5);
+
+    // Invalid - bool / number
+    expr = validateExpression({'binary': {'op': '/', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number / bool
+    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
     expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
@@ -1381,6 +1421,14 @@ test('evaluateExpressionAsync, binary modulus', async () => {
     let expr = validateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 0);
 
+    // Invalid - bool % number
+    expr = validateExpression({'binary': {'op': '%', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number % bool
+    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
@@ -1394,8 +1442,201 @@ test('evaluateExpressionAsync, binary exponentiation', async () => {
     let expr = validateExpression({'binary': {'op': '**', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 100);
 
+    // Invalid - bool ** number
+    expr = validateExpression({'binary': {'op': '**', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - number ** bool
+    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary bitwise and', async () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number & number
+    let expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '&', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary bitwise or', async () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number | number
+    let expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 10);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 10);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 6);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '|', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary bitwise xor', async () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number ^ number
+    let expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 8);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 8);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 4);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '^', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary left shift', async () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number << number
+    let expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 40);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 40);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 8);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary right shift', async () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number >> number
+    let expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), 1);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -1416,6 +1657,31 @@ test('evaluateExpressionAsync, unary negate', async () => {
 
     // Invalid
     expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, unary bitwise not', async () => {
+    const options = {'globals': {'testNumber': testNumber, 'testString': testString}};
+
+    // ~ number
+    let expr = validateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), -3);
+
+    // Float
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), -3);
+
+    // Invalid - non-integer
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid - bool
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 

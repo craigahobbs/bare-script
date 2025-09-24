@@ -579,6 +579,30 @@ test('valueArgsValidate, number constraints', () => {
         [2, 5]
     );
 
+    // Bool integer
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [true, 3.5]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "int" argument value, true',
+            'returnValue': null
+        }
+    );
+
+    // Bool num
+    assert.throws(
+        () => {
+            valueArgsValidate(fnArgs, [2, false]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "num" argument value, false',
+            'returnValue': null
+        }
+    );
+
     // Non-integer
     assert.throws(
         () => {

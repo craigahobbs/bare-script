@@ -945,6 +945,22 @@ test('evaluateExpression, binary addition', () => {
     expr = validateExpression({'binary': {'op': '+', 'left': {'number': -86400000}, 'right': {'function': {'name': 'testDate'}}}});
     assert.deepEqual(evaluateExpression(expr, options), new Date(2024, 1, 5));
 
+    // Invalid - bool + number
+    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number + bool
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - datetime + bool
+    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - bool + datetime
+    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
@@ -962,6 +978,14 @@ test('evaluateExpression, binary subtraction', () => {
     expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(evaluateExpression(expr, options), 86400000);
 
+    // Invalid - bool - number
+    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number - bool
+    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
@@ -975,6 +999,14 @@ test('evaluateExpression, binary multiplication', () => {
     let expr = validateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 20);
 
+    // Invalid - bool * number
+    expr = validateExpression({'binary': {'op': '*', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number * bool
+    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
@@ -987,6 +1019,14 @@ test('evaluateExpression, binary division', () => {
     // number / number
     let expr = validateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 5);
+
+    // Invalid - bool / number
+    expr = validateExpression({'binary': {'op': '/', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number / bool
+    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
     expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
@@ -1043,6 +1083,14 @@ test('evaluateExpression, binary modulus', () => {
     let expr = validateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 0);
 
+    // Invalid - bool % number
+    expr = validateExpression({'binary': {'op': '%', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number % bool
+    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
@@ -1056,8 +1104,201 @@ test('evaluateExpression, binary exponentiation', () => {
     let expr = validateExpression({'binary': {'op': '**', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 100);
 
+    // Invalid - bool ** number
+    expr = validateExpression({'binary': {'op': '**', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - number ** bool
+    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
     // Invalid
     expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary bitwise and', () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number & number
+    let expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 2);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 2);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(evaluateExpression(expr, options), 2);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '&', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary bitwise or', () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number | number
+    let expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 10);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 10);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(evaluateExpression(expr, options), 6);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '|', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary bitwise xor', () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number ^ number
+    let expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 8);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 8);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    assert.equal(evaluateExpression(expr, options), 4);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '^', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary left shift', () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number << number
+    let expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 40);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 40);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
+    assert.equal(evaluateExpression(expr, options), 8);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, binary right shift', () => {
+    const options = {'globals': {'testNumber': testNumber}};
+
+    // number >> number
+    let expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 2);
+
+    // Left float
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), 2);
+
+    // Right float
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
+    assert.equal(evaluateExpression(expr, options), 1);
+
+    // Invalid - left non-integer
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right non-integer
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - left bool
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - right bool
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1078,6 +1319,31 @@ test('evaluateExpression, unary negate', () => {
 
     // Invalid
     expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
+test('evaluateExpression, unary bitwise not', () => {
+    const options = {'globals': {'testNumber': testNumber, 'testString': testString}};
+
+    // ~ number
+    let expr = validateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
+    assert.equal(evaluateExpression(expr, options), -3);
+
+    // Float
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
+    assert.equal(evaluateExpression(expr, options), -3);
+
+    // Invalid - non-integer
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid - bool
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+
+    // Invalid
+    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
 });
 

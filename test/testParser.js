@@ -1652,10 +1652,19 @@ test('parseExpression', () => {
 
 
 test('parseExpression, unary', () => {
-    const expr = parseExpression('!a');
+    let expr = parseExpression('!a');
     assert.deepEqual(validateExpression(expr), {
         'unary': {
             'op': '!',
+            'expr': {'variable': 'a'}
+        }
+    });
+
+    // Bitwise NOT
+    expr = parseExpression('~a');
+    assert.deepEqual(validateExpression(expr), {
+        'unary': {
+            'op': '~',
             'expr': {'variable': 'a'}
         }
     });
@@ -1956,6 +1965,111 @@ test('parseExpression, operator precedence 8', () => {
 });
 
 
+test('parseExpression, bitwise operators', () => {
+    let expr = parseExpression('1 & 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '&',
+            'left': {'number': 1},
+            'right': {'number': 3}
+        }
+    });
+
+    expr = parseExpression('1 | 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '|',
+            'left': {'number': 1},
+            'right': {'number': 3}
+        }
+    });
+
+    expr = parseExpression('1 ^ 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '^',
+            'left': {'number': 1},
+            'right': {'number': 3}
+        }
+    });
+
+    expr = parseExpression('1 << 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '<<',
+            'left': {'number': 1},
+            'right': {'number': 3}
+        }
+    });
+
+    expr = parseExpression('1 >> 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '>>',
+            'left': {'number': 1},
+            'right': {'number': 3}
+        }
+    });
+});
+
+
+test('parseExpression, bitwise precedence', () => {
+    // Shift operators after additive, before relational
+    let expr = parseExpression('1 + 2 << 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '<<',
+            'left': {
+                'binary': {
+                    'op': '+',
+                    'left': {'number': 1.0},
+                    'right': {'number': 2.0}
+                }
+            },
+            'right': {'number': 3.0}
+        }
+    });
+
+    // Bitwise after equality
+    expr = parseExpression('1 == 2 & 3');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '&',
+            'left': {
+                'binary': {
+                    'op': '==',
+                    'left': {'number': 1},
+                    'right': {'number': 2}
+                }
+            },
+            'right': {'number': 3}
+        }
+    });
+
+    // Bitwise AND before XOR and OR
+    expr = parseExpression('1 & 2 ^ 3 | 4');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '|',
+            'left': {
+                'binary': {
+                    'op': '^',
+                    'left': {
+                        'binary': {
+                            'op': '&',
+                            'left': {'number': 1},
+                            'right': {'number': 2}
+                        }
+                    },
+                    'right': {'number': 3}
+                }
+            },
+            'right': {'number': 4}
+        }
+    });
+});
+
+
 test('parseExpression, group', () => {
     const expr = parseExpression('(7 + 3) * 5');
     assert.deepEqual(validateExpression(expr), {
@@ -1987,6 +2101,32 @@ test('parseExpression, group nested', () => {
             }
         }
     });
+});
+
+
+test('parseExpression, number literal', () => {
+    let expr = parseExpression('1');
+    assert.deepEqual(validateExpression(expr), {'number': 1.0});
+    expr = parseExpression('-1');
+    assert.deepEqual(validateExpression(expr), {'number': -1.0});
+
+    expr = parseExpression('1.1');
+    assert.deepEqual(validateExpression(expr), {'number': 1.1});
+
+    expr = parseExpression('-1.1');
+    assert.deepEqual(validateExpression(expr), {'number': -1.1});
+
+    expr = parseExpression('1e3');
+    assert.deepEqual(validateExpression(expr), {'number': 1000});
+
+    expr = parseExpression('1e+3');
+    assert.deepEqual(validateExpression(expr), {'number': 1000});
+
+    expr = parseExpression('1e-3');
+    assert.deepEqual(validateExpression(expr), {'number': .001});
+
+    expr = parseExpression('0x1fF');
+    assert.deepEqual(validateExpression(expr), {'number': 511});
 });
 
 
