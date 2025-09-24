@@ -399,11 +399,36 @@ export async function evaluateExpressionAsync(expr, options = null, locals = nul
             if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
                 return leftValue % rightValue;
             }
-        } else {
-            // binOp === '**'
+        } else if (binOp === '**') {
             // number ** number
             if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
                 return leftValue ** rightValue;
+            }
+        } else if (binOp === '&amp;') {
+            if (typeof leftValue === 'number' &amp;&amp; Math.floor(leftValue) === leftValue &amp;&amp;
+                typeof rightValue === 'number' &amp;&amp; Math.floor(rightValue) === rightValue) {
+                return leftValue &amp; rightValue;
+            }
+        } else if (binOp === '|') {
+            if (typeof leftValue === 'number' &amp;&amp; Math.floor(leftValue) === leftValue &amp;&amp;
+                typeof rightValue === 'number' &amp;&amp; Math.floor(rightValue) === rightValue) {
+                return leftValue | rightValue;
+            }
+        } else if (binOp === '^') {
+            if (typeof leftValue === 'number' &amp;&amp; Math.floor(leftValue) === leftValue &amp;&amp;
+                typeof rightValue === 'number' &amp;&amp; Math.floor(rightValue) === rightValue) {
+                return leftValue ^ rightValue;
+            }
+        } else if (binOp === '&lt;&lt;') {
+            if (typeof leftValue === 'number' &amp;&amp; Math.floor(leftValue) === leftValue &amp;&amp;
+                typeof rightValue === 'number' &amp;&amp; Math.floor(rightValue) === rightValue) {
+                return leftValue &lt;&lt; rightValue;
+            }
+        } else {
+            // if (binOp === '>>')
+            if (typeof leftValue === 'number' &amp;&amp; Math.floor(leftValue) === leftValue &amp;&amp;
+                typeof rightValue === 'number' &amp;&amp; Math.floor(rightValue) === rightValue) {
+                return leftValue >> rightValue;
             }
         }
 
@@ -417,8 +442,15 @@ export async function evaluateExpressionAsync(expr, options = null, locals = nul
         const value = await evaluateExpressionAsync(expr.unary.expr, options, locals, builtins);
         if (unaryOp === '!') {
             return !valueBoolean(value);
-        } else if (unaryOp === '-' &amp;&amp; typeof value === 'number') {
-            return -value;
+        } else if (unaryOp === '-') {
+            if (typeof value === 'number') {
+                return -value;
+            }
+        } else {
+            // if (unaryOp === '~'
+            if (typeof value === 'number' &amp;&amp; Math.floor(value) === value) {
+                return ~value;
+            }
         }
 
         // Invalid operation value
