@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.0 (2025-09-24)
+
+- [843362e](https://github.com/craigahobbs/bare-script/commit/843362e) - add bitwise operators, add hex numeric literals, fix bugs
+
 ## 3.3.2 (2025-06-01)
 
 - [dea491b](https://github.com/craigahobbs/bare-script/commit/dea491b) - eliminate library .mds files
