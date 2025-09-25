@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.4 (2025-09-25)
+
+- [ed52274](https://github.com/craigahobbs/bare-script/commit/ed52274) - fix blank return statement end-of-line comments
+
 ## 3.5.3 (2025-09-25)
 
 - [a56acf5](https://github.com/craigahobbs/bare-script/commit/a56acf5) - allow end-of-line comments
