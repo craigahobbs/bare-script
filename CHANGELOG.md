@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.3 (2025-09-25)
+
+- [a56acf5](https://github.com/craigahobbs/bare-script/commit/a56acf5) - allow end-of-line comments
+
 ## 3.5.2 (2025-09-25)
 
 - [18e8a8a](https://github.com/craigahobbs/bare-script/commit/18e8a8a) - update include library \(pager.bare keyboard commands\)
