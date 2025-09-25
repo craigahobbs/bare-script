@@ -478,27 +478,30 @@ const rScriptLineSplit = /\r?\n/;
 const rScriptContinuation = /\\\s*$/;
 const rScriptComment = /^\s*(?:#.*)?$/;
 const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.+)$/;
+const rPartComment = '\\s*(#.*)?$';
 const rScriptFunctionBegin = new RegExp(
     '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_]\\w*)\\s*\\(' +
-        '\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:\\s*$'
+        `\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:${rPartComment}`
 );
 const rScriptFunctionArgSplit = /\s*,\s*/;
-const rScriptFunctionEnd = /^\s*endfunction\s*$/;
-const rScriptLabel = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*:\s*$/;
-const rScriptJump = /^(?&lt;jump>\s*(?:jump|jumpif\s*\((?&lt;expr>.+)\)))\s+(?&lt;name>[A-Za-z_]\w*)\s*$/;
-const rScriptReturn = /^(?&lt;return>\s*return(?:\s+(?&lt;expr>.+))?)\s*$/;
-const rScriptInclude = /^\s*include\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'\s*$/;
-const rScriptIncludeSystem = /^\s*include\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>\s*$/;
-const rScriptIfBegin = /^\s*if\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptIfElseIf = /^\s*elif\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptIfElse = /^\s*else\s*:\s*$/;
-const rScriptIfEnd = /^\s*endif\s*$/;
-const rScriptForBegin = /^\s*for\s+(?&lt;value>[A-Za-z_]\w*)(?:\s*,\s*(?&lt;index>[A-Za-z_]\w*))?\s+in\s+(?&lt;values>.+)\s*:\s*$/;
-const rScriptForEnd = /^\s*endfor\s*$/;
-const rScriptWhileBegin = /^\s*while\s+(?&lt;expr>.+)\s*:\s*$/;
-const rScriptWhileEnd = /^\s*endwhile\s*$/;
-const rScriptBreak = /^\s*break\s*$/;
-const rScriptContinue = /^\s*continue\s*$/;
+const rScriptFunctionEnd = new RegExp(`^\\s*endfunction${rPartComment}`);
+const rScriptLabel = new RegExp(`^\\s*(?&lt;name>[A-Za-z_]\\w*)\\s*:${rPartComment}`);
+const rScriptJump = new RegExp(`^(?&lt;jump>\\s*(?:jump|jumpif\\s*\\((?&lt;expr>.+)\\)))\\s+(?&lt;name>[A-Za-z_]\\w*)${rPartComment}`);
+const rScriptReturn = new RegExp(`^(?&lt;return>\\s*return(?:\\s+(?&lt;expr>.+))?)${rPartComment}`);
+const rScriptInclude = new RegExp(`^\\s*include\\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'${rPartComment}`);
+const rScriptIncludeSystem = new RegExp(`^\\s*include\\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>${rPartComment}`);
+const rScriptIfBegin = new RegExp(`^\\s*if\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptIfElseIf = new RegExp(`^\\s*elif\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptIfElse = new RegExp(`^\\s*else\\s*:${rPartComment}`);
+const rScriptIfEnd = new RegExp(`^\\s*endif${rPartComment}`);
+const rScriptForBegin = new RegExp(
+    `^\\s*for\\s+(?&lt;value>[A-Za-z_]\\w*)(?:\\s*,\\s*(?&lt;index>[A-Za-z_]\\w*))?\\s+in\\s+(?&lt;values>.+)\\s*:${rPartComment}`
+);
+const rScriptForEnd = new RegExp(`^\\s*endfor${rPartComment}`);
+const rScriptWhileBegin = new RegExp(`^\\s*while\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptWhileEnd = new RegExp(`^\\s*endwhile${rPartComment}`);
+const rScriptBreak = new RegExp(`^\\s*break${rPartComment}`);
+const rScriptContinue = new RegExp(`^\\s*continue${rPartComment}`);
 
 
 /**
@@ -537,6 +540,11 @@ function parseBinaryExpression(exprText, binLeftExpr = null) {
     // Match a binary operator - if not found, return the left expression
     const matchBinaryOp = binText.match(rExprBinaryOp);
     if (matchBinaryOp === null) {
+        // End-of-line comment?
+        if (binText.match(rExprComment)) {
+            binText = '';
+        }
+
         return [leftExpr, binText];
     }
     const [, binOp] = matchBinaryOp;
@@ -699,6 +707,7 @@ function parseUnaryExpression(exprText) {
 
 
 // BareScript expression regex
+const rExprComment = /^\s*#.*$/;
 const rExprBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;&lt;|>>|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\||&amp;|\^|\|)/;
 const rExprUnaryOp = /^\s*(!|-|~)/;
 const rExprFunctionOpen = /^\s*([A-Za-z_]\w+)\s*\(/;
