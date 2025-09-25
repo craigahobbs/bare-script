@@ -29,6 +29,173 @@ test('parseScript, array input', () => {
 });
 
 
+test('parseScript, comments', () => {
+    const script = validateScript(parseScript(`\
+include <args.bare>  # Application arguments
+
+include 'util.bare'  # Utilities
+
+# Main entry point
+function main():             # Start running
+    markdownPrint('# TODO')  # TODO
+    return true              # Success!
+endfunction                  # End running
+
+jump label  # Jump to next
+label:      # Where to jump
+
+if false:    # Never happen
+    ix = 0
+elif false:  # Never happen
+    ix = 1
+else:        # Always happened
+    ix = 2
+endif        # It happens
+
+for num in arrayNew(1, 2, 3):  # Iterate numbers
+    systemLog(num)
+endfor  # Numbers done
+
+ix = 0
+while true:  # Forever?
+    if ix == 5:
+        break  # All done
+    endif
+    ix = ix + 1
+    if ix == 3:
+        continue  # Silly
+    endif
+endwhile  # Keep doing it
+`));
+    assert.deepEqual(script, {
+        'statements': [
+            {
+                'include': {
+                    'includes': [
+                        {'url': 'args.bare', 'system': true},
+                        {'url': 'util.bare'}
+                    ]
+                }
+            },
+            {
+                'function': {
+                    'name': 'main',
+                    'statements': [
+                        {'expr': {'expr': {'function': {'name': 'markdownPrint', 'args': [{'string': '# TODO'}]}}}},
+                        {'return': {'expr': {'variable': 'true'}}}
+                    ]
+                }
+            },
+            {'jump': {'label': 'label'}},
+            {'label': 'label'},
+            {
+                'jump': {
+                    'label': '__bareScriptIf0',
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}}
+                }
+            },
+            {'expr': {'name': 'ix', 'expr': {'number': 0.0}}},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf0'},
+            {
+                'jump': {
+                    'label': '__bareScriptIf1',
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}}
+                }
+            },
+            {'expr': {'name': 'ix', 'expr': {'number': 1.0}}},
+            {'jump': {'label': '__bareScriptDone0'}},
+            {'label': '__bareScriptIf1'},
+            {'expr': {'name': 'ix', 'expr': {'number': 2.0}}},
+            {'label': '__bareScriptDone0'},
+            {
+                'expr': {
+                    'name': '__bareScriptValues2',
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1.0},{'number': 2.0},{'number': 3.0}]}}
+                }
+            },
+            {
+                'expr': {
+                    'name': '__bareScriptLength2',
+                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues2'}]}}
+                }
+            },
+            {
+                'jump': {
+                    'label': '__bareScriptDone2',
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength2'}}}
+                }
+            },
+            {'expr': {'name': '__bareScriptIndex2', 'expr': {'number': 0.0}}},
+            {'label': '__bareScriptLoop2'},
+            {
+                'expr': {
+                    'name': 'num',
+                    'expr': {
+                        'function': {
+                            'name': 'arrayGet',
+                            'args': [{'variable': '__bareScriptValues2'}, {'variable': '__bareScriptIndex2'}]
+                        }
+                    }
+                }
+            },
+            {'expr': {'expr': {'function': {'name': 'systemLog', 'args': [{'variable': 'num'}]}}}},
+            {
+                'expr': {
+                    'name': '__bareScriptIndex2',
+                    'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex2'},'right': {'number': 1.0}}}
+                }
+            },
+            {
+                'jump': {
+                    'label': '__bareScriptLoop2',
+                    'expr': {
+                        'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex2'},'right': {'variable': '__bareScriptLength2'}}
+                    }
+                }
+            },
+            {'label': '__bareScriptDone2'},
+            {'expr': {'name': 'ix', 'expr': {'number': 0.0}}},
+            {
+                'jump': {
+                    'label': '__bareScriptDone3',
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}
+                }
+            },
+            {'label': '__bareScriptLoop3'},
+            {
+                'jump': {
+                    'label': '__bareScriptDone4',
+                    'expr': {
+                        'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 5.0}}}}
+                    }
+                }
+            },
+            {'jump': {'label': '__bareScriptDone3'}},
+            {'label': '__bareScriptDone4'},
+            {
+                'expr': {
+                    'name': 'ix',
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'ix'},'right': {'number': 1.0}}}
+                }
+            },
+            {
+                'jump': {
+                    'label': '__bareScriptDone5',
+                    'expr': {
+                        'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 3.0}}}}
+                    }
+                }
+            },
+            {'jump': {'label': '__bareScriptLoop3'}},
+            {'label': '__bareScriptDone5'},
+            {'jump': {'label': '__bareScriptLoop3', 'expr': {'variable': 'true'}}},
+            {'label': '__bareScriptDone3'}
+        ]
+    });
+});
+
+
 test('parseScript, line continuation', () => {
     const script = validateScript(parseScript(`\
 a = arrayNew( \\
