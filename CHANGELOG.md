@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.2 (2025-09-25)
+
+- [18e8a8a](https://github.com/craigahobbs/bare-script/commit/18e8a8a) - update include library \(pager.bare keyboard commands\)
+
 ## 3.5.1 (2025-09-24)
 
 - [a17908c](https://github.com/craigahobbs/bare-script/commit/a17908c) - update include library
