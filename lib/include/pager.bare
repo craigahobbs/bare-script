@@ -95,38 +95,61 @@ endfunction
 # $arg options: - **hideMenu** - Hide the menu links
 # $arg options: - **hideNav** - Hide the navigation links
 # $arg options: - **start** - The start page name
+# $arg options: - **keyboard** - Enable keyboard commands ('n' for next, 'p' for previous, 's' for start, 'e' for end)
 async function pagerMain(pagerModel, options):
-    if options == null:
-        options = objectNew()
-    endif
+    options = if(options != null, options, objectNew())
+    optionArguments = objectGet(options, 'arguments')
+    optionHideMenu = objectGet(options, 'hideMenu')
+    optionHideNav = objectGet(options, 'hideNav')
+    optionStart = objectGet(options, 'start')
+    optionKeyboard = objectGet(options, 'keyboard')
 
     # Validate the pager model
     pagerModel = pagerValidate(pagerModel)
     if pagerModel == null:
         return
     endif
-
-    # Compute the visible and navigable pages
     pages = objectGet(pagerModel, 'pages')
-    visiblePages = arrayNew()
-    navPages = arrayNew()
-    for page in pages:
-        # Visible page?
-        if !objectGet(page, 'hidden'):
-            arrayPush(visiblePages, page)
+    pagesLength = arrayLength(pages)
 
-            # Navigable page?
-            pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
-            if pageTypeKey != 'link':
-                arrayPush(navPages, page)
-            endif
+    # Find the start page and end page
+    startPageName = null
+    startPageIndex = null
+    startPageExplicit = null
+    endPageName = null
+    for page, ixPage in pages:
+        pageName = objectGet(page, 'name')
+        pageHidden = objectGet(page, 'hidden')
+        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
+        pageNavigable = pageTypeKey != 'link'
+
+        # Start page?
+        if pageNavigable && !pageHidden && startPageName == null:
+            startPageName = pageName
+            startPageIndex = ixPage
+        elif !startPageExplicit && pageName == optionStart:
+            startPageName = pageName
+            startPageIndex = ixPage
+            startPageExplicit = true
+        endif
+
+        # Update the end page
+        if pageNavigable && !pageHidden:
+            endPageName = pageName
         endif
     endfor
+    if startPageName == null:
+        systemLogDebug('MarkdownUp - pager.bare: No visible and navigable pages')
+        return
+    endif
+    if optionStart && !startPageExplicit:
+        systemLogDebug('MarkdownUp - pager.bare: Unknown start page "' + optionStart + '"')
+        return
+    endif
 
     # Parse arguments
-    startPageName = objectGet(options, 'start', if(arrayLength(navPages), objectGet(arrayGet(navPages, 0), 'name'), null))
-    if objectHas(options, 'arguments'):
-        arguments = argsValidate(objectGet(options, 'arguments'))
+    if optionArguments:
+        arguments = argsValidate(optionArguments)
         if arguments == null:
             return
         endif
@@ -134,70 +157,96 @@ async function pagerMain(pagerModel, options):
         arguments = arrayNew(objectNew('name', 'page', 'default', startPageName))
     endif
     args = argsParse(arguments)
+    argPage = objectGet(args, 'page')
 
-    # Determine the current page
-    curPage = null
-    startPage = null
-    for page in pages:
-        if objectGet(page, 'name') == objectGet(args, 'page'):
+    # Find the current page
+    curPage = arrayGet(pages, startPageIndex)
+    curPageName = startPageName
+    curPageIndex = startPageIndex
+    for page, ixPage in pages:
+        pageName = objectGet(page, 'name')
+        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
+        pageNavigable = pageTypeKey != 'link'
+
+        # Current page?
+        if pageNavigable && pageName == argPage:
             curPage = page
-        endif
-        if objectGet(page, 'name') == startPageName:
-            startPage = page
-        endif
-    endfor
-    if startPage == null:
-        systemLogDebug('MarkdownUp - pager.bare: Unknown start page' + if(startPageName != null, '"' + startPageName + '"', ''))
-        return
-    endif
-    if curPage == null:
-        curPage = startPage
-    endif
-
-    # Determine the current page's navigable index, if any
-    ixCurPage = -1
-    for navPage, ixNavPage in navPages:
-        if objectGet(navPage, 'name') == objectGet(curPage, 'name'):
-            ixCurPage = ixNavPage
+            curPageName = pageName
+            curPageIndex = ixPage
             break
         endif
     endfor
 
+    # Find the next page
+    nextPageName = null
+    ixPage = curPageIndex + 1
+    while ixPage < pagesLength:
+        page = arrayGet(pages, ixPage)
+        pageName = objectGet(page, 'name')
+        pageHidden = objectGet(page, 'hidden')
+        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
+        pageNavigable = pageTypeKey != 'link'
+        if !pageHidden && pageNavigable:
+            nextPageName = pageName
+            break
+        endif
+        ixPage = ixPage + 1
+    endwhile
+
+    # Find the previous page
+    prevPageName = null
+    ixPage = curPageIndex - 1
+    while ixPage >= 0:
+        page = arrayGet(pages, ixPage)
+        pageName = objectGet(page, 'name')
+        pageHidden = objectGet(page, 'hidden')
+        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
+        pageNavigable = pageTypeKey != 'link'
+        if !pageHidden && pageNavigable:
+            prevPageName = pageName
+            break
+        endif
+        ixPage = ixPage - 1
+    endwhile
+
     # Render the menu
-    if !objectGet(options, 'hideMenu'):
-        for page, ixPage in visiblePages:
+    if !optionHideMenu:
+        menuItems = arrayNew()
+        for page in pages:
             pageName = objectGet(page, 'name')
+            pageHidden = objectGet(page, 'hidden')
             pageType = objectGet(page, 'type')
             pageTypeKey = arrayGet(objectKeys(pageType), 0)
+            pageNavigable = pageTypeKey != 'link'
+
+            # Hidden page?
+            if pageHidden:
+                continue
+            endif
 
             # Render the menu link
-            pageNameNbsp = stringReplace(pageName, ' ', '&nbsp;')
-            separator = if(ixPage != arrayLength(visiblePages) - 1, '&nbsp;|', '')
             if pageTypeKey == 'link':
                 pageLinkURL = objectGet(objectGet(pageType, 'link'), 'url')
-                markdownPrint('[' + markdownEscape(pageNameNbsp) + '](' + urlEncode(pageLinkURL) + ')' + separator)
+                arrayPush(menuItems, '[' + markdownEscape(pageName) + '](' + urlEncode(pageLinkURL) + ')')
             elif pageName == objectGet(curPage, 'name'):
-                markdownPrint(markdownEscape(pageNameNbsp) + separator)
+                arrayPush(menuItems, markdownEscape(pageName))
             else:
-                markdownPrint(argsLink(arguments, pageNameNbsp, objectNew('page', pageName)) + separator)
+                arrayPush(menuItems, argsLink(arguments, pageName, objectNew('page', pageName)))
             endif
         endfor
-        markdownPrint('')
+        markdownPrint(arrayJoin(menuItems, '&nbsp;|&nbsp;'), '')
     endif
 
     # Render the start/next/prev buttons
-    if !objectGet(options, 'hideNav') && arrayLength(navPages) > 1 && ixCurPage != -1:
-        if startPageName == objectGet(curPage, 'name'):
-            startPageName = null
-        endif
-        prevPageName = if(ixCurPage != -1 && ixCurPage - 1 >= 0, objectGet(arrayGet(navPages, ixCurPage - 1), 'name'), null)
-        nextPageName = if(ixCurPage != -1 && ixCurPage + 1 < arrayLength(navPages), objectGet(arrayGet(navPages, ixCurPage + 1), 'name'), null)
-        markdownPrint( \
-            '(&nbsp;' + if(startPageName != null, argsLink(arguments, 'Start', objectNew('page', startPageName)), 'Start') + '&nbsp;|', \
-            if(prevPageName != null, argsLink(arguments, 'Previous', objectNew('page', prevPageName)), 'Previous') + '&nbsp;|', \
-            if(nextPageName != null, argsLink(arguments, 'Next', objectNew('page', nextPageName)), 'Next') + '&nbsp;)', \
-            '' \
-        )
+    if !optionHideNav && (nextPageName != null || prevPageName != null):
+        navItems = arrayNew()
+        arrayPush(navItems, \
+            if(startPageName != curPageName, argsLink(arguments, 'Start', objectNew('page', startPageName)), 'Start'))
+        arrayPush(navItems, \
+            if(prevPageName != null, argsLink(arguments, 'Previous', objectNew('page', prevPageName)), 'Previous'))
+        arrayPush(navItems, \
+            if(nextPageName != null, argsLink(arguments, 'Next', objectNew('page', nextPageName)), 'Next'))
+        markdownPrint('(&nbsp;' + arrayJoin(navItems, '&nbsp;|&nbsp;') + '&nbsp;)', '')
     endif
 
     # Function page?
@@ -232,5 +281,28 @@ async function pagerMain(pagerModel, options):
             # Render the Markdown text
             markdownPrint('', markdownText)
         endif
+    endif
+
+    # Set the keydown handler
+    if optionKeyboard:
+        documentSetKeyDown(systemPartial(pagerKeyDown, arguments, curPageName, startPageName, endPageName, nextPageName, prevPageName))
+    endif
+endfunction
+
+
+function pagerKeyDown(arguments, curPageName, startPageName, endPageName, nextPageName, prevPageName, event):
+    key = objectGet(event, 'key')
+    if key == 's' && startPageName != curPageName:
+        # Start slide
+        windowSetLocation(argsURL(arguments, objectNew('page', startPageName)))
+    elif key == 'e' && endPageName != curPageName:
+        # End slide
+        windowSetLocation(argsURL(arguments, objectNew('page', endPageName)))
+    elif key == 'n' && nextPageName:
+        # Next page
+        windowSetLocation(argsURL(arguments, objectNew('page', nextPageName)))
+    elif key == 'p' && prevPageName:
+        # Previous page
+        windowSetLocation(argsURL(arguments, objectNew('page', prevPageName)))
     endif
 endfunction
