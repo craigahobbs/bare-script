@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.5 (2025-09-26)
+
+- [5cebbe4](https://github.com/craigahobbs/bare-script/commit/5cebbe4) - fix numberParseInt issue
+
 ## 3.5.4 (2025-09-25)
 
 - [ed52274](https://github.com/craigahobbs/bare-script/commit/ed52274) - fix blank return statement end-of-line comments
