@@ -814,6 +814,11 @@ test('valueParseInteger', () => {
     assert.equal(valueParseInteger('-123'), -123);
     assert.equal(valueParseInteger('0'), 0);
 
+    // Non-default radix
+    assert.equal(valueParseInteger('101', 2), 5);
+    assert.equal(valueParseInteger('707', 8), 455);
+    assert.equal(valueParseInteger('ff', 16), 255);
+
     // Padding
     assert.equal(valueParseInteger('  123  '), 123);
 
@@ -834,6 +839,13 @@ test('valueParseInteger', () => {
     assert.equal(valueParseInteger('invalid'), null);
     assert.equal(valueParseInteger('123asdf'), null);
     assert.equal(valueParseInteger('123 asdf'), null);
+
+    // Bad radix
+    assert.equal(valueParseInteger('10', '2'), null);
+    assert.equal(valueParseInteger('10', 2.5), null);
+    assert.equal(valueParseInteger('10', 1), null);
+    assert.equal(valueParseInteger('10', 37), null);
+    assert.equal(valueParseInteger('12', 2), null);
 });
 
 
