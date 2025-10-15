@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.6.0 (2025-10-15)
+
+- [e4d160b](https://github.com/craigahobbs/bare-script/commit/e4d160b) - add coverage support
+
 ## 3.5.5 (2025-09-26)
 
 - [5cebbe4](https://github.com/craigahobbs/bare-script/commit/5cebbe4) - fix numberParseInt issue
