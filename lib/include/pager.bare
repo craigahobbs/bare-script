@@ -9,7 +9,7 @@ endif
 pagerSentinel = true
 
 
-include 'args.bare'
+include <args.bare>
 
 
 # The pager model
@@ -139,11 +139,11 @@ async function pagerMain(pagerModel, options):
         endif
     endfor
     if startPageName == null:
-        systemLogDebug('MarkdownUp - pager.bare: No visible and navigable pages')
+        systemLogDebug('pager.bare: No visible and navigable pages')
         return
     endif
     if optionStart && !startPageExplicit:
-        systemLogDebug('MarkdownUp - pager.bare: Unknown start page "' + optionStart + '"')
+        systemLogDebug('pager.bare: Unknown start page "' + optionStart + '"')
         return
     endif
 

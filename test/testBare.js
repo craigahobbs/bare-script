@@ -74,8 +74,8 @@ test('bare.main, system include', async () => {
         'argv': ['node', 'bare.js', '-c', 'include <markdownUp.bare>', '-c', "markdownPrint('Hello')"],
         'logFn': (message) => output.push(message)
     });
-    assert.equal(exitCode, 0);
     assert.deepEqual(output, ['Hello']);
+    assert.equal(exitCode, 0);
 });
 
 
@@ -227,9 +227,8 @@ test('bare.main, parse error', async () => {
     });
     assert.equal(exitCode, 1);
     assert.deepEqual(output, [
-        '-c 1:',
         `\
-Syntax error, line number 1:
+<string>:1: Syntax error
 asdf asdf
     ^
 `
@@ -244,7 +243,7 @@ test('bare.main, script error', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['-c 1:', 'Undefined function "unknown"']);
+    assert.deepEqual(output, ['<string>:1: Undefined function "unknown"']);
 });
 
 
@@ -388,7 +387,7 @@ test('bare.main, variables parse error', async () => {
     assert.equal(exitCode, 1);
     assert.deepEqual(output, [
         `\
-Syntax error:
+Syntax error
 asdf asdf
     ^
 `
@@ -417,10 +416,10 @@ test('bare.main, debug', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript: Static analysis "-c 1" ... OK',
+        'BareScript: Static analysis "<string>" ... OK',
         'Hello',
         'BareScript: Script executed in X milliseconds',
-        'BareScript: Static analysis "-c 2" ... OK',
+        'BareScript: Static analysis "<string2>" ... OK',
         'Goodbye',
         'BareScript: Script executed in X milliseconds'
     ]);
@@ -435,7 +434,7 @@ test('bare.main, debug static analysis warnings', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript: Static analysis "-c 1" ... 1 warning:',
+        'BareScript: Static analysis "<string>" ... 1 warning:',
         'BareScript:     Pointless global statement (index 0)',
         'BareScript: Script executed in X milliseconds'
     ]);
@@ -473,8 +472,8 @@ test('bare.main, static analysis', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output, [
-        'BareScript: Static analysis "-c 1" ... OK',
-        'BareScript: Static analysis "-c 2" ... OK'
+        'BareScript: Static analysis "<string>" ... OK',
+        'BareScript: Static analysis "<string2>" ... OK'
     ]);
 });
 
@@ -487,7 +486,7 @@ test('bare.main, static analysis error', async () => {
     });
     assert.equal(exitCode, 1);
     assert.deepEqual(output, [
-        'BareScript: Static analysis "-c 1" ... 1 warning:',
+        'BareScript: Static analysis "<string>" ... 1 warning:',
         'BareScript:     Pointless global statement (index 0)'
     ]);
 });

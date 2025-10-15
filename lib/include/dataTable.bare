@@ -1,0 +1,211 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+
+# Include sentinel
+if systemGlobalGet('dataTableSentinel'):
+    return
+endif
+dataTableSentinel = true
+
+
+# The data table model's Schema Markdown
+dataTableTypes = schemaParse( \
+    'group "Data Table"', \
+    '', \
+    '', \
+    '# A data table model', \
+    'struct DataTable', \
+    '', \
+    "    # The table's fields", \
+    '    optional string[len > 0] fields', \
+    '', \
+    "    # The table's category fields", \
+    '    optional string[len > 0] categories', \
+    '', \
+    '    # The field formatting for "categories" and "fields"', \
+    '    optional DataTableFieldFormat{len > 0} formats', \
+    '', \
+    '    # The numeric formatting precision (default is 2)', \
+    '    optional int(>= 0) precision', \
+    '', \
+    '    # The datetime format', \
+    '    optional DataTableDatetimeFormat datetime', \
+    '', \
+    '    # If true, trim formatted values (default is true)', \
+    '    optional bool trim', \
+    '', \
+    '', \
+    '# A data table field formatting model', \
+    'struct DataTableFieldFormat', \
+    '', \
+    '    # The field alignment', \
+    '    optional DataTableFieldAlignment align', \
+    '', \
+    "    # If true, don't wrap text", \
+    '    optional bool nowrap', \
+    '', \
+    '    # If true, format the field as Markdown', \
+    '    optional bool markdown', \
+    '', \
+    '    # The field header (default is the field name)', \
+    '    optional string header', \
+    '', \
+    '', \
+    '# A field alignment', \
+    'enum DataTableFieldAlignment', \
+    '    left', \
+    '    right', \
+    '    center', \
+    '', \
+    '', \
+    '# A datetime format', \
+    'enum DataTableDatetimeFormat', \
+    '', \
+    '    # ISO datetime year format', \
+    '    year', \
+    '', \
+    '    # ISO datetime month format', \
+    '    month', \
+    '', \
+    '    # ISO datetime day format', \
+    '    day' \
+)
+
+
+# $function: dataTableMarkdown
+# $group: dataTable.bare
+# $doc: Create the array of Markdown table line strings
+# $arg data: The array of row objects
+# $arg model: The [data table model](includeModel.html#var.vName='DataTable')
+# $return: The array of Markdown table line strings
+function dataTableMarkdown(data, model):
+    # Validate the data
+    data = dataValidate(data)
+    if data == null:
+        return null
+    endif
+
+    # Validate the table model
+    if model != null && !schemaValidate(dataTableTypes, 'DataTable', model):
+        return null
+    endif
+
+    # Determine the table fields
+    fields = arrayNew()
+    modelFields = if(model != null, objectGet(model, 'fields'))
+    modelCategories = if(model != null, objectGet(model, 'categories'))
+    if modelFields != null || modelCategories != null:
+        if modelCategories != null:
+            arrayExtend(fields, modelCategories)
+        endif
+        if modelFields != null:
+            arrayExtend(fields, modelFields)
+        endif
+    elif arrayLength(data) > 0:
+        arrayExtend(fields, objectKeys(arrayGet(data, 0)))
+    endif
+    if !arrayLength(fields):
+        return null
+    endif
+
+    # Get precision and formatting
+    precisionDatetime = if(model != null, objectGet(model, 'datetime'))
+    precisionNumber = if(model != null, objectGet(model, 'precision', 2), 2)
+    precisionTrim = if(model != null, objectGet(model, 'trim', true), true)
+    formats = if(model != null, objectGet(model, 'formats'))
+
+    # Compute the field header widths
+    widths = objectNew()
+    for field in fields:
+        fieldWidth = stringLength(field)
+        if !objectHas(widths, field) || fieldWidth > objectGet(widths, field):
+            objectSet(widths, field, fieldWidth)
+        endif
+    endfor
+
+    # Compute the formatted field value strings and widths
+    dataFormat = arrayNew()
+    for row in data:
+        rowFormat = objectNew()
+        arrayPush(dataFormat, rowFormat)
+        for field in fields:
+            # Format the value
+            value = objectGet(row, field)
+            valueType = systemType(value)
+            if valueType == 'string':
+                valueFormat = value
+            elif valueType == 'number':
+                valueFormat = numberToFixed(value, precisionNumber, precisionTrim)
+            elif valueType == 'datetime':
+                valueFormat = datetimeISOFormat(value, precisionDatetime != null)
+            else:
+                valueFormat = stringNew(value)
+            endif
+            objectSet(rowFormat, field, valueFormat)
+
+            # Update the field width
+            valueWidth = stringLength(valueFormat)
+            if !objectHas(widths, field) || valueWidth > objectGet(widths, field):
+                objectSet(widths, field, valueWidth)
+            endif
+        endfor
+    endfor
+
+    # Compute the field header separator
+    headerSeparator = ''
+    for field in fields:
+        width = objectGet(widths, field)
+        format = if(formats != null, objectGet(formats, field))
+        align = if(format != null, objectGet(format, 'align'))
+        alignLeft = if(align == 'center', ':', '-')
+        alignRight = if(align == 'center' || align == 'right', ':', '-')
+        headerSeparator = headerSeparator + '|' + alignLeft + dataTableMarkdownField('', width, align, '-') + alignRight
+    endfor
+    headerSeparator = headerSeparator + '|'
+
+    # Compute the table header fields
+    headerFields = ''
+    for field in fields:
+        width = objectGet(widths, field)
+        format = if(formats != null, objectGet(formats, field))
+        align = if(format != null, objectGet(format, 'align'))
+        header = if(format != null, objectGet(format, 'header', field), field)
+        headerFields = headerFields + '| ' + dataTableMarkdownField(header, width, align, ' ') + ' '
+    endfor
+    headerFields = headerFields + '|'
+
+    # Output the table header
+    lines = arrayNew()
+    arrayPush(lines, headerFields)
+    arrayPush(lines, headerSeparator)
+
+    # Output each row
+    for row in dataFormat:
+        line = ''
+        for field in fields:
+            width = objectGet(widths, field)
+            format = if(formats != null, objectGet(formats, field))
+            align = if(format != null, objectGet(format, 'align'))
+            line = line + '| ' + dataTableMarkdownField(objectGet(row, field), width, align, ' ') + ' '
+        endfor
+        line = line + '|'
+        arrayPush(lines, line)
+    endfor
+
+    return lines
+endfunction
+
+
+# Helper to generate the Markdown field text
+function dataTableMarkdownField(value, width, align, fill):
+    spaces = width - stringLength(value)
+    if align == 'right':
+        return stringRepeat(fill, spaces) + value
+    elif align == 'center':
+        spacesLeft = mathFloor(spaces / 2)
+        spacesRight = spaces - spacesLeft
+        return stringRepeat(fill, spacesLeft) + value + stringRepeat(fill, spacesRight)
+    endif
+    return value + stringRepeat(fill, spaces)
+endfunction

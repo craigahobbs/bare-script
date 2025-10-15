@@ -67,7 +67,7 @@ function argsValidate(arguments):
             name = objectGet(argument, 'name')
             if objectHas(argNames, name):
                 validatedArguments = null
-                systemLogDebug('MarkdownUp - args.bare: Duplicate argument "' + name + '"')
+                systemLogDebug('args.bare: Duplicate argument "' + name + '"')
             else:
                 objectSet(argNames, name, true)
             endif
@@ -151,7 +151,7 @@ function argsURL(arguments, args, explicit, headerText, url):
     if args != null:
         for name in objectKeys(args):
             if !objectHas(argNames, name):
-                systemLogDebug('MarkdownUp - args.bare: Unknown argument "' + name + '"')
+                systemLogDebug('args.bare: Unknown argument "' + name + '"')
             endif
         endfor
     endif
@@ -279,7 +279,7 @@ function argsValidateValue(value, type, global, warn):
             value = !!value
         elif valueType != 'boolean':
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif
@@ -291,7 +291,7 @@ function argsValidateValue(value, type, global, warn):
         endif
         if valueType != 'datetime' || datetimeHour(value) != 0 || datetimeMinute(value) != 0 || datetimeSecond(value) != 0:
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif
@@ -303,21 +303,21 @@ function argsValidateValue(value, type, global, warn):
         endif
         if valueType != 'datetime':
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif
     elif type == 'float':
         if valueType != 'number':
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif
     elif type == 'int':
         if valueType != 'number' || value != mathFloor(value):
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif
@@ -325,7 +325,7 @@ function argsValidateValue(value, type, global, warn):
         # type == 'string'
         if valueType != 'string':
             if warn != false:
-                systemLogDebug('MarkdownUp - args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
+                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
             endif
             value = null
         endif

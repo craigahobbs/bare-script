@@ -9,6 +9,9 @@ endif
 markdownUpSentinel = true
 
 
+include <dataTable.bare>
+
+
 # Constants
 markdownUpPixelsPerPoint = 4 / 3
 markdownUpDefaultFontSizePx = 12 * markdownUpPixelsPerPoint
@@ -43,124 +46,12 @@ endfunction
 
 
 function dataTable(data, model):
-    # Validate the data
-    data = dataValidate(data)
-    if data == null:
-        return
-    endif
-
-    # Determine the table fields
-    fields = arrayNew()
-    modelFields = if(model != null, objectGet(model, 'fields'))
-    modelCategories = if(model != null, objectGet(model, 'categories'))
-    if modelFields != null || modelCategories != null:
-        arrayExtend(fields, modelCategories)
-        arrayExtend(fields, modelFields)
-    elif arrayLength(data) > 0:
-        arrayExtend(fields, objectKeys(arrayGet(data, 0)))
-    endif
-    if !arrayLength(fields):
-        return
-    endif
-
-    # Get precision and formatting
-    precisionDatetime = if(model != null, objectGet(model, 'datetime'))
-    precisionNumber = if(model != null, objectGet(model, 'precision', 2), 2)
-    precisionTrim = if(model != null, objectGet(model, 'trim', true), true)
-    formats = if(model != null, objectGet(model, 'formats'))
-
-    # Compute the field header widths
-    widths = objectNew()
-    for field in fields:
-        fieldWidth = stringLength(field)
-        if !objectHas(widths, field) || fieldWidth > objectGet(widths, field):
-            objectSet(widths, field, fieldWidth)
-        endif
-    endfor
-
-    # Compute the formatted field value strings and widths
-    dataFormat = arrayNew()
-    for row in data:
-        rowFormat = objectNew()
-        arrayPush(dataFormat, rowFormat)
-        for field in fields:
-            # Format the value
-            value = objectGet(row, field)
-            valueType = systemType(value)
-            if valueType == 'string':
-                valueFormat = value
-            elif valueType == 'number':
-                valueFormat = numberToFixed(value, precisionNumber, precisionTrim)
-            elif valueType == 'datetime':
-                valueFormat = datetimeISOFormat(value, precisionDatetime != null)
-            else:
-                valueFormat = stringNew(value)
-            endif
-            objectSet(rowFormat, field, valueFormat)
-
-            # Update the field width
-            valueWidth = stringLength(valueFormat)
-            if !objectHas(widths, field) || valueWidth > objectGet(widths, field):
-                objectSet(widths, field, valueWidth)
-            endif
+    lines = dataTableMarkdown(data, model)
+    if lines:
+        for line in lines:
+            systemLog(line)
         endfor
-    endfor
-
-    # Compute the field header separator
-    headerSeparator = ''
-    for field in fields:
-        width = objectGet(widths, field)
-        format = if(formats != null, objectGet(formats, field))
-        align = if(format != null, objectGet(format, 'align'))
-        headerSeparator = headerSeparator + '+=' + markdownUpValueField('', width, align, '=') + '='
-    endfor
-    headerSeparator = headerSeparator + '+'
-
-    # Compute the table header fields
-    headerFields = ''
-    for field in fields:
-        width = objectGet(widths, field)
-        format = if(formats != null, objectGet(formats, field))
-        align = if(format != null, objectGet(format, 'align'))
-        header = if(format != null, objectGet(format, 'header', field), field)
-        headerFields = headerFields + '| ' + markdownUpValueField(header, width, align, ' ') + ' '
-    endfor
-    headerFields = headerFields + '|'
-
-    # Output the table header
-    systemLog('')
-    systemLog(headerSeparator)
-    systemLog(headerFields)
-    systemLog(headerSeparator)
-
-    # Output each row
-    for row in dataFormat:
-        line = ''
-        for field in fields:
-            width = objectGet(widths, field)
-            format = if(formats != null, objectGet(formats, field))
-            align = if(format != null, objectGet(format, 'align'))
-            line = line + '| ' + markdownUpValueField(objectGet(row, field), width, align, ' ') + ' '
-        endfor
-        line = line + '|'
-        systemLog(line)
-    endfor
-
-    # Output the table footer
-    systemLog(headerSeparator)
-endfunction
-
-
-function markdownUpValueField(value, width, align, fill):
-    spaces = width - stringLength(value)
-    if align == 'right':
-        return stringRepeat(fill, spaces) + value
-    elif align == 'center':
-        spacesLeft = mathFloor(spaces / 2)
-        spacesRight = spaces - spacesLeft
-        return stringRepeat(fill, spacesLeft) + value + stringRepeat(fill, spacesRight)
     endif
-    return value + stringRepeat(fill, spaces)
 endfunction
 
 
@@ -368,7 +259,7 @@ function markdownUp_markdownPrintHelper(lines):
     for line in lines:
         if systemType(line) == 'array':
             markdownUp_markdownPrintHelper(line)
-        else:
+        elif line != null:
             systemLog(line)
         endif
     endfor

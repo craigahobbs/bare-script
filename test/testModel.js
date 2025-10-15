@@ -139,7 +139,7 @@ test('lintScript, function unused variable', () => {
                         {'expr': {'name': 'c', 'expr': {'variable': 'a'}}},
                         {'expr': {'name': 'd', 'expr': {'number': 3}}},
                         {'jump': {'label': 'testLabel', 'expr': {'variable': 'd'}}},
-                        {'label': 'testLabel'},
+                        {'label': {'name': 'testLabel'}},
                         {'expr': {'name': 'e', 'expr': {'unary': {
                             'op': '-',
                             'expr': {'group': {'binary': {'op': '+', 'left': {'variable': 'b'}, 'right': {'variable': 'c'}}}}
@@ -262,7 +262,7 @@ test('lintScript, function unused label', () => {
                 'function': {
                     'name': 'testFn',
                     'statements': [
-                        {'label': 'unusedLabel'}
+                        {'label': {'name': 'unusedLabel'}}
                     ]
                 }
             }
@@ -277,7 +277,7 @@ test('lintScript, function unused label', () => {
 test('lintScript, global unused label', () => {
     const script = {
         'statements': [
-            {'label': 'unusedLabel'}
+            {'label': {'name': 'unusedLabel'}}
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
@@ -324,8 +324,8 @@ test('lintScript, function label redefined', () => {
                 'function': {
                     'name': 'testFn',
                     'statements': [
-                        {'label': 'testLabel'},
-                        {'label': 'testLabel'},
+                        {'label': {'name': 'testLabel'}},
+                        {'label': {'name': 'testLabel'}},
                         {'jump': {'label': 'testLabel'}}
                     ]
                 }
@@ -341,8 +341,8 @@ test('lintScript, function label redefined', () => {
 test('lintScript, global label redefined', () => {
     const script = {
         'statements': [
-            {'label': 'testLabel'},
-            {'label': 'testLabel'},
+            {'label': {'name': 'testLabel'}},
+            {'label': {'name': 'testLabel'}},
             {'jump': {'label': 'testLabel'}}
         ]
     };

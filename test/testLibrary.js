@@ -3,7 +3,7 @@
 
 /* eslint-disable id-length */
 
-import {expressionFunctions, scriptFunctions} from '../lib/library.js';
+import {coverageGlobalName, expressionFunctions, scriptFunctions} from '../lib/library.js';
 import {valueJSON, valueParseDatetime, valueString} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -819,6 +819,62 @@ test('library, arraySort', () => {
             'message': 'Invalid "compareFn" argument value, "asdf"'
         }
     );
+});
+
+
+//
+// Coverage functions
+//
+
+
+test('library, coverageGlobalGet', () => {
+    assert.equal(scriptFunctions.coverageGlobalGet([], null), null);
+
+    const options = {};
+    assert.equal(scriptFunctions.coverageGlobalGet([], options), null);
+
+    options.globals = {};
+    assert.equal(scriptFunctions.coverageGlobalGet([], options), null);
+
+    options.globals[coverageGlobalName] = {'enabled': true};
+    assert.equal(scriptFunctions.coverageGlobalGet([], options), options.globals[coverageGlobalName]);
+});
+
+
+test('library, coverageGlobalName', () => {
+    assert.equal(scriptFunctions.coverageGlobalName([], null), '__bareScriptCoverage');
+});
+
+
+test('library, coverageStart', () => {
+    assert.equal(scriptFunctions.coverageStart([], null), undefined);
+
+    const options = {};
+    assert.equal(scriptFunctions.coverageStart([], options), undefined);
+
+    options.globals = {};
+    assert.equal(scriptFunctions.coverageStart([], options), undefined);
+    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+
+    options.globals = {[coverageGlobalName]: {'enabled': false}};
+    assert.equal(scriptFunctions.coverageStart([], options), undefined);
+    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+});
+
+
+test('library, coverageStop', () => {
+    assert.equal(scriptFunctions.coverageStop([], null), undefined);
+
+    const options = {};
+    assert.equal(scriptFunctions.coverageStop([], options), undefined);
+
+    options.globals = {};
+    assert.equal(scriptFunctions.coverageStop([], options), undefined);
+    assert.deepEqual(options.globals[coverageGlobalName], undefined);
+
+    options.globals[coverageGlobalName] = {'enabled': true};
+    assert.equal(scriptFunctions.coverageStop([], options), undefined);
+    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': false});
 });
 
 

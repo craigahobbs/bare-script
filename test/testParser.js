@@ -17,11 +17,20 @@ test('parseScript, array input', () => {
 `
     ]));
     assert.deepEqual(script, {
+        'scriptLines': [
+            'a = arrayNew( \\',
+            '    1,\\',
+            '    2 \\',
+            ')',
+            ''
+        ],
         'statements': [
             {
                 'expr': {
                     'name': 'a',
-                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}},
+                    'lineNumber': 1,
+                    'lineCount': 4
                 }
             }
         ]
@@ -29,8 +38,45 @@ test('parseScript, array input', () => {
 });
 
 
+test('parseScript, script name', () => {
+    const scriptStr = 'return 1 + 2';
+    const script = validateScript(parseScript(scriptStr, 1, 'test.bare'));
+    assert.deepEqual(script, {
+        'scriptName': 'test.bare',
+        'scriptLines': scriptStr.split(/\r?\n/),
+        'statements': [
+            {
+                'return': {
+                    'expr': {'binary': {'op': '+', 'left': {'number': 1.0}, 'right': {'number': 2.0}}},
+                    'lineNumber': 1
+                }
+            }
+        ]
+    });
+});
+
+
+test('parseScript, script name error', () => {
+    const scriptStr = `\
+a = 1
+return a + 1 asdf
+`;
+    assert.throws(
+        () => parseScript(scriptStr, 1, 'test.bare'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+test.bare:2: Syntax error
+return a + 1 asdf
+            ^
+`
+        }
+    );
+});
+
+
 test('parseScript, comments', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 include <args.bare>  # Application arguments
 
 include 'util.bare'  # Utilities
@@ -68,68 +114,78 @@ while true:  # Forever?
 endwhile  # Keep doing it
 
 return  # Bye!
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'include': {
                     'includes': [
                         {'url': 'args.bare', 'system': true},
                         {'url': 'util.bare'}
-                    ]
+                    ],
+                    'lineNumber': 1,
+                    'lineCount': 3
                 }
             },
             {
                 'function': {
                     'name': 'main',
                     'statements': [
-                        {'expr': {'expr': {'function': {'name': 'markdownPrint', 'args': [{'string': '# TODO'}]}}}},
-                        {'return': {'expr': {'variable': 'true'}}}
-                    ]
+                        {'expr': {'expr': {'function': {'name': 'markdownPrint', 'args': [{'string': '# TODO'}]}}, 'lineNumber': 7}},
+                        {'return': {'expr': {'variable': 'true'}, 'lineNumber': 8}}
+                    ],
+                    'lineNumber': 6
                 }
             },
-            {'jump': {'label': 'label'}},
-            {'label': 'label'},
+            {'jump': {'label': 'label', 'lineNumber': 11}},
+            {'label': {'name': 'label', 'lineNumber': 12}},
             {
                 'jump': {
                     'label': '__bareScriptIf0',
-                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}}
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}},
+                    'lineNumber': 14
                 }
             },
-            {'expr': {'name': 'ix', 'expr': {'number': 0.0}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf0'},
+            {'expr': {'name': 'ix', 'expr': {'number': 0.0}, 'lineNumber': 15}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 16}},
+            {'label':{'name':  '__bareScriptIf0', 'lineNumber': 16}},
             {
                 'jump': {
                     'label': '__bareScriptIf1',
-                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}}
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}},
+                    'lineNumber': 16
                 }
             },
-            {'expr': {'name': 'ix', 'expr': {'number': 1.0}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf1'},
-            {'expr': {'name': 'ix', 'expr': {'number': 2.0}}},
-            {'label': '__bareScriptDone0'},
+            {'expr': {'name': 'ix', 'expr': {'number': 1.0}, 'lineNumber': 17}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 18}},
+            {'label':{'name':  '__bareScriptIf1', 'lineNumber': 18}},
+            {'expr': {'name': 'ix', 'expr': {'number': 2.0}, 'lineNumber': 19}},
+            {'label':{'name':  '__bareScriptDone0', 'lineNumber': 20}},
             {
                 'expr': {
                     'name': '__bareScriptValues2',
-                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1.0},{'number': 2.0},{'number': 3.0}]}}
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1.0},{'number': 2.0},{'number': 3.0}]}},
+                    'lineNumber': 22
                 }
             },
             {
                 'expr': {
                     'name': '__bareScriptLength2',
-                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues2'}]}}
+                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues2'}]}},
+                    'lineNumber': 22
                 }
             },
             {
                 'jump': {
                     'label': '__bareScriptDone2',
-                    'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength2'}}}
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength2'}}},
+                    'lineNumber': 22
                 }
             },
-            {'expr': {'name': '__bareScriptIndex2', 'expr': {'number': 0.0}}},
-            {'label': '__bareScriptLoop2'},
+            {'expr': {'name': '__bareScriptIndex2', 'expr': {'number': 0.0}, 'lineNumber': 22}},
+            {'label':{'name':  '__bareScriptLoop2', 'lineNumber': 22}},
             {
                 'expr': {
                     'name': 'num',
@@ -138,14 +194,16 @@ return  # Bye!
                             'name': 'arrayGet',
                             'args': [{'variable': '__bareScriptValues2'}, {'variable': '__bareScriptIndex2'}]
                         }
-                    }
+                    },
+                    'lineNumber': 22
                 }
             },
-            {'expr': {'expr': {'function': {'name': 'systemLog', 'args': [{'variable': 'num'}]}}}},
+            {'expr': {'expr': {'function': {'name': 'systemLog', 'args': [{'variable': 'num'}]}}, 'lineNumber': 23}},
             {
                 'expr': {
                     'name': '__bareScriptIndex2',
-                    'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex2'},'right': {'number': 1.0}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex2'},'right': {'number': 1.0}}},
+                    'lineNumber': 24
                 }
             },
             {
@@ -153,32 +211,36 @@ return  # Bye!
                     'label': '__bareScriptLoop2',
                     'expr': {
                         'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex2'},'right': {'variable': '__bareScriptLength2'}}
-                    }
+                    },
+                    'lineNumber': 24
                 }
             },
-            {'label': '__bareScriptDone2'},
-            {'expr': {'name': 'ix', 'expr': {'number': 0.0}}},
+            {'label':{'name':  '__bareScriptDone2', 'lineNumber': 24}},
+            {'expr': {'name': 'ix', 'expr': {'number': 0.0}, 'lineNumber': 26}},
             {
                 'jump': {
                     'label': '__bareScriptDone3',
-                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}},
+                    'lineNumber': 27
                 }
             },
-            {'label': '__bareScriptLoop3'},
+            {'label':{'name':  '__bareScriptLoop3', 'lineNumber': 27}},
             {
                 'jump': {
                     'label': '__bareScriptDone4',
                     'expr': {
                         'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 5.0}}}}
-                    }
+                    },
+                    'lineNumber': 28
                 }
             },
-            {'jump': {'label': '__bareScriptDone3'}},
-            {'label': '__bareScriptDone4'},
+            {'jump': {'label': '__bareScriptDone3', 'lineNumber': 29}},
+            {'label':{'name':  '__bareScriptDone4', 'lineNumber': 30}},
             {
                 'expr': {
                     'name': 'ix',
-                    'expr': {'binary': {'op': '+', 'left': {'variable': 'ix'},'right': {'number': 1.0}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'ix'},'right': {'number': 1.0}}},
+                    'lineNumber': 31
                 }
             },
             {
@@ -186,32 +248,37 @@ return  # Bye!
                     'label': '__bareScriptDone5',
                     'expr': {
                         'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 3.0}}}}
-                    }
+                    },
+                    'lineNumber': 32
                 }
             },
-            {'jump': {'label': '__bareScriptLoop3'}},
-            {'label': '__bareScriptDone5'},
-            {'jump': {'label': '__bareScriptLoop3', 'expr': {'variable': 'true'}}},
-            {'label': '__bareScriptDone3'},
-            {'return': {}}
+            {'jump': {'label': '__bareScriptLoop3', 'lineNumber': 33}},
+            {'label':{'name':  '__bareScriptDone5', 'lineNumber': 34}},
+            {'jump': {'label': '__bareScriptLoop3', 'expr': {'variable': 'true'}, 'lineNumber': 35}},
+            {'label':{'name':  '__bareScriptDone3', 'lineNumber': 35}},
+            {'return': {'lineNumber': 37}}
         ]
     });
 });
 
 
 test('parseScript, line continuation', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 a = arrayNew( \\
     1, \\
     2 \\
 )
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'expr': {
                     'name': 'a',
-                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}},
+                    'lineNumber': 1,
+                    'lineCount': 4
                 }
             }
         ]
@@ -220,7 +287,7 @@ a = arrayNew( \\
 
 
 test('parseScript, line continuation comments', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 # Comments don't continue \\
 a = arrayNew( \\
     # Comments are OK within a continuation...
@@ -228,13 +295,17 @@ a = arrayNew( \\
     # ...with or without a continuation backslash \\
     2 \\
 )
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'expr': {
                     'name': 'a',
-                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}
+                    'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}},
+                    'lineNumber': 2,
+                    'lineCount': 6
                 }
             }
         ]
@@ -254,7 +325,7 @@ test('parseScript, line continuation error', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
     fn1(arg1, fn2(),
                     ^
 `
@@ -285,7 +356,7 @@ test('parseScript, long line error middle', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 ...  + value20, value21 + value22 + value23 + value24 + value25, @#$, value26 + value27 + value28 + value29 + value30, value ...
                                                                 ^
 `
@@ -316,7 +387,7 @@ test('parseScript, long line error left', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
     reallyLongFunctionName( @#$, value1 + value2 + value3 + value4 + value5, value6 + value7 + value8 + value9 + value10 ...
                            ^
 `
@@ -347,7 +418,7 @@ test('parseScript, long line error right', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 ... alue39 + value40, value41 + value42 + value43 + value44 + value45, value46 + value47 + value48 + value49 + value50 @#$ )
                                                                                                                       ^
 `
@@ -357,7 +428,7 @@ Syntax error, line number 1:
 
 
 test('parseScript, jumpif statement', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 n = 10
 i = 0
 a = 0
@@ -373,49 +444,56 @@ fib:
 fibend:
 
 return a
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
-            {'expr': {'name': 'n', 'expr': {'number': 10}}},
-            {'expr': {'name': 'i', 'expr': {'number': 0}}},
-            {'expr': {'name': 'a', 'expr': {'number': 0}}},
-            {'expr': {'name': 'b', 'expr': {'number': 1}}},
-            {'label': 'fib'},
+            {'expr': {'name': 'n', 'expr': {'number': 10}, 'lineNumber': 1}},
+            {'expr': {'name': 'i', 'expr': {'number': 0}, 'lineNumber': 2}},
+            {'expr': {'name': 'a', 'expr': {'number': 0}, 'lineNumber': 3}},
+            {'expr': {'name': 'b', 'expr': {'number': 1}, 'lineNumber': 4}},
+            {'label':{'name':  'fib', 'lineNumber': 6}},
             {
                 'jump': {
                     'label': 'fibend',
-                    'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}
+                    'expr': {'binary': {'op': '>=', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}},
+                    'lineNumber': 7
                 }
             },
-            {'expr': {'name': 'tmp', 'expr': {'variable': 'b'}}},
+            {'expr': {'name': 'tmp', 'expr': {'variable': 'b'}, 'lineNumber': 8}},
             {
                 'expr': {
                     'name': 'b',
-                    'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+                    'lineNumber': 9
                 }
             },
-            {'expr': {'name': 'a', 'expr': {'variable': 'tmp'}}},
+            {'expr': {'name': 'a', 'expr': {'variable': 'tmp'}, 'lineNumber': 10}},
             {
                 'expr': {
                     'name': 'i',
-                    'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}
+                    'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}},
+                    'lineNumber': 11
                 }
             },
-            {'jump': {'label': 'fib'}},
-            {'label': 'fibend'},
-            {'return': {'expr': {'variable': 'a'}}}
+            {'jump': {'label': 'fib', 'lineNumber': 12}},
+            {'label':{'name':  'fibend', 'lineNumber': 13}},
+            {'return': {'expr': {'variable': 'a'}, 'lineNumber': 15}}
         ]
     });
 });
 
 
 test('parseScript, function statement', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 function addNumbers(a, b):
     return a + b
 endfunction
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'function': {
@@ -424,10 +502,12 @@ endfunction
                     'statements': [
                         {
                             'return': {
-                                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}
+                                'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+                                'lineNumber': 2
                             }
                         }
-                    ]
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -436,12 +516,14 @@ endfunction
 
 
 test('parseScript, async function statement', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 async function fetchURL(url):
     return systemFetch(url)
 endfunction
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'function': {
@@ -449,8 +531,9 @@ endfunction
                     'name': 'fetchURL',
                     'args': ['url'],
                     'statements': [
-                        {'return': {'expr': {'function': {'name': 'systemFetch', 'args': [{'variable': 'url'}]}}}}
-                    ]
+                        {'return': {'expr': {'function': {'name': 'systemFetch', 'args': [{'variable': 'url'}]}}, 'lineNumber': 2}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -459,20 +542,23 @@ endfunction
 
 
 test('parseScript, function statement empty return', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 function fetchURL(url):
     return
 endfunction
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'function': {
                     'name': 'fetchURL',
                     'args': ['url'],
                     'statements': [
-                        {'return': {}}
-                    ]
+                        {'return': {'lineNumber': 2}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -481,12 +567,14 @@ endfunction
 
 
 test('parseScript, function statement lastArgArray', () => {
-    const script = validateScript(parseScript(`\
+    const scriptStr = `\
 function argsCount(args...):
     return arrayLength(args)
 endfunction
-`));
+`;
+    const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
+        'scriptLines': scriptStr.split(/\r?\n/),
         'statements': [
             {
                 'function': {
@@ -494,8 +582,9 @@ endfunction
                     'args': ['args'],
                     'lastArgArray': true,
                     'statements': [
-                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}}}
-                    ]
+                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}, 'lineNumber': 2}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -510,14 +599,16 @@ function test(...):
 endfunction
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['function test(...):', '    return 1', 'endfunction', ''],
         'statements': [
             {
                 'function': {
                     'name': 'test',
                     'lastArgArray': true,
                     'statements': [
-                        {'return': {'expr': {'number': 1}}}
-                    ]
+                        {'return': {'expr': {'number': 1}, 'lineNumber': 2}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -532,6 +623,7 @@ function argsCount(args ... ):
 endfunction
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['function argsCount(args ... ):', '    return arrayLength(args)', 'endfunction', ''],
         'statements': [
             {
                 'function': {
@@ -539,8 +631,9 @@ endfunction
                     'args': ['args'],
                     'lastArgArray': true,
                     'statements': [
-                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}}}
-                    ]
+                        {'return': {'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': 'args'}]}}, 'lineNumber': 2}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
@@ -559,7 +652,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 function test()
         ^
 `
@@ -579,23 +672,26 @@ else:
 endif
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['if i > 0:', '    a = 1', 'elif i < 0:', '    a = 2', 'else:', '    a = 3', 'endif', ''],
         'statements': [
             {'jump': {
                 'label': '__bareScriptIf0',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 1
             }},
-            {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf0'},
+            {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
             {'jump': {
                 'label': '__bareScriptIf1',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}}
-            },
-            {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf1'},
-            {'expr': {'name': 'a', 'expr': {'number': 3}}},
-            {'label': '__bareScriptDone0'}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 3
+            }},
+            {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 5}},
+            {'label': {'name': '__bareScriptIf1', 'lineNumber': 5}},
+            {'expr': {'name': 'a', 'expr': {'number': 3}, 'lineNumber': 6}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 7}}
         ]
     });
 });
@@ -608,13 +704,15 @@ if i > 0:
 endif
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['if i > 0:', '    a = 1', 'endif', ''],
         'statements': [
             {'jump': {
                 'label': '__bareScriptDone0',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 1
             }},
-            {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'label': '__bareScriptDone0'}
+            {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -629,20 +727,23 @@ elif i < 0:
 endif
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['if i > 0:', '    a = 1', 'elif i < 0:', '    a = 2', 'endif', ''],
         'statements': [
             {'jump': {
                 'label': '__bareScriptIf0',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 1
             }},
-            {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf0'},
+            {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
             {'jump': {
                 'label': '__bareScriptDone0',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 3
             }},
-            {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'label': '__bareScriptDone0'}
+            {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -657,16 +758,18 @@ else:
 endif
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['if i > 0:', '    a = 1', 'else:', '    a = 2', 'endif', ''],
         'statements': [
             {'jump': {
                 'label': '__bareScriptIf0',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 1
             }},
-            {'expr': {'name': 'a', 'expr': {'number': 1}}},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptIf0'},
-            {'expr': {'name': 'a', 'expr': {'number': 2}}},
-            {'label': '__bareScriptDone0'}
+            {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
+            {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -684,7 +787,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 1:
+:1: No matching if statement
 elif i < 0:
 ^
 `
@@ -707,7 +810,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 2:
+:2: No matching if statement
     elif i < 0:
 ^
 `
@@ -728,7 +831,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 1:
+:1: No matching if statement
 else:
 ^
 `
@@ -751,7 +854,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 2:
+:2: No matching if statement
     else:
 ^
 `
@@ -770,7 +873,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 1:
+:1: No matching if statement
 endif
 ^
 `
@@ -791,7 +894,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 2:
+:2: No matching if statement
     endif
 ^
 `
@@ -816,7 +919,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-Elif statement following else statement, line number 5:
+:5: Elif statement following else statement
 elif i < 0:
 ^
 `
@@ -841,7 +944,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-Multiple else statements, line number 5:
+:5: Multiple else statements
 else:
 ^
 `
@@ -860,7 +963,7 @@ if i > 0:
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endif statement, line number 1:
+:1: Missing endif statement
 if i > 0:
 ^
 `
@@ -882,7 +985,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endif statement, line number 2:
+:2: Missing endif statement
     if i > 0:
 ^
 `
@@ -904,7 +1007,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 3:
+:3: No matching if statement
     endif
 ^
 `
@@ -927,7 +1030,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 3:
+:3: No matching if statement
     elif i == 1:
 ^
 `
@@ -950,7 +1053,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching if statement, line number 3:
+:3: No matching if statement
     else:
 ^
 `
@@ -967,8 +1070,9 @@ while i < arrayLength(values):
 endwhile
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['i = 0', 'while i < arrayLength(values):', '    i = i + 1', 'endwhile', ''],
         'statements': [
-            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'expr': {'name': 'i', 'expr': {'number': 0}, 'lineNumber': 1}},
             {'jump': {
                 'label': '__bareScriptDone0',
                 'expr': {'unary': {
@@ -978,19 +1082,21 @@ endwhile
                         'left': {'variable': 'i'},
                         'right': {'function': {'name': 'arrayLength', 'args': [{'variable': 'values'}]}}
                     }}
-                }}
+                }},
+                'lineNumber': 2
             }},
-            {'label': '__bareScriptLoop0'},
-            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 2}},
+            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}, 'lineNumber': 3}},
             {'jump': {
                 'label': '__bareScriptLoop0',
                 'expr': {'binary': {
                     'op': '<',
                     'left': {'variable': 'i'},
                     'right': {'function': {'name': 'arrayLength', 'args': [{'variable': 'values'}]}}
-                }}
+                }},
+                'lineNumber': 4
             }},
-            {'label': '__bareScriptDone0'}
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 4}}
         ]
     });
 });
@@ -1003,12 +1109,13 @@ while true:
 endwhile
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['while true:', '    break', 'endwhile', ''],
         'statements': [
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
-            {'label': '__bareScriptLoop0'},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}}},
-            {'label': '__bareScriptDone0'}
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 2}},
+            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -1021,12 +1128,13 @@ while true:
 endwhile
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['while true:', '    continue', 'endwhile', ''],
         'statements': [
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}}},
-            {'label': '__bareScriptLoop0'},
-            {'jump': {'label': '__bareScriptLoop0'}},
-            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}}},
-            {'label': '__bareScriptDone0'}
+            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
+            {'jump': {'label': '__bareScriptLoop0', 'lineNumber': 2}},
+            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -1042,7 +1150,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching while statement, line number 1:
+:1: No matching while statement
 endwhile
 ^
 `
@@ -1062,7 +1170,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching while statement, line number 2:
+:2: No matching while statement
 endwhile
 ^
 `
@@ -1081,7 +1189,7 @@ while true:
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endwhile statement, line number 1:
+:1: Missing endwhile statement
 while true:
 ^
 `
@@ -1103,7 +1211,7 @@ endwhile
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endwhile statement, line number 2:
+:2: Missing endwhile statement
     while i > 0:
 ^
 `
@@ -1125,7 +1233,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching while statement, line number 3:
+:3: No matching while statement
     endwhile
 ^
 `
@@ -1148,7 +1256,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Break statement outside of loop, line number 3:
+:3: Break statement outside of loop
         break
 ^
 `
@@ -1171,7 +1279,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Continue statement outside of loop, line number 3:
+:3: Continue statement outside of loop
         continue
 ^
 `
@@ -1189,40 +1297,51 @@ for value in values:
 endfor
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['values = arrayNew(1, 2, 3)', 'sum = 0', 'for value in values:', '    sum = sum + value', 'endfor', ''],
         'statements': [
             {'expr': {
                 'name': 'values',
-                'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}}
+                'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}, {'number': 3}]}},
+                'lineNumber': 1
             }},
-            {'expr': {'name': 'sum', 'expr': {'number': 0}}},
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': 'sum', 'expr': {'number': 0}, 'lineNumber': 2}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 3}},
             {'expr': {
                 'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'lineNumber': 3
             }},
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__bareScriptLoop0'},
+            {'jump': {
+                'label': '__bareScriptDone0',
+                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 3
+            }},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 3}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
                     'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
-                }}
+                }},
+                'lineNumber': 3
             }},
             {'expr': {
                 'name': 'sum',
-                'expr': {'binary': {'op': '+', 'left': {'variable': 'sum'}, 'right': {'variable': 'value'}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'sum'}, 'right': {'variable': 'value'}}},
+                'lineNumber': 4
             }},
             {'expr': {
                 'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'lineNumber': 5
             }},
             {'jump': {
                 'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 5
             }},
-            {'label': '__bareScriptDone0'}
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1234,31 +1353,40 @@ for value, ixValue in values:
 endfor
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['for value, ixValue in values:', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
                 'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'lineNumber': 1
             }},
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
-            {'expr': {'name': 'ixValue', 'expr': {'number': 0}}},
-            {'label': '__bareScriptLoop0'},
+            {'jump': {
+                'label': '__bareScriptDone0',
+                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 1
+            }},
+            {'expr': {'name': 'ixValue', 'expr': {'number': 0}, 'lineNumber': 1}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
                     'args': [{'variable': '__bareScriptValues0'}, {'variable': 'ixValue'}]
-                }}
+                }},
+                'lineNumber': 1
             }},
             {'expr': {
                 'name': 'ixValue',
-                'expr': {'binary': {'op': '+', 'left': {'variable': 'ixValue'}, 'right': {'number': 1}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': 'ixValue'}, 'right': {'number': 1}}},
+                'lineNumber': 2
             }},
             {'jump': {
                 'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__bareScriptLength0'}}}
+                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 2
             }},
-            {'label': '__bareScriptDone0'}
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 2}}
         ]
     });
 });
@@ -1273,37 +1401,46 @@ for value in values:
 endfor
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['for value in values:', '    if i > 0:', '        break', '    endif', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
                 'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'lineNumber': 1
             }},
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__bareScriptLoop0'},
+            {'jump': {
+                'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 1
+            }},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
                     'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
-                }}
+                }},
+                'lineNumber': 1
             }},
             {'jump': {
                 'label': '__bareScriptDone1',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 2
             }},
-            {'jump': {'label': '__bareScriptDone0'}},
-            {'label': '__bareScriptDone1'},
+            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptDone1', 'lineNumber': 4}},
             {'expr': {
                 'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'lineNumber': 5
             }},
             {'jump': {
                 'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 5
             }},
-            {'label': '__bareScriptDone0'}
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1318,38 +1455,48 @@ for value in values:
 endfor
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['for value in values:', '    if i > 0:', '        continue', '    endif', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}}},
+            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
                 'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}}
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'lineNumber': 1
             }},
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}}}},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}}},
-            {'label': '__bareScriptLoop0'},
+            {'jump': {
+                'label': '__bareScriptDone0',
+                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 1
+            }},
+            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
+            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
                     'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
-                }}
+                }},
+                'lineNumber': 1
             }},
             {'jump': {
                 'label': '__bareScriptDone1',
-                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}}
+                'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
+                'lineNumber': 2
             }},
-            {'jump': {'label': '__bareScriptContinue0'}},
-            {'label': '__bareScriptDone1'},
-            {'label': '__bareScriptContinue0'},
+            {'jump': {'label': '__bareScriptContinue0', 'lineNumber': 3}},
+            {'label': {'name': '__bareScriptDone1', 'lineNumber': 4}},
+            {'label': {'name': '__bareScriptContinue0', 'lineNumber': 5}},
             {'expr': {
                 'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}}
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'lineNumber': 5
             }},
             {'jump': {
                 'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}}
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'lineNumber': 5
             }},
-            {'label': '__bareScriptDone0'}
+            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1365,7 +1512,7 @@ endfor
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching for statement, line number 1:
+:1: No matching for statement
 endfor
 ^
 `
@@ -1385,7 +1532,7 @@ endfor
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching for statement, line number 2:
+:2: No matching for statement
 endfor
 ^
 `
@@ -1404,7 +1551,7 @@ for value in values:
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endfor statement, line number 1:
+:1: Missing endfor statement
 for value in values:
 ^
 `
@@ -1426,7 +1573,7 @@ endfor
         {
             'name': 'BareScriptParserError',
             'message': `\
-Missing endfor statement, line number 2:
+:2: Missing endfor statement
     for value in values:
 ^
 `
@@ -1448,7 +1595,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching for statement, line number 3:
+:3: No matching for statement
     endfor
 ^
 `
@@ -1471,7 +1618,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Break statement outside of loop, line number 3:
+:3: Break statement outside of loop
         break
 ^
 `
@@ -1494,7 +1641,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Continue statement outside of loop, line number 3:
+:3: Continue statement outside of loop
         continue
 ^
 `
@@ -1513,7 +1660,7 @@ break
         {
             'name': 'BareScriptParserError',
             'message': `\
-Break statement outside of loop, line number 1:
+:1: Break statement outside of loop
 break
 ^
 `
@@ -1534,7 +1681,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-Break statement outside of loop, line number 2:
+:2: Break statement outside of loop
     break
 ^
 `
@@ -1553,7 +1700,7 @@ continue
         {
             'name': 'BareScriptParserError',
             'message': `\
-Continue statement outside of loop, line number 1:
+:1: Continue statement outside of loop
 continue
 ^
 `
@@ -1574,7 +1721,7 @@ endif
         {
             'name': 'BareScriptParserError',
             'message': `\
-Continue statement outside of loop, line number 2:
+:2: Continue statement outside of loop
     continue
 ^
 `
@@ -1588,8 +1735,9 @@ test('parseScript, include statement', () => {
 include 'fi\\'le.bare'
 `));
     assert.deepEqual(script, {
+        'scriptLines': ["include 'fi\\'le.bare'", ''],
         'statements': [
-            {'include': {'includes': [{'url': "fi'le.bare"}]}}
+            {'include': {'includes': [{'url': "fi'le.bare"}], 'lineNumber': 1}}
         ]
     });
 });
@@ -1600,8 +1748,9 @@ test('parseScript, include statement, system', () => {
 include <file.bare>
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['include <file.bare>', ''],
         'statements': [
-            {'include': {'includes': [{'url': 'file.bare', 'system': true}]}}
+            {'include': {'includes': [{'url': 'file.bare', 'system': true}], 'lineNumber': 1}}
         ]
     });
 });
@@ -1617,7 +1766,7 @@ include "file.bare"
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 include "file.bare"
        ^
 `,
@@ -1637,8 +1786,13 @@ include <test2.bare>
 include 'test3.bare'
 `));
     assert.deepEqual(script, {
+        'scriptLines': ["include 'test.bare'", 'include <test2.bare>', "include 'test3.bare'", ''],
         'statements': [
-            {'include': {'includes': [{'url': 'test.bare'}, {'url': 'test2.bare', 'system': true}, {'url': 'test3.bare'}]}}
+            {'include': {
+                'includes': [{'url': 'test.bare'}, {'url': 'test2.bare', 'system': true}, {'url': 'test3.bare'}],
+                'lineNumber': 1,
+                'lineCount': 3
+            }}
         ]
     });
 });
@@ -1649,8 +1803,9 @@ test('parseScript, expression statement', () => {
 foo()
 `));
     assert.deepEqual(script, {
+        'scriptLines': ['foo()', ''],
         'statements': [
-            {'expr': {'expr': {'function': {'name': 'foo', 'args': []}}}}
+            {'expr': {'expr': {'function': {'name': 'foo', 'args': []}}, 'lineNumber': 1}}
         ]
     });
 });
@@ -1670,7 +1825,7 @@ c = 2
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 3:
+:3: Syntax error
 foo bar
    ^
 `,
@@ -1694,7 +1849,7 @@ b = 1 + foo bar
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 2:
+:2: Syntax error
 b = 1 + foo bar
            ^
 `,
@@ -1717,7 +1872,7 @@ jumpif (@#$) label
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 jumpif (@#$) label
         ^
 `,
@@ -1740,7 +1895,7 @@ return @#$
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error, line number 1:
+:1: Syntax error
 return @#$
        ^
 `,
@@ -1766,7 +1921,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-Nested function definition, line number 2:
+:2: Nested function definition
     function bar():
 ^
 `,
@@ -1790,7 +1945,7 @@ endfunction
         {
             'name': 'BareScriptParserError',
             'message': `\
-No matching function definition, line number 2:
+:2: No matching function definition
 endfunction
 ^
 `,
@@ -1850,7 +2005,7 @@ test('parseExpression, syntax error', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error:
+Syntax error
 ${exprText}
 ^
 `,
@@ -1871,7 +2026,7 @@ test('parseExpression, nextText syntax error', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error:
+Syntax error
 ${exprText}
    ^
 `,
@@ -1892,7 +2047,7 @@ test('parseExpression, syntax error, unmatched parenthesis', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Unmatched parenthesis:
+Unmatched parenthesis
 ${exprText}
     ^
 `,
@@ -1913,7 +2068,7 @@ test('parseExpression, function argument syntax error', () => {
         {
             'name': 'BareScriptParserError',
             'message': `\
-Syntax error:
+Syntax error
 ${exprText}
         ^
 `,
