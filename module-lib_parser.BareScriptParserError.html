@@ -29,7 +29,7 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-lib_parser.html">lib/parser</a>.</span>BareScriptParserError<span class="signature">(error, line, columnNumber<span class="signature-attributes">opt</span>, lineNumber<span class="signature-attributes">opt, nullable</span>, prefix<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-lib_parser.html">lib/parser</a>.</span>BareScriptParserError<span class="signature">(error, line, columnNumber<span class="signature-attributes">opt</span>, lineNumber<span class="signature-attributes">opt, nullable</span>, scriptName<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>A BareScript parser error</p></div>
         
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="BareScriptParserError"><span class="type-signature"></span>new BareScriptParserError<span class="signature">(error, line, columnNumber<span class="signature-attributes">opt</span>, lineNumber<span class="signature-attributes">opt, nullable</span>, prefix<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="BareScriptParserError"><span class="type-signature"></span>new BareScriptParserError<span class="signature">(error, line, columnNumber<span class="signature-attributes">opt</span>, lineNumber<span class="signature-attributes">opt, nullable</span>, scriptName<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -82,8 +82,6 @@
         
 
         
-        <th>Default</th>
-        
 
         <th class="last">Description</th>
     </tr>
@@ -117,10 +115,6 @@
             
 
             
-                <td class="default">
-                
-                </td>
-            
 
             <td class="description last"><p>The error description</p></td>
         </tr>
@@ -151,10 +145,6 @@
                 </td>
             
 
-            
-                <td class="default">
-                
-                </td>
             
 
             <td class="description last"><p>The line text</p></td>
@@ -188,12 +178,6 @@
                 </td>
             
 
-            
-                <td class="default">
-                
-                    1
-                
-                </td>
             
 
             <td class="description last"><p>The error column number</p></td>
@@ -230,12 +214,6 @@
             
 
             
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
 
             <td class="description last"><p>The error line number</p></td>
         </tr>
@@ -244,7 +222,7 @@
 
         <tr>
             
-                <td class="name"><code>prefix</code></td>
+                <td class="name"><code>scriptName</code></td>
             
 
             <td class="type">
@@ -271,14 +249,8 @@
             
 
             
-                <td class="default">
-                
-                    null
-                
-                </td>
-            
 
-            <td class="description last"><p>The error message prefix line</p></td>
+            <td class="description last"><p>The script name</p></td>
         </tr>
 
     
@@ -433,6 +405,37 @@
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>scriptName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The error line number</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -468,7 +471,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="parser.js.html">parser.js</a>, <a href="parser.js.html#line709">line 709</a>
+        <a href="parser.js.html">parser.js</a>, <a href="parser.js.html#line735">line 735</a>
     </li></ul></dd>
     
 

@@ -8,6 +8,7 @@ Standard Library documentation.
 ## Table of Contents
 
 - [Array](#var.vPublish=true&var.vSingle=true&array)
+- [Coverage](#var.vPublish=true&var.vSingle=true&coverage)
 - [Data](#var.vPublish=true&var.vSingle=true&data)
 - [Datetime](#var.vPublish=true&var.vSingle=true&datetime)
 - [JSON](#var.vPublish=true&var.vSingle=true&json)
@@ -329,6 +330,75 @@ Optional (default is null). The comparison function.
 #### Returns
 
 The sorted array
+
+---
+
+## Coverage
+
+[Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+### Function Index
+
+- [coverageGlobalGet](#var.vPublish=true&var.vSingle=true&coverageglobalget)
+- [coverageGlobalName](#var.vPublish=true&var.vSingle=true&coverageglobalname)
+- [coverageStart](#var.vPublish=true&var.vSingle=true&coveragestart)
+- [coverageStop](#var.vPublish=true&var.vSingle=true&coveragestop)
+
+---
+
+### coverageGlobalGet
+
+Get the coverage global object
+
+#### Arguments
+
+None
+
+#### Returns
+
+The [coverage global object](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+
+---
+
+### coverageGlobalName
+
+Get the coverage global variable name
+
+#### Arguments
+
+None
+
+#### Returns
+
+The coverage global variable name
+
+---
+
+### coverageStart
+
+Start coverage data collection
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### coverageStop
+
+Stop coverage data collection
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
 
 ---
 
