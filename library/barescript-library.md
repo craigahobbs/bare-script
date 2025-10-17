@@ -356,7 +356,7 @@ None
 
 #### Returns
 
-The [coverage global object](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+The [coverage global object](https://craigahobbs.github.io/bare-script/model/#var.vName='CoverageGlobal')
 
 ---
 
