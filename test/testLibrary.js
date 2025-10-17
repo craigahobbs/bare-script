@@ -180,6 +180,24 @@ test('library, arrayExtend', () => {
 });
 
 
+test('library, arrayFlat', () => {
+    const array = [1, [2, [3, 4], 5], 6];
+    const result = scriptFunctions.arrayFlat([array], null);
+    assert.deepEqual(result, [1, 2, 3, 4, 5, 6]);
+
+    // Non-array
+    assert.throws(
+        () => {
+            scriptFunctions.arrayFlat([null, null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
+        }
+    );
+});
+
+
 test('library, arrayGet', () => {
     const array = [1, 2, 3];
     assert.equal(scriptFunctions.arrayGet([array, 0], null), 1);
