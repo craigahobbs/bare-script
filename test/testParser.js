@@ -2647,6 +2647,15 @@ test('parseExpression, string literal escapes', () => {
     // Hex
     expr = parseExpression('"\\uD83D\\uDE00"');
     assert.deepEqual(validateExpression(expr), {'string': '\ud83d\ude00'});
+
+    // Escaped
+    expr = parseExpression(
+        "'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\\\\" \\\\\\' \\* \\_ \\~ \\` \\# \\| \\-'"
+    );
+    assert.deepEqual(
+        validateExpression(expr),
+        {'string': "Escape me: \\ \\[ \\] \\( \\) \\< \\> \\\" \\' \\* \\_ \\~ \\` \\# \\| \\-"}
+    );
 });
 
 
@@ -2676,6 +2685,15 @@ test('parseExpression, string literal double-quote escapes', () => {
     // Hex
     expr = parseExpression('"\\uD83D\\uDE00"');
     assert.deepEqual(validateExpression(expr), {'string': '\ud83d\ude00'});
+
+    // Escaped
+    expr = parseExpression(
+        '"Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\\\\\" \\\\\' \\* \\_ \\~ \\` \\# \\| \\-"'
+    );
+    assert.deepEqual(
+        validateExpression(expr),
+        {'string': "Escape me: \\ \\[ \\] \\( \\) \\< \\> \\\" \\' \\* \\_ \\~ \\` \\# \\| \\-"}
+    );
 });
 
 
