@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.1 (2025-10-18)
+
+- [ccaebc4](https://github.com/craigahobbs/bare-script/commit/ccaebc4) - fix string escape issue
+
 ## 3.7.0 (2025-10-18)
 
 - [95f667d](https://github.com/craigahobbs/bare-script/commit/95f667d) - JSON object syntax, array syntax, and string escapes
