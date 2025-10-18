@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.0 (2025-10-18)
+
+- [95f667d](https://github.com/craigahobbs/bare-script/commit/95f667d) - JSON object syntax, array syntax, and string escapes
+
+- [1e7a0c2](https://github.com/craigahobbs/bare-script/commit/1e7a0c2) - add arrayFlat library function
+
 ## 3.6.0 (2025-10-15)
 
 - [e4d160b](https://github.com/craigahobbs/bare-script/commit/e4d160b) - add coverage support
