@@ -7,10 +7,37 @@ Expression Library documentation.
 
 ## Table of Contents
 
+- [Array](#var.vPublish=true&var.vSingle=true&array)
 - [Datetime](#var.vPublish=true&var.vSingle=true&datetime)
 - [Math](#var.vPublish=true&var.vSingle=true&math)
 - [Number](#var.vPublish=true&var.vSingle=true&number)
+- [Object](#var.vPublish=true&var.vSingle=true&object)
 - [String](#var.vPublish=true&var.vSingle=true&string)
+
+---
+
+## Array
+
+[Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+### Function Index
+
+- [arrayNew](#var.vPublish=true&var.vSingle=true&arraynew)
+
+---
+
+### arrayNew
+
+Create a new array
+
+#### Arguments
+
+**values... -**
+The new array's values
+
+#### Returns
+
+The new array
 
 ---
 
@@ -566,6 +593,31 @@ Optional (default is 10). The number base.
 #### Returns
 
 The integer
+
+---
+
+## Object
+
+[Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+### Function Index
+
+- [objectNew](#var.vPublish=true&var.vSingle=true&objectnew)
+
+---
+
+### objectNew
+
+Create a new object
+
+#### Arguments
+
+**keyValues... -**
+The object's initial key and value pairs
+
+#### Returns
+
+The new object
 
 ---
 

@@ -110,7 +110,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
                 const exprStatement = {
                     'expr': {
                         'name': matchAssignment.groups.name,
-                        'expr': parseExpression(matchAssignment.groups.expr, lineNumber, scriptName),
+                        'expr': parseExpression(matchAssignment.groups.expr, lineNumber, scriptName, true),
                         ...statementBase
                     }
                 };
@@ -179,7 +179,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             const ifthen = {
                 'jump': {
                     'label': `__bareScriptIf${labelIndex}`,
-                    'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfBegin.groups.expr, lineNumber, scriptName)}},
+                    'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfBegin.groups.expr, lineNumber, scriptName, true)}},
                     ...statementBase
                 },
                 'done': `__bareScriptDone${labelIndex}`,
@@ -214,7 +214,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             const prevLabel = ifthen.jump.label;
             ifthen.jump = {
                 'label': `__bareScriptIf${labelIndex}`,
-                'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfElseIf.groups.expr, lineNumber, scriptName)}},
+                'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfElseIf.groups.expr, lineNumber, scriptName, true)}},
                 ...statementBase
             };
             labelIndex += 1;
@@ -280,7 +280,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
                 'loop': `__bareScriptLoop${labelIndex}`,
                 'continue': `__bareScriptLoop${labelIndex}`,
                 'done': `__bareScriptDone${labelIndex}`,
-                'expr': parseExpression(matchWhileBegin.groups.expr, lineNumber, scriptName),
+                'expr': parseExpression(matchWhileBegin.groups.expr, lineNumber, scriptName, true),
                 line,
                 'lineNumber': startLineNumber + ixLine
             };
@@ -335,7 +335,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             statements.push(
                 {'expr': {
                     'name': foreach.values,
-                    'expr': parseExpression(matchForBegin.groups.values, lineNumber, scriptName),
+                    'expr': parseExpression(matchForBegin.groups.values, lineNumber, scriptName, true),
                     ...statementBase
                 }},
                 {'expr': {
@@ -435,7 +435,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             const jumpStatement = {'jump': {'label': matchJump.groups.name, ...statementBase}};
             if (typeof matchJump.groups.expr !== 'undefined') {
                 try {
-                    jumpStatement.jump.expr = parseExpression(matchJump.groups.expr, lineNumber, scriptName);
+                    jumpStatement.jump.expr = parseExpression(matchJump.groups.expr, lineNumber, scriptName, true);
                 } catch (error) {
                     const columnNumber = matchJump.groups.jump.length - matchJump.groups.expr.length - 1 + error.columnNumber;
                     throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
@@ -451,7 +451,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             const returnStatement = {'return': {...statementBase}};
             if (typeof matchReturn.groups.expr !== 'undefined') {
                 try {
-                    returnStatement.return.expr = parseExpression(matchReturn.groups.expr, lineNumber, scriptName);
+                    returnStatement.return.expr = parseExpression(matchReturn.groups.expr, lineNumber, scriptName, true);
                 } catch (error) {
                     const columnNumber = matchReturn.groups.return.length - matchReturn.groups.expr.length + error.columnNumber;
                     throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
@@ -465,7 +465,9 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         const matchInclude = line.match(rScriptInclude) || line.match(rScriptIncludeSystem);
         if (matchInclude !== null) {
             const {delim} = matchInclude.groups;
-            const url = (delim === '&lt;' ? matchInclude.groups.url : matchInclude.groups.url.replace(rExprStringEscape, '$1'));
+            const url = (
+                delim === '&lt;' ? matchInclude.groups.url : matchInclude.groups.url.replace(rExprStringEscapes, replaceStringEscape)
+            );
             let includeStatement = (statements.length ? statements[statements.length - 1] : null);
             if (includeStatement === null || !('include' in includeStatement)) {
                 includeStatement = {'include': {'includes': [], ...statementBase}};
@@ -479,7 +481,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
 
         // Expression
         try {
-            const exprStatement = {'expr': {'expr': parseExpression(line, lineNumber, scriptName), ...statementBase}};
+            const exprStatement = {'expr': {'expr': parseExpression(line, lineNumber, scriptName, true), ...statementBase}};
             statements.push(exprStatement);
         } catch (error) {
             throw new BareScriptParserError(error.error, line, error.columnNumber, startLineNumber + ixLine, scriptName);
@@ -533,12 +535,15 @@ const rScriptContinue = new RegExp(`^\\s*continue${rPartComment}`);
  * Parse a BareScript expression
  *
  * @param {string} exprText - The [expression text](./language/#expressions)
+ * @param {number} [lineNumber = 1] - The script line number
+ * @param {?string} [scriptName = null] - The script name
+ * @param {boolean} [arrayLiterals = false] - If True, allow parsing of array literals
  * @returns {Object} The [expression model](./model/#var.vName='Expression')
  * @throws [BareScriptParserError]{@link module:lib/parser.BareScriptParserError}
  */
-export function parseExpression(exprText, lineNumber = null, scriptName = null) {
+export function parseExpression(exprText, lineNumber = null, scriptName = null, arrayLiterals = false) {
     try {
-        const [expr, nextText] = parseBinaryExpression(exprText, null);
+        const [expr, nextText] = parseBinaryExpression(exprText, null, arrayLiterals);
         if (nextText.trim() !== '') {
             throw new BareScriptParserError('Syntax error', nextText, 1, lineNumber, scriptName);
         }
@@ -551,7 +556,7 @@ export function parseExpression(exprText, lineNumber = null, scriptName = null) 
 
 
 // Helper function to parse a binary operator expression chain
-function parseBinaryExpression(exprText, binLeftExpr) {
+function parseBinaryExpression(exprText, binLeftExpr, arrayLiterals) {
     // Parse the binary operator's left unary expression if none was passed
     let leftExpr;
     let binText;
@@ -559,7 +564,7 @@ function parseBinaryExpression(exprText, binLeftExpr) {
         binText = exprText;
         leftExpr = binLeftExpr;
     } else {
-        [leftExpr, binText] = parseUnaryExpression(exprText);
+        [leftExpr, binText] = parseUnaryExpression(exprText, arrayLiterals);
     }
 
     // Match a binary operator - if not found, return the left expression
@@ -576,7 +581,7 @@ function parseBinaryExpression(exprText, binLeftExpr) {
     const rightText = binText.slice(matchBinaryOp[0].length);
 
     // Parse the right sub-expression
-    const [rightExpr, nextText] = parseUnaryExpression(rightText);
+    const [rightExpr, nextText] = parseUnaryExpression(rightText, arrayLiterals);
 
     // Create the binary expression - re-order for binary operators as necessary
     let binExpr;
@@ -594,7 +599,7 @@ function parseBinaryExpression(exprText, binLeftExpr) {
     }
 
     // Parse the next binary expression in the chain
-    return parseBinaryExpression(nextText, binExpr);
+    return parseBinaryExpression(nextText, binExpr, arrayLiterals);
 }
 
 
@@ -623,12 +628,12 @@ const binaryReorder = {
 
 
 // Helper function to parse a unary expression
-function parseUnaryExpression(exprText) {
+function parseUnaryExpression(exprText, arrayLiterals) {
     // Group open?
     const matchGroupOpen = exprText.match(rExprGroupOpen);
     if (matchGroupOpen !== null) {
         const groupText = exprText.slice(matchGroupOpen[0].length);
-        const [expr, nextText] = parseBinaryExpression(groupText, null);
+        const [expr, nextText] = parseBinaryExpression(groupText, null, arrayLiterals);
         const matchGroupClose = nextText.match(rExprGroupClose);
         if (matchGroupClose === null) {
             throw new BareScriptParserError('Unmatched parenthesis', exprText, 1, null, null);
@@ -648,7 +653,7 @@ function parseUnaryExpression(exprText) {
     // String?
     const matchString = exprText.match(rExprString);
     if (matchString !== null) {
-        const string = matchString[1].replace(rExprStringEscape, '$1');
+        const string = matchString[1].replace(rExprStringEscapes, replaceStringEscape);
         const expr = {'string': string};
         return [expr, exprText.slice(matchString[0].length)];
     }
@@ -656,7 +661,7 @@ function parseUnaryExpression(exprText) {
     // String (double quotes)?
     const matchStringDouble = exprText.match(rExprStringDouble);
     if (matchStringDouble !== null) {
-        const string = matchStringDouble[1].replace(rExprStringDoubleEscape, '$1');
+        const string = matchStringDouble[1].replace(rExprStringEscapes, replaceStringEscape);
         const expr = {'string': string};
         return [expr, exprText.slice(matchStringDouble[0].length)];
     }
@@ -665,7 +670,7 @@ function parseUnaryExpression(exprText) {
     const matchUnary = exprText.match(rExprUnaryOp);
     if (matchUnary !== null) {
         const unaryText = exprText.slice(matchUnary[0].length);
-        const [expr, nextText] = parseUnaryExpression(unaryText);
+        const [expr, nextText] = parseUnaryExpression(unaryText, arrayLiterals);
         const unaryExpr = {
             'unary': {
                 'op': matchUnary[1],
@@ -698,9 +703,9 @@ function parseUnaryExpression(exprText) {
             }
 
             // Get the argument
-            const [argExpr, nextArgText] = parseBinaryExpression(argText, null);
-            args.push(argExpr);
+            const [argExpr, nextArgText] = parseBinaryExpression(argText, null, arrayLiterals);
             argText = nextArgText;
+            args.push(argExpr);
         }
 
         const fnExpr = {
@@ -712,6 +717,84 @@ function parseUnaryExpression(exprText) {
         return [fnExpr, argText];
     }
 
+    // Object creation?
+    const matchObjectOpen = exprText.match(rExprObjectOpen);
+    if (matchObjectOpen !== null) {
+        let argText = exprText.slice(matchObjectOpen[0].length);
+        const args = [];
+        while (true) {
+            // Object close?
+            const matchObjectClose = argText.match(rExprObjectClose);
+            if (matchObjectClose !== null) {
+                argText = argText.slice(matchObjectClose[0].length);
+                break;
+            }
+
+            // Object key/value separator
+            if (args.length !== 0) {
+                const matchObjectSeparator = argText.match(rExprObjectSeparator2);
+                if (matchObjectSeparator === null) {
+                    throw new BareScriptParserError('Syntax error', argText, 1, null, null);
+                }
+                argText = argText.slice(matchObjectSeparator[0].length);
+            }
+
+            // Get the key
+            const [argKey, nextArgText] = parseBinaryExpression(argText, null, arrayLiterals);
+            argText = nextArgText;
+            args.push(argKey);
+
+            // Object key separator
+            if (args.length !== 0) {
+                const matchObjectSeparator = argText.match(rExprObjectSeparator);
+                if (matchObjectSeparator === null) {
+                    throw new BareScriptParserError('Syntax error', argText, 1, null, null);
+                }
+                argText = argText.slice(matchObjectSeparator[0].length);
+            }
+
+            // Get the value
+            const [argValue, nextArgText2] = parseBinaryExpression(argText, null, arrayLiterals);
+            argText = nextArgText2;
+            args.push(argValue);
+        }
+        const fnExpr = {'function': {'name': 'objectNew', 'args': args}};
+        return [fnExpr, argText];
+    }
+
+    // Array creation?
+    if (arrayLiterals) {
+        const matchArrayOpen = exprText.match(rExprArrayOpen);
+        if (matchArrayOpen !== null) {
+            let argText = exprText.slice(matchArrayOpen[0].length);
+            const args = [];
+            while (true) {
+                // Array close?
+                const matchArrayClose = argText.match(rExprArrayClose);
+                if (matchArrayClose !== null) {
+                    argText = argText.slice(matchArrayClose[0].length);
+                    break;
+                }
+
+                // Array value separator
+                if (args.length !== 0) {
+                    const matchArraySeparator = argText.match(rExprArraySeparator);
+                    if (matchArraySeparator === null) {
+                        throw new BareScriptParserError('Syntax error', argText, 1, null, null);
+                    }
+                    argText = argText.slice(matchArraySeparator[0].length);
+                }
+
+                // Get the value
+                const [argValue, nextArgText2] = parseBinaryExpression(argText, null, arrayLiterals);
+                argText = nextArgText2;
+                args.push(argValue);
+            }
+            const fnExpr = {'function': {'name': 'arrayNew', 'args': args}};
+            return [fnExpr, argText];
+        }
+    }
+
     // Variable?
     const matchVariable = exprText.match(rExprVariable);
     if (matchVariable !== null) {
@@ -720,11 +803,13 @@ function parseUnaryExpression(exprText) {
     }
 
     // Variable (brackets)?
-    const matchVariableEx = exprText.match(rExprVariableEx);
-    if (matchVariableEx !== null) {
-        const variableName = matchVariableEx[1].replace(rExprVariableExEscape, '$1');
-        const expr = {'variable': variableName};
-        return [expr, exprText.slice(matchVariableEx[0].length)];
+    if (!arrayLiterals) {
+        const matchVariableEx = exprText.match(rExprVariableEx);
+        if (matchVariableEx !== null) {
+            const variableName = matchVariableEx[1].replace(rExprVariableExEscape, '$1');
+            const expr = {'variable': variableName};
+            return [expr, exprText.slice(matchVariableEx[0].length)];
+        }
     }
 
     throw new BareScriptParserError('Syntax error', exprText, 1, null, null);
@@ -741,13 +826,40 @@ const rExprFunctionClose = /^\s*\)/;
 const rExprGroupOpen = /^\s*\(/;
 const rExprGroupClose = /^\s*\)/;
 const rExprNumber = /^\s*(0x[A-Fa-f0-9]+|[+-]?\d+(?:\.\d*)?(?:e[+-]?\d+)?)/;
+const rExprArrayOpen = /^\s*\[/;
+const rExprArraySeparator = /^\s*,/;
+const rExprArrayClose = /^\s*\]/;
+const rExprObjectOpen = /^\s*\{/;
+const rExprObjectSeparator = /^\s*:/;
+const rExprObjectSeparator2 = /^\s*,/;
+const rExprObjectClose = /^\s*\}/;
 const rExprString = /^\s*'((?:\\\\|\\'|[^'])*)'/;
-const rExprStringEscape = /\\([\\'])/g;
 const rExprStringDouble = /^\s*"((?:\\\\|\\"|[^"])*)"/;
-const rExprStringDoubleEscape = /\\([\\"])/g;
 const rExprVariable = /^\s*([A-Za-z_]\w*)/;
 const rExprVariableEx = /^\s*\[\s*((?:\\\]|[^\]])+)\s*\]/;
 const rExprVariableExEscape = /\\([\\\]])/g;
+
+
+// String literal escapes
+const rExprStringEscapes = /(?&lt;!\\)\\([nrtbf'"\\]|u[0-9a-fA-F]{4})/g;
+
+function replaceStringEscape(unusedMatch, esc) {
+    if (esc.startsWith('u')) {
+        return String.fromCharCode(parseInt(esc.slice(1), 16));
+    }
+    return exprStringEscapes[esc];
+}
+
+const exprStringEscapes = {
+    'n': '\n',
+    'r': '\r',
+    't': '\t',
+    'b': '\b',
+    'f': '\f',
+    "'": "'",
+    '"': '"',
+    '\\': '\\'
+};
 
 
 /**

@@ -32,6 +32,7 @@ Standard Library documentation.
 - [arrayCopy](#var.vPublish=true&var.vSingle=true&arraycopy)
 - [arrayDelete](#var.vPublish=true&var.vSingle=true&arraydelete)
 - [arrayExtend](#var.vPublish=true&var.vSingle=true&arrayextend)
+- [arrayFlat](#var.vPublish=true&var.vSingle=true&arrayflat)
 - [arrayGet](#var.vPublish=true&var.vSingle=true&arrayget)
 - [arrayIndexOf](#var.vPublish=true&var.vSingle=true&arrayindexof)
 - [arrayJoin](#var.vPublish=true&var.vSingle=true&arrayjoin)
@@ -96,6 +97,21 @@ The array to extend with
 #### Returns
 
 The extended array
+
+---
+
+### arrayFlat
+
+Flat an array hierarchy
+
+#### Arguments
+
+**array -**
+The array to flat
+
+#### Returns
+
+The flated array
 
 ---
 

@@ -71,7 +71,7 @@
     
 
     
-    <h4 class="name" id=".parseExpression"><span class="type-signature">(static) </span>parseExpression<span class="signature">(exprText)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id=".parseExpression"><span class="type-signature">(static) </span>parseExpression<span class="signature">(exprText, lineNumber<span class="signature-attributes">opt</span>, scriptName<span class="signature-attributes">opt, nullable</span>, arrayLiterals<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -103,7 +103,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -128,10 +132,141 @@
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>The <a href="./language/#expressions">expression text</a></p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>lineNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1
+                
+                </td>
+            
+
+            <td class="description last"><p>The script line number</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>scriptName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The script name</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arrayLiterals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>If True, allow parsing of array literals</p></td>
         </tr>
 
     
@@ -172,7 +307,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="parser.js.html">parser.js</a>, <a href="parser.js.html#line511">line 511</a>
+        <a href="parser.js.html">parser.js</a>, <a href="parser.js.html#line516">line 516</a>
     </li></ul></dd>
     
 
