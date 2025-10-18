@@ -56,7 +56,7 @@ test('executeScript, coverage', () => {
             '        ix = 2',
             '    endif',
             '',
-            '    for num in arrayNew(1, 2, 3):',
+            '    for num in [1, 2, 3]:',
             '        systemLog(num)',
             '    endfor  # Numbers ',
             '',

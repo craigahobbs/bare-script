@@ -16,6 +16,7 @@ test('library, built-in expression functions', () => {
         [
             ['abs', true],
             ['acos', true],
+            ['arrayNew', true],
             ['asin', true],
             ['atan', true],
             ['atan2', true],
@@ -40,6 +41,7 @@ test('library, built-in expression functions', () => {
             ['minute', true],
             ['month', true],
             ['now', true],
+            ['objectNew', true],
             ['parseInt', true],
             ['parseFloat', true],
             ['pi', true],

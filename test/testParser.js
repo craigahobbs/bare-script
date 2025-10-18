@@ -9,19 +9,19 @@ import test from 'node:test';
 
 test('parseScript, array input', () => {
     const script = validateScript(parseScript([
-        'a = arrayNew( \\',
+        'a = [ \\',
         '    1,\\',
         `\
     2 \\
-)
+]
 `
     ]));
     assert.deepEqual(script, {
         'scriptLines': [
-            'a = arrayNew( \\',
+            'a = [ \\',
             '    1,\\',
             '    2 \\',
-            ')',
+            ']',
             ''
         ],
         'statements': [
@@ -75,6 +75,172 @@ return a + 1 asdf
 });
 
 
+test('parseScript, arrayLiterals', () => {
+    const scriptLines = [
+        'a = [1, "2", [3, null]]'
+    ];
+    const script = validateScript(parseScript(scriptLines, 1, 'test.bare'));
+    assert.deepEqual(script, {
+        scriptName: 'test.bare',
+        scriptLines,
+        'statements': [
+            {'expr': {
+                'name': 'a',
+                'expr': {'function': {
+                    'name': 'arrayNew',
+                    'args': [
+                        {'number': 1.0},
+                        {'string': '2'},
+                        {'function': {
+                            'name': 'arrayNew',
+                            'args': [
+                                {'number': 3.0},
+                                {'variable': 'null'}
+                            ]
+                        }}
+                    ],
+                }},
+                'lineNumber': 1
+            }}
+        ]
+    });
+
+    // Missing value
+    assert.throws(
+        () => parseScript('a = [, 2]'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = [, 2]
+     ^
+`
+        }
+    );
+
+    // Missing separator
+    assert.throws(
+        () => parseScript('a = [1 2]'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = [1 2]
+      ^
+`
+        }
+    );
+});
+
+
+test('parseScript, arrayLiterals', () => {
+    const scriptLines = [
+        'a = {"a": 1, "b": "2", "c": {"d": 3, "e": null}}',
+        'b = {}'
+    ];
+    const script = validateScript(parseScript(scriptLines, 1, 'test.bare'));
+    assert.deepEqual(script, {
+        scriptName: 'test.bare',
+        scriptLines,
+        'statements': [
+            {'expr': {
+                'name': 'a',
+                'expr': {'function': {
+                    'name': 'objectNew',
+                    'args': [
+                        {'string': 'a'},
+                        {'number': 1.0},
+                        {'string': 'b'},
+                        {'string': '2'},
+                        {'string': 'c'},
+                        {'function': {
+                            'name': 'objectNew',
+                            'args': [
+                                {'string': 'd'},
+                                {'number': 3.0},
+                                {'string': 'e'},
+                                {'variable': 'null'}
+                            ]
+                        }}
+                    ]
+                }},
+                'lineNumber': 1
+            }},
+            {'expr': {
+                'name': 'b',
+                'expr': {'function': {'name': 'objectNew', 'args': []}},
+                'lineNumber': 2
+            }}
+        ]
+    });
+
+    // Key only
+    assert.throws(
+        () => parseScript('a = {"b"}'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = {"b"}
+        ^
+`
+        }
+    );
+
+    // No keys
+    assert.throws(
+        () => parseScript('a = {1, 2}'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = {1, 2}
+      ^
+`
+        }
+    );
+
+    // Key, no value
+    assert.throws(
+        () => parseScript('a = {"b":}'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = {"b":}
+         ^
+`
+        }
+    );
+
+    // Missing value
+    assert.throws(
+        () => parseScript('a = {, "b": 2}'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = {, "b": 2}
+     ^
+`
+        }
+    );
+
+    // Missing separator
+    assert.throws(
+        () => parseScript('a = {"a": 1 "b": 2}'),
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+a = {"a": 1 "b": 2}
+           ^
+`
+        }
+    );
+});
+
+
 test('parseScript, comments', () => {
     const scriptStr = `\
 include <args.bare>  # Application arguments
@@ -98,7 +264,7 @@ else:        # Always happened
     ix = 2
 endif        # It happens
 
-for num in arrayNew(1, 2, 3):  # Iterate numbers
+for num in [1, 2, 3]:  # Iterate numbers
     systemLog(num)
 endfor  # Numbers done
 
@@ -264,10 +430,10 @@ return  # Bye!
 
 test('parseScript, line continuation', () => {
     const scriptStr = `\
-a = arrayNew( \\
+a = [ \\
     1, \\
     2 \\
-)
+]
 `;
     const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
@@ -289,12 +455,12 @@ a = arrayNew( \\
 test('parseScript, line continuation comments', () => {
     const scriptStr = `\
 # Comments don't continue \\
-a = arrayNew( \\
+a = [ \\
     # Comments are OK within a continuation...
     1, \\
     # ...with or without a continuation backslash \\
     2 \\
-)
+]
 `;
     const script = validateScript(parseScript(scriptStr));
     assert.deepEqual(script, {
@@ -435,7 +601,7 @@ a = 0
 b = 1
 
 fib:
-    jumpif (i >= [n]) fibend
+    jumpif (i >= n) fibend
     tmp = b
     b = a + b
     a = tmp
@@ -1290,14 +1456,14 @@ endfunction
 
 test('parseScript, foreach statement', () => {
     const script = validateScript(parseScript(`\
-values = arrayNew(1, 2, 3)
+values = [1, 2, 3]
 sum = 0
 for value in values:
     sum = sum + value
 endfor
 `));
     assert.deepEqual(script, {
-        'scriptLines': ['values = arrayNew(1, 2, 3)', 'sum = 0', 'for value in values:', '    sum = sum + value', 'endfor', ''],
+        'scriptLines': ['values = [1, 2, 3]', 'sum = 0', 'for value in values:', '    sum = sum + value', 'endfor', ''],
         'statements': [
             {'expr': {
                 'name': 'values',
@@ -1976,6 +2142,15 @@ test('parseExpression', () => {
 });
 
 
+test('parseExpression, array literals', () => {
+    let expr = parseExpression('[1, 2]');
+    assert.deepEqual(validateExpression(expr), {'variable': '1, 2'});
+
+    expr = parseExpression('[1, 2]', 1, null, true);
+    assert.deepEqual(validateExpression(expr), {'function': {'args': [{'number': 1.0}, {'number': 2.0}], 'name': 'arrayNew'}});
+});
+
+
 test('parseExpression, unary', () => {
     let expr = parseExpression('!a');
     assert.deepEqual(validateExpression(expr), {
@@ -2462,8 +2637,16 @@ test('parseExpression, string literal', () => {
 
 
 test('parseExpression, string literal escapes', () => {
-    const expr = parseExpression("'ab \\'c\\' d\\\\e \\f'");
+    let expr = parseExpression("'ab \\'c\\' d\\\\e \\\\f'");
     assert.deepEqual(validateExpression(expr), {'string': "ab 'c' d\\e \\f"});
+
+    // More
+    expr = parseExpression('"\\n\\r\\t\\b\\f\\\\\'\\"\\\\"');
+    assert.deepEqual(validateExpression(expr), {'string': '\n\r\t\b\f\\\'"\\'});
+
+    // Hex
+    expr = parseExpression('"\\uD83D\\uDE00"');
+    assert.deepEqual(validateExpression(expr), {'string': '\ud83d\ude00'});
 });
 
 
@@ -2483,8 +2666,16 @@ test('parseExpression, string literal double-quote', () => {
 
 
 test('parseExpression, string literal double-quote escapes', () => {
-    const expr = parseExpression('"ab \\"c\\" d\\\\e \\f"');
+    let expr = parseExpression('"ab \\"c\\" d\\\\e \\\\f"');
     assert.deepEqual(validateExpression(expr), {'string': 'ab "c" d\\e \\f'});
+
+    // More
+    expr = parseExpression('"\\n\\r\\t\\b\\f\\\\\'\\"\\\\"');
+    assert.deepEqual(validateExpression(expr), {'string': '\n\r\t\b\f\\\'"\\'});
+
+    // Hex
+    expr = parseExpression('"\\uD83D\\uDE00"');
+    assert.deepEqual(validateExpression(expr), {'string': '\ud83d\ude00'});
 });
 
 
