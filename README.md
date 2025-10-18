@@ -36,7 +36,7 @@ function or the
 [executeScriptAsync](https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.executeScriptAsync)
 function. For example:
 
-~~~ javascript
+``` javascript
 import {executeScript} from 'bare-script/lib/runtime.js';
 import {parseScript} from 'bare-script/lib/parser.js';
 
@@ -53,13 +53,13 @@ return N + ' times 2 is ' + double(N)
 // Execute the script
 const globals = {'N': 10};
 console.log(executeScript(script, {globals}));
-~~~
+```
 
 This outputs:
 
-~~~
+```
 10 times 2 is 20
-~~~
+```
 
 
 ### The BareScript Library
@@ -73,7 +73,7 @@ of the
 [arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&arraylength)
 functions.
 
-~~~ javascript
+``` javascript
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 import {parseScript} from 'bare-script/lib/parser.js';
 
@@ -88,13 +88,13 @@ return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions'))
 
 // Execute the script
 console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
-~~~
+```
 
 This outputs:
 
-~~~
+```
 The BareScript Library has 105 functions
-~~~
+```
 
 
 ## Evaluating BareScript Expressions
@@ -115,7 +115,7 @@ a set of built-in, spreadsheet-like functions.
 
 For example:
 
-~~~ javascript
+``` javascript
 import {evaluateExpression} from 'bare-script/lib/runtime.js';
 import {parseExpression} from 'bare-script/lib/parser.js';
 
@@ -125,13 +125,13 @@ const expr = parseExpression('2 * max(a, b, c)');
 // Evaluate the expression
 const variables = {'a': 1, 'b': 2, 'c': 3};
 console.log(evaluateExpression(expr, null, variables))
-~~~
+```
 
 This outputs:
 
-~~~
+```
 6
-~~~
+```
 
 
 ## The BareScript Command-Line Interface (CLI)
@@ -139,9 +139,9 @@ This outputs:
 You can run BareScript from the command line using the BareScript CLI, "bare". BareScript script
 files use the ".bare" file extension.
 
-~~~
+```
 bare script.bare
-~~~
+```
 
 **Note:** In the BareScript CLI, import statements and the
 [systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
@@ -163,15 +163,15 @@ with functions for dynamically rendering Markdown text, drawing SVG images, etc.
 
 For example:
 
-```
+~~~
 # Markdown Application
 
 This is a Markdown document with embedded BareScript:
 
-~~~ markdown-script
+``` markdown-script
 markdownPrint('Hello, Markdown!')
-~~~
 ```
+~~~
 
 
 ## Development
@@ -179,6 +179,6 @@ markdownPrint('Hello, Markdown!')
 This package is developed using [javascript-build](https://github.com/craigahobbs/javascript-build#readme).
 It was started using [javascript-template](https://github.com/craigahobbs/javascript-template#readme) as follows:
 
-~~~
+```
 template-specialize javascript-template/template/ bare-script/ -k package bare-script -k name 'Craig A. Hobbs' -k email 'craigahobbs@gmail.com' -k github 'craigahobbs' -k noapp 1
-~~~
+```
