@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.2 (2025-10-20)
+
+- [5fd0a20](https://github.com/craigahobbs/bare-script/commit/5fd0a20) - use barescript object syntax
+
+- [f7b5894](https://github.com/craigahobbs/bare-script/commit/f7b5894) - update include library
+
 ## 3.7.1 (2025-10-18)
 
 - [ccaebc4](https://github.com/craigahobbs/bare-script/commit/ccaebc4) - fix string escape issue
