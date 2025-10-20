@@ -92,7 +92,7 @@ function dataTableMarkdown(data, model):
     endif
 
     # Determine the table fields
-    fields = arrayNew()
+    fields = []
     modelFields = if(model != null, objectGet(model, 'fields'))
     modelCategories = if(model != null, objectGet(model, 'categories'))
     if modelFields != null || modelCategories != null:
@@ -116,7 +116,7 @@ function dataTableMarkdown(data, model):
     formats = if(model != null, objectGet(model, 'formats'))
 
     # Compute the field header widths
-    widths = objectNew()
+    widths = {}
     for field in fields:
         fieldWidth = stringLength(field)
         if !objectHas(widths, field) || fieldWidth > objectGet(widths, field):
@@ -125,9 +125,9 @@ function dataTableMarkdown(data, model):
     endfor
 
     # Compute the formatted field value strings and widths
-    dataFormat = arrayNew()
+    dataFormat = []
     for row in data:
-        rowFormat = objectNew()
+        rowFormat = {}
         arrayPush(dataFormat, rowFormat)
         for field in fields:
             # Format the value
@@ -176,7 +176,7 @@ function dataTableMarkdown(data, model):
     headerFields = headerFields + '|'
 
     # Output the table header
-    lines = arrayNew()
+    lines = []
     arrayPush(lines, headerFields)
     arrayPush(lines, headerSeparator)
 

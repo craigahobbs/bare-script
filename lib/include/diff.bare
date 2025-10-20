@@ -49,11 +49,11 @@ diffTypes = schemaParse( \
 # $arg right: The "right" string or array of strings
 # $return: The array of [difference models](includeModel.html#var.vName='Differences')
 function diffLines(left, right):
-    diffs = arrayNew()
+    diffs = []
 
     # Split the left into an array of lines
     if systemType(left) == 'array':
-        leftLines = arrayNew()
+        leftLines = []
         for leftPart in left:
             arrayExtend(leftLines, regexSplit(diffRegexLineSplit, leftPart))
         endfor
@@ -63,7 +63,7 @@ function diffLines(left, right):
 
     # Split the right into an array of lines
     if systemType(right) == 'array':
-        rightLines = arrayNew()
+        rightLines = []
         for rightPart in right:
             arrayExtend(rightLines, regexSplit(diffRegexLineSplit, rightPart))
         endfor
@@ -80,26 +80,26 @@ function diffLines(left, right):
         # If we've run out of lines on either side
         if ixLeft >= leftLength:
             if ixRight < rightLength:
-                arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight)))
+                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
             endif
             break
         endif
         if ixRight >= rightLength:
             if ixLeft < leftLength:
-                arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft)))
+                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
             endif
             break
         endif
 
         # Find consecutive identical lines
-        identicalLines = arrayNew()
+        identicalLines = []
         while ixLeft < leftLength && ixRight < rightLength && arrayGet(leftLines, ixLeft) == arrayGet(rightLines, ixRight):
             arrayPush(identicalLines, arrayGet(leftLines, ixLeft))
             ixLeft = ixLeft + 1
             ixRight = ixRight + 1
         endwhile
         if identicalLines:
-            arrayPush(diffs, objectNew('type', 'Identical', 'lines', identicalLines))
+            arrayPush(diffs, {'type': 'Identical', 'lines': identicalLines})
             continue
         endif
 
@@ -124,11 +124,11 @@ function diffLines(left, right):
         # If no match found, use remaining lines
         if !foundMatch:
             if ixLeft < leftLength:
-                arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft)))
+                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
                 ixLeft = leftLength
             endif
             if ixRight < rightLength:
-                arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight)))
+                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
                 ixRight = rightLength
             endif
             continue
@@ -136,13 +136,13 @@ function diffLines(left, right):
 
         # Add removed lines if any
         if ixLeftTmp > ixLeft:
-            arrayPush(diffs, objectNew('type', 'Remove', 'lines', arraySlice(leftLines, ixLeft, ixLeftTmp)))
+            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft, ixLeftTmp)})
             ixLeft = ixLeftTmp
         endif
 
         # Add added lines if any
         if ixRightTmp > ixRight:
-            arrayPush(diffs, objectNew('type', 'Add', 'lines', arraySlice(rightLines, ixRight, ixRightTmp)))
+            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight, ixRightTmp)})
             ixRight = ixRightTmp
         endif
     endwhile

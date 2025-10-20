@@ -97,7 +97,7 @@ endfunction
 # $arg options: - **start** - The start page name
 # $arg options: - **keyboard** - Enable keyboard commands ('n' for next, 'p' for previous, 's' for start, 'e' for end)
 async function pagerMain(pagerModel, options):
-    options = if(options != null, options, objectNew())
+    options = if(options != null, options, {})
     optionArguments = objectGet(options, 'arguments')
     optionHideMenu = objectGet(options, 'hideMenu')
     optionHideNav = objectGet(options, 'hideNav')
@@ -154,7 +154,7 @@ async function pagerMain(pagerModel, options):
             return
         endif
     else:
-        arguments = arrayNew(objectNew('name', 'page', 'default', startPageName))
+        arguments = [{'name': 'page', 'default': startPageName}]
     endif
     args = argsParse(arguments)
     argPage = objectGet(args, 'page')
@@ -211,7 +211,7 @@ async function pagerMain(pagerModel, options):
 
     # Render the menu
     if !optionHideMenu:
-        menuItems = arrayNew()
+        menuItems = []
         for page in pages:
             pageName = objectGet(page, 'name')
             pageHidden = objectGet(page, 'hidden')
@@ -231,7 +231,7 @@ async function pagerMain(pagerModel, options):
             elif pageName == objectGet(curPage, 'name'):
                 arrayPush(menuItems, markdownEscape(pageName))
             else:
-                arrayPush(menuItems, argsLink(arguments, pageName, objectNew('page', pageName)))
+                arrayPush(menuItems, argsLink(arguments, pageName, {'page': pageName}))
             endif
         endfor
         markdownPrint(arrayJoin(menuItems, '&nbsp;|&nbsp;'), '')
@@ -239,13 +239,13 @@ async function pagerMain(pagerModel, options):
 
     # Render the start/next/prev buttons
     if !optionHideNav && (nextPageName != null || prevPageName != null):
-        navItems = arrayNew()
+        navItems = []
         arrayPush(navItems, \
-            if(startPageName != curPageName, argsLink(arguments, 'Start', objectNew('page', startPageName)), 'Start'))
+            if(startPageName != curPageName, argsLink(arguments, 'Start', {'page': startPageName}), 'Start'))
         arrayPush(navItems, \
-            if(prevPageName != null, argsLink(arguments, 'Previous', objectNew('page', prevPageName)), 'Previous'))
+            if(prevPageName != null, argsLink(arguments, 'Previous', {'page': prevPageName}), 'Previous'))
         arrayPush(navItems, \
-            if(nextPageName != null, argsLink(arguments, 'Next', objectNew('page', nextPageName)), 'Next'))
+            if(nextPageName != null, argsLink(arguments, 'Next', {'page': nextPageName}), 'Next'))
         markdownPrint('(&nbsp;' + arrayJoin(navItems, '&nbsp;|&nbsp;') + '&nbsp;)', '')
     endif
 
@@ -294,15 +294,15 @@ function pagerKeyDown(arguments, curPageName, startPageName, endPageName, nextPa
     key = objectGet(event, 'key')
     if key == 's' && startPageName != curPageName:
         # Start slide
-        windowSetLocation(argsURL(arguments, objectNew('page', startPageName)))
+        windowSetLocation(argsURL(arguments, {'page': startPageName}))
     elif key == 'e' && endPageName != curPageName:
         # End slide
-        windowSetLocation(argsURL(arguments, objectNew('page', endPageName)))
+        windowSetLocation(argsURL(arguments, {'page': endPageName}))
     elif key == 'n' && nextPageName:
         # Next page
-        windowSetLocation(argsURL(arguments, objectNew('page', nextPageName)))
+        windowSetLocation(argsURL(arguments, {'page': nextPageName}))
     elif key == 'p' && prevPageName:
         # Previous page
-        windowSetLocation(argsURL(arguments, objectNew('page', prevPageName)))
+        windowSetLocation(argsURL(arguments, {'page': prevPageName}))
     endif
 endfunction

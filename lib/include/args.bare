@@ -62,7 +62,7 @@ function argsValidate(arguments):
 
     # Check for duplicate arguments
     if validatedArguments != null:
-        argNames = objectNew()
+        argNames = {}
         for argument in arguments:
             name = objectGet(argument, 'name')
             if objectHas(argNames, name):
@@ -86,7 +86,7 @@ endfunction
 # $return: The arguments object
 function argsParse(arguments):
     # Create the arguments object
-    args = objectNew()
+    args = {}
     for argument in arguments:
         # Get the argument value
         global = argsGlobalName(argument)
@@ -119,8 +119,8 @@ endfunction
 # $return: The MarkdownUp application URL
 function argsURL(arguments, args, explicit, headerText, url):
     # Get the URL variables
-    urlVars = arrayNew()
-    argNames = objectNew()
+    urlVars = []
+    argNames = {}
     for argument in arguments:
         name = objectGet(argument, 'name')
         type = objectGet(argument, 'type')
@@ -189,7 +189,7 @@ endfunction
 # $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
 function argsHelp(arguments):
     # Create the help data
-    helpData = arrayNew()
+    helpData = []
     anyDefault = false
     anyExplicit = false
     anyDescription = false
@@ -200,13 +200,13 @@ function argsHelp(arguments):
         description = objectGet(argument, 'description')
 
         # Add the help data row
-        arrayPush(helpData, objectNew( \
-            'Variable', argsGlobalName(argument), \
-            'Type', type, \
-            'Default', argsFormatValue(default, type), \
-            'Explicit', if(explicit, 'Yes', ''), \
-            'Description', if(description != null, description, '') \
-        ))
+        arrayPush(helpData, { \
+            'Variable': argsGlobalName(argument), \
+            'Type': type, \
+            'Default': argsFormatValue(default, type), \
+            'Explicit': if(explicit, 'Yes', ''), \
+            'Description': if(description != null, description, '') \
+        })
 
         # Update the "any" field bools
         anyDefault = anyDefault || (default != null)
@@ -215,7 +215,7 @@ function argsHelp(arguments):
     endfor
 
     # Render the help table
-    helpFields = arrayNew('Variable', 'Type')
+    helpFields = ['Variable', 'Type']
     if anyDefault:
         arrayPush(helpFields, 'Default')
     endif
@@ -225,7 +225,7 @@ function argsHelp(arguments):
     if anyDescription:
         arrayPush(helpFields, 'Description')
     endif
-    dataTable(helpData, objectNew('fields', helpFields))
+    dataTable(helpData, {'fields': helpFields})
 endfunction
 
 

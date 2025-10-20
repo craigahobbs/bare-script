@@ -18,18 +18,18 @@ formsSentinel = true
 # $arg onEnter: Optional (default is null). The text input element on-enter event handler
 # $return: The text input [element model](https://github.com/craigahobbs/element-model#readme)
 function formsTextElements(id, text, size, onEnter):
-    return objectNew( \
-        'html', 'input', \
-        'attr', objectNew( \
-            'autocomplete', 'off', \
-            'id', id, \
-            'style', 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
-            'type', 'text', \
-            'value', text, \
-            'size', size \
-        ), \
-        'callback', if(onEnter != null, objectNew('keyup', systemPartial(formsTextOnKeyup, onEnter))) \
-    )
+    return { \
+        'html': 'input', \
+        'attr': { \
+            'autocomplete': 'off', \
+            'id': id, \
+            'style': 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
+            'type': 'text', \
+            'value': text, \
+            'size': size \
+        }, \
+        'callback': if(onEnter != null, {'keyup': systemPartial(formsTextOnKeyup, onEnter)}) \
+    }
 endfunction
 
 
@@ -47,12 +47,12 @@ endfunction
 # $arg onClick: The link button's click event handler
 # $return: The link button [element model](https://github.com/craigahobbs/element-model#readme)
 function formsLinkButtonElements(text, onClick):
-    return objectNew( \
-        'html', 'a', \
-        'attr', objectNew('style', 'cursor: pointer; user-select: none;'), \
-        'elem', objectNew('text', text), \
-        'callback', objectNew('click', onClick) \
-    )
+    return { \
+        'html': 'a', \
+        'attr': {'style': 'cursor: pointer; user-select: none;'}, \
+        'elem': {'text': text}, \
+        'callback': {'click': onClick} \
+    }
 endfunction
 
 
@@ -64,16 +64,16 @@ endfunction
 # $return: The link [element model](https://github.com/craigahobbs/element-model#readme)
 function formsLinkElements(text, url):
     if url == null:
-        return objectNew( \
-            'html', 'span', \
-            'attr', objectNew('style', 'user-select: none;'), \
-            'elem', objectNew('text', text) \
-        )
+        return { \
+            'html': 'span', \
+            'attr': {'style': 'user-select: none;'}, \
+            'elem': {'text': text} \
+        }
     endif
 
-    return objectNew( \
-        'html', 'a', \
-        'attr', objectNew('href', documentURL(url)), \
-        'elem', objectNew('text', text) \
-    )
+    return { \
+        'html': 'a', \
+        'attr': {'href': documentURL(url)}, \
+        'elem': {'text': text} \
+    }
 endfunction

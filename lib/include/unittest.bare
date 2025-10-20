@@ -15,8 +15,8 @@ include <diff.bare>
 
 
 # Test statistics
-unittestTests = objectNew()
-unittestWarnings = arrayNew()
+unittestTests = {}
+unittestWarnings = []
 
 
 # $function: unittestRunTest
@@ -60,7 +60,7 @@ function unittestRunTestHelper(testName):
     endif
 
     # Add the unit test result array
-    testFailures = arrayNew()
+    testFailures = []
     objectSet(unittestTests, testName, testFailures)
     systemGlobalSet('unittestTestName', testName)
 
@@ -81,7 +81,7 @@ function unittestEqual(actual, expected, description):
 
     # Add the test failure error lines
     testFailures = objectGet(unittestTests, unittestTestName)
-    errorLines = arrayNew( \
+    errorLines = [ \
         'Equal:', \
         '', \
         '```', \
@@ -91,9 +91,9 @@ function unittestEqual(actual, expected, description):
         '```', \
         jsonStringify(expected), \
         '```' \
-    )
+    ]
     if description:
-        arrayPush(testFailures, arrayExtend(arrayNew(markdownEscape(description), ''), errorLines))
+        arrayPush(testFailures, arrayExtend([markdownEscape(description), ''], errorLines))
     else:
         arrayPush(testFailures, errorLines)
     endif
@@ -115,8 +115,8 @@ function unittestDeepEqual(actual, expected, description):
     endif
 
     # Compute the difference lines
-    errorLines = arrayNew()
-    diffErrorLines = arrayNew()
+    errorLines = []
+    diffErrorLines = []
     for diff in diffLines(actualJSON, expectedJSON):
         diffType = objectGet(diff, 'type')
         if diffType == 'Remove':
@@ -130,15 +130,15 @@ function unittestDeepEqual(actual, expected, description):
         else:
             # diffType == 'Identical'
             if diffErrorLines:
-                arrayExtend(errorLines, arrayNew('Deep-equal:', '', '```'))
+                arrayExtend(errorLines, ['Deep-equal:', '', '```'])
                 arrayExtend(errorLines, diffErrorLines)
                 arrayPush(errorLines, '```')
-                diffErrorLines = arrayNew()
+                diffErrorLines = []
             endif
         endif
     endfor
     if diffErrorLines:
-        arrayExtend(errorLines, arrayNew('Deep-equal:', '', '```'))
+        arrayExtend(errorLines, ['Deep-equal:', '', '```'])
         arrayExtend(errorLines, diffErrorLines)
         arrayPush(errorLines, '```')
     endif
@@ -146,7 +146,7 @@ function unittestDeepEqual(actual, expected, description):
     # Add the test failure error lines
     testFailures = objectGet(unittestTests, unittestTestName)
     if description:
-        arrayPush(testFailures, arrayExtend(arrayNew(markdownEscape(description), ''), errorLines))
+        arrayPush(testFailures, arrayExtend([markdownEscape(description), ''], errorLines))
     else:
         arrayPush(testFailures, errorLines)
     endif
@@ -210,7 +210,7 @@ function unittestReport(options):
         if testNameArg:
             markdownPrint('', argsLink(unittestReportArguments, 'All tests', null, true))
         else:
-            markdownPrint('', argsLink(unittestReportArguments, if(hideTests, 'Show', 'Hide') + ' tests', objectNew('hideTests', !hideTests)))
+            markdownPrint('', argsLink(unittestReportArguments, if(hideTests, 'Show', 'Hide') + ' tests', {'hideTests': !hideTests}))
         endif
     endif
 
@@ -227,15 +227,15 @@ function unittestReport(options):
     if testFailCount:
         markdownPrint('', '## Failing Tests')
         if hideTests && !isReport && !testNameArg:
-            markdownPrint('', argsLink(unittestReportArguments, 'Show', objectNew('hideTests', false)))
+            markdownPrint('', argsLink(unittestReportArguments, 'Show', {'hideTests': false}))
         endif
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
                 if arrayLength(testFailures):
                     failureLink = if(isReport, testName, \
-                        argsLink(unittestReportArguments, testName, objectNew('test', testName), false, '_top'))
-                    failureLines = arrayNew('', failureLink + ' - FAIL')
+                        argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
+                    failureLines = ['', failureLink + ' - FAIL']
                     for errorLines in testFailures:
                         for errorLine, ixErrorLine in errorLines:
                             if ixErrorLine == 0:
@@ -256,14 +256,14 @@ function unittestReport(options):
     if testPassCount:
         markdownPrint('', '## Passing Tests')
         if hideTests && !isReport && !testNameArg:
-            markdownPrint('', argsLink(unittestReportArguments, 'Show', objectNew('hideTests', false)))
+            markdownPrint('', argsLink(unittestReportArguments, 'Show', {'hideTests': false}))
         endif
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
                 if !arrayLength(testFailures):
                     testLink = if(isReport, testName, \
-                        argsLink(unittestReportArguments, testName, objectNew('test', testName), false, '_top'))
+                        argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
                     markdownPrint('', testLink + ' - OK')
                 endif
             endfor
@@ -294,18 +294,18 @@ function unittestReport(options):
             for row in coverageData:
                 scriptName = objectGet(row, 'Script')
                 if !isReport && !stringStartsWith(scriptName, '**'):
-                    objectSet(row, 'Script', argsLink(unittestReportArguments, scriptName, objectNew("script", scriptName), false, "_top"))
+                    objectSet(row, 'Script', argsLink(unittestReportArguments, scriptName, {"script": scriptName}, false, "_top"))
                 endif
                 objectSet(row, 'Coverage', numberToFixed(objectGet(row, 'Coverage'), 1) + '%')
             endfor
-            markdownPrint('', dataTableMarkdown(coverageData, objectNew( \
-                'fields', arrayNew('Script', 'Statements', 'Missing', 'Coverage'), \
-                'formats', objectNew( \
-                    'Statements', objectNew('align', 'right'), \
-                    'Missing', objectNew('align', 'right'), \
-                    'Coverage', objectNew('align', 'right') \
-                ) \
-            )))
+            markdownPrint('', dataTableMarkdown(coverageData, { \
+                'fields': ['Script', 'Statements', 'Missing', 'Coverage'], \
+                'formats': { \
+                    'Statements': {'align': 'right'}, \
+                    'Missing': {'align': 'right'}, \
+                    'Coverage': {'align': 'right'} \
+                } \
+            }))
         else:
             markdownPrint('', '*No data.*')
         endif
@@ -317,12 +317,12 @@ endfunction
 
 
 # unittestReport application arguments
-unittestReportArguments = argsValidate(arrayNew( \
-    objectNew('name', 'test', 'global', 'vUnittestTest'), \
-    objectNew('name', 'script', 'global', 'vUnittestScript'), \
-    objectNew('name', 'hideTests', 'global', 'vUnittestHideTests', 'type', 'bool', 'default', false), \
-    objectNew('name', 'report', 'global', 'vUnittestReport', 'type', 'bool', 'default', false) \
-))
+unittestReportArguments = argsValidate([ \
+    {'name': 'test', 'global': 'vUnittestTest'}, \
+    {'name': 'script', 'global': 'vUnittestScript'}, \
+    {'name': 'hideTests', 'global': 'vUnittestHideTests', 'type': 'bool', 'default': false}, \
+    {'name': 'report', 'global': 'vUnittestReport', 'type': 'bool', 'default': false} \
+])
 
 
 # Render the script coverage details page
@@ -331,7 +331,7 @@ function unittestReportScript(scriptName):
     title = scriptName + ' Coverage'
     documentSetTitle(title)
     markdownPrint( \
-        argsLink(unittestReportArguments, 'Back', objectNew('script', null), false, '_top'), \
+        argsLink(unittestReportArguments, 'Back', {'script': null}, false, '_top'), \
         '', \
         '# ' + markdownEscape(title) \
     )
@@ -349,7 +349,7 @@ function unittestReportScript(scriptName):
     scriptLines = objectGet(script, 'scriptLines')
 
     # Mark the statements covered or not-covered
-    lineColors = objectNew()
+    lineColors = {}
     statements = unittestScriptStatements(script)
     for statement in statements:
         statementKey = arrayGet(objectKeys(statement), 0)
@@ -369,9 +369,9 @@ function unittestReportScript(scriptName):
     endfor
 
     # Generate the code coverage details
-    codeLineElements = arrayNew()
-    codeElements = objectNew('html', 'pre', 'elem', codeLineElements)
-    currentLines = arrayNew()
+    codeLineElements = []
+    codeElements = {'html': 'pre', 'elem': codeLineElements}
+    currentLines = []
     currentColor = null
     for line, ixLine in scriptLines:
         # Accumulate lines of the same color
@@ -383,7 +383,7 @@ function unittestReportScript(scriptName):
 
         # Render the current lines
         unittestReportScriptLines(codeLineElements, currentLines, currentColor)
-        currentLines = arrayNew(line)
+        currentLines = [line]
         currentColor = lineColor
     endfor
     unittestReportScriptLines(codeLineElements, currentLines, currentColor, true)
@@ -395,13 +395,13 @@ function unittestReportScriptLines(codeLineElements, lines, color, noNewline):
     if lines:
         linesStr = arrayJoin(lines, stringFromCharCode(10)) + if(noNewline, '', stringFromCharCode(10))
         if !color:
-            arrayPush(codeLineElements, objectNew('text', linesStr))
+            arrayPush(codeLineElements, {'text': linesStr})
         else:
-            arrayPush(codeLineElements, objectNew( \
-                'html', 'span', \
-                'attr', objectNew('style', 'display: block; background-color: ' + color), \
-                'elem', objectNew('text', linesStr) \
-            ))
+            arrayPush(codeLineElements, { \
+                'html': 'span', \
+                'attr': {'style': 'display: block; background-color: ' + color}, \
+                'elem': {'text': linesStr} \
+            })
         endif
     endif
 endfunction
@@ -409,14 +409,14 @@ endfunction
 
 # Get the coverage data table - columns are "Script", "Statement", "Covered", and "Percent"
 function unittestCoverageData(coverageExclude):
-    data = arrayNew()
+    data = []
 
     # Get the global coverage object
     coverage = coverageGlobalGet()
     if coverage:
         # Get the script names with coverage data
         scripts = objectGet(coverage, 'scripts')
-        scriptNames = if(scripts, arraySort(objectKeys(scripts)), arrayNew())
+        scriptNames = if(scripts, arraySort(objectKeys(scripts)), [])
 
         # Compute script statement coverage
         totalStatements = 0
@@ -458,25 +458,25 @@ function unittestCoverageData(coverageExclude):
 
             # Add the script coverage data row
             coveragePercent = if(statementCount, 100 * (statementCount - missingCount) / statementCount, 100)
-            arrayPush(data, objectNew( \
-                'Script', scriptName, \
-                'Statements', statementCount, \
-                'Missing', missingCount, \
-                'Coverage',  coveragePercent, \
-                'CoverageStr', numberToFixed(coveragePercent, 1) + '%'  \
-            ))
+            arrayPush(data, { \
+                'Script': scriptName, \
+                'Statements': statementCount, \
+                'Missing': missingCount, \
+                'Coverage':  coveragePercent, \
+                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+            })
         endfor
 
         # Add the coverage totals data row
         if scriptNames:
             coveragePercent = if(totalStatements, 100 * (totalStatements - totalMissing) / totalStatements, 100)
-            arrayPush(data, objectNew( \
-                'Script', '**Total**', \
-                'Statements', totalStatements, \
-                'Missing', totalMissing, \
-                'Coverage', coveragePercent, \
-                'CoverageStr', numberToFixed(coveragePercent, 1) + '%'  \
-            ))
+            arrayPush(data, { \
+                'Script': '**Total**', \
+                'Statements': totalStatements, \
+                'Missing': totalMissing, \
+                'Coverage': coveragePercent, \
+                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+            })
         endif
     endif
 
@@ -486,7 +486,7 @@ endfunction
 
 # Get a script's array of statements
 function unittestScriptStatements(script):
-    statements = arrayNew()
+    statements = []
 
     # Add the top-level script statements
     for statement in objectGet(script, 'statements'):

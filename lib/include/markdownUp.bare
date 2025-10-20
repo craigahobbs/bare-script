@@ -21,14 +21,14 @@ markdownUpWindowWidth = 1024
 
 
 # The simulated MarkdownUp state
-markdownUpState = objectNew( \
-    'drawingFontSizePx', markdownUpDefaultFontSizePx, \
-    'drawingHeight', 480, \
-    'drawingWidth', 640, \
-    'localStorage', objectNew(), \
-    'sessionStorage', objectNew(), \
-    'windowClipboard', '' \
-)
+markdownUpState = { \
+    'drawingFontSizePx': markdownUpDefaultFontSizePx, \
+    'drawingHeight': 480, \
+    'drawingWidth': 640, \
+    'localStorage': {}, \
+    'sessionStorage': {}, \
+    'windowClipboard': '' \
+}
 
 
 #
@@ -202,7 +202,7 @@ endfunction
 
 
 function localStorageClear():
-    objectSet(markdownUpState, 'localStorage', objectNew())
+    objectSet(markdownUpState, 'localStorage', {})
 endfunction
 
 
@@ -281,11 +281,11 @@ function schemaElements(types, typeName):
     if userTypeKey == 'struct' && objectGet(objectGet(userType, 'struct'), 'union'):
         userTypeKey = 'union'
     endif
-    return arrayNew( \
-        arrayNew( \
-            objectNew('html', 'h1', 'elem', objectNew('text', userTypeKey + ' ' + typeName)) \
-        ) \
-    )
+    return [ \
+        [ \
+            {'html': 'h1', 'elem': {'text': userTypeKey + ' ' + typeName}} \
+        ] \
+    ]
 endfunction
 
 
@@ -295,7 +295,7 @@ endfunction
 
 
 function sessionStorageClear():
-    objectSet(markdownUpState, 'sessionStorage', objectNew())
+    objectSet(markdownUpState, 'sessionStorage', {})
 endfunction
 
 
