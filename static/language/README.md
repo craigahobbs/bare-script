@@ -9,7 +9,7 @@ array.
 ~~~ barescript
 # Compute the first "count" Fibonacci numbers
 function fibonacci(count):
-    numbers = arrayNew(0, 1)
+    numbers = [0, 1]
     while arrayLength(numbers) < count:
         arrayPush(numbers, arrayGet(numbers, arrayLength(numbers) - 1) + \
             arrayGet(numbers, arrayLength(numbers) - 2))
@@ -105,7 +105,7 @@ variables. For example:
 
 ~~~ barescript
 function getMinMax(a, b, c, d):
-    return arrayNew(mathMin(a, b, c, d), mathMax(a, b, c, d))
+    return [mathMin(a, b, c, d), mathMax(a, b, c, d)]
 endfunction
 
 return getMinMax(1, 2, 3, 5)
@@ -173,7 +173,7 @@ Foreach statements allow you to loop over a sequence of statements for each valu
 For example:
 
 ~~~ barescript
-values = arrayNew(1, 2, 3)
+values = [1, 2, 3]
 sum = 0
 for value in values:
     sum = sum + value
@@ -183,7 +183,7 @@ endfor
 You can also access the array value index:
 
 ~~~ barescript
-values = arrayNew(1, 2, 3)
+values = [1, 2, 3]
 sum = 0
 for value, ixValue in values:
     sum = sum + ixValue * value
@@ -208,7 +208,7 @@ endwhile
 To skip the remaining statements in an iteration using a continue statement. For example:
 
 ~~~ barescript
-values = arrayNew(1, -2, 3)
+values = [1, -2, 3]
 sum = 0
 for value, ixValue in values:
     if value < 0:
@@ -228,7 +228,7 @@ name followed by a colon.
 The example below uses `jump`, `jumpif`, and label statements to sum the values of an array:
 
 ~~~ barescript
-values = arrayNew(1, 2, 3, 5, 7)
+values = [1, 2, 3, 5, 7]
 sum = 0
 ixValue = 0
 valueLoop:
@@ -276,11 +276,11 @@ Long statements can be broken into multiple lines using the line continuation sy
 character. For example:
 
 ~~~ barescript
-colors = arrayNew( \
+colors = [ \
     'red', \
     'green', \
     'blue' \
-)
+]
 return arrayJoin(colors, ', ')
 ~~~
 
