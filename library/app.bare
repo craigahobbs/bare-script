@@ -28,8 +28,8 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     endif
 
     # Fetch and validate the library documentation resource
-    groups = objectNew()
-    urls = if(systemType(url) == 'array', url, arrayNew(url))
+    groups = {}
+    urls = if(systemType(url) == 'array', url, [url])
     for libraryJSON, ixLibrary in systemFetch(urls):
         libraryPart = if(libraryJSON != null, jsonParse(libraryJSON))
         libraryPart = if(libraryPart != null, schemaValidate(baredocTypes, 'Library', libraryPart))
@@ -44,7 +44,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
             groupName = objectGet(function_, 'group')
             groupFunctions = objectGet(groups, groupName)
             if groupFunctions == null:
-                groupFunctions = arrayNew()
+                groupFunctions = []
                 objectSet(groups, groupName, groupFunctions)
             endif
             arrayPush(groupFunctions, function_)
@@ -61,7 +61,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
         # Add an empty group for any missing group URLs
         for groupName in objectKeys(groupURLs):
             if groupName != '' && !objectHas(groups, groupName):
-                objectSet(groups, groupName, arrayNew())
+                objectSet(groups, groupName, [])
             endif
         endfor
     endif
@@ -78,7 +78,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
                 if functionName == name:
                     # Redirect to the actual URL
                     windowSetLocation( \
-                        argsURL(baredocArguments, objectNew('group', objectGet(function_, 'group'), 'name', null), false, functionName) \
+                        argsURL(baredocArguments, {'group': objectGet(function_, 'group'), 'name': null}, false, functionName) \
                     )
                     return
                 endif
@@ -103,14 +103,14 @@ endfunction
 
 
 # # The BareScript library documentation application arguments
-baredocArguments = argsValidate(arrayNew( \
-    objectNew('name', 'doc', 'type', 'bool', 'default', false), \
-    objectNew('name', 'group'), \
-    objectNew('name', 'name'), \
-    objectNew('name', 'publish', 'type', 'bool', 'default', false), \
-    objectNew('name', 'single', 'type', 'bool', 'default', false), \
-    objectNew('name', 'url', 'global', 'vURL') \
-))
+baredocArguments = argsValidate([ \
+    {'name': 'doc', 'type': 'bool', 'default': false}, \
+    {'name': 'group'}, \
+    {'name': 'name'}, \
+    {'name': 'publish', 'type': 'bool', 'default': false}, \
+    {'name': 'single', 'type': 'bool', 'default': false}, \
+    {'name': 'url', 'global': 'vURL'} \
+])
 
 
 # Helper to compare library function objects by name
@@ -147,13 +147,13 @@ async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
 
     # Render the single page toggle
     if !publish:
-        markdownPrint('', argsLink(baredocArguments, 'Single Page', objectNew('single', true)))
+        markdownPrint('', argsLink(baredocArguments, 'Single Page', {'single': true}))
     endif
 
     # Render the library function index
     markdownPrint('', '## Table of Contents', '')
     for groupName in arraySort(objectKeys(groups)):
-        markdownPrint('- ' + argsLink(baredocArguments, groupName, objectNew('group', groupName), false, argsTopHeaderId))
+        markdownPrint('- ' + argsLink(baredocArguments, groupName, {'group': groupName}, false, argsTopHeaderId))
     endfor
 endfunction
 
@@ -184,7 +184,7 @@ async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
 
     # Render the single page toggle
     if !publish:
-        markdownPrint('', argsLink(baredocArguments, 'Multi Page', objectNew('single', false)))
+        markdownPrint('', argsLink(baredocArguments, 'Multi Page', {'single': false}))
     endif
 
     # The table of contents
@@ -222,7 +222,7 @@ async function baredocGroupPage(args, title, groupURLs, groups, groupName):
 
     # Render the menu and title
     if !single:
-        markdownPrint(argsLink(baredocArguments, 'Index', objectNew('group', null)), '')
+        markdownPrint(argsLink(baredocArguments, 'Index', {'group': null}), '')
     endif
     markdownPrint(baseHeader + ' ' + markdownEscape(groupName))
     if single:

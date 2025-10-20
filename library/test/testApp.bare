@@ -5,65 +5,65 @@ include '../app.bare'
 
 
 # Test library
-testBaredocLibrary = jsonStringify(objectNew( \
-    'functions', arrayNew( \
-        objectNew( \
-            'name', 'func_c', \
-            'group', 'A Group', \
-            'doc', arrayNew('Test function C') \
-        ), \
-        objectNew( \
-            'name', 'func_a', \
-            'group', 'A Group', \
-            'doc', arrayNew('Test function A'), \
-            'args', arrayNew( \
-                objectNew('name', 'arg1', 'doc', arrayNew('The first argument')), \
-                objectNew('name', 'arg2', 'doc', arrayNew('The second argument')) \
-            ), \
-            'return', arrayNew('The return value') \
-        ), \
-        objectNew( \
-            'name', 'func_d', \
-            'group', 'C Group', \
-            'doc', arrayNew('Test function D'), \
-            'args', arrayNew( \
-                objectNew('name', 'arg1', 'doc', arrayNew('The first argument')) \
-            ) \
-        ), \
-        objectNew( \
-            'name', 'func_e', \
-            'group', 'C Group', \
-            'doc', arrayNew('Test function E'), \
-            'return', arrayNew('The return value') \
-        ) \
-    ) \
-))
+testBaredocLibrary = jsonStringify({ \
+    'functions': [ \
+        { \
+            'name': 'func_c', \
+            'group': 'A Group', \
+            'doc': ['Test function C'] \
+        }, \
+        { \
+            'name': 'func_a', \
+            'group': 'A Group', \
+            'doc': ['Test function A'], \
+            'args': [ \
+                {'name': 'arg1', 'doc': ['The first argument']}, \
+                {'name': 'arg2', 'doc': ['The second argument']} \
+            ], \
+            'return': ['The return value'] \
+        }, \
+        { \
+            'name': 'func_d', \
+            'group': 'C Group', \
+            'doc': ['Test function D'], \
+            'args': [ \
+                {'name': 'arg1', 'doc': ['The first argument']} \
+            ] \
+        }, \
+        { \
+            'name': 'func_e', \
+            'group': 'C Group', \
+            'doc': ['Test function E'], \
+            'return': ['The return value'] \
+        } \
+    ] \
+})
 
 
 async function testBaredocMain_index():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     baredocMain('library.json', 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index')
 
 
 async function testBaredocMain_single():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vSingle', true)
@@ -71,180 +71,180 @@ async function testBaredocMain_single():
     systemGlobalSet('vSingle', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Multi Page](#var=)')), \
-        arrayNew('markdownPrint', arrayNew('','## Table of Contents','')), \
-        arrayNew('markdownPrint', arrayNew('- [A Group](#var.vSingle=true&a-group)')), \
-        arrayNew('markdownPrint', arrayNew('- [C Group](#var.vSingle=true&c-group)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_a](#var.vSingle=true&func-a)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_c](#var.vSingle=true&func-c)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## C Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_d](#var.vSingle=true&func-d)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_e](#var.vSingle=true&func-e)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Multi Page](#var=)']], \
+        ['markdownPrint', ['','## Table of Contents','']], \
+        ['markdownPrint', ['- [A Group](#var.vSingle=true&a-group)']], \
+        ['markdownPrint', ['- [C Group](#var.vSingle=true&c-group)']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## A Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
+        ['markdownPrint', ['- [func\\_c](#var.vSingle=true&func-c)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '### func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## C Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_d](#var.vSingle=true&func-d)']], \
+        ['markdownPrint', ['- [func\\_e](#var.vSingle=true&func-e)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '### func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_single')
 
 
 async function testBaredocMain_single_menuLinks():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vSingle', true)
-    baredocMain('library.json', 'The Test Library', arrayNew(arrayNew('Link _1_', 'page _1_.html'), arrayNew('Link _2_', 'page2.html')))
+    baredocMain('library.json', 'The Test Library', [['Link _1_', 'page _1_.html'], ['Link _2_', 'page2.html']])
     systemGlobalSet('vSingle', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
-        arrayNew('markdownPrint', arrayNew('&nbsp;|&nbsp;[Link \\_2\\_](page2.html)')), \
-        arrayNew('markdownPrint', arrayNew('')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Multi Page](#var=)')), \
-        arrayNew('markdownPrint', arrayNew('','## Table of Contents','')), \
-        arrayNew('markdownPrint', arrayNew('- [A Group](#var.vSingle=true&a-group)')), \
-        arrayNew('markdownPrint', arrayNew('- [C Group](#var.vSingle=true&c-group)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_a](#var.vSingle=true&func-a)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_c](#var.vSingle=true&func-c)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## C Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_d](#var.vSingle=true&func-d)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_e](#var.vSingle=true&func-e)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['[Link \\_1\\_](page%20_1_.html)']], \
+        ['markdownPrint', ['&nbsp;|&nbsp;[Link \\_2\\_](page2.html)']], \
+        ['markdownPrint', ['']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Multi Page](#var=)']], \
+        ['markdownPrint', ['','## Table of Contents','']], \
+        ['markdownPrint', ['- [A Group](#var.vSingle=true&a-group)']], \
+        ['markdownPrint', ['- [C Group](#var.vSingle=true&c-group)']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## A Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
+        ['markdownPrint', ['- [func\\_c](#var.vSingle=true&func-c)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '### func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## C Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_d](#var.vSingle=true&func-d)']], \
+        ['markdownPrint', ['- [func\\_e](#var.vSingle=true&func-e)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '### func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_single_menuLinks')
 
 
 async function testBaredocMain_single_index_content():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBaredocLibrary, \
-            'index.md', 'This is the index.', \
-            'testGroup.md', 'This is the group.' \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': testBaredocLibrary, \
+            'index.md': 'This is the index.', \
+            'testGroup.md': 'This is the group.' \
+        } \
+    })
 
     # Render the index
     systemGlobalSet('vSingle', true)
-    baredocMain('library.json', 'The Test Library', null, objectNew('', 'index.md', 'A Group', 'testGroup.md'))
+    baredocMain('library.json', 'The Test Library', null, {'': 'index.md', 'A Group': 'testGroup.md'})
     systemGlobalSet('vSingle', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md')), \
-        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
-        arrayNew('markdownPrint', arrayNew('', '[Multi Page](#var=)')), \
-        arrayNew('markdownPrint', arrayNew('','## Table of Contents','')), \
-        arrayNew('markdownPrint', arrayNew('- [A Group](#var.vSingle=true&a-group)')), \
-        arrayNew('markdownPrint', arrayNew('- [C Group](#var.vSingle=true&c-group)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('systemFetch', arrayNew('testGroup.md')), \
-        arrayNew('markdownPrint', arrayNew('', 'This is the group.')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_a](#var.vSingle=true&func-a)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_c](#var.vSingle=true&func-c)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## C Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_d](#var.vSingle=true&func-d)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_e](#var.vSingle=true&func-e)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['systemFetch', ['index.md']], \
+        ['markdownPrint', ['', 'This is the index.']], \
+        ['markdownPrint', ['', '[Multi Page](#var=)']], \
+        ['markdownPrint', ['','## Table of Contents','']], \
+        ['markdownPrint', ['- [A Group](#var.vSingle=true&a-group)']], \
+        ['markdownPrint', ['- [C Group](#var.vSingle=true&c-group)']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## A Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['systemFetch', ['testGroup.md']], \
+        ['markdownPrint', ['', 'This is the group.']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
+        ['markdownPrint', ['- [func\\_c](#var.vSingle=true&func-c)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '### func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## C Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_d](#var.vSingle=true&func-d)']], \
+        ['markdownPrint', ['- [func\\_e](#var.vSingle=true&func-e)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '### func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_single_index_content')
 
 
 async function testBaredocMain_publish():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vPublish', true)
@@ -254,294 +254,294 @@ async function testBaredocMain_publish():
     systemGlobalSet('vSingle', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('','## Table of Contents','')), \
-        arrayNew('markdownPrint', arrayNew('- [A Group](#var.vPublish=true&var.vSingle=true&a-group)')), \
-        arrayNew('markdownPrint', arrayNew('- [C Group](#var.vPublish=true&var.vSingle=true&c-group)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_a](#var.vPublish=true&var.vSingle=true&func-a)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_c](#var.vPublish=true&var.vSingle=true&func-c)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '')), \
-        arrayNew('markdownPrint', arrayNew('## C Group')), \
-        arrayNew('markdownPrint', arrayNew('', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)')), \
-        arrayNew('markdownPrint', arrayNew('', '### Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_d](#var.vPublish=true&var.vSingle=true&func-d)')), \
-        arrayNew('markdownPrint', arrayNew('- [func\\_e](#var.vPublish=true&var.vSingle=true&func-e)')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '### func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '#### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '#### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['','## Table of Contents','']], \
+        ['markdownPrint', ['- [A Group](#var.vPublish=true&var.vSingle=true&a-group)']], \
+        ['markdownPrint', ['- [C Group](#var.vPublish=true&var.vSingle=true&c-group)']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## A Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_a](#var.vPublish=true&var.vSingle=true&func-a)']], \
+        ['markdownPrint', ['- [func\\_c](#var.vPublish=true&var.vSingle=true&func-c)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '### func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '']], \
+        ['markdownPrint', ['## C Group']], \
+        ['markdownPrint', ['', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)']], \
+        ['markdownPrint', ['', '### Function Index', '']], \
+        ['markdownPrint', ['- [func\\_d](#var.vPublish=true&var.vSingle=true&func-d)']], \
+        ['markdownPrint', ['- [func\\_e](#var.vPublish=true&var.vSingle=true&func-e)']], \
+        ['markdownPrint', ['', '---', '', '### func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '### func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '#### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '#### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_publish')
 
 
 async function testBaredocMain_index_urlArray():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBaredocLibrary, \
-            'library2.json', jsonStringify(objectNew( \
-                'functions', arrayNew( \
-                    objectNew( \
-                        'name', 'funcB', \
-                        'group', 'B Group', \
-                        'doc', arrayNew('Test function B') \
-                    ) \
-                ) \
-            )) \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': testBaredocLibrary, \
+            'library2.json': jsonStringify({ \
+                'functions': [ \
+                    { \
+                        'name': 'funcB', \
+                        'group': 'B Group', \
+                        'doc': ['Test function B'] \
+                    } \
+                ] \
+            }) \
+        } \
+    })
 
     # Render the index
-    baredocMain(arrayNew('library.json', 'library2.json'), 'The Test Library')
+    baredocMain(['library.json', 'library2.json'], 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [B Group](#var.vGroup='B%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json', 'library2.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [B Group](#var.vGroup='B%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_urlArray')
 
 
 async function testBaredocMain_index_urlArrayMerge():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBaredocLibrary, \
-            'library2.json', jsonStringify(objectNew( \
-                'functions', arrayNew( \
-                    objectNew( \
-                        'name', 'funcB', \
-                        'group', 'A Group', \
-                        'doc', arrayNew('Test function A') \
-                    ) \
-                ) \
-            )) \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': testBaredocLibrary, \
+            'library2.json': jsonStringify({ \
+                'functions': [ \
+                    { \
+                        'name': 'funcB', \
+                        'group': 'A Group', \
+                        'doc': ['Test function A'] \
+                    } \
+                ] \
+            }) \
+        } \
+    })
 
     # Render the index
-    baredocMain(arrayNew('library.json', 'library2.json'), 'The Test Library')
+    baredocMain(['library.json', 'library2.json'], 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json', 'library2.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json', 'library2.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_urlArrayMerge')
 
 
 async function testBaredocMain_index_noTitle():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     baredocMain('library.json')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('library.json')), \
-        arrayNew('markdownPrint', arrayNew('# library.json')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['library.json']], \
+        ['markdownPrint', ['# library.json']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_noTitle')
 
 
 async function testBaredocMain_index_menuLinks():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
-    baredocMain('library.json', 'The Test Library', arrayNew(arrayNew('Link _1_', 'page _1_.html'), arrayNew('Link _2_', 'page2.html')))
+    baredocMain('library.json', 'The Test Library', [['Link _1_', 'page _1_.html'], ['Link _2_', 'page2.html']])
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
-        arrayNew("markdownPrint", arrayNew('&nbsp;|&nbsp;[Link \\_2\\_](page2.html)')), \
-        arrayNew('markdownPrint', arrayNew('')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['[Link \\_1\\_](page%20_1_.html)']], \
+        ["markdownPrint", ['&nbsp;|&nbsp;[Link \\_2\\_](page2.html)']], \
+        ['markdownPrint', ['']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_menuLinks')
 
 
 async function testBaredocMain_index_menuLinksOne():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
-    baredocMain('library.json', 'The Test Library', arrayNew(arrayNew('Link _1_', 'page _1_.html')))
+    baredocMain('library.json', 'The Test Library', [['Link _1_', 'page _1_.html']])
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('[Link \\_1\\_](page%20_1_.html)')), \
-        arrayNew('markdownPrint', arrayNew('')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['[Link \\_1\\_](page%20_1_.html)']], \
+        ['markdownPrint', ['']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_menuLinksOne')
 
 
 async function testBaredocMain_index_content():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBaredocLibrary, \
-            'index.md', 'This is the index.' \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': testBaredocLibrary, \
+            'index.md': 'This is the index.' \
+        } \
+    })
 
     # Render the index
-    baredocMain('library.json', 'The Test Library', null, objectNew('', 'index.md', 'A Group', 'testGroup.md'))
+    baredocMain('library.json', 'The Test Library', null, {'': 'index.md', 'A Group': 'testGroup.md'})
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md')), \
-        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['systemFetch', ['index.md']], \
+        ['markdownPrint', ['', 'This is the index.']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_content')
 
 
 async function testBaredocMain_index_content_fetch():
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', testBaredocLibrary, \
-            'libraryContent.json', '{"": "index.md", "A Group": "testGroup.md"}', \
-            'index.md', 'This is the index.' \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': testBaredocLibrary, \
+            'libraryContent.json': '{"": "index.md", "A Group": "testGroup.md"}', \
+            'index.md': 'This is the index.' \
+        } \
+    })
 
     # Render the index
     baredocMain('library.json', 'The Test Library', null, 'libraryContent.json')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('systemFetch', arrayNew('libraryContent.json')), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md')), \
-        arrayNew('markdownPrint', arrayNew('', 'This is the index.')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['systemFetch', ['libraryContent.json']], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['systemFetch', ['index.md']], \
+        ['markdownPrint', ['', 'This is the index.']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_content_fetch')
 
 
 async function testBaredocMain_index_contentEmpty():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
-    baredocMain('library.json', 'The Test Library', null, objectNew('B Group', 'b.md'))
+    baredocMain('library.json', 'The Test Library', null, {'B Group': 'b.md'})
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [B Group](#var.vGroup='B%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [B Group](#var.vGroup='B%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_contentEmpty')
 
 
 async function testBaredocMain_index_contentError():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
-    baredocMain('library.json', 'The Test Library', null, objectNew('', 'index.md', 'A Group', 'testGroup.md'))
+    baredocMain('library.json', 'The Test Library', null, {'': 'index.md', 'A Group': 'testGroup.md'})
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library')), \
-        arrayNew('markdownPrint', arrayNew('# The Test Library')), \
-        arrayNew('systemFetch', arrayNew('index.md')), \
-        arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "index.md"')), \
-        arrayNew('markdownPrint', arrayNew('', '[Single Page](#var.vSingle=true)')), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library']], \
+        ['markdownPrint', ['# The Test Library']], \
+        ['systemFetch', ['index.md']], \
+        ['markdownPrint', ['', '**Error:** Failed to load "index.md"']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_contentError')
 
 
 async function testBaredocMain_index_urlArgument():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vURL', 'library.json')
@@ -549,15 +549,15 @@ async function testBaredocMain_index_urlArgument():
     systemGlobalSet('vURL', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('library.json')), \
-        arrayNew('markdownPrint', arrayNew('# library.json')), \
-        arrayNew('markdownPrint', arrayNew('', "[Single Page](#var.vSingle=true&var.vURL='library.json')")), \
-        arrayNew('markdownPrint', arrayNew('', '## Table of Contents', '')), \
-        arrayNew('markdownPrint', arrayNew("- [A Group](#var.vGroup='A%20Group'&var.vURL='library.json'&_top)")), \
-        arrayNew('markdownPrint', arrayNew("- [C Group](#var.vGroup='C%20Group'&var.vURL='library.json'&_top)")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['library.json']], \
+        ['markdownPrint', ['# library.json']], \
+        ['markdownPrint', ['', "[Single Page](#var.vSingle=true&var.vURL='library.json')"]], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ["- [A Group](#var.vGroup='A%20Group'&var.vURL='library.json'&_top)"]], \
+        ['markdownPrint', ["- [C Group](#var.vGroup='C%20Group'&var.vURL='library.json'&_top)"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_urlArgument')
 
@@ -570,10 +570,10 @@ async function testBaredocMain_index_urlError():
     baredocMain('library.json', 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch library documentation resource "library.json"')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['markdownPrint', ['**Error:** Failed to fetch library documentation resource "library.json"']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_urlError')
 
@@ -582,34 +582,34 @@ async function testBaredocMain_index_urlInvalid():
     systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
 
     # Setup mocks
-    unittestMockAll(objectNew( \
-        'systemFetch', objectNew( \
-            'library.json', jsonStringify(objectNew( \
-                'functions', arrayNew( \
-                    objectNew( \
-                        'name', 'func_a', \
-                        'group', 'A Group' \
-                    ) \
-                ) \
-            )) \
-        ) \
-    ))
+    unittestMockAll({ \
+        'systemFetch': { \
+            'library.json': jsonStringify({ \
+                'functions': [ \
+                    { \
+                        'name': 'func_a', \
+                        'group': 'A Group' \
+                    } \
+                ] \
+            }) \
+        } \
+    })
 
     # Render the index
     baredocMain('library.json', 'The Test Library')
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('markdownPrint', arrayNew('**Error:** Failed to fetch library documentation resource "library.json"')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['markdownPrint', ['**Error:** Failed to fetch library documentation resource "library.json"']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_index_urlInvalid')
 
 
 async function testBaredocMain_group():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vGroup', 'A Group')
@@ -617,33 +617,33 @@ async function testBaredocMain_group():
     systemGlobalSet('vGroup', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library - A Group')), \
-        arrayNew('markdownPrint', arrayNew('[Index](#var=)', '')), \
-        arrayNew('markdownPrint', arrayNew('# A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '## Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_a](#var.vGroup='A%20Group'&func-a)")), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_c](#var.vGroup='A%20Group'&func-c)")), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library - A Group']], \
+        ['markdownPrint', ['[Index](#var=)', '']], \
+        ['markdownPrint', ['# A Group']], \
+        ['markdownPrint', ['', '## Function Index', '']], \
+        ['markdownPrint', ["- [func\\_a](#var.vGroup='A%20Group'&func-a)"]], \
+        ['markdownPrint', ["- [func\\_c](#var.vGroup='A%20Group'&func-c)"]], \
+        ['markdownPrint', ['', '---', '', '## func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '## func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', 'Nothing']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group')
 
 
 async function testBaredocMain_group_other():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vGroup', 'C Group')
@@ -651,102 +651,102 @@ async function testBaredocMain_group_other():
     systemGlobalSet('vGroup', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
-        arrayNew('markdownPrint', arrayNew('[Index](#var=)', '')), \
-        arrayNew('markdownPrint', arrayNew('# C Group')), \
-        arrayNew('markdownPrint', arrayNew('', '## Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_e](#var.vGroup='C%20Group'&func-e)")), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library - C Group']], \
+        ['markdownPrint', ['[Index](#var=)', '']], \
+        ['markdownPrint', ['# C Group']], \
+        ['markdownPrint', ['', '## Function Index', '']], \
+        ['markdownPrint', ["- [func\\_d](#var.vGroup='C%20Group'&func-d)"]], \
+        ['markdownPrint', ["- [func\\_e](#var.vGroup='C%20Group'&func-e)"]], \
+        ['markdownPrint', ['', '---', '', '## func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '## func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group_other')
 
 
 async function testBaredocMain_group_content():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary, 'c.md', 'These are the C functions.')))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary, 'c.md': 'These are the C functions.'}})
 
     # Render the index
     systemGlobalSet('vGroup', 'C Group')
-    baredocMain('library.json', 'The Test Library', null, objectNew('C Group', 'c.md'))
+    baredocMain('library.json', 'The Test Library', null, {'C Group': 'c.md'})
     systemGlobalSet('vGroup', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
-        arrayNew('markdownPrint', arrayNew('[Index](#var=)', '')), \
-        arrayNew('markdownPrint', arrayNew('# C Group')), \
-        arrayNew('systemFetch', arrayNew('c.md')), \
-        arrayNew('markdownPrint', arrayNew('', 'These are the C functions.')), \
-        arrayNew('markdownPrint', arrayNew('', '## Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_e](#var.vGroup='C%20Group'&func-e)")), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library - C Group']], \
+        ['markdownPrint', ['[Index](#var=)', '']], \
+        ['markdownPrint', ['# C Group']], \
+        ['systemFetch', ['c.md']], \
+        ['markdownPrint', ['', 'These are the C functions.']], \
+        ['markdownPrint', ['', '## Function Index', '']], \
+        ['markdownPrint', ["- [func\\_d](#var.vGroup='C%20Group'&func-d)"]], \
+        ['markdownPrint', ["- [func\\_e](#var.vGroup='C%20Group'&func-e)"]], \
+        ['markdownPrint', ['', '---', '', '## func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '## func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group_content')
 
 
 async function testBaredocMain_group_contentError():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vGroup', 'C Group')
-    baredocMain('library.json', 'The Test Library', null, objectNew('C Group', 'c.md'))
+    baredocMain('library.json', 'The Test Library', null, {'C Group': 'c.md'})
     systemGlobalSet('vGroup', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library - C Group')), \
-        arrayNew('markdownPrint', arrayNew('[Index](#var=)', '')), \
-        arrayNew('markdownPrint', arrayNew('# C Group')), \
-        arrayNew('systemFetch', arrayNew('c.md')), \
-        arrayNew('markdownPrint', arrayNew('', '**Error:** Failed to load "c.md"')), \
-        arrayNew('markdownPrint', arrayNew('', '## Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_d](#var.vGroup='C%20Group'&func-d)")), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_e](#var.vGroup='C%20Group'&func-e)")), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_d', '', arrayNew('Test function D'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_e', '', arrayNew('Test function E'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library - C Group']], \
+        ['markdownPrint', ['[Index](#var=)', '']], \
+        ['markdownPrint', ['# C Group']], \
+        ['systemFetch', ['c.md']], \
+        ['markdownPrint', ['', '**Error:** Failed to load "c.md"']], \
+        ['markdownPrint', ['', '## Function Index', '']], \
+        ['markdownPrint', ["- [func\\_d](#var.vGroup='C%20Group'&func-d)"]], \
+        ['markdownPrint', ["- [func\\_e](#var.vGroup='C%20Group'&func-e)"]], \
+        ['markdownPrint', ['', '---', '', '## func\\_d', '', ['Test function D']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', 'Nothing']], \
+        ['markdownPrint', ['', '---', '', '## func\\_e', '', ['Test function E']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', ['The return value']]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group_contentError')
 
 
 async function testBaredocMain_group_urlArgument():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vGroup', 'A Group')
@@ -756,52 +756,52 @@ async function testBaredocMain_group_urlArgument():
     systemGlobalSet('vURL', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('library.json - A Group')), \
-        arrayNew('markdownPrint', arrayNew("[Index](#var.vURL='library.json')", '')), \
-        arrayNew('markdownPrint', arrayNew('# A Group')), \
-        arrayNew('markdownPrint', arrayNew('', '## Function Index', '')), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_a](#var.vGroup='A%20Group'&var.vURL='library.json'&func-a)")), \
-        arrayNew('markdownPrint', arrayNew("- [func\\_c](#var.vGroup='A%20Group'&var.vURL='library.json'&func-c)")), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_a', '', arrayNew('Test function A'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', '**arg1 -**', arrayNew('The first argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '**arg2 -**', arrayNew('The second argument'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', arrayNew('The return value'))), \
-        arrayNew('markdownPrint', arrayNew('', '---', '', '## func\\_c', '', arrayNew('Test function C'))), \
-        arrayNew('markdownPrint', arrayNew('', '### Arguments')), \
-        arrayNew('markdownPrint', arrayNew('', 'None')), \
-        arrayNew('markdownPrint', arrayNew('', '### Returns')), \
-        arrayNew('markdownPrint', arrayNew('', 'Nothing')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['library.json - A Group']], \
+        ['markdownPrint', ["[Index](#var.vURL='library.json')", '']], \
+        ['markdownPrint', ['# A Group']], \
+        ['markdownPrint', ['', '## Function Index', '']], \
+        ['markdownPrint', ["- [func\\_a](#var.vGroup='A%20Group'&var.vURL='library.json'&func-a)"]], \
+        ['markdownPrint', ["- [func\\_c](#var.vGroup='A%20Group'&var.vURL='library.json'&func-c)"]], \
+        ['markdownPrint', ['', '---', '', '## func\\_a', '', ['Test function A']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
+        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', ['The return value']]], \
+        ['markdownPrint', ['', '---', '', '## func\\_c', '', ['Test function C']]], \
+        ['markdownPrint', ['', '### Arguments']], \
+        ['markdownPrint', ['', 'None']], \
+        ['markdownPrint', ['', '### Returns']], \
+        ['markdownPrint', ['', 'Nothing']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group_urlArgument')
 
 
 async function testBaredocMain_group_unknown():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vGroup', 'Unknown')
-    baredocMain('library.json', 'The Test Library', null, objectNew('C Group', 'c.md'))
+    baredocMain('library.json', 'The Test Library', null, {'C Group': 'c.md'})
     systemGlobalSet('vGroup', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('documentSetTitle', arrayNew('The Test Library - Unknown')), \
-        arrayNew('markdownPrint', arrayNew('', '**Error:** Unknown group "Unknown"')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['documentSetTitle', ['The Test Library - Unknown']], \
+        ['markdownPrint', ['', '**Error:** Unknown group "Unknown"']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_group_unknown')
 
 
 async function testBaredocMain_function():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vName', 'func_a')
@@ -809,17 +809,17 @@ async function testBaredocMain_function():
     systemGlobalSet('vName', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('windowSetLocation', arrayNew("#var.vGroup='A%20Group'&func-a")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['windowSetLocation', ["#var.vGroup='A%20Group'&func-a"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_function')
 
 
 async function testBaredocMain_function_urlArgument():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('other.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'other.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vName', 'func_a')
@@ -829,17 +829,17 @@ async function testBaredocMain_function_urlArgument():
     systemGlobalSet('vURL', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('other.json'))), \
-        arrayNew('windowSetLocation', arrayNew("#var.vGroup='A%20Group'&var.vURL='other.json'&func-a")) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['other.json']]], \
+        ['windowSetLocation', ["#var.vGroup='A%20Group'&var.vURL='other.json'&func-a"]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_function_urlArgument')
 
 
 async function testBaredocMain_function_unknown():
     # Setup mocks
-    unittestMockAll(objectNew('systemFetch', objectNew('library.json', testBaredocLibrary)))
+    unittestMockAll({'systemFetch': {'library.json': testBaredocLibrary}})
 
     # Render the index
     systemGlobalSet('vName', 'unknownFunc')
@@ -847,10 +847,10 @@ async function testBaredocMain_function_unknown():
     systemGlobalSet('vName', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('systemFetch', arrayNew(arrayNew('library.json'))), \
-        arrayNew('markdownPrint', arrayNew('', '**Error:** Unknown function "unknownFunc"')) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['library.json']]], \
+        ['markdownPrint', ['', '**Error:** Unknown function "unknownFunc"']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_function_unknown')
 
@@ -865,11 +865,11 @@ async function testBaredocMain_doc():
     systemGlobalSet('vDoc', null)
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), arrayNew( \
-        arrayNew('documentSetTitle', arrayNew('Library')), \
-        arrayNew('elementModelRender', arrayNew( \
-            arrayNew(arrayNew(objectNew('html', 'h1', 'elem', objectNew('text', 'struct Library')))) \
-        )) \
-    ))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['Library']], \
+        ['elementModelRender', [ \
+            [[{'html': 'h1', 'elem': {'text': 'struct Library'}}]] \
+        ]] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_doc')
