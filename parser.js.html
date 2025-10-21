@@ -106,20 +106,25 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         // Assignment?
         const matchAssignment = line.match(rScriptAssignment);
         if (matchAssignment !== null) {
+            // Parse the expression
+            let assignmentExpr;
             try {
-                const exprStatement = {
-                    'expr': {
-                        'name': matchAssignment.groups.name,
-                        'expr': parseExpression(matchAssignment.groups.expr, lineNumber, scriptName, true),
-                        ...statementBase
-                    }
-                };
-                statements.push(exprStatement);
-                continue;
+                assignmentExpr = parseExpression(matchAssignment.groups.expr, lineNumber, scriptName, true);
             } catch (error) {
                 const columnNumber = line.length - matchAssignment.groups.expr.length + error.columnNumber;
                 throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
             }
+
+            // Add the expression statement
+            const exprStatement = {
+                'expr': {
+                    'name': matchAssignment.groups.name,
+                    'expr': assignmentExpr,
+                    ...statementBase
+                }
+            };
+            statements.push(exprStatement);
+            continue;
         }
 
         // Function definition begin?
@@ -175,11 +180,20 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         // If-then begin?
         const matchIfBegin = line.match(rScriptIfBegin);
         if (matchIfBegin !== null) {
+            // Parse the if-then expression
+            let ifthenExpr;
+            try {
+                ifthenExpr = parseExpression(matchIfBegin.groups.expr, lineNumber, scriptName, true);
+            } catch (error) {
+                const columnNumber = matchIfBegin.groups.if.length + error.columnNumber;
+                throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
+            }
+
             // Add the if-then label definition
             const ifthen = {
                 'jump': {
                     'label': `__bareScriptIf${labelIndex}`,
-                    'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfBegin.groups.expr, lineNumber, scriptName, true)}},
+                    'expr': {'unary': {'op': '!', 'expr': ifthenExpr}},
                     ...statementBase
                 },
                 'done': `__bareScriptDone${labelIndex}`,
@@ -198,7 +212,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         // Else-if-then?
         const matchIfElseIf = line.match(rScriptIfElseIf);
         if (matchIfElseIf !== null) {
-            // Get the if-then definition
+            // Get the else-if-then definition
             const labelDefDepth = (functionDef !== null ? functionLabelDefDepth : 0);
             const ifthen = (labelDefs.length > labelDefDepth ? (labelDefs[labelDefs.length - 1].if ?? null) : null);
             if (ifthen === null) {
@@ -210,11 +224,20 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
                 throw new BareScriptParserError('Elif statement following else statement', line, 1, startLineNumber + ixLine, scriptName);
             }
 
+            // Parse the else-if-then expression
+            let ifElseIfExpr;
+            try {
+                ifElseIfExpr = parseExpression(matchIfElseIf.groups.expr, lineNumber, scriptName, true);
+            } catch (error) {
+                const columnNumber = matchIfElseIf.groups.elif.length + error.columnNumber;
+                throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
+            }
+
             // Generate the next if-then jump statement
             const prevLabel = ifthen.jump.label;
             ifthen.jump = {
                 'label': `__bareScriptIf${labelIndex}`,
-                'expr': {'unary': {'op': '!', 'expr': parseExpression(matchIfElseIf.groups.expr, lineNumber, scriptName, true)}},
+                'expr': {'unary': {'op': '!', 'expr': ifElseIfExpr}},
                 ...statementBase
             };
             labelIndex += 1;
@@ -275,12 +298,21 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         // While-do begin?
         const matchWhileBegin = line.match(rScriptWhileBegin);
         if (matchWhileBegin !== null) {
+            // Parse the while-do expression
+            let whileBeginExpr;
+            try {
+                whileBeginExpr = parseExpression(matchWhileBegin.groups.expr, lineNumber, scriptName, true);
+            } catch (error) {
+                const columnNumber = matchWhileBegin.groups.while.length + error.columnNumber;
+                throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
+            }
+
             // Add the while-do label
             const whiledo = {
                 'loop': `__bareScriptLoop${labelIndex}`,
                 'continue': `__bareScriptLoop${labelIndex}`,
                 'done': `__bareScriptDone${labelIndex}`,
-                'expr': parseExpression(matchWhileBegin.groups.expr, lineNumber, scriptName, true),
+                'expr': whileBeginExpr,
                 line,
                 'lineNumber': startLineNumber + ixLine
             };
@@ -331,11 +363,20 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             labelDefs.push({'for': foreach});
             labelIndex += 1;
 
+            // Parse the for-each expression
+            let forBeginExpr;
+            try {
+                forBeginExpr = parseExpression(matchForBegin.groups.values, lineNumber, scriptName, true);
+            } catch (error) {
+                const columnNumber = matchForBegin.groups.for.length + error.columnNumber;
+                throw new BareScriptParserError(error.error, line, columnNumber, startLineNumber + ixLine, scriptName);
+            }
+
             // Add the for-each header statements
             statements.push(
                 {'expr': {
                     'name': foreach.values,
-                    'expr': parseExpression(matchForBegin.groups.values, lineNumber, scriptName, true),
+                    'expr': forBeginExpr,
                     ...statementBase
                 }},
                 {'expr': {
@@ -517,15 +558,15 @@ const rScriptJump = new RegExp(`^(?&lt;jump>\\s*(?:jump|jumpif\\s*\\((?&lt;expr>
 const rScriptReturn = new RegExp(`^(?&lt;return>\\s*return(?:\\s+(?&lt;expr>[^#\\s].*))?)${rPartComment}`);
 const rScriptInclude = new RegExp(`^\\s*include\\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'${rPartComment}`);
 const rScriptIncludeSystem = new RegExp(`^\\s*include\\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>${rPartComment}`);
-const rScriptIfBegin = new RegExp(`^\\s*if\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
-const rScriptIfElseIf = new RegExp(`^\\s*elif\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptIfBegin = new RegExp(`^(?&lt;if>\\s*if\\s+)(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptIfElseIf = new RegExp(`^(?&lt;elif>\\s*elif\\s+)(?&lt;expr>.+)\\s*:${rPartComment}`);
 const rScriptIfElse = new RegExp(`^\\s*else\\s*:${rPartComment}`);
 const rScriptIfEnd = new RegExp(`^\\s*endif${rPartComment}`);
 const rScriptForBegin = new RegExp(
-    `^\\s*for\\s+(?&lt;value>[A-Za-z_]\\w*)(?:\\s*,\\s*(?&lt;index>[A-Za-z_]\\w*))?\\s+in\\s+(?&lt;values>.+)\\s*:${rPartComment}`
+    `^(?&lt;for>\\s*for\\s+(?&lt;value>[A-Za-z_]\\w*)(?:\\s*,\\s*(?&lt;index>[A-Za-z_]\\w*))?\\s+in\\s+)(?&lt;values>.+)\\s*:${rPartComment}`
 );
 const rScriptForEnd = new RegExp(`^\\s*endfor${rPartComment}`);
-const rScriptWhileBegin = new RegExp(`^\\s*while\\s+(?&lt;expr>.+)\\s*:${rPartComment}`);
+const rScriptWhileBegin = new RegExp(`^(?&lt;while>\\s*while\\s+)(?&lt;expr>.+)\\s*:${rPartComment}`);
 const rScriptWhileEnd = new RegExp(`^\\s*endwhile${rPartComment}`);
 const rScriptBreak = new RegExp(`^\\s*break${rPartComment}`);
 const rScriptContinue = new RegExp(`^\\s*continue${rPartComment}`);
@@ -730,9 +771,9 @@ function parseUnaryExpression(exprText, arrayLiterals) {
                 break;
             }
 
-            // Object key/value separator
+            // Key/value pair separator
             if (args.length !== 0) {
-                const matchObjectSeparator = argText.match(rExprObjectSeparator2);
+                const matchObjectSeparator = argText.match(rExprObjectSeparator);
                 if (matchObjectSeparator === null) {
                     throw new BareScriptParserError('Syntax error', argText, 1, null, null);
                 }
@@ -744,13 +785,13 @@ function parseUnaryExpression(exprText, arrayLiterals) {
             argText = nextArgText;
             args.push(argKey);
 
-            // Object key separator
+            // Key/value separator
             if (args.length !== 0) {
-                const matchObjectSeparator = argText.match(rExprObjectSeparator);
-                if (matchObjectSeparator === null) {
+                const matchObjectSeparatorKey = argText.match(rExprObjectSeparatorKey);
+                if (matchObjectSeparatorKey === null) {
                     throw new BareScriptParserError('Syntax error', argText, 1, null, null);
                 }
-                argText = argText.slice(matchObjectSeparator[0].length);
+                argText = argText.slice(matchObjectSeparatorKey[0].length);
             }
 
             // Get the value
@@ -830,8 +871,8 @@ const rExprArrayOpen = /^\s*\[/;
 const rExprArraySeparator = /^\s*,/;
 const rExprArrayClose = /^\s*\]/;
 const rExprObjectOpen = /^\s*\{/;
-const rExprObjectSeparator = /^\s*:/;
-const rExprObjectSeparator2 = /^\s*,/;
+const rExprObjectSeparatorKey = /^\s*:/;
+const rExprObjectSeparator = /^\s*,/;
 const rExprObjectClose = /^\s*\}/;
 const rExprString = /^\s*'((?:\\\\|\\'|[^'])*)'/;
 const rExprStringDouble = /^\s*"((?:\\\\|\\"|[^"])*)"/;
@@ -870,7 +911,7 @@ const exprStringEscapes = {
  * @property {string} line - The line text
  * @property {number} columnNumber - The error column number
  * @property {?number} lineNumber - The error line number
- * @property {?string} scriptName - The error line number
+ * @property {?string} scriptName - The script name
  */
 export class BareScriptParserError extends Error {
     /**

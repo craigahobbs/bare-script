@@ -352,21 +352,20 @@ export function validateExpression(expr) {
  */
 export function lintScript(script) {
     const warnings = [];
+    const {statements} = script;
 
     // Empty script?
-    if (script.statements.length === 0) {
-        warnings.push('Empty script');
+    if (statements.length === 0) {
+        lintScriptWarning(warnings, script, null, 'Empty script');
     }
 
     // Variable used before assignment?
     const varAssigns = {};
     const varUses = {};
-    getVariableAssignmentsAndUses(script.statements, varAssigns, varUses);
+    getVariableAssignmentsAndUses(statements, varAssigns, varUses);
     for (const varName of Object.keys(varAssigns)) {
         if (varName in varUses &amp;&amp; varUses[varName] &lt;= varAssigns[varName]) {
-            warnings.push(
-                `Global variable "${varName}" used (index ${varUses[varName]}) before assignment (index ${varAssigns[varName]})`
-            );
+            lintScriptWarning(warnings, script, statements[varUses[varName]], `Global variable "${varName}" used before assignment`);
         }
     }
 
@@ -374,14 +373,14 @@ export function lintScript(script) {
     const functionsDefined = {};
     const labelsDefined = {};
     const labelsUsed = {};
-    for (const [ixStatement, statement] of script.statements.entries()) {
+    for (const [ixStatement, statement] of statements.entries()) {
         const [statementKey] = Object.keys(statement);
 
         // Function definition checks
         if (statementKey === 'function') {
             // Function redefinition?
             if (statement.function.name in functionsDefined) {
-                warnings.push(`Redefinition of function "${statement.function.name}" (index ${ixStatement})`);
+                lintScriptWarning(warnings, script, statement, `Redefinition of function "${statement.function.name}"`);
             } else {
                 functionsDefined[statement.function.name] = ixStatement;
             }
@@ -397,9 +396,9 @@ export function lintScript(script) {
                     continue;
                 }
                 if (varName in fnVarUses &amp;&amp; fnVarUses[varName] &lt;= fnVarAssigns[varName]) {
-                    warnings.push(
-                        `Variable "${varName}" of function "${statement.function.name}" used (index ${fnVarUses[varName]}) ` +
-                            `before assignment (index ${fnVarAssigns[varName]})`
+                    lintScriptWarning(
+                        warnings, script, statement,
+                        `Variable "${varName}" of function "${statement.function.name}" used before assignment`
                     );
                 }
             }
@@ -407,8 +406,9 @@ export function lintScript(script) {
             // Unused variables?
             for (const varName of Object.keys(fnVarAssigns)) {
                 if (!(varName in fnVarUses)) {
-                    warnings.push(
-                        `Unused variable "${varName}" defined in function "${statement.function.name}" (index ${fnVarAssigns[varName]})`
+                    lintScriptWarning(
+                        warnings, script, statement,
+                        `Unused variable "${varName}" defined in function "${statement.function.name}"`
                     );
                 }
             }
@@ -419,13 +419,17 @@ export function lintScript(script) {
                 for (const arg of args) {
                     // Duplicate argument?
                     if (argsDefined.has(arg)) {
-                        warnings.push(`Duplicate argument "${arg}" of function "${statement.function.name}" (index ${ixStatement})`);
+                        lintScriptWarning(
+                            warnings, script, statement, `Duplicate argument "${arg}" of function "${statement.function.name}"`
+                        );
                     } else {
                         argsDefined.add(arg);
 
                         // Unused argument?
                         if (!(arg in fnVarUses)) {
-                            warnings.push(`Unused argument "${arg}" of function "${statement.function.name}" (index ${ixStatement})`);
+                            lintScriptWarning(
+                                warnings, script, statement, `Unused argument "${arg}" of function "${statement.function.name}"`
+                            );
                         }
                     }
                 }
@@ -441,7 +445,7 @@ export function lintScript(script) {
                 if (fnStatementKey === 'expr') {
                     // Pointless function expression statement?
                     if (!('name' in fnStatement.expr) &amp;&amp; isPointlessExpression(fnStatement.expr.expr)) {
-                        warnings.push(`Pointless statement in function "${statement.function.name}" (index ${ixFnStatement})`);
+                        lintScriptWarning(warnings, script, statement, `Pointless statement in function "${statement.function.name}"`);
                     }
 
                 // Function label statement checks
@@ -449,8 +453,9 @@ export function lintScript(script) {
                     // Label redefinition?
                     const fnStatementLabel = fnStatement.label.name;
                     if (fnStatementLabel in fnLabelsDefined) {
-                        warnings.push(
-                            `Redefinition of label "${fnStatementLabel}" in function "${statement.function.name}" (index ${ixFnStatement})`
+                        lintScriptWarning(
+                            warnings, script, statement,
+                            `Redefinition of label "${fnStatementLabel}" in function "${statement.function.name}"`
                         );
                     } else {
                         fnLabelsDefined[fnStatementLabel] = ixFnStatement;
@@ -467,14 +472,14 @@ export function lintScript(script) {
             // Unused function labels?
             for (const label of Object.keys(fnLabelsDefined)) {
                 if (!(label in fnLabelsUsed)) {
-                    warnings.push(`Unused label "${label}" in function "${statement.function.name}" (index ${fnLabelsDefined[label]})`);
+                    lintScriptWarning(warnings, script, statement, `Unused label "${label}" in function "${statement.function.name}"`);
                 }
             }
 
             // Unknown function labels?
             for (const label of Object.keys(fnLabelsUsed)) {
                 if (!(label in fnLabelsDefined)) {
-                    warnings.push(`Unknown label "${label}" in function "${statement.function.name}" (index ${fnLabelsUsed[label]})`);
+                    lintScriptWarning(warnings, script, statement, `Unknown label "${label}" in function "${statement.function.name}"`);
                 }
             }
 
@@ -482,7 +487,7 @@ export function lintScript(script) {
         } else if (statementKey === 'expr') {
             // Pointless global expression statement?
             if (!('name' in statement.expr) &amp;&amp; isPointlessExpression(statement.expr.expr)) {
-                warnings.push(`Pointless global statement (index ${ixStatement})`);
+                lintScriptWarning(warnings, script, statement, 'Pointless global statement');
             }
 
         // Global label statement checks
@@ -490,7 +495,7 @@ export function lintScript(script) {
             // Label redefinition?
             const statementLabel = statement.label.name;
             if (statementLabel in labelsDefined) {
-                warnings.push(`Redefinition of global label "${statementLabel}" (index ${ixStatement})`);
+                lintScriptWarning(warnings, script, statement, `Redefinition of global label "${statementLabel}"`);
             } else {
                 labelsDefined[statementLabel] = ixStatement;
             }
@@ -506,18 +511,33 @@ export function lintScript(script) {
     // Unused global labels?
     for (const label of Object.keys(labelsDefined)) {
         if (!(label in labelsUsed)) {
-            warnings.push(`Unused global label "${label}" (index ${labelsDefined[label]})`);
+            lintScriptWarning(warnings, script, statements[labelsDefined[label]], `Unused global label "${label}"`);
         }
     }
 
     // Unknown global labels?
     for (const label of Object.keys(labelsUsed)) {
         if (!(label in labelsDefined)) {
-            warnings.push(`Unknown global label "${label}" (index ${labelsUsed[label]})`);
+            lintScriptWarning(warnings, script, statements[labelsUsed[label]], `Unknown global label "${label}"`);
         }
     }
 
     return warnings;
+}
+
+
+// Helper to format static analysis warnings
+function lintScriptWarning(warnings, script, statement, message) {
+    let warning;
+    if (script &amp;&amp; statement) {
+        const [statementKey] = Object.keys(statement);
+        const scriptName = script.scriptName ?? '';
+        const lineno = statement[statementKey].lineNumber ?? '';
+        warning = (scriptName || lineno) ? `${scriptName}:${lineno}: ${message}` : message;
+    } else {
+        warning = message;
+    }
+    warnings.push(warning);
 }
 
 
