@@ -1228,6 +1228,47 @@ endfunction
 });
 
 
+test('parseScript, if-then statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+if @#$:
+endif
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+if @#$:
+   ^
+`
+        }
+    );
+});
+
+
+test('parseScript, if-then statement elif expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+if true:
+elif @#$:
+endif
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:2: Syntax error
+elif @#$:
+     ^
+`
+        }
+    );
+});
+
+
 test('parseScript, while-do statement', () => {
     const script = validateScript(parseScript(`\
 i = 0
@@ -1454,6 +1495,26 @@ endfunction
 });
 
 
+test('parseScript, while-do statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+while @#$:
+endwhile
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+while @#$:
+      ^
+`
+        }
+    );
+});
+
+
 test('parseScript, foreach statement', () => {
     const script = validateScript(parseScript(`\
 values = [1, 2, 3]
@@ -1478,8 +1539,7 @@ endfor
                 'lineNumber': 3
             }},
             {'jump': {
-                'label': '__bareScriptDone0',
-                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
                 'lineNumber': 3
             }},
             {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 3}},
@@ -1816,6 +1876,26 @@ endfunction
 });
 
 
+test('parseScript, foreach statement expression syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript(`\
+for value in @#$:
+endfor
+`);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+for value in @#$:
+             ^
+`
+        }
+    );
+});
+
+
 test('parseScript, break statement error break outside loop', () => {
     assert.throws(
         () => {
@@ -2028,7 +2108,7 @@ b = 1 + foo bar
 });
 
 
-test('parseScript, jump statement expression syntax error', () => {
+test('parseScript, jumpif statement expression syntax error', () => {
     assert.throws(
         () => {
             parseScript(`\
