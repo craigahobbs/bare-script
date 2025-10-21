@@ -528,16 +528,9 @@ export function lintScript(script) {
 
 // Helper to format static analysis warnings
 function lintScriptWarning(warnings, script, statement, message) {
-    let warning;
-    if (script &amp;&amp; statement) {
-        const [statementKey] = Object.keys(statement);
-        const scriptName = script.scriptName ?? '';
-        const lineno = statement[statementKey].lineNumber ?? '';
-        warning = (scriptName || lineno) ? `${scriptName}:${lineno}: ${message}` : message;
-    } else {
-        warning = message;
-    }
-    warnings.push(warning);
+    const scriptName = script.scriptName ?? '';
+    const lineno = (statement !== null ? (statement[Object.keys(statement)[0]].lineNumber ?? 1) : 1);
+    warnings.push(`${scriptName}:${lineno}: ${message}`);
 }
 
 
