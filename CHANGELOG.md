@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.3 (2025-10-21)
+
+- [0b478b8](https://github.com/craigahobbs/bare-script/commit/0b478b8) - improved static analysis warning messages
+
+- [251c154](https://github.com/craigahobbs/bare-script/commit/251c154) - improve parser error messages
+
 ## 3.7.2 (2025-10-20)
 
 - [5fd0a20](https://github.com/craigahobbs/bare-script/commit/5fd0a20) - use barescript object syntax
