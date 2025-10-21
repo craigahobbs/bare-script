@@ -59,12 +59,20 @@ test('lintScript, empty script', () => {
 test('lintScript, function redefined', () => {
     const script = {
         'statements': [
-            {'function': {'name': 'testFn', 'statements': []}},
-            {'function': {'name': 'testFn', 'statements': []}}
+            {'function': {'name': 'testFn', 'statements': [], 'lineNumber': 1}},
+            {'function': {'name': 'testFn', 'statements': [], 'lineNumber': 4}}
+        ],
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'function testFn():',
+            'endfunction',
+            '',
+            'function testFn():',
+            'endfunction'
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Redefinition of function "testFn" (index 1)'
+        'test.bare:4: Redefinition of function "testFn"'
     ]);
 });
 
@@ -77,14 +85,24 @@ test('lintScript, function duplicate argument', () => {
                     'name': 'testFn',
                     'args': ['a', 'b', 'a'],
                     'statements': [
-                        {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}}
-                    ]
+                        {'return': {
+                            'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}},
+                            'lineNumber': 2
+                        }}
+                    ],
+                    'lineNumber': 1
                 }
             }
+        ],
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'function testFn(a, b, a):',
+            '    return a + b',
+            'endfunction'
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Duplicate argument "a" of function "testFn" (index 0)'
+        'test.bare:1: Duplicate argument "a" of function "testFn"'
     ]);
 });
 
@@ -104,7 +122,7 @@ test('lintScript, function unused argument', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unused argument "b" of function "testFn" (index 0)'
+        'Unused argument "b" of function "testFn"'
     ]);
 });
 
@@ -150,7 +168,7 @@ test('lintScript, function unused variable', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unused variable "e" defined in function "testFn" (index 6)'
+        'Unused variable "e" defined in function "testFn"'
     ]);
 });
 
@@ -198,7 +216,7 @@ test('lintScript, function variable used before assignment', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Variable "b" of function "testFn" used (index 0) before assignment (index 1)'
+        'Variable "b" of function "testFn" used before assignment'
     ]);
 });
 
@@ -250,7 +268,7 @@ test('lintScript, global variable used before assignment', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Global variable "b" used (index 0) before assignment (index 1)'
+        'Global variable "b" used before assignment'
     ]);
 });
 
@@ -269,7 +287,7 @@ test('lintScript, function unused label', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unused label "unusedLabel" in function "testFn" (index 0)'
+        'Unused label "unusedLabel" in function "testFn"'
     ]);
 });
 
@@ -277,11 +295,19 @@ test('lintScript, function unused label', () => {
 test('lintScript, global unused label', () => {
     const script = {
         'statements': [
-            {'label': {'name': 'unusedLabel'}}
+            {'label': {'name': 'usedLabel', 'lineNumber': 1}},
+            {'label': {'name': 'unusedLabel', 'lineNumber': 2}},
+            {'jump': {'label': 'usedLabel', 'lineNumber': 3}}
+        ],
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'usedlabel:',
+            'unusedLabel:',
+            'jump usedLabel'
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unused global label "unusedLabel" (index 0)'
+        'test.bare:2: Unused global label "unusedLabel"'
     ]);
 });
 
@@ -300,7 +326,7 @@ test('lintScript, function unknown label', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unknown label "unknownLabel" in function "testFn" (index 0)'
+        'Unknown label "unknownLabel" in function "testFn"'
     ]);
 });
 
@@ -312,7 +338,7 @@ test('lintScript, global unknown label', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Unknown global label "unknownLabel" (index 0)'
+        'Unknown global label "unknownLabel"'
     ]);
 });
 
@@ -333,7 +359,7 @@ test('lintScript, function label redefined', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Redefinition of label "testLabel" in function "testFn" (index 1)'
+        'Redefinition of label "testLabel" in function "testFn"'
     ]);
 });
 
@@ -347,7 +373,7 @@ test('lintScript, global label redefined', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Redefinition of global label "testLabel" (index 1)'
+        'Redefinition of global label "testLabel"'
     ]);
 });
 
@@ -371,7 +397,7 @@ test('lintScript, function pointless statement', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Pointless statement in function "testFn" (index 1)'
+        'Pointless statement in function "testFn"'
     ]);
 });
 
@@ -388,6 +414,6 @@ test('lintScript, global pointless statement', () => {
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        'Pointless global statement (index 1)'
+        'Pointless global statement'
     ]);
 });

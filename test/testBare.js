@@ -416,12 +416,12 @@ test('bare.main, debug', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript: Static analysis "<string>" ... OK',
+        'BareScript static analysis "<string>" ... OK',
         'Hello',
-        'BareScript: Script executed in X milliseconds',
-        'BareScript: Static analysis "<string2>" ... OK',
+        'BareScript executed in X milliseconds',
+        'BareScript static analysis "<string2>" ... OK',
         'Goodbye',
-        'BareScript: Script executed in X milliseconds'
+        'BareScript executed in X milliseconds'
     ]);
 });
 
@@ -434,9 +434,9 @@ test('bare.main, debug static analysis warnings', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript: Static analysis "<string>" ... 1 warning:',
-        'BareScript:     Pointless global statement (index 0)',
-        'BareScript: Script executed in X milliseconds'
+        'BareScript static analysis "<string>" ... 1 warning:',
+        '<string>:1: Pointless global statement',
+        'BareScript executed in X milliseconds'
     ]);
 });
 
@@ -456,10 +456,10 @@ test('bare.main, debug static analysis warnings multiple', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript: Static analysis "test.bare" ... 2 warnings:',
-        'BareScript:     Pointless global statement (index 0)',
-        'BareScript:     Pointless global statement (index 1)',
-        'BareScript: Script executed in X milliseconds'
+        'BareScript static analysis "test.bare" ... 2 warnings:',
+        'test.bare:1: Pointless global statement',
+        'test.bare:2: Pointless global statement',
+        'BareScript executed in X milliseconds'
     ]);
 });
 
@@ -472,8 +472,8 @@ test('bare.main, static analysis', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output, [
-        'BareScript: Static analysis "<string>" ... OK',
-        'BareScript: Static analysis "<string2>" ... OK'
+        'BareScript static analysis "<string>" ... OK',
+        'BareScript static analysis "<string2>" ... OK'
     ]);
 });
 
@@ -486,8 +486,8 @@ test('bare.main, static analysis error', async () => {
     });
     assert.equal(exitCode, 1);
     assert.deepEqual(output, [
-        'BareScript: Static analysis "<string>" ... 1 warning:',
-        'BareScript:     Pointless global statement (index 0)'
+        'BareScript static analysis "<string>" ... 1 warning:',
+        '<string>:1: Pointless global statement'
     ]);
 });
 

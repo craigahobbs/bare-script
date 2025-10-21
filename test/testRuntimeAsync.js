@@ -1040,7 +1040,7 @@ endfunction
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, [
         'BareScript: Include "test.bare" static analysis... 1 warning:',
-        'BareScript:     Unused argument "a" of function "test" (index 0)'
+        'BareScript: test.bare:1: Unused argument "a" of function "test"'
     ]);
 });
 
@@ -1069,8 +1069,8 @@ endfunction
     assert.equal(await executeScriptAsync(script, options), null);
     assert.deepEqual(logs, [
         'BareScript: Include "test.bare" static analysis... 2 warnings:',
-        'BareScript:     Unused argument "a" of function "test" (index 0)',
-        'BareScript:     Unused argument "b" of function "test" (index 0)'
+        'BareScript: test.bare:1: Unused argument "a" of function "test"',
+        'BareScript: test.bare:1: Unused argument "b" of function "test"'
     ]);
 });
 
