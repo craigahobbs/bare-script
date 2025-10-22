@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.5 (2025-10-22)
+
+- [a3c4b28](https://github.com/craigahobbs/bare-script/commit/a3c4b28) - update include library
+
 ## 3.7.4 (2025-10-21)
 
 - [8cb143f](https://github.com/craigahobbs/bare-script/commit/8cb143f) - improved static analysis warning messages
