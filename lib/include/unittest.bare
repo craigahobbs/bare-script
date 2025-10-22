@@ -393,7 +393,7 @@ endfunction
 
 function unittestReportScriptLines(codeLineElements, lines, color, noNewline):
     if lines:
-        linesStr = arrayJoin(lines, stringFromCharCode(10)) + if(noNewline, '', stringFromCharCode(10))
+        linesStr = arrayJoin(lines, '\n') + if(noNewline, '', '\n')
         if !color:
             arrayPush(codeLineElements, {'text': linesStr})
         else:

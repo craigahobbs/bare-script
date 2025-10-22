@@ -152,4 +152,4 @@ endfunction
 
 
 # Regex for splitting lines
-diffRegexLineSplit = regexNew(stringFromCharCode(13) + '?' + stringFromCharCode(10))
+diffRegexLineSplit = regexNew('\r?\n')
