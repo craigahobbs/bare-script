@@ -185,8 +185,11 @@ endfunction
 
 # $function: argsHelp
 # $group: args.bare
-# $doc: Output the [arguments model's](includeModel.html#var.vName='ArgsArguments') help
+# $doc: Generate the [arguments model's](includeModel.html#var.vName='ArgsArguments') help content
+# $doc:
+# $doc: **NOTE:** Calling this function requires `include <dataTable.bare>`
 # $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
+# $return: The array of help Markdown line strings
 function argsHelp(arguments):
     # Create the help data
     helpData = []
@@ -225,7 +228,7 @@ function argsHelp(arguments):
     if anyDescription:
         arrayPush(helpFields, 'Description')
     endif
-    dataTable(helpData, {'fields': helpFields})
+    return dataTableMarkdown(helpData, {'fields': helpFields})
 endfunction
 
 
