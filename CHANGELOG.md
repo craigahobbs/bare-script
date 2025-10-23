@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.7.6 (2025-10-23)
+
+- [e886247](https://github.com/craigahobbs/bare-script/commit/e886247) - fix static analysis error messages
+
+- [98cc127](https://github.com/craigahobbs/bare-script/commit/98cc127) - use string escapes
+
 ## 3.7.5 (2025-10-22)
 
 - [a3c4b28](https://github.com/craigahobbs/bare-script/commit/a3c4b28) - update include library
