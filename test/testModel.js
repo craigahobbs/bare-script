@@ -149,28 +149,41 @@ test('lintScript, function argument function call ok', () => {
 
 test('lintScript, function unused variable', () => {
     const script = {
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'function testFn():',
+            '    a = 1',
+            '    b = 2',
+            '    c = a',
+            '    d = 3',
+            '    jump testLabel if d',
+            '    testLabel:',
+            '    e = -(b + c)',
+            'endfunction'
+        ],
         'statements': [
             {
                 'function': {
                     'name': 'testFn',
                     'statements': [
-                        {'expr': {'name': 'a', 'expr': {'number': 1}}},
-                        {'expr': {'name': 'b', 'expr': {'number': 2}}},
-                        {'expr': {'name': 'c', 'expr': {'variable': 'a'}}},
-                        {'expr': {'name': 'd', 'expr': {'number': 3}}},
-                        {'jump': {'label': 'testLabel', 'expr': {'variable': 'd'}}},
-                        {'label': {'name': 'testLabel'}},
+                        {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
+                        {'expr': {'name': 'b', 'expr': {'number': 2}, 'lineNumber': 3}},
+                        {'expr': {'name': 'c', 'expr': {'variable': 'a'}, 'lineNumber': 4}},
+                        {'expr': {'name': 'd', 'expr': {'number': 3}, 'lineNumber': 5}},
+                        {'jump': {'label': 'testLabel', 'expr': {'variable': 'd'}, 'lineNumber': 6}},
+                        {'label': {'name': 'testLabel', 'lineNumber': 7}},
                         {'expr': {'name': 'e', 'expr': {'unary': {
                             'op': '-',
                             'expr': {'group': {'binary': {'op': '+', 'left': {'variable': 'b'}, 'right': {'variable': 'c'}}}}
-                        }}}}
-                    ]
+                        }}, 'lineNumber': 8}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        ':1: Unused variable "e" defined in function "testFn"'
+        'test.bare:8: Unused variable "e" defined in function "testFn"'
     ]);
 });
 
@@ -205,20 +218,28 @@ test('lintScript, global unused variable ok', () => {
 
 test('lintScript, function variable used before assignment', () => {
     const script = {
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'function testFn():',
+            '    a = b',
+            '    b = a',
+            'endfunction'
+        ],
         'statements': [
             {
                 'function': {
                     'name': 'testFn',
                     'statements': [
-                        {'expr': {'name': 'a', 'expr': {'variable': 'b'}}},
-                        {'expr': {'name': 'b', 'expr': {'variable': 'a'}}}
-                    ]
+                        {'expr': {'name': 'a', 'expr': {'variable': 'b'}, 'lineNumber': 2}},
+                        {'expr': {'name': 'b', 'expr': {'variable': 'a'}, 'lineNumber': 3}}
+                    ],
+                    'lineNumber': 1
                 }
             }
         ]
     };
     assert.deepEqual(lintScript(validateScript(script)), [
-        ':1: Variable "b" of function "testFn" used before assignment'
+        'test.bare:2: Variable "b" of function "testFn" used before assignment'
     ]);
 });
 
