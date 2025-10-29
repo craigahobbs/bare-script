@@ -1936,6 +1936,8 @@ The upper-case string
 - [systemCompare](#var.vPublish=true&var.vSingle=true&systemcompare)
 - [systemFetch](#var.vPublish=true&var.vSingle=true&systemfetch)
 - [systemGlobalGet](#var.vPublish=true&var.vSingle=true&systemglobalget)
+- [systemGlobalIncludesGet](#var.vPublish=true&var.vSingle=true&systemglobalincludesget)
+- [systemGlobalIncludesName](#var.vPublish=true&var.vSingle=true&systemglobalincludesname)
 - [systemGlobalSet](#var.vPublish=true&var.vSingle=true&systemglobalset)
 - [systemIs](#var.vPublish=true&var.vSingle=true&systemis)
 - [systemLog](#var.vPublish=true&var.vSingle=true&systemlog)
@@ -2011,6 +2013,34 @@ The default value (optional)
 #### Returns
 
 The global variable's value or null if it does not exist
+
+---
+
+### systemGlobalIncludesGet
+
+Get the global system includes object
+
+#### Arguments
+
+None
+
+#### Returns
+
+The global system includes object
+
+---
+
+### systemGlobalIncludesName
+
+Get the system includes object global variable name
+
+#### Arguments
+
+None
+
+#### Returns
+
+The system includes object global variable name
 
 ---
 
