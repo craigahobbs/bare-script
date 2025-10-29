@@ -2,13 +2,6 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('dataTableSentinel'):
-    return
-endif
-dataTableSentinel = true
-
-
 # The data table model's Schema Markdown
 dataTableTypes = schemaParse( \
     'group "Data Table"', \

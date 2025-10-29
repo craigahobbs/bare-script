@@ -283,6 +283,59 @@ test('lintScript, function variable used before assignment reassign ok', () => {
 });
 
 
+test('lintScript, function unknown global', () => {
+    const script = {
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'function testFn(b):',
+            '    a = false',
+            '    a = a',
+            '    a = b',
+            '    a = UNKNOWN',
+            'endfunction'
+        ],
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'args': ['b'],
+                    'statements': [
+                        {'expr': {'name': 'a', 'expr': {'variable': 'false'}, 'lineNumber': 2}},
+                        {'expr': {'name': 'a', 'expr': {'variable': 'a'}, 'lineNumber': 3}},
+                        {'expr': {'name': 'a', 'expr': {'variable': 'b'}, 'lineNumber': 4}},
+                        {'expr': {'name': 'a', 'expr': {'variable': 'UNKNOWN'}, 'lineNumber': 5}}
+                    ],
+                    'lineNumber': 1
+                }
+            }
+        ]
+    };
+    assert.deepEqual(lintScript(validateScript(script), {}), [
+        'test.bare:5: Unknown global variable "UNKNOWN"'
+    ]);
+});
+
+
+test('lintScript, global unknown global', () => {
+    const script = {
+        'scriptName': 'test.bare',
+        'scriptLines': [
+            'a = 1',
+            'a = a',
+            'a = UNKNOWN'
+        ],
+        'statements': [
+            {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 1}},
+            {'expr': {'name': 'a', 'expr': {'variable': 'a'}, 'lineNumber': 2}},
+            {'expr': {'name': 'a', 'expr': {'variable': 'UNKNOWN'}, 'lineNumber': 3}}
+        ]
+    };
+    assert.deepEqual(lintScript(validateScript(script), {}), [
+        'test.bare:3: Unknown global variable "UNKNOWN"'
+    ]);
+});
+
+
 test('lintScript, global variable used before assignment', () => {
     const script = {
         'statements': [

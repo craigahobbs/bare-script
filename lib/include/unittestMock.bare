@@ -2,13 +2,6 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('unittestMockSentinel'):
-    return
-endif
-unittestMockSentinel = true
-
-
 # Constants
 unittestMockPixelsPerPoint = 4 / 3
 unittestMockDefaultFontSizePx = 12 * unittestMockPixelsPerPoint

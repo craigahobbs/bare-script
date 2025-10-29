@@ -1,14 +1,6 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
-
-# Include sentinel
-if systemGlobalGet('markdownUpSentinel'):
-    return
-endif
-markdownUpSentinel = true
-
-
 include <dataTable.bare>
 
 

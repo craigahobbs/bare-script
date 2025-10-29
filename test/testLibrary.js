@@ -3,7 +3,7 @@
 
 /* eslint-disable id-length */
 
-import {coverageGlobalName, expressionFunctions, scriptFunctions} from '../lib/library.js';
+import {coverageGlobalName, expressionFunctions, scriptFunctions, systemGlobalIncludesName} from '../lib/library.js';
 import {valueJSON, valueParseDatetime, valueString} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -4423,6 +4423,25 @@ test('library, systemGlobalGet', () => {
 });
 
 
+test('library, systemGlobalIncludesGet', () => {
+    let options = {'globals': {}};
+    assert.equal(scriptFunctions.systemGlobalIncludesGet([], options), null);
+
+    options = {'globals': {[systemGlobalIncludesName]: {'test.bare': true}}};
+    assert.deepEqual(scriptFunctions.systemGlobalIncludesGet([], options), {'test.bare': true});
+
+    options = {};
+    assert.equal(scriptFunctions.systemGlobalIncludesGet([], options), null);
+
+    assert.equal(scriptFunctions.systemGlobalIncludesGet([], null), null);
+});
+
+
+test('library, systemGlobalIncludesName', () => {
+    assert.equal(scriptFunctions.systemGlobalIncludesName([], null), systemGlobalIncludesName);
+});
+
+
 test('library, systemGlobalSet', () => {
     let options = {'globals': {}};
     assert.equal(scriptFunctions.systemGlobalSet(['a', 1], options), 1);
@@ -4631,12 +4650,18 @@ test('library, systemType', () => {
 
 test('script library, urlEncode', () => {
     assert.equal(
-        scriptFunctions.urlEncode(["https://foo.com/this & 'that' + 2"], null),
-        "https://foo.com/this%20&%20'that'%20+%202"
+        scriptFunctions.urlEncode(["https://foo.com/this & 'that' + 2!"], null),
+        "https://foo.com/this%20&%20'that'%20+%202!"
     );
     assert.equal(
         scriptFunctions.urlEncode(['https://foo.com/this (& that) + 2'], null),
         'https://foo.com/this%20%28&%20that%29%20+%202'
+    );
+
+    // Hash param URL
+    assert.equal(
+        scriptFunctions.urlEncode(['#url=other.md'], null),
+        '#url=other.md'
     );
 
     // Non-string URL

@@ -3,12 +3,12 @@
 
 /* eslint-disable require-await */
 
+import {coverageGlobalName, systemGlobalIncludesName} from '../lib/library.js';
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import {BareScriptRuntimeError} from '../lib/runtime.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
-import {coverageGlobalName} from '../lib/library.js';
 import test from 'node:test';
 
 
@@ -874,6 +874,64 @@ a = 1
     assert.equal(await executeScriptAsync(script, options), null);
     assert.equal(options.globals.a, 1);
     assert.equal(options.globals.b, 1);
+});
+
+
+test('executeScriptAsync, include twice', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare'}]}},
+            {'include': {'includes': [{'url': 'test.bare'}]}}
+        ]
+    });
+    const fetchFn = (url) => {
+        assert(url === 'test.bare');
+        return {
+            'ok': true,
+            'text': () => 'a = if(a, a + 1, 1)'
+        };
+    };
+    const options = {'globals': {}, fetchFn};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(options.globals.a, 1);
+    assert.deepEqual(options.globals[systemGlobalIncludesName], {'test.bare': true});
+});
+
+
+test('executeScriptAsync, include nested', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare'}]}},
+            {'include': {'includes': [{'url': 'test2.bare'}]}},
+            {'include': {'includes': [{'url': 'test3.bare'}]}}
+        ]
+    });
+    const fetchFn = (url) => {
+        let content;
+        if (url === 'test3.bare') {
+            content = `\
+function test3_fn():
+endfunction
+`;
+        } else if (url === 'test2.bare') {
+            content = `\
+include 'test3.bare'
+test3_fn()
+`;
+        } else { // url === 'test.bare'
+            content = `\
+include 'test2.bare'
+include 'test3.bare'
+`;
+        }
+        return {
+            'ok': true,
+            'text': () => content
+        };
+    };
+    const options = {'globals': {}, fetchFn};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.deepEqual(options.globals[systemGlobalIncludesName], {'test.bare': true, 'test2.bare': true, 'test3.bare': true});
 });
 
 

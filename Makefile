@@ -127,8 +127,8 @@ export DOC_RUNTIME_MODEL_JS
 .PHONY: test-doc
 commit: test-doc
 test-doc: build/npm.build
-	$(NODE_SHELL) npx bare -s static/library/*.bare static/library/test/*.bare
-	$(NODE_SHELL) npx bare -d -m -v vUnittestReport true static/library/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -x -m static/library/*.bare static/library/test/*.bare
+	$(NODE_SHELL) npx bare -d -m static/library/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 # Run performance tests

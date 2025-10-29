@@ -2,13 +2,6 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('diffSentinel'):
-    return
-endif
-diffSentinel = true
-
-
 # The text line difference model
 diffTypes = schemaParse( \
     'group "diff.bare"', \
@@ -104,7 +97,7 @@ function diffLines(left, right):
         endif
 
         # Look ahead to find next matching point
-        foundMatch = False
+        foundMatch = false
         ixLeftTmp = ixLeft
         while ixLeftTmp < leftLength:
             ixRightTmp = ixRight

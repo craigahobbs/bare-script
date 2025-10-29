@@ -2,21 +2,9 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('unittestSentinel'):
-    return
-endif
-unittestSentinel = true
-
-
 include <args.bare>
 include <dataTable.bare>
 include <diff.bare>
-
-
-# Test statistics
-unittestTests = {}
-unittestWarnings = []
 
 
 # $function: unittestRunTest
@@ -24,11 +12,43 @@ unittestWarnings = []
 # $doc: Run a unit test
 # $arg testName: The test function name
 async function unittestRunTest(testName):
-    testFn = unittestRunTestHelper(testName)
-    if testFn:
-        testFn()
-        systemGlobalSet('unittestTestName', null)
+    # Tests disabled?
+    if systemGlobalGet('vUnittestDisabled'):
+        return
     endif
+
+    # Single test argument?
+    vUnittestTest = systemGlobalGet('vUnittestTest')
+    if vUnittestTest && vUnittestTest != testName:
+        return
+    endif
+
+    # Get the global unittest data
+    unittestData = unittestDataGet()
+    unittestTests = objectGet(unittestData, 'tests')
+    unittestWarnings = objectGet(unittestData, 'warnings')
+
+    # Test run multiple times?
+    if objectHas(unittestTests, testName):
+        arrayPush(unittestWarnings, 'Test "' + testName + '" run multiple times')
+        return
+    endif
+
+    # Get the test func
+    testFn = systemGlobalGet(testName)
+    if !testFn:
+        arrayPush(unittestWarnings, 'Test "' + testName + '" not found')
+        return
+    endif
+
+    # Add the unit test result array
+    testFailures = []
+    objectSet(unittestTests, testName, testFailures)
+
+    # Run the test
+    objectSet(unittestData, 'current', testName)
+    testFn()
+    objectSet(unittestData, 'current', null)
 endfunction
 
 
@@ -36,35 +56,6 @@ endfunction
 async function unittestRunTestAsync(testName):
     systemLogDebug('unittest.bare: unittestRunTestAsync is deprecated - use unittestRunTest')
     return unittestRunTest(testName)
-endfunction
-
-
-# unittestRunTest helper function
-function unittestRunTestHelper(testName):
-    # Single test argument?
-    if vUnittestTest && vUnittestTest != testName:
-        return null
-    endif
-
-    # Test run multiple times?
-    if objectHas(unittestTests, testName):
-        arrayPush(unittestWarnings, 'Test "' + testName + '" run multiple times')
-        return null
-    endif
-
-    # Get the test func
-    testFn = systemGlobalGet(testName)
-    if !testFn:
-        arrayPush(unittestWarnings, 'Test "' + testName + '" not found')
-        return null
-    endif
-
-    # Add the unit test result array
-    testFailures = []
-    objectSet(unittestTests, testName, testFailures)
-    systemGlobalSet('unittestTestName', testName)
-
-    return testFn
 endfunction
 
 
@@ -79,8 +70,13 @@ function unittestEqual(actual, expected, description):
         return
     endif
 
+    # Get the global unittest data
+    unittestData = unittestDataGet()
+    unittestTests = objectGet(unittestData, 'tests')
+    unittestCurrent = objectGet(unittestData, 'current')
+    testFailures = objectGet(unittestTests, unittestCurrent)
+
     # Add the test failure error lines
-    testFailures = objectGet(unittestTests, unittestTestName)
     errorLines = [ \
         'Equal:', \
         '', \
@@ -143,13 +139,29 @@ function unittestDeepEqual(actual, expected, description):
         arrayPush(errorLines, '```')
     endif
 
+    # Get the global unittest data
+    unittestData = unittestDataGet()
+    unittestTests = objectGet(unittestData, 'tests')
+    unittestCurrent = objectGet(unittestData, 'current')
+    testFailures = objectGet(unittestTests, unittestCurrent)
+
     # Add the test failure error lines
-    testFailures = objectGet(unittestTests, unittestTestName)
     if description:
         arrayPush(testFailures, arrayExtend([markdownEscape(description), ''], errorLines))
     else:
         arrayPush(testFailures, errorLines)
     endif
+endfunction
+
+
+# Helper to get the global unittest data object
+function unittestDataGet():
+    unittestData = systemGlobalGet('unittestData')
+    if unittestData == null:
+        unittestData = {'tests': {}, 'warnings': [], 'current': null}
+        systemGlobalSet('unittestData', unittestData)
+    endif
+    return unittestData
 endfunction
 
 
@@ -171,16 +183,27 @@ function unittestReport(options):
 
     # Parse arguments
     args = argsParse(unittestReportArguments)
-    testNameArg = objectGet(args, 'test')
-    scriptName = objectGet(args, 'script')
+    isDisabled = objectGet(args, 'disabled')
     hideTests = objectGet(args, 'hideTests')
     isReport = objectGet(args, 'report')
+    scriptName = objectGet(args, 'script')
+    testNameArg = objectGet(args, 'test')
+
+    # Disabled?
+    if isDisabled:
+        return 0
+    endif
 
     # Script coverage details page?
     if scriptName:
         unittestReportScript(scriptName)
         return 0
     endif
+
+    # Get the global unittest data
+    unittestData = unittestDataGet()
+    unittestTests = objectGet(unittestData, 'tests')
+    unittestWarnings = objectGet(unittestData, 'warnings')
 
     # Compute test statistics
     testNames = arraySort(objectKeys(unittestTests))
@@ -318,10 +341,11 @@ endfunction
 
 # unittestReport application arguments
 unittestReportArguments = argsValidate([ \
-    {'name': 'test', 'global': 'vUnittestTest'}, \
-    {'name': 'script', 'global': 'vUnittestScript'}, \
+    {'name': 'disabled', 'global': 'vUnittestDisabled', 'type': 'bool', 'default': false}, \
     {'name': 'hideTests', 'global': 'vUnittestHideTests', 'type': 'bool', 'default': false}, \
-    {'name': 'report', 'global': 'vUnittestReport', 'type': 'bool', 'default': false} \
+    {'name': 'report', 'global': 'vUnittestReport', 'type': 'bool', 'default': false}, \
+    {'name': 'script', 'global': 'vUnittestScript'}, \
+    {'name': 'test', 'global': 'vUnittestTest'} \
 ])
 
 

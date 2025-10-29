@@ -2,13 +2,6 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('argsSentinel'):
-    return
-endif
-argsSentinel = true
-
-
 # The URL arguments model
 argsTypes = schemaParse( \
     'group "args.bare"', \

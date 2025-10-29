@@ -416,50 +416,10 @@ test('bare.main, debug', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript static analysis "<string>" ... OK',
         'Hello',
         'BareScript executed in X milliseconds',
-        'BareScript static analysis "<string2>" ... OK',
         'Goodbye',
-        'BareScript executed in X milliseconds'
-    ]);
-});
-
-
-test('bare.main, debug static analysis warnings', async () => {
-    const output = [];
-    const exitCode = await main({
-        'argv': ['node', 'bare.js', '-d', '-c', '0'],
-        'logFn': (message) => output.push(message)
-    });
-    assert.equal(exitCode, 0);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript static analysis "<string>" ... 1 warning:',
-        '<string>:1: Pointless global statement',
-        'BareScript executed in X milliseconds'
-    ]);
-});
-
-
-test('bare.main, debug static analysis warnings multiple', async () => {
-    const output = [];
-    const exitCode = await main({
-        'argv': ['node', 'bare.js', '-d', 'test.bare'],
-        'fetchFn': (url) => {
-            assert(url === 'test.bare');
-            return {
-                'ok': true,
-                'text': () => '0\n1\n'
-            };
-        },
-        'logFn': (message) => output.push(message)
-    });
-    assert.equal(exitCode, 0);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
-        'BareScript static analysis "test.bare" ... 2 warnings:',
-        'test.bare:1: Pointless global statement',
-        'test.bare:2: Pointless global statement',
-        'BareScript executed in X milliseconds'
+        'BareScript executed in X milliseconds',
     ]);
 });
 
@@ -481,13 +441,88 @@ test('bare.main, static analysis', async () => {
 test('bare.main, static analysis error', async () => {
     const output = [];
     const exitCode = await main({
-        'argv': ['node', 'bare.js', '-s', '-c', '0', '-c', '1'],
+        'argv': ['node', 'bare.js', '-s', '-c', '0'],
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
     assert.deepEqual(output, [
         'BareScript static analysis "<string>" ... 1 warning:',
         '<string>:1: Pointless global statement'
+    ]);
+});
+
+
+test('bare.main, static analysis error multiple warnings', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-s', '-c', 'a = b + c\nb = 1\nc = 2'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'BareScript static analysis "<string>" ... 2 warnings:',
+        '<string>:1: Global variable "b" used before assignment',
+        '<string>:1: Global variable "c" used before assignment'
+    ]);
+});
+
+
+test('bare.main, static analysis error multiple scripts', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-s', '-c', '0', '-c', '1'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output, [
+        'BareScript static analysis "<string>" ... 1 warning:',
+        '<string>:1: Pointless global statement',
+        'BareScript static analysis "<string2>" ... 1 warning:',
+        '<string2>:1: Pointless global statement'
+    ]);
+});
+
+
+test('bare.main, static analysis include', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-x', '-m', '-c', 'a = 1', '-c', 'b = a'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+        'BareScript static analysis "<string>" ... OK',
+        'BareScript static analysis "<string2>" ... 1 warning:',
+        '<string2>:1: Unknown global variable "a"'
+    ]);
+});
+
+
+test('bare.main, static analysis execute', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-x', '-c', 'a = 1\nreturn a + b'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+        'BareScript static analysis "<string>" ... 1 warning:',
+        '<string>:2: Unknown global variable "b"'
+    ]);
+});
+
+
+test('bare.main, static analysis execute error no-clear', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-x', '-c', 'a = 1\nreturn a + b', '-c', 'a = 2'],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 1);
+    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+        'BareScript static analysis "<string>" ... 1 warning:',
+        '<string>:2: Unknown global variable "b"',
+        'BareScript static analysis "<string2>" ... OK'
     ]);
 });
 

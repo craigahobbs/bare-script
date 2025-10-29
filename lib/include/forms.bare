@@ -2,13 +2,6 @@
 # https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
 
 
-# Include sentinel
-if systemGlobalGet('formsSentinel'):
-    return
-endif
-formsSentinel = true
-
-
 # $function: formsTextElements
 # $group: forms.bare
 # $doc: Create a text input [element model](https://github.com/craigahobbs/element-model#readme)
