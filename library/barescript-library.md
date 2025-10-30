@@ -109,6 +109,9 @@ Flat an array hierarchy
 **array -**
 The array to flat
 
+**depth -**
+The maximum depth of the array hierarchy
+
 #### Returns
 
 The flated array
