@@ -184,8 +184,20 @@ test('library, arrayExtend', () => {
 
 test('library, arrayFlat', () => {
     const array = [1, [2, [3, 4], 5], 6];
-    const result = scriptFunctions.arrayFlat([array], null);
-    assert.deepEqual(result, [1, 2, 3, 4, 5, 6]);
+    assert.deepEqual(scriptFunctions.arrayFlat([array], null), [1, 2, 3, 4, 5, 6]);
+
+    // Cycle
+    const arrayDeep = [1];
+    let arrayLast = arrayDeep;
+    for (let ix = 2; ix <= 12; ix++) {
+        const arrayLastNew = [ix];
+        arrayLast.push(arrayLastNew);
+        arrayLast = arrayLastNew;
+    }
+    assert.deepEqual(scriptFunctions.arrayFlat([arrayDeep], null), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, [12]]);
+
+    // Depth
+    assert.deepEqual(scriptFunctions.arrayFlat([arrayDeep, 3], null), [1, 2, 3, 4, [5, [6, [7, [8, [9, [10, [11, [12]]]]]]]]]);
 
     // Non-array
     assert.throws(
