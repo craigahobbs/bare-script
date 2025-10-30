@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.1 (2025-10-30)
+
+- [ac4b70b](https://github.com/craigahobbs/bare-script/commit/ac4b70b) - add arrayFlat depth argument
+
 ## 3.8.0 (2025-10-29)
 
 - [e082611](https://github.com/craigahobbs/bare-script/commit/e082611) - add bare -x argument \(static analysis with unknown global check\)
