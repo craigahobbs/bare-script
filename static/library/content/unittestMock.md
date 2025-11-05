@@ -17,9 +17,9 @@ endfunction
 ~~~
 
 The
-[documentSetTitle](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare: document'&documentsettitle)
+[documentSetTitle](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare%3A%20document'&documentsettitle)
 function and the
-[markdownPrint](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare: markdown'&markdownprint)
+[markdownPrint](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare%3A%20markdown'&markdownprint)
 function have external side-effects that will interfere with running our unit tests.
 
 To test this code, first call the [unittestMockAll](#unittestmockall) function at the beginning of
