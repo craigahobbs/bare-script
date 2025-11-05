@@ -1,22 +1,21 @@
 # The BareScript Expression Library
 
-Welcome to the
-[BareScript](https://craigahobbs.github.io/bare-script/language/)
-Expression Library documentation.
+Welcome to the [BareScript](https://craigahobbs.github.io/bare-script/language/) Expression Library
+documentation.
 
 
 ## Table of Contents
 
-- [Array](#var.vPublish=true&var.vSingle=true&array)
-- [Datetime](#var.vPublish=true&var.vSingle=true&datetime)
-- [Math](#var.vPublish=true&var.vSingle=true&math)
-- [Number](#var.vPublish=true&var.vSingle=true&number)
-- [Object](#var.vPublish=true&var.vSingle=true&object)
-- [String](#var.vPublish=true&var.vSingle=true&string)
+- [array](#var.vPublish=true&var.vSingle=true&array)
+- [datetime](#var.vPublish=true&var.vSingle=true&datetime)
+- [math](#var.vPublish=true&var.vSingle=true&math)
+- [number](#var.vPublish=true&var.vSingle=true&number)
+- [object](#var.vPublish=true&var.vSingle=true&object)
+- [string](#var.vPublish=true&var.vSingle=true&string)
 
 ---
 
-## Array
+## array
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
@@ -41,7 +40,7 @@ The new array
 
 ---
 
-## Datetime
+## datetime
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
@@ -210,7 +209,7 @@ The full year
 
 ---
 
-## Math
+## math
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
@@ -530,7 +529,7 @@ The tangent of the angle
 
 ---
 
-## Number
+## number
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
@@ -596,7 +595,7 @@ The integer
 
 ---
 
-## Object
+## object
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
@@ -621,7 +620,7 @@ The new object
 
 ---
 
-## String
+## string
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
