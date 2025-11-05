@@ -1,10 +1,10 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
 # The URL arguments model
 argsTypes = schemaParse( \
-    'group "args.bare"', \
+    'group "<args.bare>"', \
     '', \
     '', \
     '# An argument model list', \
@@ -48,8 +48,8 @@ argsTypes = schemaParse( \
 # $function: argsValidate
 # $group: args.bare
 # $doc: Validate an arguments model
-# $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
-# $return: The validated [arguments model](includeModel.html#var.vName='ArgsArguments') or null if validation fails
+# $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
+# $return: The validated [arguments model](model.html#var.vName='ArgsArguments') or null if validation fails
 function argsValidate(arguments):
     validatedArguments = schemaValidate(argsTypes, 'ArgsArguments', arguments)
 
@@ -73,9 +73,9 @@ endfunction
 
 # $function: argsParse
 # $group: args.bare
-# $doc: Parse an [arguments model](includeModel.html#var.vName='ArgsArguments').
+# $doc: Parse an [arguments model](model.html#var.vName='ArgsArguments').
 # $doc: Argument globals are validated and added to the arguments object using the argument name.
-# $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
+# $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $return: The arguments object
 function argsParse(arguments):
     # Create the arguments object
@@ -103,7 +103,7 @@ endfunction
 # $function: argsURL
 # $group: args.bare
 # $doc: Create a MarkdownUp application URL
-# $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
+# $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $arg args: Optional (default is null). The arguments object. Null argument values are excluded from the URL.
 # $arg explicit: Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
 # $arg headerText: Optional (default is null). If non-null, the URL's header text.
@@ -163,7 +163,7 @@ argsTopHeaderId = '_top'
 # $function: argsLink
 # $group: args.bare
 # $doc: Create a Markdown link text to a MarkdownUp application URL
-# $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
+# $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $arg text: The link text
 # $arg args: Optional (default is null). The arguments object.
 # $arg explicit: Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
@@ -178,10 +178,10 @@ endfunction
 
 # $function: argsHelp
 # $group: args.bare
-# $doc: Generate the [arguments model's](includeModel.html#var.vName='ArgsArguments') help content
+# $doc: Generate the [arguments model's](model.html#var.vName='ArgsArguments') help content
 # $doc:
 # $doc: **NOTE:** Calling this function requires `include <dataTable.bare>`
-# $arg arguments: The [arguments model](includeModel.html#var.vName='ArgsArguments')
+# $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $return: The array of help Markdown line strings
 function argsHelp(arguments):
     # Create the help data

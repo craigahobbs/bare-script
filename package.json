@@ -21,7 +21,8 @@
         "baredoc": "./bin/baredoc.js"
     },
     "files": [
-        "lib/**/*"
+        "lib/*.js",
+        "lib/include/*.bare"
     ],
     "scripts": {
         "test": "node --test test/"

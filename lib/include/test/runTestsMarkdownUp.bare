@@ -1,0 +1,37 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+
+
+# Save the originals
+markdownPrintOriginal = systemGlobalGet('markdownPrint')
+
+# Include the system markdownUp.bare
+include <markdownUp.bare>
+
+# Start coverage
+coverageStart()
+
+# Include the local markdownUp.bare
+include '../markdownUp.bare'
+
+# Save the markdownPrint stub and restore the original markdownPrint
+markdownPrintStub = systemGlobalGet('markdownPrint')
+if markdownPrintOriginal:
+    markdownPrint = markdownPrintOriginal
+endif
+
+# Run markdownUp.bare unit tests
+include 'testMarkdownUp.bare'
+
+# Stop coverage
+coverageStop()
+
+# Test report
+return unittestReport({ \
+    'title': 'markdownUp.bare Tests', \
+    'links': ['[MarkdownUp Include Library Tests](#url=&var=)'], \
+    'coverageExclude': ['runTestsMarkdownUp.bare'], \
+    'coverageMin': 100 \
+})

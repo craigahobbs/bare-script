@@ -1,0 +1,119 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+
+
+function testDiffLines():
+    left = '1\n2\n3'
+    right = '1\n3\n4'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['1']}, \
+            {'type': 'Remove', 'lines': ['2']}, \
+            {'type': 'Identical', 'lines': ['3']}, \
+            {'type': 'Add', 'lines': ['4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines')
+
+
+function testDiffLines_array():
+    left = ['1', '2\n3']
+    right = ['1\n3', '4']
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['1']}, \
+            {'type': 'Remove', 'lines': ['2']}, \
+            {'type': 'Identical', 'lines': ['3']}, \
+            {'type': 'Add', 'lines': ['4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_array')
+
+
+function testDiffLines_identical():
+    left = '1\n2\n3'
+    right = left
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['1', '2', '3']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_identical')
+
+
+function testDiffLines_total():
+    left = '1\n2\n3'
+    right = '4\n5\n6'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Remove', 'lines': ['1', '2', '3']}, \
+            {'type': 'Add', 'lines': ['4', '5', '6']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_total')
+
+
+function testDiffLines_removeStart():
+    left = '1\n2\n3\n4'
+    right = '3\n4'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Remove', 'lines': ['1', '2']}, \
+            {'type': 'Identical', 'lines': ['3', '4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_removeStart')
+
+
+function testDiffLines_addStart():
+    left = '3\n4'
+    right = '1\n2\n3\n4'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Add', 'lines': ['1', '2']}, \
+            {'type': 'Identical', 'lines': ['3', '4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_addStart')
+
+
+function testDiffLines_removeEnd():
+    left = '1\n2\n3\n4'
+    right = '1\n2'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['1', '2']}, \
+            {'type': 'Remove', 'lines': ['3', '4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_removeEnd')
+
+
+function testDiffLines_addEnd():
+    left = '1\n2'
+    right = '1\n2\n3\n4'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['1', '2']}, \
+            {'type': 'Add', 'lines': ['3', '4']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_addEnd')

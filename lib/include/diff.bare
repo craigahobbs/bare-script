@@ -1,10 +1,10 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
 # The text line difference model
 diffTypes = schemaParse( \
-    'group "diff.bare"', \
+    'group "<diff.bare>"', \
     '', \
     '', \
     '# A list of text line differences', \
@@ -40,7 +40,7 @@ diffTypes = schemaParse( \
 # $doc: Compute the line-differences of two strings or arrays of strings
 # $arg left: The "left" string or array of strings
 # $arg right: The "right" string or array of strings
-# $return: The array of [difference models](includeModel.html#var.vName='Differences')
+# $return: The array of [difference models](model.html#var.vName='Differences')
 function diffLines(left, right):
     diffs = []
 

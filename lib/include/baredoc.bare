@@ -4,14 +4,13 @@
 include <args.bare>
 
 
-#
-# The BareScript library documentation application main entry point
-#
-# url - The library documentation JSON resource URL
-# title - The library title
-# menuLinks - Optional array of text/URL menu link tuples
-# groupURLs - Optional map of group name to group Markdown content URL ('' is index) or JSON resource URL
-#
+# $function: baredocMain
+# $group: baredocMain.bare
+# $doc: The BareScript library documentation application main entry point
+# $arg url: The library documentation JSON resource URL
+# $arg title: The library title
+# $arg menuLinks: Optional array of text/URL menu link tuples
+# $arg groupURLs: Optional map of group name to group Markdown content URL ('' is index) or JSON resource URL
 async function baredocMain(url, title, menuLinks, groupURLs):
     # Parse arguments
     args = argsParse(baredocArguments)
@@ -102,7 +101,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
 endfunction
 
 
-# # The BareScript library documentation application arguments
+# The BareScript library documentation application arguments
 baredocArguments = argsValidate([ \
     {'name': 'doc', 'type': 'bool', 'default': false}, \
     {'name': 'group'}, \
@@ -190,10 +189,7 @@ async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
     # The table of contents
     markdownPrint('', '## Table of Contents', '')
     for groupName in arraySort(objectKeys(groups)):
-        groupFunctions = objectGet(groups, groupName)
-        if arrayLength(groupFunctions):
-            markdownPrint('- ' + argsLink(baredocArguments, groupName, null, false, groupName))
-        endif
+        markdownPrint('- ' + argsLink(baredocArguments, groupName, null, false, groupName))
     endfor
 
     # Render the library function index

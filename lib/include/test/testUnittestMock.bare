@@ -1,0 +1,244 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+function testUnittestMockAll():
+    # Setup mocks
+    unittestMockAll({ \
+        'documentInputValue': {'id1': 'value1'}, \
+        'markdownParse': [{'parts': []}], \
+        'markdownTitle': ['Title'], \
+        'systemFetch': {'test.json': '{"key": "value"}'} \
+    })
+
+    # Data
+    dataLineChart([{'A': 1}], {'title': 'Title'})
+    dataTable([{'A': 1}], {'fields': ['A']})
+
+    # Document
+    unittestEqual(documentFontSize(), 16)
+    unittestEqual(documentInputValue('id1'), 'value1')
+    documentSetFocus('id1')
+    documentSetKeyDown(null)
+    documentSetReset('id1')
+    documentSetTitle('Hello')
+    unittestEqual(documentURL('test.json'), 'test.json')
+
+    # Drawing (before)
+    unittestEqual(drawHeight(), 480)
+    unittestEqual(drawWidth(), 640)
+    unittestEqual(drawTextHeight(''), 16)
+    unittestEqual(drawTextHeight('Hello', 72), 24)
+    unittestEqual(drawTextWidth('Hello', 20), 60)
+    drawNew(800, 600)
+    drawStyle('red')
+    drawTextStyle(20)
+
+    # Drawing (path)
+    drawMove(10, 10)
+    drawArc(10, 10, 0, 0, 0, 20, 20)
+    drawHLine(25)
+    drawLine(30, 30)
+    drawPathRect(35, 35)
+    drawVLine(40)
+    drawClose()
+
+    # Drawing (non-path)
+    drawCircle(20, 20, 10)
+    drawEllipse(20, 20, 10, 15)
+    drawImage(10, 10, 20, 20, 'test.jpg')
+    drawOnClick(null)
+    drawRect(10, 10, 20, 20)
+    drawText('Hello', 10, 10)
+
+    # Drawing (after)
+    unittestEqual(drawHeight(), 600)
+    unittestEqual(drawWidth(), 800)
+    unittestEqual(drawTextHeight(''), 20)
+    unittestEqual(drawTextHeight('Hello', 72), 24)
+    unittestEqual(drawTextWidth('Hello', 20), 60)
+
+    # Element Model
+    elementModelRender({'html': 'h1', 'elem': {'text': 'Hello'}})
+
+    # Local Storage
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+    localStorageSet('key1', 'value1')
+    localStorageSet('key2', 'value2')
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), 'value2')
+    localStorageRemove('key2')
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), null)
+    localStorageClear()
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+
+    # Markdown
+    unittestEqual( \
+        markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
+        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
+    )
+    unittestEqual(markdownHeaderId('**This is a  "Test"**'), 'this-is-a-test')
+    unittestDeepEqual(markdownParse('# Title'), {'parts': []})
+    markdownPrint('# Title')
+    unittestDeepEqual(markdownTitle({'parts': []}), 'Title')
+
+    # Schema
+    unittestDeepEqual( \
+        schemaElements({'TestStruct': {'struct': {'name': 'TestStruct'}}}, 'TestStruct'), \
+        [[{'html': 'h1', 'elem': {'text': 'struct TestStruct'}}]] \
+    )
+    unittestDeepEqual( \
+        schemaElements({'TestStruct': {'struct': {'name': 'TestStruct', 'union': true}}}, 'TestStruct'), \
+        [[{'html': 'h1', 'elem': {'text': 'union TestStruct'}}]] \
+    )
+
+    # Session Storage
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+    sessionStorageSet('key1', 'value1')
+    sessionStorageSet('key2', 'value2')
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), 'value2')
+    sessionStorageRemove('key2')
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), null)
+    sessionStorageClear()
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+
+    # System
+    unittestDeepEqual(systemFetch('test.json'), '{"key": "value"}')
+    systemLog('Hello')
+    systemLogDebug('Hello Debug')
+
+    # URL
+    unittestEqual(urlObjectCreate('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
+    unittestEqual(urlObjectCreate('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+
+    # Window
+    unittestEqual(windowClipboardRead(), '')
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+    unittestEqual(windowHeight(), 768)
+    windowSetLocation('test.html')
+    windowSetResize(null)
+    windowSetTimeout(null, 1000)
+    unittestEqual(windowWidth(), 1024)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['dataLineChart', [[{'A': 1}], {'title': 'Title'}]], \
+        ['dataTable', [[{'A': 1}], {'fields': ['A']}]], \
+        ['documentInputValue', ['id1']], \
+        ['documentSetFocus', ['id1']], \
+        ['documentSetKeyDown', [null]], \
+        ['documentSetReset', ['id1']], \
+        ['documentSetTitle', ['Hello']], \
+        ['drawNew', [800, 600]], \
+        ['drawStyle', ['red']], \
+        ['drawTextStyle', [20]], \
+        ['drawMove', [10, 10]], \
+        ['drawArc', [10, 10, 0, 0, 0, 20, 20]], \
+        ['drawHLine', [25]], \
+        ['drawLine', [30, 30]], \
+        ['drawPathRect', [35, 35]], \
+        ['drawVLine', [40]], \
+        ['drawClose', []], \
+        ['drawCircle', [20, 20, 10]], \
+        ['drawEllipse', [20, 20, 10, 15]], \
+        ['drawImage', [10, 10, 20, 20, 'test.jpg']], \
+        ['drawOnClick', [null]], \
+        ['drawRect', [10, 10, 20, 20]], \
+        ['drawText', ['Hello', 10, 10]], \
+        ['elementModelRender', [{'html': 'h1', 'elem': {'text': 'Hello'}}]], \
+        ['localStorageSet', ['key1', 'value1']], \
+        ['localStorageSet', ['key2', 'value2']], \
+        ['localStorageRemove', ['key2']], \
+        ['localStorageClear', []], \
+        ['markdownParse', ['# Title']], \
+        ['markdownPrint', ['# Title']], \
+        ['markdownTitle', [{'parts': []}]], \
+        ['sessionStorageSet', ['key1', 'value1']], \
+        ['sessionStorageSet', ['key2', 'value2']], \
+        ['sessionStorageRemove', ['key2']], \
+        ['sessionStorageClear', []], \
+        ['systemFetch', ['test.json']], \
+        ['systemLog', ['Hello']], \
+        ['systemLogDebug', ['Hello Debug']], \
+        ['windowClipboardWrite', ['Hello!']], \
+        ['windowSetLocation', ['test.html']], \
+        ['windowSetResize', [null]], \
+        ['windowSetTimeout', [null, 1000]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll')
+
+
+function testUnittestMockAll_systemFetch_array():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.json': '{"key": "value"}', \
+            'test2.json': '{"key2": "value2"}' \
+        } \
+    })
+
+    # Call systemFetch with array of URLs
+    unittestDeepEqual( \
+        systemFetch(['test.json', {'url': 'test2.json'}]), \
+        [ \
+            '{"key": "value"}', \
+            '{"key2": "value2"}' \
+        ] \
+    )
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['test.json', {'url': 'test2.json'}]]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll_systemFetch_array')
+
+
+function testUnittestMockAll_systemFetch_request_model():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.json': '{"key": "value"}' \
+        } \
+    })
+
+    # Call systemFetch with a request model
+    unittestDeepEqual( \
+        systemFetch({'url': 'test.json'}), \
+        '{"key": "value"}' \
+    )
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [{'url': 'test.json'}]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll_systemFetch_request_model')
+
+
+function testUnittestMockAll_schemaElements_union():
+    # Setup mocks
+    unittestMockAll()
+
+    # Call schemaElements with a union type
+    unittestDeepEqual( \
+        schemaElements({'TestUnion': {'union': {'name': 'TestUnion'}}}, 'TestUnion'), \
+        [[{'html': 'h1', 'elem': {'text': 'union TestUnion'}}]] \
+    )
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUnittestMockAll_schemaElements_union')

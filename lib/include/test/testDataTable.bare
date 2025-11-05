@@ -1,0 +1,133 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+
+
+function testDataTableMarkdown():
+    data = [{'A': 1.495, 'B': 2}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    | B |', \
+        '|------|---|', \
+        '| 1.50 | 2 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown')
+
+
+function testDataTableMarkdown_fields():
+    data = [{'A': 1, 'B': 2, 'C': 3}]
+    model = { \
+        'fields': ['C'], \
+        'categories': ['A'] \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A | C |', \
+        '|---|---|', \
+        '| 1 | 3 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_fields')
+
+
+function testDataTableMarkdown_precision():
+    data = [{'A': 1.495, 'B': 2}]
+    model = { \
+        'precision': 1, \
+        'trim': false \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A   | B   |', \
+        '|-----|-----|', \
+        '| 1.5 | 2.0 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_precision')
+
+
+function testDataTableMarkdown_datetime():
+    dt = datetimeNew(2023, 9, 25)
+    data = [{'A': dt}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A                         |', \
+        '|---------------------------|', \
+        '| ' + datetimeISOFormat(dt) + ' |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime')
+
+
+function testDataTableMarkdown_datetime_precision():
+    data = [{'A': datetimeNew(2023, 9, 25)}]
+    model = {'datetime': 'day'}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A          |', \
+        '|------------|', \
+        '| 2023-09-25 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime_precision')
+
+
+function testDataTableMarkdown_null():
+    data = [{'A': null}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    |', \
+        '|------|', \
+        '| null |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_null')
+
+
+function testDataTableMarkdown_formats():
+    data = [ \
+        {'A': 'asdf', 'B': 'asdf', 'CCCCCCCCCC': 'asdf'}, \
+        {'A': 'asdfasdf', 'B': 'asdfasdf', 'CCCCCCCCCC': 'asdfasdf'}, \
+        {'A': 'asdfa', 'B': 'asdfas', 'CCCCCCCCCC': 'asdfas'} \
+    ]
+    model = { \
+        'formats': { \
+            'A': {'align': 'center'}, \
+            'B': {'align': 'right', 'header': 'BB'}, \
+            'CCCCCCCCCC': {'align': 'right'} \
+        } \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        "|    A     |       BB | CCCCCCCCCC |", \
+        "|:--------:|---------:|-----------:|", \
+        "|   asdf   |     asdf |       asdf |", \
+        "| asdfasdf | asdfasdf |   asdfasdf |", \
+        "|  asdfa   |   asdfas |     asdfas |" \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_formats')
+
+
+function testDataTableMarkdown_invalidData():
+    data = [ \
+        {'A': 1}, \
+        {'A': 'asdfasdf'} \
+    ]
+    systemLogDebug('NOTICE: The following "dataValidate" error is expected:')
+    unittestDeepEqual(dataTableMarkdown(data), null)
+endfunction
+unittestRunTest('testDataTableMarkdown_invalidData')
+
+
+function testDataTableMarkdown_invalidModel():
+    data = [ \
+        {'A': 1} \
+    ]
+    invalidModel = 'INVALID'
+    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestDeepEqual(dataTableMarkdown(data, invalidModel), null)
+endfunction
+unittestRunTest('testDataTableMarkdown_invalidModel')
+
+
+function testDataTableMarkdown_noFields():
+    data = []
+    unittestDeepEqual(dataTableMarkdown(data), null)
+endfunction
+unittestRunTest('testDataTableMarkdown_noFields')

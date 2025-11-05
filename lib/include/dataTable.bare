@@ -1,10 +1,10 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
 # The data table model's Schema Markdown
 dataTableTypes = schemaParse( \
-    'group "Data Table"', \
+    'group "<dataTable.bare>"', \
     '', \
     '', \
     '# A data table model', \
@@ -70,7 +70,7 @@ dataTableTypes = schemaParse( \
 # $group: dataTable.bare
 # $doc: Create the array of Markdown table line strings
 # $arg data: The array of row objects
-# $arg model: The [data table model](includeModel.html#var.vName='DataTable')
+# $arg model: The [data table model](model.html#var.vName='DataTable')
 # $return: The array of Markdown table line strings
 function dataTableMarkdown(data, model):
     # Validate the data

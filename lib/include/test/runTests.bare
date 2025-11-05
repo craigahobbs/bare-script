@@ -1,0 +1,46 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# Include all system includes
+include <args.bare>
+include <dataTable.bare>
+include <diff.bare>
+include <forms.bare>
+include <pager.bare>
+include <unittest.bare>
+include <unittestMock.bare>
+
+# Start coverage
+coverageStart()
+
+# Override all system includes
+include '../args.bare'
+include '../baredoc.bare'
+include '../dataTable.bare'
+include '../diff.bare'
+include '../forms.bare'
+include '../pager.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+# Run markdownUp include library unit tests
+include 'testArgs.bare'
+include 'testBaredoc.bare'
+include 'testDataTable.bare'
+include 'testDiff.bare'
+include 'testForms.bare'
+include 'testPager.bare'
+include 'testUnittest.bare'
+include 'testUnittestMock.bare'
+
+# Stop coverage
+coverageStop()
+
+# Test report
+return unittestReport({ \
+    'title': 'MarkdownUp Include Library Tests', \
+    'links': ['[markdownUp.bare Tests](#url=runTestsMarkdownUp.md&var=)'], \
+    'coverageExclude': ['runTests.bare'], \
+    'coverageMin': 100 \
+})

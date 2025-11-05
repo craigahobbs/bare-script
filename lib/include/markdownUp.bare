@@ -1,5 +1,5 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <dataTable.bare>
 
@@ -28,6 +28,11 @@ markdownUpState = { \
 #
 
 
+# $function: dataLineChart
+# $group: markdownUp.bare: data
+# $doc: Draw a line chart
+# $arg data: The data array
+# $arg lineChart: The [line chart model](model.html#var.vName='LineChart')
 function dataLineChart(data, lineChart):
     width = objectGet(lineChart, 'width', 640)
     height = objectGet(lineChart, 'height', 320)
@@ -37,6 +42,11 @@ function dataLineChart(data, lineChart):
 endfunction
 
 
+# $function: dataTable
+# $group: markdownUp.bare: data
+# $doc: Draw a data table
+# $arg data: The data array
+# $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable').
 function dataTable(data, model):
     lines = dataTableMarkdown(data, model)
     if lines:
@@ -52,31 +62,93 @@ endfunction
 #
 
 
+# $function: documentFontSize
+# $group: markdownUp.bare: document
+# $doc: Get the document font size
+# $return: The document font size, in pixels
 function documentFontSize():
     return markdownUpDefaultFontSizePx
 endfunction
 
 
+# $function: documentInputValue
+# $group: markdownUp.bare: document
+# $doc: Get an input element's value
+# $arg id: The input element ID
+# $return: The input element value or null if the element does not exist
 function documentInputValue():
 endfunction
 
 
+# $function: documentSetFocus
+# $group: markdownUp.bare: document
+# $doc: Set focus to an element
+# $arg id: The element ID
 function documentSetFocus():
 endfunction
 
 
+# $function: documentSetKeyDown
+# $group: markdownUp.bare: document
+# $doc: Set the document keydown event handler. For example:
+# $doc:
+# $doc: ```barescript
+# $doc: function myAppMain():
+# $doc:     myAppRender()
+# $doc:     documentSetKeyDown(myAppKeyDown)
+# $doc: endfunction
+# $doc:
+# $doc: function myAppRender(key):
+# $doc:     markdownPrint( \
+# $doc:         '# KeyDown Test', \
+# $doc:         '', \
+# $doc:         if(key, '**Key pressed:** "' + key + '"', '*No key pressed yet.*') \
+# $doc:     )
+# $doc: endfunction
+# $doc:
+# $doc: function myAppKeyDown(event):
+# $doc:     key = objectGet(event, 'key')
+# $doc:     myAppRender(key)
+# $doc: endfunction
+# $doc:
+# $doc: myAppMain()
+# $doc: ```
+# $arg callback: The keydown event callback function, which takes a single `event` object that has
+# $arg callback: the following attributes:
+# $arg callback: - `key` - The key value (e.g., "a", "Enter", "ArrowUp")
+# $arg callback: - `code` - The physical key code (e.g., "KeyA", "Enter")
+# $arg callback: - `keyCode` - The legacy numeric code (e.g., 65 for 'a')
+# $arg callback: - `ctrlKey` - If true, the control key is pressed
+# $arg callback: - `altKey` - If true, the alt key is pressed
+# $arg callback: - `shiftKey` - If true, the shift key is pressed
+# $arg callback: - `metaKey` - If true, the cmd key is pressed
+# $arg callback: - `repeat` - If true, the key is held down
+# $arg callback: - `location` - 0=standard, 1=left, 2=right
 function documentSetKeyDown():
 endfunction
 
 
+# $function: documentSetReset
+# $group: markdownUp.bare: document
+# $doc: Set the document reset element
+# $arg id: The element ID
 function documentSetReset():
 endfunction
 
 
+# $function: documentSetTitle
+# $group: markdownUp.bare: document
+# $doc: Set the document title
+# $arg title: The document title string
 function documentSetTitle():
 endfunction
 
 
+# $function: documentURL
+# $group: markdownUp.bare: document
+# $doc: Fix-up relative URLs
+# $arg url: The URL
+# $return: The fixed-up URL
 function documentURL(url):
     return url
 endfunction
@@ -87,43 +159,100 @@ endfunction
 #
 
 
+# $function: drawArc
+# $group: markdownUp.bare: draw
+# $doc: Draw an arc curve from the current point to the end point
+# $arg rx: The arc ellipse's x-radius
+# $arg ry: The arc ellipse's y-radius
+# $arg angle: The rotation (in degrees) of the ellipse relative to the x-axis
+# $arg largeArcFlag: Either large arc (1) or small arc (0)
+# $arg sweepFlag: Either clockwise turning arc (1) or counterclockwise turning arc (0)
+# $arg x: The x-coordinate of the end point
+# $arg y: The y-coordinate of the end point
 function drawArc():
 endfunction
 
 
+# $function: drawCircle
+# $group: markdownUp.bare: draw
+# $doc: Draw a circle
+# $arg cx: The x-coordinate of the center of the circle
+# $arg cy: The y-coordinate of the center of the circle
+# $arg r: The radius of the circle
 function drawCircle():
 endfunction
 
 
+# $function: drawClose
+# $group: markdownUp.bare: draw
+# $doc: Close the current drawing path
 function drawClose():
 endfunction
 
 
+# $function: drawEllipse
+# $group: markdownUp.bare: draw
+# $doc: Draw an ellipse
+# $arg cx: The x-coordinate of the center of the ellipse
+# $arg cy: The y-coordinate of the center of the ellipse
+# $arg rx: The x-radius of the ellipse
+# $arg ry: The y-radius of the ellipse
 function drawEllipse():
 endfunction
 
 
+# $function: drawHLine
+# $group: markdownUp.bare: draw
+# $doc: Draw a horizontal line from the current point to the end point
+# $arg x: The x-coordinate of the end point
 function drawHLine():
 endfunction
 
 
+# $function: drawHeight
+# $group: markdownUp.bare: draw
+# $doc: Get the current drawing's height
+# $return: The current drawing's height
 function drawHeight():
     return objectGet(markdownUpState, 'drawingHeight')
 endfunction
 
 
+# $function: drawImage
+# $group: markdownUp.bare: draw
+# $doc: Draw an image
+# $arg x: The x-coordinate of the center of the image
+# $arg y: The y-coordinate of the center of the image
+# $arg width: The width of the image
+# $arg height: The height of the image
+# $arg href: The image resource URL
 function drawImage():
 endfunction
 
 
+# $function: drawLine
+# $group: markdownUp.bare: draw
+# $doc: Draw a line from the current point to the end point
+# $arg x: The x-coordinate of the end point
+# $arg y: The y-coordinate of the end point
 function drawLine():
 endfunction
 
 
+# $function: drawMove
+# $group: markdownUp.bare: draw
+# $doc: Move the path's drawing point
+# $arg x: The x-coordinate of the new drawing point
+# $arg y: The y-coordinate of the new drawing point
 function drawMove():
 endfunction
 
 
+# $function: drawNew
+# $group: markdownUp.bare: draw
+# $doc: Create a new drawing
+# $arg width: The width of the drawing
+# $arg height: The height of the drawing
 function drawNew(width, height):
     objectSet(markdownUpState, 'drawingWidth', width)
     objectSet(markdownUpState, 'drawingHeight', height)
@@ -132,26 +261,71 @@ function drawNew(width, height):
 endfunction
 
 
+# $function: drawOnClick
+# $group: markdownUp.bare: draw
+# $doc: Set the most recent drawing object's on-click event handler
+# $arg callback: The on-click event callback function (x, y)
 function drawOnClick():
 endfunction
 
 
+# $function: drawPathRect
+# $group: markdownUp.bare: draw
+# $doc: Draw a rectangle as a path
+# $arg x: The x-coordinate of the top-left of the rectangle
+# $arg y: The y-coordinate of the top-left of the rectangle
+# $arg width: The width of the rectangle
+# $arg height: The height of the rectangle
 function drawPathRect():
 endfunction
 
 
+# $function: drawRect
+# $group: markdownUp.bare: draw
+# $doc: Draw a rectangle
+# $arg x: The x-coordinate of the top-left of the rectangle
+# $arg y: The y-coordinate of the top-left of the rectangle
+# $arg width: The width of the rectangle
+# $arg height: The height of the rectangle
+# $arg rx: Optional (default is null). The horizontal corner radius of the rectangle.
+# $arg ry: Optional (default is null). The vertical corner radius of the rectangle.
 function drawRect():
 endfunction
 
 
+# $function: drawStyle
+# $group: markdownUp.bare: draw
+# $doc: Set the current drawing styles
+# $arg stroke: Optional (default is 'black'). The stroke color.
+# $arg strokeWidth: Optional (default is 1). The stroke width.
+# $arg fill: Optional (default is 'none'). The fill color.
+# $arg strokeDashArray: Optional (default is 'none'). The stroke
+# $arg strokeDashArray: [dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
 function drawStyle():
 endfunction
 
 
+# $function: drawText
+# $group: markdownUp.bare: draw
+# $doc: Draw text
+# $arg text: The text to draw
+# $arg x: The x-coordinate of the text
+# $arg y: The y-coordinate of the text
+# $arg textAnchor: Optional (default is 'middle'). The
+# $arg textAnchor: [text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
+# $arg dominantBaseline: Optional (default is 'middle'). The
+# $arg dominantBaseline: [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
+# $arg dominantBaseline: style.
 function drawText():
 endfunction
 
 
+# $function: drawTextHeight
+# $group: markdownUp.bare: draw
+# $doc: Compute the text's height to fit the width
+# $arg text: The text
+# $arg width: The width of the text. If 0, the default font size (in pixels) is returned.
+# $return: The text's height, in pixels
 function drawTextHeight(text, width):
     if width > 0:
         return width / (markdownUpFontWidthRatio * stringLength(text))
@@ -160,20 +334,42 @@ function drawTextHeight(text, width):
 endfunction
 
 
+# $function: drawTextStyle
+# $group: markdownUp.bare: draw
+# $doc: Set the current text drawing styles
+# $arg fontSizePx: Optional (default is null, the default font size). The text font size, in pixels.
+# $arg textFill: Optional (default is 'black'). The text fill color.
+# $arg bold: Optional (default is false). If true, text is bold.
+# $arg italic: Optional (default is false). If true, text is italic.
+# $arg fontFamily: Optional (default is null, the default font family). The text font family.
 function drawTextStyle(fontSizePx):
     objectSet(markdownUpState, 'drawingFontSizePx', if(fontSizePx != null, fontSizePx, markdownUpDefaultFontSizePx))
 endfunction
 
 
+# $function: drawTextWidth
+# $group: markdownUp.bare: draw
+# $doc: Compute the text's width
+# $arg text: The text
+# $arg fontSizePx: The text font size, in pixels
+# $return: The text's width, in pixels
 function drawTextWidth(text, fontSizePx):
     return markdownUpFontWidthRatio * fontSizePx * stringLength(text)
 endfunction
 
 
+# $function: drawVLine
+# $group: markdownUp.bare: draw
+# $doc: Draw a vertical line from the current point to the end point
+# $arg y: The y-coordinate of the end point
 function drawVLine():
 endfunction
 
 
+# $function: drawWidth
+# $group: markdownUp.bare: draw
+# $doc: Get the current drawing's width
+# $return: The current drawing's width
 function drawWidth():
     return objectGet(markdownUpState, 'drawingWidth')
 endfunction
@@ -184,6 +380,16 @@ endfunction
 #
 
 
+# $function: elementModelRender
+# $group: markdownUp.bare: elementModel
+# $doc: Render an [element model](https://github.com/craigahobbs/element-model#readme)
+# $doc:
+# $doc: **Note:** Element model "callback" members are a map of event name (e.g., "click") to
+# $doc: event callback function. The following events have callback arguments:
+# $doc: - **keydown** - keyCode
+# $doc: - **keypress** - keyCode
+# $doc: - **keyup** - keyCode
+# $arg element: The [element model](https://github.com/craigahobbs/element-model#readme)
 function elementModelRender():
 endfunction
 
@@ -193,21 +399,38 @@ endfunction
 #
 
 
+# $function: localStorageClear
+# $group: markdownUp.bare: localStorage
+# $doc: Clear all keys from the browser's local storage
 function localStorageClear():
     objectSet(markdownUpState, 'localStorage', {})
 endfunction
 
 
+# $function: localStorageGet
+# $group: markdownUp.bare: localStorage
+# $doc: Get a browser local storage key's value
+# $arg key: The key string
+# $return: The local storage value string or null if the key does not exist
 function localStorageGet(key):
     return objectGet(objectGet(markdownUpState, 'localStorage'), key)
 endfunction
 
 
+# $function: localStorageRemove
+# $group: markdownUp.bare: localStorage
+# $doc: Remove a browser local storage key
+# $arg key: The key string
 function localStorageRemove(key):
     objectDelete(objectGet(markdownUpState, 'localStorage'), key)
 endfunction
 
 
+# $function: localStorageSet
+# $group: markdownUp.bare: localStorage
+# $doc: Set a browser local storage key's value
+# $arg key: The key string
+# $arg value: The value string
 function localStorageSet(key, value):
     objectSet(objectGet(markdownUpState, 'localStorage'), key, value)
 endfunction
@@ -218,6 +441,11 @@ endfunction
 #
 
 
+# $function: markdownEscape
+# $group: markdownUp.bare: markdown
+# $doc: Escape text for inclusion in Markdown text
+# $arg text: The text
+# $return: The escaped text
 function markdownEscape(text):
     return regexReplace(markdownUp_markdownEscapeRegex, text, '\\$1')
 endfunction
@@ -225,6 +453,11 @@ endfunction
 markdownUp_markdownEscapeRegex = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
 
 
+# $function: markdownHeaderId
+# $group: markdownUp.bare: markdown
+# $doc: Compute the Markdown header element ID for some text
+# $arg text: The text
+# $return: The header element ID
 function markdownHeaderId(text):
     result = stringLower(text)
     result = regexReplace(markdownUp_markdownHeaderId_start, result, '')
@@ -239,10 +472,19 @@ markdownUp_markdownHeaderId_remove = regexNew('[\'"]')
 markdownUp_markdownHeaderId_dash = regexNew('[^a-z0-9]+')
 
 
+# $function: markdownParse
+# $group: markdownUp.bare: markdown
+# $doc: Parse Markdown text
+# $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
+# $return: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
 function markdownParse():
 endfunction
 
 
+# $function: markdownPrint
+# $group: markdownUp.bare: markdown
+# $doc: Render Markdown text
+# $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
 function markdownPrint(lines...):
     markdownUp_markdownPrintHelper(lines)
 endfunction
@@ -258,6 +500,11 @@ function markdownUp_markdownPrintHelper(lines):
 endfunction
 
 
+# $function: markdownTitle
+# $group: markdownUp.bare: markdown
+# $doc: Compute the title of a [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
+# $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
+# $return: The Markdown title or null if there is no title
 function markdownTitle():
 endfunction
 
@@ -267,6 +514,16 @@ endfunction
 #
 
 
+# $function: schemaElements
+# $group: markdownUp.bare: schema
+# $doc: Get a schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme).
+# $doc: Render the element model with the [elementModelRender](#var.vName='elementModelRender') function.
+# $arg types: The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+# $arg typeName: The type name
+# $arg actionURLs: Optional (default is null). The
+# $arg actionURLs: [action URL overrides](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL').
+# $arg actionCustom: Optional (default is false). If true, the action has a custom response.
+# $return: The schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme)
 function schemaElements(types, typeName):
     userType = objectGet(types, typeName)
     userTypeKey = arrayGet(objectKeys(userType), 0)
@@ -286,21 +543,38 @@ endfunction
 #
 
 
+# $function: sessionStorageClear
+# $group: markdownUp.bare: sessionStorage
+# $doc: Clear all keys from the browser's session storage
 function sessionStorageClear():
     objectSet(markdownUpState, 'sessionStorage', {})
 endfunction
 
 
+# $function: sessionStorageGet
+# $group: markdownUp.bare: sessionStorage
+# $doc: Get a browser session storage key's value
+# $arg key: The key string
+# $return: The session storage value string or null if the key does not exist
 function sessionStorageGet(key):
     return objectGet(objectGet(markdownUpState, 'sessionStorage'), key)
 endfunction
 
 
+# $function: sessionStorageRemove
+# $group: markdownUp.bare: sessionStorage
+# $doc: Remove a browser session storage key
+# $arg key: The key string
 function sessionStorageRemove(key):
     objectDelete(objectGet(markdownUpState, 'sessionStorage'), key)
 endfunction
 
 
+# $function: sessionStorageSet
+# $group: markdownUp.bare: sessionStorage
+# $doc: Set a browser session storage key's value
+# $arg key: The key string
+# $arg value: The value string
 function sessionStorageSet(key, value):
     objectSet(objectGet(markdownUpState, 'sessionStorage'), key, value)
 endfunction
@@ -311,6 +585,12 @@ endfunction
 #
 
 
+# $function: urlObjectCreate
+# $group: markdownUp.bare: url
+# $doc: Create an object URL (i.e. a file download URL)
+# $arg data: The object data string
+# $arg contentType: Optional (default is "text/plain"). The object content type.
+# $return: The object URL string
 function urlObjectCreate(data, contentType):
     return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
 endfunction
@@ -321,33 +601,62 @@ endfunction
 #
 
 
+# $function: windowClipboardRead
+# $group: markdownUp.bare: window
+# $doc: Read text from the clipboard
+# $return: The clipboard text
 function windowClipboardRead():
     return objectGet(markdownUpState, 'windowClipboard')
 endfunction
 
 
+# $function: windowClipboardWrite
+# $group: markdownUp.bare: window
+# $doc: Write text to the clipboard
+# $arg text: The text to write
 function windowClipboardWrite(text):
     return objectSet(markdownUpState, 'windowClipboard', text)
 endfunction
 
 
+# $function: windowHeight
+# $group: markdownUp.bare: window
+# $doc: Get the browser window's height
+# $return: The browser window's height
 function windowHeight():
     return markdownUpWindowHeight
 endfunction
 
 
+# $function: windowSetLocation
+# $group: markdownUp.bare: window
+# $doc: Navigate the browser window to a location URL
+# $arg url: The new location URL
 function windowSetLocation():
 endfunction
 
 
+# $function: windowSetResize
+# $group: markdownUp.bare: window
+# $doc: Set the browser window resize event handler
+# $arg callback: The window resize callback function
 function windowSetResize():
 endfunction
 
 
+# $function: windowSetTimeout
+# $group: markdownUp.bare: window
+# $doc: Set the browser window timeout event handler
+# $arg callback: The window timeout callback function
+# $arg delay: The delay, in milliseconds, to ellapse before calling the timeout
 function windowSetTimeout():
 endfunction
 
 
+# $function: windowWidth
+# $group: markdownUp.bare: window
+# $doc: Get the browser window's width
+# $return: The browser window's width
 function windowWidth():
     return markdownUpWindowWidth
 endfunction

@@ -1,5 +1,5 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
 include <args.bare>
@@ -7,7 +7,7 @@ include <args.bare>
 
 # The pager model
 pagerTypes = schemaParse( \
-    'group "pager.bare"', \
+    'group "<pager.bare>"', \
     '', \
     '', \
     '# A pager application model', \
@@ -71,8 +71,8 @@ pagerTypes = schemaParse( \
 # $function: pagerValidate
 # $group: pager.bare
 # $doc: Validate a pager model
-# $arg pagerModel: The [pager model](includeModel.html#var.vName='Pager')
-# $return: The validated [pager model](includeModel.html#var.vName='Pager') or null if validation fails
+# $arg pagerModel: The [pager model](model.html#var.vName='Pager')
+# $return: The validated [pager model](model.html#var.vName='Pager') or null if validation fails
 function pagerValidate(pagerModel):
     return schemaValidate(pagerTypes, 'Pager', pagerModel)
 endfunction
@@ -81,9 +81,9 @@ endfunction
 # $function: pagerMain
 # $group: pager.bare
 # $doc: The pager application main entry point
-# $arg pagerModel: The [pager model](includeModel.html#var.vName='Pager')
+# $arg pagerModel: The [pager model](model.html#var.vName='Pager')
 # $arg options: The pager application options. The following options are available:
-# $arg options: - **arguments** - The [arguments model](includeModel.html#var.vName='ArgsArguments').
+# $arg options: - **arguments** - The [arguments model](model.html#var.vName='ArgsArguments').
 # $arg options:   Must contain a string argument named "page".
 # $arg options: - **hideMenu** - Hide the menu links
 # $arg options: - **hideNav** - Hide the navigation links

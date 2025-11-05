@@ -93,7 +93,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ```
-The BareScript Library has 105 functions
+The BareScript Library has 186 functions
 ```
 
 
@@ -154,14 +154,9 @@ write the body to the path.
 
 ## MarkdownUp, a Markdown Viewer with BareScript
 
-[MarkdownUp](https://craigahobbs.github.io/markdown-up/)
-is a Markdown Viewer that executes BareScript embedded within Markdown documents.
-[MarkdownUp](https://craigahobbs.github.io/markdown-up/)
-extends its
-[standard library](https://craigahobbs.github.io/markdown-up/library/)
-with functions for dynamically rendering Markdown text, drawing SVG images, etc.
-
-For example:
+[MarkdownUp](https://craigahobbs.github.io/markdown-up/) is a Markdown Viewer that executes
+BareScript embedded within Markdown documents. The MarkdownUp runtime contains functions for
+dynamically rendering Markdown text, drawing SVG images, etc. For example:
 
 ~~~
 # Markdown Application

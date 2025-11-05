@@ -1,0 +1,524 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <pager.bare>
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+# Test page function
+function testPagerModel_page2():
+    markdownPrint('This is page 2')
+endfunction
+
+
+# Test page function #2
+function testPagerModel_page4():
+    markdownPrint('This is page 4')
+endfunction
+
+
+# Test pager model
+testPagerModel = { \
+    'pages': [ \
+        {'name': 'Page 1', 'type': {'markdown': { \
+            'url': 'README.md'}}}, \
+        {'name': 'Page2', 'type': {'function': { \
+            'function': testPagerModel_page2, 'title': 'Page 2'}}}, \
+        {'name': 'Page3', 'type': {'link': { \
+            'url': '#url=other.md'}}}, \
+        {'name': 'Page4', 'hidden': true, 'type': {'function': { \
+            'function': testPagerModel_page4}}} \
+    ] \
+}
+
+
+async function testPagerMarkdown():
+    unittestMockAll({ \
+        'markdownParse': [{'parts': []}], \
+        'markdownTitle': ['The Title'], \
+        'systemFetch': { \
+            'README.md': 'Hello!' \
+        } \
+    })
+
+    pagerMain(testPagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
+            ['systemFetch', ['README.md']], \
+            ['markdownParse', ['Hello!']], \
+            ['markdownTitle', [{'parts': []}]], \
+            ['documentSetTitle', ['The Title']], \
+            ['markdownPrint', ['', 'Hello!']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerMarkdown')
+
+
+async function testPagerMarkdown_noTitle():
+    unittestMockAll({ \
+        'markdownParse': [{'parts': []}], \
+        'markdownTitle': [null], \
+        'systemFetch': { \
+            'README.md': 'Hello!' \
+        } \
+    })
+
+    pagerMain(testPagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
+            ['systemFetch', ['README.md']], \
+            ['markdownParse', ['Hello!']], \
+            ['markdownTitle', [{'parts': []}]], \
+            ['documentSetTitle', ['No Title']], \
+            ['markdownPrint', ['', 'Hello!']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerMarkdown_noTitle')
+
+
+async function testPagerMarkdownNotFound():
+    unittestMockAll()
+
+    pagerMain(testPagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
+            ['systemFetch', ['README.md']], \
+            ['markdownPrint', ['**Error:** Failed to load "README.md"']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerMarkdownNotFound')
+
+
+async function testPagerFunction():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Page2'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vPage='Page%201')&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['markdownPrint', [ \
+                "(&nbsp;Start&nbsp;|&nbsp;[Previous](#var.vPage='Page%201')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerFunction')
+
+
+async function testPagerLink():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Page3'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vPage='Page%201')&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['markdownPrint', [ \
+                "(&nbsp;Start&nbsp;|&nbsp;[Previous](#var.vPage='Page2')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerLink')
+
+
+async function testPagerHidden():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Page4'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vPage='Page%201')&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['markdownPrint', [ \
+                "(&nbsp;Start&nbsp;|&nbsp;[Previous](#var.vPage='Page2')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]], \
+            ['markdownPrint', ['This is page 4']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerHidden')
+
+
+async function testPagerArg():
+    unittestMockAll()
+
+    # Set argument globals
+    systemGlobalSet('vPage', 'Page2')
+
+    pagerMain(testPagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ['[Page 1](#var=)&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)', '']], \
+            ['markdownPrint', ['(&nbsp;[Start](#var=)&nbsp;|&nbsp;[Previous](#var=)&nbsp;|&nbsp;Next&nbsp;)', '']], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+
+    # Clear argument globals
+    systemGlobalSet('vPage', null)
+endfunction
+unittestRunTest('testPagerArg')
+
+
+async function testPagerArgUnknown():
+    unittestMockAll()
+
+    # Set argument globals
+    systemGlobalSet('vPage', 'Unknown')
+
+    pagerMain(testPagerModel, {'start': 'Page2'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vPage='Page%201')&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['markdownPrint', [ \
+                "(&nbsp;Start&nbsp;|&nbsp;[Previous](#var.vPage='Page%201')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+
+    # Clear argument globals
+    systemGlobalSet('vPage', null)
+endfunction
+unittestRunTest('testPagerArgUnknown')
+
+
+async function testPagerArguments():
+    unittestMockAll()
+
+    # Set argument globals
+    systemGlobalSet('vPage', 'Page2')
+    systemGlobalSet('vName', 'testName')
+
+    arguments = argsValidate([ \
+        {'name': 'page', 'default': 'Page 1'}, \
+        {'name': 'name'} \
+    ])
+    pagerMain(testPagerModel, {'arguments': arguments})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vName='testName')&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['markdownPrint', [ \
+                "(&nbsp;[Start](#var.vName='testName')&nbsp;|&nbsp;[Previous](#var.vName='testName')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+
+    # Clear argument globals
+    systemGlobalSet('vPage', null)
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testPagerArguments')
+
+
+async function testPagerHideMenu():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Page2', 'hideMenu': true})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "(&nbsp;Start&nbsp;|&nbsp;[Previous](#var.vPage='Page%201')&nbsp;|&nbsp;Next&nbsp;)", \
+                '' \
+            ]], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerHideMenu')
+
+
+async function testPagerHideNav():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Page2', 'hideNav': true})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', [ \
+                "[Page 1](#var.vPage='Page%201')&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)", \
+                '' \
+            ]], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerHideNav')
+
+
+async function testPagerKeyboard():
+    unittestMockAll({ \
+        'markdownParse': [{'parts': []}], \
+        'markdownTitle': ['The Title'], \
+        'systemFetch': { \
+            'README.md': 'Hello!' \
+        } \
+    })
+
+    pagerMain(testPagerModel, {'hideNav': true, 'keyboard': true})
+
+    mockCalls = unittestMockEnd()
+    unittestDeepEqual( \
+        mockCalls, \
+        [ \
+            ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['systemFetch', ['README.md']], \
+            ['markdownParse', ['Hello!']], \
+            ['markdownTitle', [{'parts': []}]], \
+            ['documentSetTitle', ['The Title']], \
+            ['markdownPrint', ['', 'Hello!']], \
+            ['documentSetKeyDown', ['<function>']] \
+        ] \
+    )
+    keyDown = arrayGet(arrayGet(arrayGet(mockCalls, arrayLength(mockCalls) - 1), 1), 0)
+
+    unittestMockAll()
+    keyDown({'key': 'p'})
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    unittestMockAll()
+    keyDown({'key': 'n'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ["#var.vPage='Page2'"]] \
+    ])
+
+    unittestMockAll()
+    keyDown({'key': 's'})
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    unittestMockAll()
+    keyDown({'key': 'e'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ["#var.vPage='Page2'"]] \
+    ])
+endfunction
+unittestRunTest('testPagerKeyboard')
+
+
+async function testPagerKeyboardNonStart():
+    unittestMockAll({ \
+        'markdownParse': [{'parts': []}], \
+        'markdownTitle': ['The Title'], \
+        'systemFetch': { \
+            'README.md': 'Hello!' \
+        } \
+    })
+
+    # Set argument globals
+    systemGlobalSet('vPage', 'Page2')
+
+    pagerMain(testPagerModel, {'hideNav': true, 'keyboard': true})
+
+    # Clear argument globals
+    systemGlobalSet('vPage', null)
+
+    mockCalls = unittestMockEnd()
+    unittestDeepEqual( \
+        mockCalls, \
+        [ \
+            ['markdownPrint', ["[Page 1](#var=)&nbsp;|&nbsp;Page2&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['documentSetTitle', ['Page 2']], \
+            ['markdownPrint', ['# Page 2', '']], \
+            ['markdownPrint', ['This is page 2']], \
+            ['documentSetKeyDown', ['<function>']] \
+        ] \
+    )
+    keyDown = arrayGet(arrayGet(arrayGet(mockCalls, arrayLength(mockCalls) - 1), 1), 0)
+
+    unittestMockAll()
+    keyDown({'key': 'p'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ['#var=']] \
+    ])
+
+    unittestMockAll()
+    keyDown({'key': 'n'})
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    unittestMockAll()
+    keyDown({'key': 's'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ['#var=']] \
+    ])
+
+    unittestMockAll()
+    keyDown({'key': 'e'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testPagerKeyboardNonStart')
+
+
+async function testPagerSinglePage():
+    unittestMockAll()
+
+    pagerModel = { \
+        'pages': [ \
+            {'name': 'Page2', 'type': {'function': {'function': testPagerModel_page2}}} \
+        ] \
+    }
+    pagerMain(pagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ['Page2', '']], \
+            ['markdownPrint', ['This is page 2']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerSinglePage')
+
+
+async function testPagerNoPages():
+    unittestMockAll()
+
+    pagerModel = { \
+        'pages': [ \
+            {'name': 'Link1', 'type': {'link': {'url': 'page1.html'}}}, \
+            {'name': 'Link2', 'type': {'link': {'url': 'page2.html'}}} \
+        ] \
+    }
+    pagerMain(pagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['systemLogDebug', ['pager.bare: No visible and navigable pages']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerNoPages')
+
+
+async function testPagerNoLinks():
+    unittestMockAll()
+
+    pagerModel = { \
+        'pages': [ \
+            {'name': 'Page2', 'hidden': true, 'type': {'function': {'function': testPagerModel_page2}}}, \
+            {'name': 'Page4', 'hidden': true, 'type': {'function': {'function': testPagerModel_page4}}} \
+        ] \
+    }
+    pagerMain(pagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['systemLogDebug', ['pager.bare: No visible and navigable pages']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerNoLinks')
+
+
+async function testPagerInvalidPagerModel():
+    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestMockAll()
+
+    pagerModel = { \
+        'pages': [ \
+            {'name': 'Page1'} \
+        ] \
+    }
+    pagerMain(pagerModel)
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [] \
+    )
+endfunction
+unittestRunTest('testPagerInvalidPagerModel')
+
+
+async function testPagerInvalidArgumentsModel():
+    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestMockAll()
+
+    arguments = [{}]
+    pagerMain(testPagerModel, {'arguments': arguments})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [] \
+    )
+endfunction
+unittestRunTest('testPagerInvalidArgumentsModel')
+
+
+async function testPagerInvalidStart():
+    unittestMockAll()
+
+    pagerMain(testPagerModel, {'start': 'Unknown'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['systemLogDebug', ['pager.bare: Unknown start page "Unknown"']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerInvalidStart')

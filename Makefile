@@ -24,11 +24,25 @@ ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 
 
 help:
-	@echo "            [perf|test-doc]"
+	@echo "            [perf|sync-include|test-include]"
 
 
 clean:
 	rm -rf Makefile.base jsdoc.json eslint.config.js
+
+
+.PHONY: sync-include
+sync-include:
+	rsync -rv --delete --exclude=.git/ --exclude=__init__.py lib/include/ ../bare-script-py/src/bare_script/include/
+	rsync -rv --delete --exclude=.git/ static/ ../bare-script-py/static/
+
+
+.PHONY: test-include
+commit: test-include
+test-include: build/npm.build
+	$(NODE_SHELL) npx bare -x -m lib/include/*.bare lib/include/test/*.bare
+	$(NODE_SHELL) npx bare -d -m lib/include/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -d -v vUnittestReport true lib/include/test/runTestsMarkdownUp.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 doc:
@@ -36,11 +50,11 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_SHELL) npx baredoc lib/library.js -o build/doc/library/library.json
+	$(NODE_SHELL) npx baredoc lib/library.js lib/include/*.bare -o build/doc/library/library.json
 
     # Generate the single-page library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m app.bare \
+	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
 		> barescript-library.md
@@ -50,7 +64,7 @@ doc:
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m app.bare \
+	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
 		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
 		> barescript-expression-library.md
@@ -90,9 +104,12 @@ export DOC_EXPR_JS
 
 # JavaScript to generate the library model documentation
 define DOC_LIBRARY_MODEL_JS
+import {fetchReadWrite, logStdout} from './lib/optionsNode.js';
 import {regexMatchTypes, systemFetchTypes} from './lib/library.js';
 import {aggregationTypes} from './lib/data.js';
 import {argv} from 'node:process';
+import {executeScriptAsync} from './lib/runtimeAsync.js';
+import {parseScript} from './lib/parser.js';
 import {valueJSON} from './lib/value.js';
 import {writeFileSync} from 'node:fs';
 
@@ -101,6 +118,25 @@ const [, typeModelPath] = argv;
 
 // Create the library type model
 const types = {...aggregationTypes, ...regexMatchTypes, ...systemFetchTypes};
+
+// Create the include library type model
+const script = parseScript(`\
+include 'lib/include/args.bare'
+include 'lib/include/dataLineChart.bare'
+include 'lib/include/dataTable.bare'
+include 'lib/include/diff.bare'
+include 'lib/include/pager.bare'
+
+includeTypes = {}
+objectAssign(includeTypes, argsTypes)
+objectAssign(includeTypes, dataLineChartTypes)
+objectAssign(includeTypes, dataTableTypes)
+objectAssign(includeTypes, diffTypes)
+objectAssign(includeTypes, pagerTypes)
+return includeTypes
+`);
+const includeTypes = await executeScriptAsync(script, {'fetchFn': fetchReadWrite, 'logFn': logStdout});
+Object.assign(types, includeTypes);
 
 // Write the library type model
 writeFileSync(typeModelPath, valueJSON(types));
@@ -122,13 +158,6 @@ const [, typeModelPath] = argv;
 writeFileSync(typeModelPath, valueJSON(bareScriptTypes));
 endef
 export DOC_RUNTIME_MODEL_JS
-
-
-.PHONY: test-doc
-commit: test-doc
-test-doc: build/npm.build
-	$(NODE_SHELL) npx bare -x -m static/library/*.bare static/library/test/*.bare
-	$(NODE_SHELL) npx bare -d -m static/library/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 # Run performance tests
@@ -168,16 +197,3 @@ for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], 
 }
 endef
 export PERF_JS
-
-
-# Update the MarkdownUp include library tarball
-.PHONY: markdown-up
-markdown-up:
-	mkdir -p build/
-	rm -rf build/markdown-up
-	cd build && \
-		rm -f markdown-up.tar.gz && \
-		$(call WGET_CMD, https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz) && \
-		tar xzvf markdown-up.tar.gz
-	rm -rf lib/include/
-	cp -R build/markdown-up/include lib/

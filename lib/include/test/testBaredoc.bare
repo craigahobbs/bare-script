@@ -4,7 +4,7 @@
 include <unittest.bare>
 include <unittestMock.bare>
 
-include '../app.bare'
+include '../baredoc.bare'
 
 
 # Test library

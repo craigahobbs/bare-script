@@ -1,3 +1,8 @@
 {
-    "": "content/intro.md"
+    "": "content/intro.md",
+    "args.bare": "content/args.md",
+    "markdownUp.bare": "content/markdownUp.md",
+    "pager.bare": "content/pager.md",
+    "unittest.bare": "content/unittest.md",
+    "unittestMock.bare": "content/unittestMock.md"
 }

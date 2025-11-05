@@ -1,0 +1,941 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+# Helper to begin mocking the unittest global state
+function testUnittestMockBegin():
+    result = [ \
+        systemGlobalGet('unittestData'), \
+        systemGlobalGet('vUnittestTest'), \
+        systemGlobalGet('vUnittestScript'), \
+        systemGlobalGet('vUnittestHideTests'), \
+        systemGlobalGet('vUnittestReport') \
+    ]
+    systemGlobalSet('unittestData', {'tests': {}, 'warnings': [], 'current': null})
+    systemGlobalSet('vUnittestTest', null)
+    systemGlobalSet('vUnittestScript', null)
+    systemGlobalSet('vUnittestHideTests', false)
+    systemGlobalSet('vUnittestReport', false)
+    return result
+endfunction
+
+
+# Helper to end mocking the unittest global state
+function testUnittestMockEnd(beginResult):
+    systemGlobalSet('unittestData', arrayGet(beginResult, 0))
+    systemGlobalSet('vUnittestTest', arrayGet(beginResult, 1))
+    systemGlobalSet('vUnittestScript', arrayGet(beginResult, 2))
+    systemGlobalSet('vUnittestHideTests', arrayGet(beginResult, 3))
+    systemGlobalSet('vUnittestReport', arrayGet(beginResult, 4))
+endfunction
+
+
+# Helper unittest functions
+function testUnittest_testPass():
+    unittestEqual(1 + 1, 2)
+    unittestDeepEqual(arrayPush([1], 2), [1, 2])
+
+    # With a description
+    unittestEqual(1 + 1, 2, 'Add ones')
+    unittestDeepEqual(arrayPush([1], 2), [1, 2], 'Push 2')
+endfunction
+
+function testUnittest_testFail():
+    unittestEqual(1 + 1, 3)
+    unittestDeepEqual(arrayPush([1], 2), [1, 2, 3])
+    unittestDeepEqual('1\n2\n3', '1\n2')
+
+    # With a description
+    unittestEqual(1 + 1, 3, 'Fail ones')
+    unittestDeepEqual(arrayPush([1], 2), [1, 2, 3], 'Fail push')
+endfunction
+
+
+# Test coverage global object
+function testUnittestCoverageGlobalGet():
+    return { \
+        'enabled': true, \
+        'scripts': { \
+            'test.bare': { \
+                'covered': { \
+                    '1': { \
+                        'count': 1, \
+                        'statement': { \
+                            'function': { \
+                                'args': ['test'], \
+                                'lineNumber': 1, \
+                                'name': 'testMain', \
+                                'statements': [ \
+                                    { \
+                                        'jump': { \
+                                            'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
+                                            'label': '__bareScriptDone0', \
+                                            'lineNumber': 2 \
+                                        } \
+                                    }, \
+                                    {'return': {'expr': {'string': 'Test'}, 'lineNumber': 3}}, \
+                                    {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}}, \
+                                    {'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2}} \
+                                ] \
+                            } \
+                        } \
+                    }, \
+                    '2': { \
+                        'count': 1, \
+                        'statement': { \
+                            'jump': { \
+                                'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
+                                'label': '__bareScriptDone0', \
+                                'lineNumber': 2 \
+                            } \
+                        } \
+                    }, \
+                    '4': { \
+                        'count': 1, \
+                        'statement': {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}} \
+                    }, \
+                    '6': { \
+                        'count': 1, \
+                        'statement': {'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2}} \
+                    } \
+                }, \
+                'script': { \
+                    'scriptLines': [ \
+                        'function testMain(test):', \
+                        '    if test:', \
+                        "        return 'Test'", \
+                        '    endif', \
+                        '', \
+                        '    return \\', \
+                        "        'No Test'", \
+                        'endfunction', \
+                        '' \
+                    ], \
+                    'scriptName': 'test.bare', \
+                    'statements': [ \
+                        { \
+                            'function': { \
+                                'args': ['test'], \
+                                'lineNumber': 1, \
+                                'name': 'testMain', \
+                                'statements': [ \
+                                    { \
+                                        'jump': { \
+                                            'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
+                                            'label': '__bareScriptDone0', \
+                                            'lineNumber': 2 \
+                                        } \
+                                    }, \
+                                    { \
+                                        'return': {'expr': {'string': 'Test'}, 'lineNumber': 3} \
+                                    }, \
+                                    { \
+                                        'label': {'lineNumber': 4, 'name': '__bareScriptDone0'} \
+                                    }, \
+                                    { \
+                                        'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2} \
+                                    } \
+                                ] \
+                            } \
+                        } \
+                    ] \
+                } \
+            }, \
+            'testTest.bare': { \
+                'covered': { \
+                    '1': { \
+                        'count': 1, \
+                        'statement': { \
+                            'include': { \
+                                'includes': [{'url': 'test.bare'}], \
+                                'lineNumber': 1 \
+                            } \
+                        } \
+                    }, \
+                    '4': { \
+                        'count': 1, \
+                        'statement': { \
+                            'function': { \
+                                'lineNumber': 4, \
+                                'name': 'testTestNoTest', \
+                                'statements': [ \
+                                    { \
+                                        'expr': { \
+                                            'expr': { \
+                                                'function': { \
+                                                    'args': [ \
+                                                        {'function': { \
+                                                            'args': [{'variable': 'false'}], \
+                                                            'name': 'testMain' \
+                                                        }}, \
+                                                        {'string': 'No Test'} \
+                                                    ], \
+                                                    'name': 'unittestEqual' \
+                                                } \
+                                            }, \
+                                            'lineNumber': 5 \
+                                        } \
+                                    } \
+                                ] \
+                            } \
+                        } \
+                    }, \
+                    '5': { \
+                        'count': 1, \
+                        'statement': { \
+                            'expr': { \
+                                'expr': { \
+                                    'function': { \
+                                        'args': [ \
+                                            { \
+                                                'function': {'args': [{'variable': 'false'}], 'name': 'testMain'} \
+                                            }, \
+                                            {'string': 'No Test'} \
+                                        ], \
+                                        'name': 'unittestEqual' \
+                                    } \
+                                }, \
+                                'lineNumber': 5 \
+                            } \
+                        } \
+                    }, \
+                    '7': { \
+                        'count': 1, \
+                        'statement': { \
+                            'expr': { \
+                                'expr': { \
+                                    'function': {'args': [{'string': 'testTestNoTest'}], 'name': 'unittestRunTest'} \
+                                }, \
+                                'lineNumber': 7 \
+                            } \
+                        } \
+                    } \
+                }, \
+                'script': { \
+                    'scriptLines': [ \
+                        "include 'test.bare'", \
+                        '', \
+                        '', \
+                        'function testTestNoTest():', \
+                        "    unittestEqual(testMain(false), 'No Test')", \
+                        'endfunction', \
+                        "unittestRunTest('testTestNoTest')", \
+                        '' \
+                    ], \
+                    'scriptName': 'testTest.bare', \
+                    'statements': [ \
+                        { \
+                            'include': { \
+                                'includes': [{'url': 'test.bare'}], \
+                                'lineNumber': 1 \
+                            } \
+                        }, \
+                        { \
+                            'function': { \
+                                'lineNumber': 4, \
+                                'name': 'testTestNoTest', \
+                                'statements': [ \
+                                    { \
+                                        'expr': { \
+                                            'expr': { \
+                                                'function': { \
+                                                    'args': [ \
+                                                        { \
+                                                            'function': { \
+                                                                'args': [{'variable': 'false'}], \
+                                                                'name': 'testMain' \
+                                                            } \
+                                                        }, \
+                                                        {'string': 'No Test'} \
+                                                    ], \
+                                                    'name': 'unittestEqual' \
+                                                } \
+                                            }, \
+                                            'lineNumber': 5 \
+                                        } \
+                                    } \
+                                ] \
+                            } \
+                        }, \
+                        { \
+                            'expr': { \
+                                'expr': { \
+                                    'function': { \
+                                        'args': [{'string': 'testTestNoTest'}], \
+                                        'name': 'unittestRunTest' \
+                                    } \
+                                }, \
+                                'lineNumber': 7 \
+                            } \
+                        } \
+                    ] \
+                } \
+            } \
+        } \
+    }
+endfunction
+
+
+# Test coverage global object with no data
+function testUnittestCoverageGlobalGet_noData():
+    return {'enabled': false}
+endfunction
+
+
+async function testUnittestRunTest():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    unittestRunTest('testUnittest_testPass')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest')
+
+
+async function testUnittestRunTestAsync():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    unittestRunTestAsync('testUnittest_testPass')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['unittest.bare: unittestRunTestAsync is deprecated - use unittestRunTest']], \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTestAsync')
+
+
+async function testUnittestRunTest_failure():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    unittestRunTest('testUnittest_testPass')
+    unittestRunTest('testUnittest_testFail')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 1)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 2 tests - 1 passed, 1 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Failing Tests']], \
+        ['markdownPrint', [ \
+            [ \
+                '', \
+                "[testUnittest\\_testFail](#var.vUnittestTest='testUnittest_testFail'&_top) - FAIL", \
+                '', \
+                '- Equal:', \
+                '', \
+                '  ```', \
+                '  2', \
+                '  ```', \
+                '', \
+                '  ```', \
+                '  3', \
+                '  ```', \
+                '', \
+                '- Deep-equal:', \
+                '', \
+                '  ```', \
+                '  ---     2', \
+                '  +++     2,', \
+                '  +++     3', \
+                '  ```', \
+                '', \
+                '- Deep-equal:', \
+                '', \
+                '  ```', \
+                '  --- 3', \
+                '  ```', \
+                '', \
+                '- Fail ones', \
+                '', \
+                '  Equal:', \
+                '', \
+                '  ```', \
+                '  2', \
+                '  ```', \
+                '', \
+                '  ```', \
+                '  3', \
+                '  ```', \
+                '', \
+                '- Fail push', \
+                '', \
+                '  Deep-equal:', \
+                '', \
+                '  ```', \
+                '  ---     2', \
+                '  +++     2,', \
+                '  +++     3', \
+                '  ```' \
+            ] \
+        ]], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_failure')
+
+
+async function testUnittestRunTest_hideTests():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestHideTests', true)
+    unittestRunTest('testUnittest_testPass')
+    unittestRunTest('testUnittest_testFail')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 1)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 2 tests - 1 passed, 1 failed']], \
+        ['markdownPrint', ['', '[Show tests](#var=)']], \
+        ['markdownPrint', ['', '## Failing Tests']], \
+        ['markdownPrint', ['', '[Show](#var=)']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', '[Show](#var=)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_hideTests')
+
+
+async function testUnittestRunTest_testName():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestTest', 'testUnittest_testPass')
+    unittestRunTest('testUnittest_testPass')
+    unittestRunTest('testUnittest_testFail')
+    result = unittestReport()
+    systemGlobalSet('vUnittestTest', null)
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', '[All tests](#var=)']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_testName')
+
+
+async function testUnittestRunTest_disabled():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestDisabled', true)
+    unittestRunTest('testUnittest_testPass')
+    unittestRunTest('testUnittest_testFail')
+    result = unittestReport()
+    systemGlobalSet('vUnittestDisabled', null)
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUnittestRunTest_disabled')
+
+
+async function testUnittestRunTest_multiple():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    unittestRunTest('testUnittest_testPass')
+    unittestRunTest('testUnittest_testPass')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 1)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Warnings']], \
+        ['markdownPrint', ['', '- Test \\"testUnittest\\_testPass\\" run multiple times']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_multiple')
+
+
+async function testUnittestRunTest_unknown():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    unittestRunTest('testUnittest_testUnknown')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 1)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Warnings']], \
+        ['markdownPrint', ['', '- Test \\"testUnittest\\_testUnknown\\" not found']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_unknown')
+
+
+async function testUnittestRunTest_noLinks():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestReport', true)
+    unittestRunTest('testUnittest_testPass')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', '## Passing Tests']], \
+        ['markdownPrint', ['', 'testUnittest_testPass - OK']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', [ \
+            '', \
+            [ \
+                '| Script        | Statements | Missing | Coverage |', \
+                '|---------------|-----------:|--------:|---------:|', \
+                '| test.bare     |          5 |       1 |    80.0% |', \
+                '| testTest.bare |          4 |       0 |   100.0% |', \
+                '| **Total**     |          9 |       1 |    88.9% |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_noLinks')
+
+
+async function testUnittestRunTest_coverage():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', [ \
+            '', \
+            [ \
+                '| Script                                                     | Statements | Missing | Coverage |', \
+                '|------------------------------------------------------------|-----------:|--------:|---------:|', \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
+                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage')
+
+
+async function testUnittestRunTest_coverage_links():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    result = unittestReport({'title': 'My Title', 'links': ['[a](a.html)', '[b](b.html)']})
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', ['[a](a.html) | [b](b.html)']], \
+        ['documentSetTitle', ['My Title']], \
+        ['markdownPrint', ['# My Title', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', [ \
+            '', \
+            [ \
+                '| Script                                                     | Statements | Missing | Coverage |', \
+                '|------------------------------------------------------------|-----------:|--------:|---------:|', \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
+                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_links')
+
+
+async function testUnittestRunTest_coverage_exclude():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    result = unittestReport({'coverageExclude': ['testTest.bare']})
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', [ \
+            '', \
+            [ \
+                '| Script                                             | Statements | Missing | Coverage |', \
+                '|----------------------------------------------------|-----------:|--------:|---------:|', \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top) |          5 |       1 |    80.0% |", \
+                '| **Total**                                          |          5 |       1 |    80.0% |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_exclude')
+
+
+async function testUnittestRunTest_coverage_min():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    result = unittestReport({'coverageMin': 100})
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 1)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', [ \
+            '', \
+            '**Error**: Coverage percentage, 88.9%, is below the minimum coverage percentage of 100%.' \
+        ]], \
+        ['markdownPrint', [ \
+            '', \
+            [ \
+                '| Script                                                     | Statements | Missing | Coverage |', \
+                '|------------------------------------------------------------|-----------:|--------:|---------:|', \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
+                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_min')
+
+
+async function testUnittestRunTest_coverage_noData():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unittestReport']], \
+        ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
+        ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_noData')
+
+
+async function testUnittestRunTest_coverage_script():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestScript', 'test.bare')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['test.bare Coverage']], \
+        ['markdownPrint', ['[Back](#var=&_top)', '', '# test.bare Coverage']], \
+        ['elementModelRender', [ \
+            { \
+                'html': 'pre', \
+                'elem': [ \
+                    { \
+                        'attr': {'style': 'display: block; background-color: #a0a0a030'}, \
+                        'elem': {'text': 'function testMain(test):\n    if test:\n'}, \
+                        'html': 'span' \
+                    }, \
+                    { \
+                        'attr': {'style': 'display: block; background-color: #f0808080'}, \
+                        'elem': {'text': "        return 'Test'\n"}, \
+                        'html': 'span' \
+                    }, \
+                    { \
+                        'attr': {'style': 'display: block; background-color: #a0a0a030'}, \
+                        'elem': {'text': '    endif\n'}, \
+                        'html': 'span' \
+                    }, \
+                    {'text': '\n'}, \
+                    { \
+                        'attr': {'style': 'display: block; background-color: #a0a0a030'}, \
+                        'elem': {'text': "    return \\\n        'No Test'\n"}, \
+                        'html': 'span' \
+                    }, \
+                    {'text': 'endfunction\n'} \
+                ] \
+            } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_script')
+
+
+async function testUnittestRunTest_coverage_script_noData():
+    # Mock coverageGlobalGet
+    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
+    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+
+    # Setup mocks
+    unittestMockAll()
+
+    # Run unit tests and report
+    mockBegin = testUnittestMockBegin()
+    systemGlobalSet('vUnittestScript', 'unknown.bare')
+    result = unittestReport()
+    testUnittestMockEnd(mockBegin)
+
+    # Restore the original coverageGlobalGet
+    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+
+    # Verify report result
+    unittestEqual(result, 0)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['unknown.bare Coverage']], \
+        ['markdownPrint', ['[Back](#var=&_top)', '', '# unknown.bare Coverage']], \
+        ['markdownPrint', ['', '*No data.*']] \
+    ])
+endfunction
+unittestRunTest('testUnittestRunTest_coverage_script_noData')

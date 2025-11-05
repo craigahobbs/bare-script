@@ -1,0 +1,147 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <forms.bare>
+include <unittest.bare>
+
+
+function testFormsTextElements():
+    unittestDeepEqual( \
+        formsTextElements('testId', 'Hello', 30), \
+        { \
+            'attr': { \
+                'autocomplete': 'off', \
+                'id': 'testId', \
+                'size': 30, \
+                'style': 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
+                'type': 'text', \
+                'value': 'Hello' \
+            }, \
+            'callback': null, \
+            'html': 'input' \
+        } \
+    )
+endfunction
+unittestRunTest('testFormsTextElements')
+
+
+function testFormsTextElements_onEnterCallback():
+    clickCount = systemGlobalGet('testFormsTextElements_onEnterCount')
+    systemGlobalSet('testFormsTextElements_onEnterCount', clickCount + 1)
+endfunction
+
+
+async function testFormsTextElements_onEnter():
+    systemGlobalSet('testFormsTextElements_onEnterCount', 0)
+    elements = formsTextElements('testId', 'Hello', 30, testFormsTextElements_onEnterCallback)
+    unittestDeepEqual( \
+        elements, \
+        { \
+            'attr': { \
+                'autocomplete': 'off', \
+                'id': 'testId', \
+                'size': 30, \
+                'style': 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
+                'type': 'text', \
+                'value': 'Hello' \
+            }, \
+            'callback': {'keyup': '<function>'}, \
+            'html': 'input' \
+        } \
+    )
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 0)
+    onKeyup = objectGet(objectGet(elements, 'callback'), 'keyup')
+    onKeyup(10)
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 0)
+    onKeyup(13)
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 1)
+endfunction
+unittestRunTest('testFormsTextElements_onEnter')
+
+
+async function testFormsTextElements_onEnterCallbackAsync():
+    clickCount = systemGlobalGet('testFormsTextElements_onEnterCount')
+    systemGlobalSet('testFormsTextElements_onEnterCount', clickCount + 1)
+endfunction
+
+
+async function testFormsTextElements_onEnterAsync():
+    systemGlobalSet('testFormsTextElements_onEnterCount', 0)
+    elements = formsTextElements('testId', 'Hello', 30, testFormsTextElements_onEnterCallbackAsync)
+    unittestDeepEqual( \
+        elements, \
+        { \
+            'attr': { \
+                'autocomplete': 'off', \
+                'id': 'testId', \
+                'size': 30, \
+                'style': 'font-size: inherit; border: thin solid black; padding: 0.4em;', \
+                'type': 'text', \
+                'value': 'Hello' \
+            }, \
+            'callback': {'keyup': '<function>'}, \
+            'html': 'input' \
+        } \
+    )
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 0)
+    onKeyup = objectGet(objectGet(elements, 'callback'), 'keyup')
+    onKeyup(10)
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 0)
+    onKeyup(13)
+    unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 1)
+endfunction
+unittestRunTest('testFormsTextElements_onEnterAsync')
+
+
+function testFormsLinkButtonElementsCallback():
+    clickCount = systemGlobalGet('testFormsLinkButtonElementsCount')
+    systemGlobalSet('testFormsLinkButtonElementsCount', clickCount + 1)
+endfunction
+
+
+function testFormsLinkButtonElements():
+    systemGlobalSet('testFormsLinkButtonElementsCount', 0)
+    elements = formsLinkButtonElements('Hello', testFormsLinkButtonElementsCallback)
+    unittestDeepEqual( \
+        elements, \
+        { \
+            'html': 'a', \
+            'attr': {'style': 'cursor: pointer; user-select: none;'}, \
+            'elem': {'text': 'Hello'}, \
+            'callback': {'click': '<function>'} \
+        } \
+    )
+    unittestEqual(systemGlobalGet('testFormsLinkButtonElementsCount'), 0)
+    onClick = objectGet(objectGet(elements, 'callback'), 'click')
+    onClick()
+    unittestEqual(systemGlobalGet('testFormsLinkButtonElementsCount'), 1)
+endfunction
+unittestRunTest('testFormsLinkButtonElements')
+
+
+function testFormsLinkElements():
+    elements = formsLinkElements('Hello', '/#var=')
+    unittestDeepEqual( \
+        elements, \
+        { \
+            'html': 'a', \
+            'attr': {'href': '/#var='}, \
+            'elem': {'text': 'Hello'} \
+        } \
+    )
+endfunction
+unittestRunTest('testFormsLinkElements')
+
+
+function testFormsLinkElements_nullUrl():
+    elements = formsLinkElements('Hello', null)
+    unittestDeepEqual( \
+        elements, \
+        { \
+            'html': 'span', \
+            'attr': {'style': 'user-select: none;'}, \
+            'elem': {'text': 'Hello'} \
+        } \
+    )
+endfunction
+unittestRunTest('testFormsLinkElements_nullUrl')

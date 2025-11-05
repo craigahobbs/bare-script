@@ -1,0 +1,90 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# The line chart model
+dataLineChartTypes = schemaParse( \
+    'group "Line Chart"', \
+    '', \
+    '', \
+    '# A line chart model', \
+    'struct LineChart', \
+    '', \
+    '    # The chart title', \
+    '    optional string title', \
+    '', \
+    '    # The chart width', \
+    '    optional int width', \
+    '', \
+    '    # The chart height', \
+    '    optional int height', \
+    '', \
+    '    # The numeric formatting precision (default is 2)', \
+    '    optional int(>= 0) precision', \
+    '', \
+    '    # The datetime format', \
+    '    optional LineChartDatetimeFormat datetime', \
+    '', \
+    "    # The line chart's X-axis field", \
+    '    string x', \
+    '', \
+    "    # The line chart's Y-axis fields", \
+    '    string[len > 0] y', \
+    '', \
+    '    # The color encoding field', \
+    '    optional string color', \
+    '', \
+    '    # The color encoding value order', \
+    '    optional string[len > 0] colorOrder', \
+    '', \
+    '    # The X-axis tick marks', \
+    '    optional LineChartAxisTicks xTicks', \
+    '', \
+    '    # The Y-axis tick marks', \
+    '    optional LineChartAxisTicks yTicks', \
+    '', \
+    '    # The X-axis annotations', \
+    '    optional LineChartAxisAnnotation[len > 0] xLines', \
+    '', \
+    '    # The Y-axis annotations', \
+    '    optional LineChartAxisAnnotation[len > 0] yLines', \
+    '', \
+    '', \
+    '# The axis tick mark model', \
+    'struct LineChartAxisTicks', \
+    '', \
+    '    # The count of evenly-spaced tick marks. The default is 3.', \
+    '    optional int(>= 0) count', \
+    '', \
+    '    # The value of the first tick mark. Default is the minimum axis value.', \
+    '    optional any start', \
+    '', \
+    '    # The value of the last tick mark. Default is the maximum axis value.', \
+    '    optional any end', \
+    '', \
+    '    # The number of tick mark labels to skip after a rendered label', \
+    '    optional int(> 0) skip', \
+    '', \
+    '', \
+    '# An axis annotation', \
+    'struct LineChartAxisAnnotation', \
+    '', \
+    '    # The axis value', \
+    '    any value', \
+    '', \
+    '    # The annotation label', \
+    '    optional string label', \
+    '', \
+    '', \
+    '# A datetime format', \
+    'enum LineChartDatetimeFormat', \
+    '', \
+    '    # ISO datetime year format', \
+    '    year', \
+    '', \
+    '    # ISO datetime month format', \
+    '    month', \
+    '', \
+    '    # ISO datetime day format', \
+    '    day' \
+)

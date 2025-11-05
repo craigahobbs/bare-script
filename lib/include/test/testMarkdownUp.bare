@@ -1,0 +1,402 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+function testMarkdownUp_dataLineChart():
+    unittestMockOneGeneric('systemLog')
+    data = [{'A': 1, 'B': 2}]
+    unittestEqual(dataLineChart(data, {}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['']], \
+        ['systemLog', ['<LineChart 640x320, 1 rows>']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_dataLineChart')
+
+
+function testMarkdownUp_dataLineChart_noDefaults():
+    unittestMockOneGeneric('systemLog')
+    data = [{'A': 1, 'B': 2}]
+    unittestEqual(dataLineChart(data, {'width': 800, 'height': 400, 'title': 'Hello'}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['']], \
+        ['systemLog', ['<LineChart 800x400, 1 rows - Hello>']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_dataLineChart_noDefaults')
+
+
+function testMarkdownUp_dataTable():
+    unittestMockOneGeneric('systemLog')
+    data = [{'A': 1.495, 'B': 2}]
+    unittestEqual(dataTable(data), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['| A    | B |']], \
+        ['systemLog', ['|------|---|']], \
+        ['systemLog', ['| 1.50 | 2 |']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_dataTable')
+
+
+function testMarkdownUp_dataTable_invalidData():
+    systemLogDebug('NOTICE: The following "dataValidate" error is expected:')
+    unittestMockOneGeneric('systemLog')
+    data = [ \
+        {'A': 1}, \
+        {'A': 'asdfasdf'} \
+    ]
+    unittestEqual(dataTable(data), null)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testMarkdownUp_dataTable_invalidData')
+
+
+function testMarkdownUp_dataTable_noFields():
+    unittestMockOneGeneric('systemLog')
+    data = []
+    unittestEqual(dataTable(data), null)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testMarkdownUp_dataTable_noFields')
+
+
+function testMarkdownUp_documentFontSize():
+    unittestEqual(documentFontSize(), 16)
+endfunction
+unittestRunTest('testMarkdownUp_documentFontSize')
+
+
+function testMarkdownUp_documentInputValue():
+    unittestEqual(documentInputValue(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentInputValue')
+
+
+function testMarkdownUp_documentSetFocus():
+    unittestEqual(documentSetFocus(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetFocus')
+
+
+function testMarkdownUp_documentSetKeyDown():
+    unittestEqual(documentSetKeyDown(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetKeyDown')
+
+
+function testMarkdownUp_documentSetReset():
+    unittestEqual(documentSetReset(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetReset')
+
+
+function testMarkdownUp_documentSetTitle():
+    unittestEqual(documentSetTitle(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetTitle')
+
+
+function testMarkdownUp_documentURL():
+    unittestEqual(documentURL('test.json'), 'test.json')
+endfunction
+unittestRunTest('testMarkdownUp_documentURL')
+
+
+function testMarkdownUp_drawArc():
+    unittestEqual(drawArc(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawArc')
+
+
+function testMarkdownUp_drawCircle():
+    unittestEqual(drawCircle(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawCircle')
+
+
+function testMarkdownUp_drawClose():
+    unittestEqual(drawClose(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawClose')
+
+
+function testMarkdownUp_drawEllipse():
+    unittestEqual(drawEllipse(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawEllipse')
+
+
+function testMarkdownUp_drawHLine():
+    unittestEqual(drawHLine(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawHLine')
+
+
+function testMarkdownUp_drawHeight():
+    objectSet(markdownUpState, 'drawingHeight', 480)
+    unittestEqual(drawHeight(), 480)
+endfunction
+unittestRunTest('testMarkdownUp_drawHeight')
+
+
+function testMarkdownUp_drawImage():
+    unittestEqual(drawImage(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawImage')
+
+
+function testMarkdownUp_drawLine():
+    unittestEqual(drawLine(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawLine')
+
+
+function testMarkdownUp_drawMove():
+    unittestEqual(drawMove(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawMove')
+
+
+function testMarkdownUp_drawNew():
+    unittestMockOneGeneric('systemLog')
+    unittestEqual(drawNew(800, 600), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['']], \
+        ['systemLog', ['<Drawing 800x600>']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_drawNew')
+
+
+function testMarkdownUp_drawOnClick():
+    unittestEqual(drawOnClick(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawOnClick')
+
+
+function testMarkdownUp_drawPathRect():
+    unittestEqual(drawPathRect(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawPathRect')
+
+
+function testMarkdownUp_drawRect():
+    unittestEqual(drawRect(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawRect')
+
+
+function testMarkdownUp_drawStyle():
+    unittestEqual(drawStyle(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawStyle')
+
+
+function testMarkdownUp_drawText():
+    unittestEqual(drawText(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawText')
+
+
+function testMarkdownUp_drawTextHeight():
+    unittestEqual(drawTextHeight(), 16)
+endfunction
+unittestRunTest('testMarkdownUp_drawTextHeight')
+
+
+function testMarkdownUp_drawTextHeight_width():
+    unittestEqual(drawTextHeight('Hello', 30), 10)
+endfunction
+unittestRunTest('testMarkdownUp_drawTextHeight_width')
+
+
+function testMarkdownUp_drawTextStyle():
+    unittestEqual(drawTextStyle(20), null)
+    unittestEqual(drawTextHeight('Hello'), 20)
+    unittestEqual(drawTextStyle(), null)
+    unittestEqual(drawTextHeight('Hello'), 16)
+endfunction
+unittestRunTest('testMarkdownUp_drawTextStyle')
+
+
+function testMarkdownUp_drawTextWidth():
+    unittestEqual(drawTextWidth('Hello', 16), 48)
+endfunction
+unittestRunTest('testMarkdownUp_drawTextWidth')
+
+
+
+function testMarkdownUp_drawVLine():
+    unittestEqual(drawVLine(), null)
+endfunction
+unittestRunTest('testMarkdownUp_drawVLine')
+
+
+function testMarkdownUp_drawWidth():
+    objectSet(markdownUpState, 'drawingWidth', 640)
+    unittestEqual(drawWidth(), 640)
+endfunction
+unittestRunTest('testMarkdownUp_drawWidth')
+
+
+function testMarkdownUp_elementModelRender():
+    unittestEqual(elementModelRender(), null)
+endfunction
+unittestRunTest('testMarkdownUp_elementModelRender')
+
+
+function testMarkdownUp_localStorage():
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+    unittestEqual(localStorageSet('key1', 'value1'), null)
+    unittestEqual(localStorageSet('key2', 'value2'), null)
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), 'value2')
+    unittestEqual(localStorageRemove('key2'), null)
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), null)
+    unittestEqual(localStorageClear(), null)
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+endfunction
+unittestRunTest('testMarkdownUp_localStorage')
+
+
+function testMarkdownUp_markdownEscape():
+    unittestEqual( \
+        markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
+        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
+    )
+endfunction
+unittestRunTest('testMarkdownUp_markdownEscape')
+
+
+function testMarkdownUp_markdownHeaderId():
+    unittestEqual(markdownHeaderId('**This is a  "Test"**'), 'this-is-a-test')
+endfunction
+unittestRunTest('testMarkdownUp_markdownHeaderId')
+
+
+function testMarkdownUp_markdownParse():
+    unittestEqual(markdownParse(), null)
+endfunction
+unittestRunTest('testMarkdownUp_markdownParse')
+
+
+function testMarkdownUp_markdownPrint():
+    markdownPrintStub = systemGlobalGet('markdownPrintStub')
+    unittestMockOneGeneric('systemLog')
+    unittestEqual(markdownPrintStub('Hello', ['1', '2'], null, 'Goodbye'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['Hello']], \
+        ['systemLog', ['1']], \
+        ['systemLog', ['2']], \
+        ['systemLog', ['Goodbye']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_markdownPrint')
+
+
+function testMarkdownUp_markdownTitle():
+    unittestEqual(markdownTitle(), null)
+endfunction
+unittestRunTest('testMarkdownUp_markdownTitle')
+
+
+function testMarkdownUp_schemaElements():
+    types = { \
+        'TestStruct': {'struct': {'name': 'TestStruct'}} \
+    }
+    unittestDeepEqual(schemaElements(types, 'TestStruct'), [ \
+        [ \
+            {'html': 'h1', 'elem': {'text': 'struct TestStruct'}} \
+        ] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_schemaElements')
+
+
+function testMarkdownUp_schemaElements_union():
+    types = { \
+        'TestStruct': {'struct': {'name': 'TestStruct', 'union': true}} \
+    }
+    unittestDeepEqual(schemaElements(types, 'TestStruct'), [ \
+        [ \
+            {'html': 'h1', 'elem': {'text': 'union TestStruct'}} \
+        ] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_schemaElements_union')
+
+
+function testMarkdownUp_sessionStorage():
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+    unittestEqual(sessionStorageSet('key1', 'value1'), null)
+    unittestEqual(sessionStorageSet('key2', 'value2'), null)
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), 'value2')
+    unittestEqual(sessionStorageRemove('key2'), null)
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), null)
+    unittestEqual(sessionStorageClear(), null)
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+endfunction
+unittestRunTest('testMarkdownUp_sessionStorage')
+
+
+function testMarkdownUp_urlObjectCreate():
+    unittestEqual(urlObjectCreate('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
+    unittestEqual(urlObjectCreate('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+endfunction
+unittestRunTest('testMarkdownUp_urlObjectCreate')
+
+
+function testMarkdownUp_windowClipboardRead():
+    unittestEqual(windowClipboardRead(), '')
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+endfunction
+unittestRunTest('testMarkdownUp_windowClipboardRead')
+
+
+function testMarkdownUp_windowClipboardWrite():
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+endfunction
+unittestRunTest('testMarkdownUp_windowClipboardWrite')
+
+
+function testMarkdownUp_windowHeight():
+    unittestEqual(windowHeight(), 768)
+endfunction
+unittestRunTest('testMarkdownUp_windowHeight')
+
+
+function testMarkdownUp_windowSetLocation():
+    unittestEqual(windowSetLocation(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetLocation')
+
+
+function testMarkdownUp_windowSetResize():
+    unittestEqual(windowSetResize(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetResize')
+
+
+function testMarkdownUp_windowSetTimeout():
+    unittestEqual(windowSetTimeout(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetTimeout')
+
+
+function testMarkdownUp_windowWidth():
+    unittestEqual(windowWidth(), 1024)
+endfunction
+unittestRunTest('testMarkdownUp_windowWidth')
