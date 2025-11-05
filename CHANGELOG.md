@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.2 (2025-11-05)
+
+- [059d6c7](https://github.com/craigahobbs/bare-script/commit/059d6c7) - improved include library integration
+
 ## 3.8.1 (2025-10-30)
 
 - [ac4b70b](https://github.com/craigahobbs/bare-script/commit/ac4b70b) - add arrayFlat depth argument
