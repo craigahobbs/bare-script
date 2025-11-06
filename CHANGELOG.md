@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.3 (2025-11-06)
+
+- [a63f2a4](https://github.com/craigahobbs/bare-script/commit/a63f2a4) - improve include debug linting; add unecessary async function linter check \(js only\)
+
 ## 3.8.2 (2025-11-05)
 
 - [059d6c7](https://github.com/craigahobbs/bare-script/commit/059d6c7) - improved include library integration
