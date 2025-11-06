@@ -59,7 +59,7 @@ endfunction
 unittestRunTest('testFormsTextElements_onEnter')
 
 
-async function testFormsTextElements_onEnterCallbackAsync():
+function testFormsTextElements_onEnterCallbackAsync():
     clickCount = systemGlobalGet('testFormsTextElements_onEnterCount')
     systemGlobalSet('testFormsTextElements_onEnterCount', clickCount + 1)
 endfunction

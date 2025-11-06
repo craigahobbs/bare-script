@@ -1,14 +1,15 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-include <unittest.bare>
-
 
 # Save the originals
 markdownPrintOriginal = systemGlobalGet('markdownPrint')
 
 # Include the system markdownUp.bare
 include <markdownUp.bare>
+
+# Include unittest
+include <unittest.bare>
 
 # Start coverage
 coverageStart()

@@ -658,7 +658,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_noLinks')
 
 
-async function testUnittestRunTest_coverage():
+function testUnittestRunTest_coverage():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
@@ -698,7 +698,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage')
 
 
-async function testUnittestRunTest_coverage_links():
+function testUnittestRunTest_coverage_links():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
@@ -739,7 +739,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage_links')
 
 
-async function testUnittestRunTest_coverage_exclude():
+function testUnittestRunTest_coverage_exclude():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
@@ -778,7 +778,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage_exclude')
 
 
-async function testUnittestRunTest_coverage_min():
+function testUnittestRunTest_coverage_min():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
@@ -822,7 +822,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage_min')
 
 
-async function testUnittestRunTest_coverage_noData():
+function testUnittestRunTest_coverage_noData():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
@@ -853,7 +853,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage_noData')
 
 
-async function testUnittestRunTest_coverage_script():
+function testUnittestRunTest_coverage_script():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
@@ -911,7 +911,7 @@ endfunction
 unittestRunTest('testUnittestRunTest_coverage_script')
 
 
-async function testUnittestRunTest_coverage_script_noData():
+function testUnittestRunTest_coverage_script_noData():
     # Mock coverageGlobalGet
     coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
     systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)

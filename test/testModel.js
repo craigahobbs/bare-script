@@ -349,6 +349,102 @@ test('lintScript, global variable used before assignment', () => {
 });
 
 
+test('lintScript, function unecessary async', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'async': true,
+                    'statements': [
+                        {'return': {'expr': {'unary': {'op': '!', 'expr': {
+                            'group': {'binary': {'op': '+', 'left': {'number': 0}, 'right': {'function': {'name': 'nonAsyncFn'}}}}
+                        }}}}}
+                    ]
+                }
+            },
+            {
+                'function': {
+                    'name': 'testFn2',
+                    'statements': [
+                        {'return': {}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    const nonAsyncFn = () => true;
+    assert.deepEqual(lintScript(validateScript(script), {nonAsyncFn}), [
+        ':1: Unecessary async function "testFn"'
+    ]);
+});
+
+
+test('lintScript, function unecessary async unknown ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'async': true,
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'nonExistFn'}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    assert.deepEqual(lintScript(validateScript(script), {'nonExistFn': null}), []);
+});
+
+
+test('lintScript, function requires async', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'jump': {'label': 'label1'}},
+                        {'label': {'name': 'label1'}},
+                        {'jump': {'label': 'label1', 'expr': {'number': 0}}},
+                        {'return': {'expr': {'unary': {'op': '!', 'expr': {
+                            'group': {'binary': {'op': '+', 'left': {'number': 0}, 'right': {'function': {'name': 'asyncFn'}}}}
+                        }}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next 2 */
+    // eslint-disable-next-line require-await
+    const asyncFn = async () => true;
+    assert.deepEqual(lintScript(validateScript(script), {asyncFn}), [
+        ':1: Function "testFn" requires async'
+    ]);
+});
+
+
+test('lintScript, function requires async unknown ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'nonExistFn'}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    assert.deepEqual(lintScript(validateScript(script), {'nonExistFn': null}), []);
+});
+
+
 test('lintScript, function unused label', () => {
     const script = {
         'statements': [
