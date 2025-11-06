@@ -5,7 +5,7 @@ include <unittest.bare>
 include <unittestMock.bare>
 
 
-function testUnittestMockAll():
+async function testUnittestMockAll():
     # Setup mocks
     unittestMockAll({ \
         'documentInputValue': {'id1': 'value1'}, \
@@ -180,7 +180,7 @@ endfunction
 unittestRunTest('testUnittestMockAll')
 
 
-function testUnittestMockAll_systemFetch_array():
+async function testUnittestMockAll_systemFetch_array():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
@@ -206,7 +206,7 @@ endfunction
 unittestRunTest('testUnittestMockAll_systemFetch_array')
 
 
-function testUnittestMockAll_systemFetch_request_model():
+async function testUnittestMockAll_systemFetch_request_model():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \

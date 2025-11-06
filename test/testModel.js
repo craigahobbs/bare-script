@@ -381,6 +381,49 @@ test('lintScript, function unecessary async', () => {
 });
 
 
+test('lintScript, function unecessary async arg ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'async': true,
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'nonAsyncFn', 'args': [{'function': {'name': 'asyncFn'}}]}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next 3 */
+    // eslint-disable-next-line require-await
+    const asyncFn = async () => true;
+    const nonAsyncFn = () => true;
+    assert.deepEqual(lintScript(validateScript(script), {asyncFn, nonAsyncFn}), []);
+});
+
+
+test('lintScript, function unecessary async builtin', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'async': true,
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'if'}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    assert.deepEqual(lintScript(validateScript(script), {'nonExistFn': null}), [
+        ':1: Unecessary async function "testFn"'
+    ]);
+});
+
+
 test('lintScript, function unecessary async unknown ok', () => {
     const script = {
         'statements': [
@@ -424,6 +467,47 @@ test('lintScript, function requires async', () => {
     assert.deepEqual(lintScript(validateScript(script), {asyncFn}), [
         ':1: Function "testFn" requires async'
     ]);
+});
+
+
+test('lintScript, function requires async arg', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'nonAsyncFn', 'args': [{'function': {'name': 'asyncFn'}}]}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next 3 */
+    // eslint-disable-next-line require-await
+    const asyncFn = async () => true;
+    const nonAsyncFn = () => true;
+    assert.deepEqual(lintScript(validateScript(script), {asyncFn, nonAsyncFn}), [
+        ':1: Function "testFn" requires async'
+    ]);
+});
+
+
+test('lintScript, function requires async builtin ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'return': {'expr': {'function': {'name': 'if'}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    assert.deepEqual(lintScript(validateScript(script), {'nonExistFn': null}), []);
 });
 
 
