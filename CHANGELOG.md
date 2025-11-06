@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.4 (2025-11-06)
+
+- [cc1f6ea](https://github.com/craigahobbs/bare-script/commit/cc1f6ea) - add missing include in args.bare
+
 ## 3.8.3 (2025-11-06)
 
 - [a63f2a4](https://github.com/craigahobbs/bare-script/commit/a63f2a4) - improve include debug linting; add unecessary async function linter check \(js only\)
