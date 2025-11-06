@@ -122,8 +122,6 @@ markdownPrint('', argsLink(arguments, 'Reset', null, true))
 
 Generate the [arguments model's](model.html#var.vName='ArgsArguments') help content
 
-**NOTE:** Calling this function requires `include <dataTable.bare>`
-
 #### Arguments
 
 **arguments -**
