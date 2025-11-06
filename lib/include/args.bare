@@ -1,6 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <dataTable.bare>
+
 
 # The URL arguments model
 argsTypes = schemaParse( \
@@ -179,8 +181,6 @@ endfunction
 # $function: argsHelp
 # $group: args.bare
 # $doc: Generate the [arguments model's](model.html#var.vName='ArgsArguments') help content
-# $doc:
-# $doc: **NOTE:** Calling this function requires `include <dataTable.bare>`
 # $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $return: The array of help Markdown line strings
 function argsHelp(arguments):
