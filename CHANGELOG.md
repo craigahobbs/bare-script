@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.5 (2025-11-06)
+
+- [755538e](https://github.com/craigahobbs/bare-script/commit/755538e) - fix unecessary async function linter check
+
 ## 3.8.4 (2025-11-06)
 
 - [cc1f6ea](https://github.com/craigahobbs/bare-script/commit/cc1f6ea) - add missing include in args.bare
