@@ -33,7 +33,7 @@ clean:
 
 .PHONY: sync-include
 sync-include:
-	rsync -rv --delete --exclude=.git/ lib/include/ ../bare-script-py/src/bare_script/include/
+	rsync -rv --delete --exclude=.git/ --exclude=__init__.py lib/include/ ../bare-script-py/src/bare_script/include/
 	rsync -rv --delete --exclude=.git/ static/ ../bare-script-py/static/
 
 
