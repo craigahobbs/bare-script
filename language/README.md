@@ -32,6 +32,7 @@ return fibonacci(10)
 
 ## Table of Contents
 
+- [Value Types](#value-types)
 - [Statements](#statements)
   - [Expression and Assignment Statements](#expression-and-assignment-statements)
   - [Comments](#comments)
@@ -55,6 +56,55 @@ return fibonacci(10)
   - [Group Expressions](#group-expressions)
   - [The BareScript Expression Library](#the-barescript-expression-library)
 - [Emacs Mode](#emacs-mode)
+
+
+## Value Types
+
+BareScript supports the following value types:
+
+- **null** - The null value, represented by the `null` keyword
+- **boolean** - Boolean values `true` and `false`
+- **number** - Numeric values (integers and floating-point numbers)
+- **string** - Text strings enclosed in single or double quotes
+- **datetime** - Date and time values
+- **array** - Ordered collections of values, created with array literal syntax (e.g., `[1, 2, 3]`)
+- **object** - Key-value collections, created with object literal syntax (e.g., `{'a': 1, 'b': 2}`)
+- **function** - Function values
+- **regex** - Regular expression values
+
+
+### Object and Array Literals
+
+Objects and arrays can be created using literal syntax:
+
+~~~ barescript
+# Create an array
+numbers = [1, 2, 3, 4, 5]
+
+# Create an object
+person = {'name': 'John', 'age': 30}
+
+# Nested structures
+data = {'values': [1, 2, 3], 'metadata': {'count': 3}}
+~~~
+
+**Note:** Bracket access syntax (e.g., `obj['key']` or `array[0]`) is **not** supported for
+accessing object properties or array elements. Use the library functions instead:
+
+- `objectGet(obj, 'key')` - Get an object property value
+- `objectSet(obj, 'key', value)` - Set an object property value
+- `arrayGet(array, index)` - Get an array element
+- `arraySet(array, index, value)` - Set an array element
+
+~~~ barescript
+# Access object properties
+obj = {'a': 1, 'b': [1, 2]}
+valueA = objectGet(obj, 'a')
+valueB = objectGet(obj, 'b')
+
+# Access array elements
+firstElement = arrayGet(valueB, 0)
+~~~
 
 
 ## Statements
@@ -293,6 +343,11 @@ objects, arrays, datetimes, regular expressions, and strings. There are also fun
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
 [systemFetch](../library/#var.vGroup='System'&systemfetch).
 
+Library functions validate their arguments and will return `null` (or a specified default value) if
+given invalid arguments. When debug logging is enabled, library functions log detailed error
+messages for invalid arguments.
+
+
 ## Expressions
 
 BareScript expressions are similar to spreadsheet formulas. The different expression types are
@@ -301,19 +356,34 @@ described below.
 
 ### Number Expressions
 
-Number expressions are decimal numbers. For example:
+Number expressions are decimal numbers with support for integers, floating-point numbers, scientific
+notation, and hexadecimal integers. For example:
 
 ~~~ barescript
+# Integer
 5
 -1
+
+# Floating-point
 3.14159
+-2.5
+
+# Scientific notation
+1.5e10
+3e-5
+-2.1e-3
+
+# Hexadecimal (prefix with 0x)
+0xFF
+0x1A
+0xDEADBEEF
 ~~~
 
 
 ### String Expressions
 
-String expressions are specified with single or double quotes. Quotes are escaped using a preceding
-backslash character.
+String expressions are specified with single or double quotes. Quotes and other special characters
+are escaped using a preceding backslash character.
 
 ~~~ barescript
 'abc'
@@ -322,7 +392,25 @@ backslash character.
 "that's a \"quote\""
 ~~~
 
-Strings are concatenated using the addition operator.
+The following escape sequences are supported:
+
+- `\\` - Backslash
+- `\'` - Single quote
+- `\"` - Double quote
+- `\n` - Newline
+- `\r` - Carriage return
+- `\t` - Tab
+- `\b` - Backspace
+- `\f` - Form feed
+- `\uXXXX` - Unicode character (where XXXX is a 4-digit hexadecimal code)
+
+~~~ barescript
+'Line 1\nLine 2'
+'Tab\tseparated'
+'Unicode: \u0041\u0042\u0043'  # 'ABC'
+~~~
+
+Strings are concatenated using the addition operator:
 
 ~~~ barescript
 'abc' + 'def'
@@ -371,12 +459,46 @@ v = if(a == b, fn1(), fn2())
 
 ### Binary Operator Expressions
 
-Binary operator expressions perform an operation on the result of two other expressions. For
-example:
+Binary operator expressions perform an operation on the result of two other expressions. The
+following operators are supported (in order of evaluation precedence):
+
+- **Arithmetic operators** - `+`, `-`, `*`, `/`, `%`, `**`
+  - Addition (`+`) works with:
+    - number + number
+    - string + string (concatenation)
+    - string + any type (converts right operand to string)
+    - any type + string (converts left operand to string)
+    - datetime + number (adds milliseconds)
+    - number + datetime (adds milliseconds)
+  - Subtraction (`-`) works with:
+    - number - number
+    - datetime - datetime (returns difference in milliseconds)
+  - Multiplication (`*`), division (`/`), modulo (`%`), and exponentiation (`**`) work with:
+    - number operator number
+
+- **Bitwise operators** - `&`, `|`, `^`, `<<`, `>>`
+  - All bitwise operators require integer operands and return integers
+
+- **Comparison operators** - `==`, `!=`, `<`, `<=`, `>`, `>=`
+  - Comparison operators work with all value types
+  - Values of different types are compared by type name
+  - null is less than all other values
+
+- **Logical operators** - `&&`, `||`
+  - Logical operators use short-circuit evaluation
+  - `&&` returns the left operand if it's falsy, otherwise returns the right operand
+  - `||` returns the left operand if it's truthy, otherwise returns the right operand
+
+If an operator is used with incompatible types, the expression returns `null`.
+
+For example:
 
 ~~~ barescript
 a + 1
 sin(x) / x
+'Hello, ' + name
+date1 - date2
+x >= 0 && x < 10
 ~~~
 
 Click here for the [list of binary operators](../model/#var.vName='BinaryExpressionOperator') in
@@ -385,11 +507,21 @@ order of evaluation precedence.
 
 ### Unary Operator Expressions
 
-Unary operator expressions perform an operation on the result of another expression. For example:
+Unary operator expressions perform an operation on the result of another expression. The following
+operators are supported:
+
+- **Logical NOT** (`!`) - Returns the boolean negation of the operand
+- **Numeric negation** (`-`) - Returns the negation of a number operand
+- **Bitwise NOT** (`~`) - Returns the bitwise complement of an integer operand
+
+If an operator is used with an incompatible type, the expression returns `null`.
+
+For example:
 
 ~~~ barescript
 !a
 -x
+~flags
 ~~~
 
 Click here for the [list of unary operators](../model/#var.vName='UnaryExpressionOperator') in order
