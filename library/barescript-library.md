@@ -227,6 +227,50 @@ The validated [arguments model](model.html#var.vName='ArgsArguments') or null if
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+Array functions provide operations for creating, manipulating, and querying arrays. Arrays are
+ordered collections of values that can be created using array literal syntax (e.g., `[1, 2, 3]`) or
+with the [arrayNew](#var.vGroup='array'&arraynew) function.
+
+To access and modify array elements, use the [arrayGet](#var.vGroup='array'&arrayget) and
+[arraySet](#var.vGroup='array'&arrayset) functions:
+
+~~~ bare-script
+values = [1, 2, 3, 4, 5]
+firstValue = arrayGet(values, 0)
+arraySet(values, 0, 10)
+~~~
+
+Arrays can be extended, sliced, and manipulated in various ways:
+
+~~~ bare-script
+# Add elements to the end
+arrayPush(values, 6, 7, 8)
+
+# Remove and return the last element
+lastValue = arrayPop(values)
+
+# Create a copy of part of an array
+subset = arraySlice(values, 1, 4)
+
+# Join array elements into a string
+text = arrayJoin(values, ', ')
+~~~
+
+Arrays can also be sorted, searched, and flattened:
+
+~~~ bare-script
+# Sort an array
+arraySorted = arraySort([3, 1, 4, 1, 5, 9])
+
+# Find an element
+index = arrayIndexOf(values, 3)
+
+# Flatten nested arrays
+nested = [[1, 2], [3, [4, 5]]]
+flat = arrayFlat(nested, 2)
+~~~
+
+
 ### Function Index
 
 - [arrayCopy](#var.vPublish=true&var.vSingle=true&arraycopy)
@@ -556,6 +600,46 @@ The sorted array
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "baredocMain.bare" include library provides the main entry point for creating BareScript library
+documentation applications. This library is used to generate documentation websites like the
+[BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
+
+To create a documentation application, include the library and call the
+[baredocMain](#var.vGroup='baredocMain.bare'&baredocmain) function with your library's JSON resource
+URL:
+
+~~~ bare-script
+include <baredocMain.bare>
+
+baredocMain( \
+    'my-library.json', \
+    'My Library' \
+)
+~~~
+
+The library JSON resource should contain function and type documentation in the format expected by
+the documentation renderer. You can also provide optional menu links and group content URLs:
+
+~~~ bare-script
+menuLinks = [ \
+    ['Home', 'index.html'], \
+    ['GitHub', 'https://github.com/example/my-library'] \
+]
+
+groupURLs = { \
+    '': 'intro.md', \
+    'myGroup': 'group-content.md' \
+}
+
+baredocMain( \
+    'my-library.json', \
+    'My Library', \
+    menuLinks, \
+    groupURLs \
+)
+~~~
+
+
 ### Function Index
 
 - [baredocMain](#var.vPublish=true&var.vSingle=true&baredocmain)
@@ -589,6 +673,41 @@ Nothing
 ## coverage
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+Coverage functions provide runtime code coverage tracking for BareScript scripts. These functions
+are primarily used in unit testing to ensure that tests exercise all code paths.
+
+To collect coverage data, start coverage tracking at the beginning of your test suite and stop it
+at the end:
+
+~~~ bare-script
+include <unittest.bare>
+
+# Start coverage tracking
+coverageStart()
+
+# Run your tests
+include 'test1.bare'
+include 'test2.bare'
+
+# Stop coverage tracking
+coverageStop()
+
+# Generate report with minimum coverage requirement
+return unittestReport({'coverageMin': 80})
+~~~
+
+The coverage system tracks which statements in your scripts have been executed. The coverage data is
+stored in a global variable that can be accessed using
+[coverageGlobalGet](#var.vGroup='coverage'&coverageglobalget):
+
+~~~ bare-script
+coverageData = coverageGlobalGet()
+~~~
+
+Coverage data is automatically used by the [unittest.bare](#var.vGroup='unittest.bare') library to
+generate coverage reports showing which lines of code were executed during testing.
+
 
 ### Function Index
 
@@ -658,6 +777,72 @@ Nothing
 ## data
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+Data functions provide operations for manipulating and analyzing arrays of data objects (also known
+as data tables or datasets). These functions enable filtering, sorting, aggregating, joining, and
+transforming tabular data.
+
+A data array is an array of objects where each object represents a row:
+
+~~~ bare-script
+data = [ \
+    {'name': 'Alice', 'age': 30, 'city': 'New York'}, \
+    {'name': 'Bob', 'age': 25, 'city': 'Boston'}, \
+    {'name': 'Charlie', 'age': 35, 'city': 'New York'} \
+]
+~~~
+
+You can filter data using expressions:
+
+~~~ bare-script
+# Filter for people over 25 in New York
+filtered = dataFilter(data, 'age > 25 && city == "New York"')
+~~~
+
+Sort data by one or more fields:
+
+~~~ bare-script
+# Sort by city ascending, then age descending
+sorted = dataSort(data, [['city', false], ['age', true]])
+~~~
+
+Add calculated fields to your data:
+
+~~~ bare-script
+# Add a field that combines name and city
+dataCalculatedField(data, 'location', 'name + ", " + city')
+~~~
+
+Aggregate data to compute summaries:
+
+~~~ bare-script
+aggregation = { \
+    'categories': ['city'], \
+    'measures': [ \
+        {'field': 'age', 'function': 'average', 'name': 'avgAge'}, \
+        {'field': 'city', 'function': 'count', 'name': 'count'} \
+    ] \
+}
+summary = dataAggregate(data, aggregation)
+~~~
+
+Join two data arrays:
+
+~~~ bare-script
+cities = [ \
+    {'city': 'New York', 'state': 'NY'}, \
+    {'city': 'Boston', 'state': 'MA'} \
+]
+joined = dataJoin(data, cities, 'city')
+~~~
+
+Parse CSV text into a data array:
+
+~~~ bare-script
+csv = 'name,age,city\nAlice,30,New York\nBob,25,Boston'
+data = dataParseCSV(csv)
+~~~
+
 
 ### Function Index
 
@@ -842,6 +1027,39 @@ The validated data array
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "dataTable.bare" include library provides functions for rendering data arrays as formatted
+Markdown tables. This is useful for displaying tabular data in MarkdownUp applications.
+
+To render a data table, use the [dataTableMarkdown](#var.vGroup='dataTable.bare'&datatablemarkdown)
+function with a data array and an optional data table model:
+
+~~~ bare-script
+include <dataTable.bare>
+
+data = [ \
+    {'name': 'Alice', 'age': 30, 'city': 'New York'}, \
+    {'name': 'Bob', 'age': 25, 'city': 'Boston'}, \
+    {'name': 'Charlie', 'age': 35, 'city': 'New York'} \
+]
+
+model = { \
+    'fields': ['name', 'age', 'city'], \
+    'formats': {'age': {'align': 'right'}} \
+}
+
+markdownPrint(dataTableMarkdown(data, model))
+~~~
+
+The data table model allows you to control which fields are displayed, their order, and how values
+are formatted. You can specify field alignment, headers, and other display options.
+
+If no model is provided, all fields are displayed in their natural order with default formatting:
+
+~~~ bare-script
+markdownPrint(dataTableMarkdown(data))
+~~~
+
+
 ### Function Index
 
 - [dataTableMarkdown](#var.vPublish=true&var.vSingle=true&datatablemarkdown)
@@ -869,6 +1087,59 @@ The array of Markdown table line strings
 ## datetime
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+Datetime functions provide operations for creating, manipulating, and formatting date and time
+values. Datetime values represent specific moments in time.
+
+Create a new datetime with specific components:
+
+~~~ bare-script
+# Create a datetime for January 15, 2024 at 2:30 PM
+dt = datetimeNew(2024, 1, 15, 14, 30, 0, 0)
+~~~
+
+Get the current date and time:
+
+~~~ bare-script
+now = datetimeNow()
+today = datetimeToday()  # Today at midnight
+~~~
+
+Extract components from a datetime:
+
+~~~ bare-script
+year = datetimeYear(dt)
+month = datetimeMonth(dt)
+day = datetimeDay(dt)
+hour = datetimeHour(dt)
+minute = datetimeMinute(dt)
+second = datetimeSecond(dt)
+millisecond = datetimeMillisecond(dt)
+~~~
+
+Parse and format datetime strings using ISO 8601 format:
+
+~~~ bare-script
+# Parse an ISO datetime string
+dt = datetimeISOParse('2024-01-15T14:30:00.000Z')
+
+# Format as ISO datetime string
+isoString = datetimeISOFormat(dt, false)
+
+# Format as ISO date string
+isoDate = datetimeISOFormat(dt, true)
+~~~
+
+Perform datetime arithmetic using addition and subtraction:
+
+~~~ bare-script
+# Add 1 hour (3600000 milliseconds)
+later = dt + 3600000
+
+# Calculate the difference between two datetimes
+difference = dt2 - dt1  # Returns milliseconds
+~~~
+
 
 ### Function Index
 
@@ -1090,6 +1361,38 @@ The full year
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "diff.bare" include library provides functions for computing line-by-line differences between
+two strings or arrays of strings. This is useful for comparing text files, showing changes, or
+implementing version control-like functionality.
+
+To compute differences between two strings:
+
+~~~ bare-script
+include <diff.bare>
+
+left = 'Line 1\nLine 2\nLine 3'
+right = 'Line 1\nLine 2 modified\nLine 3\nLine 4'
+
+differences = diffLines(left, right)
+~~~
+
+You can also pass arrays of strings:
+
+~~~ bare-script
+leftLines = ['Line 1', 'Line 2', 'Line 3']
+rightLines = ['Line 1', 'Line 2 modified', 'Line 3', 'Line 4']
+
+differences = diffLines(leftLines, rightLines)
+~~~
+
+The function returns an array of [difference models](model.html#var.vName='Differences') that
+describe the changes between the two inputs. Each difference model indicates whether lines were
+added, removed, or unchanged, along with the affected line text.
+
+This is particularly useful for displaying side-by-side comparisons or unified diffs in applications
+that need to show how content has changed over time.
+
+
 ### Function Index
 
 - [diffLines](#var.vPublish=true&var.vSingle=true&difflines)
@@ -1117,6 +1420,54 @@ The array of [difference models](model.html#var.vName='Differences')
 ## forms.bare
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "forms.bare" include library provides functions for creating form elements using
+[element models](https://github.com/craigahobbs/element-model#readme). These functions simplify the
+creation of common form controls for MarkdownUp applications.
+
+Create a text input element:
+
+~~~ bare-script
+include <forms.bare>
+
+function myAppMain():
+    textInput = formsTextElements('myInput', 'Initial text', 20, myAppOnEnter)
+    elementModelRender(textInput)
+endfunction
+
+function myAppOnEnter():
+    value = documentInputValue('myInput')
+    markdownPrint('You entered: ' + value)
+endfunction
+
+myAppMain()
+~~~
+
+Create a link element:
+
+~~~ bare-script
+link = formsLinkElements('Click me', 'other.html')
+elementModelRender(link)
+~~~
+
+Create a link button element with a click handler:
+
+~~~ bare-script
+function myAppMain():
+    button = formsLinkButtonElements('Click me', myAppOnClick)
+    elementModelRender(button)
+endfunction
+
+function myAppOnClick():
+    markdownPrint('Button clicked!')
+endfunction
+
+myAppMain()
+~~~
+
+These helper functions create properly structured element models that can be rendered with the
+[elementModelRender](#var.vGroup='markdownUp.bare%3A%20elementModel'&elementmodelrender) function.
+
 
 ### Function Index
 
@@ -1189,6 +1540,32 @@ The text input [element model](https://github.com/craigahobbs/element-model#read
 ## json
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+JSON functions provide operations for parsing and serializing JSON (JavaScript Object Notation)
+data. JSON is a lightweight data interchange format that is easy to read and write.
+
+Parse a JSON string to create an object:
+
+~~~ bare-script
+jsonText = '{"name": "Alice", "age": 30, "hobbies": ["reading", "hiking"]}'
+obj = jsonParse(jsonText)
+name = objectGet(obj, 'name')
+~~~
+
+Convert an object to a JSON string:
+
+~~~ bare-script
+obj = {'name': 'Bob', 'age': 25, 'active': true}
+jsonText = jsonStringify(obj)
+~~~
+
+Format JSON with indentation for readability:
+
+~~~ bare-script
+# Indent with 2 spaces
+prettyJson = jsonStringify(obj, 2)
+~~~
+
 
 ### Function Index
 
@@ -1301,6 +1678,52 @@ $ bare -m app.bare
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "markdownUp.bare: data" section contains functions for visualizing data in MarkdownUp
+applications. These functions integrate with the data manipulation functions to create charts and
+tables.
+
+Draw a data table:
+
+~~~ bare-script
+data = [ \
+    {'product': 'Widget', 'sales': 1000, 'profit': 250}, \
+    {'product': 'Gadget', 'sales': 1500, 'profit': 400}, \
+    {'product': 'Doohickey', 'sales': 800, 'profit': 150} \
+]
+
+tableModel = { \
+    'fields': ['product', 'sales', 'profit'], \
+    'formats': { \
+        'sales': {'align': 'right'}, \
+        'profit': {'align': 'right'} \
+    } \
+}
+
+dataTable(data, tableModel)
+~~~
+
+Draw a line chart:
+
+~~~ bare-script
+chartData = [ \
+    {'month': 1, 'revenue': 10000, 'costs': 7000}, \
+    {'month': 2, 'revenue': 12000, 'costs': 7500}, \
+    {'month': 3, 'revenue': 15000, 'costs': 8000} \
+]
+
+chartModel = { \
+    'x': 'month', \
+    'y': ['revenue', 'costs'], \
+    'title': 'Monthly Revenue and Costs' \
+}
+
+dataLineChart(chartData, chartModel)
+~~~
+
+These functions render visualizations directly into the MarkdownUp document, making it easy to
+create data-driven reports and dashboards.
+
+
 ### Function Index
 
 - [dataLineChart](#var.vPublish=true&var.vSingle=true&datalinechart)
@@ -1347,6 +1770,63 @@ Nothing
 ## markdownUp.bare: document
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: document" section contains functions for interacting with the document and
+browser DOM. These functions allow you to manipulate the document title, get input values, set
+focus, and handle keyboard events.
+
+Set the document title:
+
+~~~ bare-script
+documentSetTitle('My Application')
+~~~
+
+Get the value of an input element:
+
+~~~ bare-script
+value = documentInputValue('myInput')
+~~~
+
+Set focus to an element:
+
+~~~ bare-script
+documentSetFocus('myInput')
+~~~
+
+Set a keyboard event handler:
+
+~~~ bare-script
+function myAppMain():
+    markdownPrint('Press any key...')
+    documentSetKeyDown(myAppOnKeyDown)
+endfunction
+
+function myAppOnKeyDown(event):
+    key = objectGet(event, 'key')
+    markdownPrint('You pressed: ' + key)
+endfunction
+
+myAppMain()
+~~~
+
+Get the document font size:
+
+~~~ bare-script
+fontSize = documentFontSize()
+~~~
+
+Get the document-relative URL:
+
+~~~ bare-script
+url = documentURL('path/to/resource')
+~~~
+
+Set the document reset element (the element to focus when the page resets):
+
+~~~ bare-script
+documentSetReset('myResetID')
+~~~
+
 
 ### Function Index
 
@@ -1499,6 +1979,67 @@ The fixed-up URL
 ## markdownUp.bare: draw
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: draw" section contains functions for creating vector graphics drawings. These
+functions provide a programmatic way to draw shapes, lines, text, and images using SVG.
+
+Create a new drawing and draw basic shapes:
+
+~~~ bare-script
+drawNew(400, 300)
+
+# Fill the background
+drawStyle('none', 0, 'white')
+drawRect(0, 0, drawWidth(), drawHeight())
+
+# Draw a rectangle
+drawStyle('black', 2, 'blue')
+drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.2 * drawWidth(), 0.2 * drawHeight())
+
+# Draw a circle
+drawStyle('black', 2, 'red')
+drawCircle(0.3 * drawWidth(), 0.6 * drawHeight(), 0.1 * drawWidth())
+
+# Draw an ellipse
+drawStyle('black', 2, 'green')
+drawEllipse(0.7 * drawWidth(), 0.4 * drawHeight(), 0.2 * drawWidth(), 0.1 * drawHeight())
+~~~
+
+Draw paths with lines and curves:
+
+~~~ bare-script
+drawStyle('black', 4, '#cc222280')
+drawMove(0.7 * drawWidth(), 0.7 * drawHeight())
+drawLine(0.9 * drawWidth(), 0.7 * drawHeight())
+drawLine(0.9 * drawWidth(), 0.9 * drawHeight())
+drawClose()
+~~~
+
+Draw text:
+
+~~~ bare-script
+drawTextStyle(0.1 * drawHeight(), 'black', true)
+drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
+~~~
+
+Draw images:
+
+~~~ bare-script
+drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
+~~~
+
+Add click handlers to drawing objects:
+
+~~~ bare-script
+function myClickHandler():
+    systemLog('Click!')
+endfunction
+
+drawStyle('black', 2, 'gray')
+drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.1 * drawWidth(), 0.1 * drawHeight())
+drawOnClick(myClickHandler)
+~~~
+
 
 ### Function Index
 
@@ -1947,6 +2488,49 @@ The current drawing's width
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "markdownUp.bare: elementModel" section contains functions for rendering
+[element models](https://github.com/craigahobbs/element-model#readme). Element models provide a
+declarative way to create HTML elements and handle user interactions.
+
+Render an element model:
+
+~~~ bare-script
+element = { \
+    'html': 'p', \
+    'elem': [ \
+        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'Hello'}}, \
+        {'text': ' '}, \
+        {'html': 'span', 'elem': {'text': 'World!'}} \
+    ] \
+}
+
+elementModelRender(element)
+~~~
+
+Create elements with event handlers:
+
+~~~ bare-script
+function myAppMain():
+    button = { \
+        'html': 'button', \
+        'elem': {'text': 'Click me'}, \
+        'callback': {'click': myAppOnClick} \
+    }
+    elementModelRender(button)
+endfunction
+
+function myAppOnClick():
+    markdownPrint('Button clicked!')
+endfunction
+
+myAppMain()
+~~~
+
+Element models support various HTML elements, attributes, styles, and event callbacks. This provides
+a powerful way to create interactive user interfaces in MarkdownUp applications without writing HTML
+directly.
+
+
 ### Function Index
 
 - [elementModelRender](#var.vPublish=true&var.vSingle=true&elementmodelrender)
@@ -1977,6 +2561,51 @@ Nothing
 ## markdownUp.bare: localStorage
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: localStorage" section contains functions for interacting with the browser's
+local storage. Local storage provides persistent key-value storage that survives browser restarts.
+
+Set a value in local storage:
+
+~~~ bare-script
+localStorageSet('username', 'Alice')
+localStorageSet('theme', 'dark')
+~~~
+
+Get a value from local storage:
+
+~~~ bare-script
+username = localStorageGet('username')
+theme = localStorageGet('theme')
+~~~
+
+Remove a key from local storage:
+
+~~~ bare-script
+localStorageRemove('username')
+~~~
+
+Clear all keys from local storage:
+
+~~~ bare-script
+localStorageClear()
+~~~
+
+Local storage is useful for saving user preferences, application state, or cached data that should
+persist across sessions. Values are stored as strings, so you may need to use
+[jsonStringify](#var.vGroup='json'&jsonstringify) and [jsonParse](#var.vGroup='json'&jsonparse) for
+complex data:
+
+~~~ bare-script
+# Store an object
+preferences = {'theme': 'dark', 'fontSize': 14}
+localStorageSet('preferences', jsonStringify(preferences))
+
+# Retrieve the object
+preferencesJson = localStorageGet('preferences')
+preferences = jsonParse(preferencesJson)
+~~~
+
 
 ### Function Index
 
@@ -2052,6 +2681,43 @@ Nothing
 ## markdownUp.bare: markdown
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: markdown" section contains functions for parsing, rendering, and manipulating
+Markdown content. These are core functions for MarkdownUp applications.
+
+Render Markdown text:
+
+~~~ bare-script
+markdownPrint('# Hello, World!', '', 'This is a **Markdown** document.')
+~~~
+
+Escape text for safe inclusion in Markdown:
+
+~~~ bare-script
+# Escape special characters
+safeText = markdownEscape('Text with * and _ characters')
+markdownPrint('**Bold:** ' + safeText)
+~~~
+
+Compute a header element ID from text:
+
+~~~ bare-script
+# Get the ID for a header
+headerId = markdownHeaderId('My Section Title')
+# Returns: 'my-section-title'
+~~~
+
+Extract the title from Markdown text:
+
+~~~ bare-script
+model = markdownParse('# Title', '', 'Some *text*.')
+title = markdownTitle(model)
+~~~
+
+The Markdown functions support [GitHub Flavored Markdown](https://github.github.com/gfm/) including
+headers, emphasis, links, lists, code blocks, and tables. They integrate seamlessly with other
+MarkdownUp functions to create rich, interactive documents.
+
 
 ### Function Index
 
@@ -2142,6 +2808,31 @@ The Markdown title or null if there is no title
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "markdownUp.bare: schema" section contains functions for rendering schema type documentation.
+These functions create interactive documentation for data structures defined using
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/).
+
+Generate documentation element model for a schema type:
+
+~~~ bare-script
+types = schemaParse( \
+    '# A person information struct', \
+    'struct Person', \
+    '', \
+    "    # The person's name", \
+    '    string name', \
+    '', \
+    "    # The person's age", \
+    '    int age', \
+    '', \
+    "    # The person's email address", \
+    '    optional string email' \
+)
+elements = schemaElements(types, 'Person')
+elementModelRender(elements)
+~~~
+
+
 ### Function Index
 
 - [schemaElements](#var.vPublish=true&var.vSingle=true&schemaelements)
@@ -2177,6 +2868,48 @@ The schema type's documentation [element model](https://github.com/craigahobbs/e
 ## markdownUp.bare: sessionStorage
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: sessionStorage" section contains functions for interacting with the browser's
+session storage. Session storage provides key-value storage that persists for the duration of the
+browser session (until the tab or window is closed).
+
+Set a value in session storage:
+
+~~~ bare-script
+sessionStorageSet('currentPage', 'home')
+~~~
+
+Get a value from session storage:
+
+~~~ bare-script
+currentPage = sessionStorageGet('currentPage')
+~~~
+
+Remove a key from session storage:
+
+~~~ bare-script
+sessionStorageRemove('currentPage')
+~~~
+
+Clear all keys from session storage:
+
+~~~ bare-script
+sessionStorageClear()
+~~~
+
+Session storage is useful for temporary state that should persist across page refreshes but not
+across browser sessions. Like local storage, values are stored as strings:
+
+~~~ bare-script
+# Store an object
+state = {'page': 'home', 'filters': ['active', 'new']}
+sessionStorageSet('appState', jsonStringify(state))
+
+# Retrieve the object
+stateJson = sessionStorageGet('appState')
+state = jsonParse(stateJson)
+~~~
+
 
 ### Function Index
 
@@ -2253,6 +2986,35 @@ Nothing
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+The "markdownUp.bare: url" section contains functions for working with URLs in the browser
+environment.
+
+Create an object URL for file downloads:
+
+~~~ bare-script
+# Create a downloadable text file blob
+downloadFilename = 'test.txt'
+downloadContent = 'Hello, World!\nThis is a text file.'
+downloadURL = urlObjectCreate(downloadContent, 'text/plain')
+
+# Create a link to download the file
+elementModelRender({ \
+    'html': 'p', \
+    'elem': [ \
+        { \
+            'html': 'a', \
+            'attr': {'href': downloadURL, 'download': downloadFilename}, \
+            'elem': {'text': 'Download'} \
+        } \
+    ] \
+})
+~~~
+
+Object URLs are temporary URLs that reference in-memory data. They're useful for creating
+downloadable files on-the-fly without requiring server-side processing. The URLs remain valid until
+the page is closed.
+
+
 ### Function Index
 
 - [urlObjectCreate](#var.vPublish=true&var.vSingle=true&urlobjectcreate)
@@ -2280,6 +3042,75 @@ The object URL string
 ## markdownUp.bare: window
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+The "markdownUp.bare: window" section contains functions for interacting with the browser window and
+its environment.
+
+Get window dimensions:
+
+~~~ bare-script
+width = windowWidth()
+height = windowHeight()
+markdownPrint('Window size: ' + width + ' x ' + height)
+~~~
+
+Navigate to a URL:
+
+~~~ bare-script
+windowSetLocation('other.html')
+~~~
+
+Set a window resize event handler:
+
+~~~ bare-script
+function myAppMain():
+    myAppRender()
+    windowSetResize(myAppOnResize)
+endfunction
+
+function myAppRender():
+    markdownPrint('Window: ' + windowWidth() + ' x ' + windowHeight())
+endfunction
+
+function myAppOnResize():
+    myAppRender()
+endfunction
+
+myAppMain()
+~~~
+
+Set a timeout event handler:
+
+~~~ bare-script
+function myAppMain():
+    markdownPrint('Starting timer...')
+    windowSetTimeout(myAppOnTimeout, 3000)
+endfunction
+
+function myAppOnTimeout():
+    markdownPrint('Timer fired after 3 seconds!')
+endfunction
+
+myAppMain()
+~~~
+
+Read from the clipboard:
+
+~~~ bare-script
+async function myAppReadClipboard():
+    text = windowClipboardRead()
+    markdownPrint('Clipboard contains: ' + text)
+endfunction
+~~~
+
+Write to the clipboard:
+
+~~~ bare-script
+async function myAppWriteClipboard():
+    windowClipboardWrite('Hello, clipboard!')
+endfunction
+~~~
+
 
 ### Function Index
 
@@ -2401,6 +3232,72 @@ The browser window's width
 ## math
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+Math functions provide standard mathematical operations including trigonometric functions,
+logarithms, rounding, and common calculations. These functions work with numeric values and return
+numeric results.
+
+Basic arithmetic and rounding:
+
+~~~ bare-script
+# Absolute value
+abs = mathAbs(-5)
+
+# Rounding
+ceil = mathCeil(3.2)    # 4
+floor = mathFloor(3.8)  # 3
+round = mathRound(3.5)  # 4
+
+# Sign
+sign = mathSign(-5)  # -1
+~~~
+
+Trigonometric functions (angles in radians):
+
+~~~ bare-script
+# Basic trig functions
+sin = mathSin(mathPi() / 2)  # 1
+cos = mathCos(0)             # 1
+tan = mathTan(mathPi() / 4)  # 1
+
+# Inverse trig functions
+asin = mathAsin(1)     # π/2
+acos = mathAcos(1)     # 0
+atan = mathAtan(1)     # π/4
+atan2 = mathAtan2(1, 1)  # π/4
+~~~
+
+Logarithms and exponents:
+
+~~~ bare-script
+# Natural logarithm (base e)
+ln = mathLn(2.718281828)
+
+# Logarithm with custom base
+log = mathLog(100, 10)  # 2
+log2 = mathLog(8, 2)    # 3
+
+# Square root
+sqrt = mathSqrt(16)  # 4
+~~~
+
+Min, max, and random:
+
+~~~ bare-script
+# Minimum and maximum
+min = mathMin(5, 2, 8, 1)  # 1
+max = mathMax(5, 2, 8, 1)  # 8
+
+# Random number between 0 and 1
+random = mathRandom()
+~~~
+
+Constants:
+
+~~~ bare-script
+pi = mathPi()  # 3.141592653589793
+~~~
+
 
 ### Function Index
 
@@ -2722,6 +3619,38 @@ The tangent of the angle
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+Number functions provide operations for parsing, formatting, and converting numeric values.
+
+Parse strings as numbers:
+
+~~~ bare-script
+# Parse floating-point numbers
+num = numberParseFloat('3.14159')
+negative = numberParseFloat('-2.5')
+
+# Parse integers
+int = numberParseInt('42')
+hex = numberParseInt('FF', 16)
+binary = numberParseInt('1010', 2)
+~~~
+
+Format numbers with fixed decimal places:
+
+~~~ bare-script
+# Format with 2 decimal places (default)
+formatted = numberToFixed(3.14159)  # '3.14'
+
+# Format with specific decimal places
+precise = numberToFixed(3.14159, 4)  # '3.1416'
+
+# Format with no decimal places
+integer = numberToFixed(3.14159, 0)  # '3'
+
+# Trim trailing zeros
+trimmed = numberToFixed(3.5, 2, true)  # '3.5' instead of '3.50'
+~~~
+
+
 ### Function Index
 
 - [numberParseFloat](#var.vPublish=true&var.vSingle=true&numberparsefloat)
@@ -2787,6 +3716,50 @@ The fixed-point notation string
 ## object
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+Object functions provide operations for creating and manipulating objects. Objects are key-value
+collections that can be created using object literal syntax (e.g., `{'a': 1, 'b': 2}`) or with the
+[objectNew](#var.vGroup='object'&objectnew) function.
+
+Create and manipulate objects:
+
+~~~ bare-script
+# Create a new object
+person = {'name', 'Alice', 'age', 30}
+
+# Set and get values
+objectSet(person, 'city', 'New York')
+name = objectGet(person, 'name')
+city = objectGet(person, 'city', 'Unknown')  # With default value
+~~~
+
+Check for keys and get all keys:
+
+~~~ bare-script
+# Check if a key exists
+hasAge = objectHas(person, 'age')
+
+# Get all keys
+keys = objectKeys(person)
+~~~
+
+Copy and assign objects:
+
+~~~ bare-script
+# Create a shallow copy
+personCopy = objectCopy(person)
+
+# Assign properties from one object to another
+defaults = {'country': 'USA', 'status': 'active'}
+objectAssign(person, defaults)
+~~~
+
+Delete keys:
+
+~~~ bare-script
+objectDelete(person, 'status')
+~~~
+
 
 ### Function Index
 
@@ -3061,6 +4034,69 @@ The validated [pager model](model.html#var.vName='Pager') or null if validation 
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+Regular expression functions provide pattern matching and text manipulation capabilities. Regular
+expressions are patterns used to match character combinations in strings.
+
+Create a regular expression:
+
+~~~ bare-script
+# Basic pattern
+regex = regexNew('[0-9]+')
+
+# Pattern with flags
+caseInsensitive = regexNew('[a-z]+', 'i')
+multiline = regexNew('^Line', 'm')
+dotAll = regexNew('.*', 's')
+~~~
+
+Find matches in strings:
+
+~~~ bare-script
+# Find first match
+text = 'The year is 2024'
+match = regexMatch(regexNew('[0-9]+'), text)
+if match:
+    groups = objectGet(match, 'groups')
+    matchedText = objectGet(groups, '0')  # '2024'
+    index = objectGet(match, 'index')      # 12
+endif
+
+# Find all matches
+text = 'Prices: $10, $20, $30'
+matches = regexMatchAll(regexNew('\\$([0-9]+)'), text)
+~~~
+
+Replace text using patterns:
+
+~~~ bare-script
+# Replace all digits with X
+text = 'Phone: 555-1234'
+result = regexReplace(regexNew('[0-9]'), text, 'X')
+# Result: 'Phone: XXX-XXXX'
+~~~
+
+Split strings with patterns:
+
+~~~ bare-script
+# Split on whitespace
+text = 'one  two   three'
+parts = regexSplit(regexNew('\\s+'), text)
+# Result: ['one', 'two', 'three']
+~~~
+
+Common regex patterns:
+- `[a-zA-Z]+` - One or more letters
+- `\\d+` - One or more digits
+- `\\s+` - One or more whitespace characters
+- `^` - Start of line/string
+- `$` - End of line/string
+- `.` - Any character (except newline without 's' flag)
+- `*` - Zero or more
+- `+` - One or more
+- `?` - Zero or one
+- `(...)` - Capture group
+
+
 ### Function Index
 
 - [regexEscape](#var.vPublish=true&var.vSingle=true&regexescape)
@@ -3188,6 +4224,57 @@ The array of split parts
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+Schema functions provide operations for parsing, validating, and working with
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type definitions.
+Schema Markdown is a human-readable schema definition language.
+
+Parse Schema Markdown text:
+
+~~~ bare-script
+types = schemaParse( \
+    '# A person information struct', \
+    'struct Person', \
+    '', \
+    "    # The person's name", \
+    '    string name', \
+    '', \
+    "    # The person's age", \
+    '    int age', \
+    '', \
+    "    # The person's email address", \
+    '    optional string email' \
+)
+~~~
+
+Validate data against a schema type:
+
+~~~ bare-script
+person = {'name': 'Alice', 'age': 30}
+validated = schemaValidate(types, 'Person', person)
+if validated != null:
+    # Validation succeeded
+    markdownPrint('Valid person: ' + objectGet(validated, 'name'))
+endif
+~~~
+
+Validate a type model:
+
+~~~ bare-script
+# Validate that a types object conforms to the Schema Markdown type model
+validatedTypes = schemaValidateTypeModel(types)
+~~~
+
+Schema validation provides:
+- Type checking (strings, integers, floats, booleans, etc.)
+- Required vs. optional field validation
+- Array and object structure validation
+- Enumeration value validation
+- Custom validation constraints
+- Detailed error messages
+
+This makes it easy to define, validate, and document data structures in BareScript applications.
+
+
 ### Function Index
 
 - [schemaParse](#var.vPublish=true&var.vSingle=true&schemaparse)
@@ -3289,6 +4376,84 @@ The validated [type model](https://craigahobbs.github.io/schema-markdown-doc/doc
 ## string
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+String functions provide operations for creating, manipulating, and analyzing text strings. Strings
+are sequences of characters enclosed in single or double quotes.
+
+Get string information:
+
+~~~ bare-script
+text = 'Hello, World!'
+length = stringLength(text)  # 13
+
+# Get character codes
+charCode = stringCharCodeAt(text, 0)  # 72 ('H')
+
+# Create string from character codes
+fromCode = stringFromCharCode(72, 101, 108, 108, 111)  # 'Hello'
+~~~
+
+Search within strings:
+
+~~~ bare-script
+# Find first occurrence
+index = stringIndexOf(text, 'World')  # 7
+notFound = stringIndexOf(text, 'xyz')  # -1
+
+# Find last occurrence
+lastIndex = stringLastIndexOf('aa bb aa', 'aa')  # 6
+
+# Check start and end
+starts = stringStartsWith(text, 'Hello')  # true
+ends = stringEndsWith(text, 'World!')    # true
+~~~
+
+Transform strings:
+
+~~~ bare-script
+# Case conversion
+upper = stringUpper('hello')  # 'HELLO'
+lower = stringLower('HELLO')  # 'hello'
+
+# Trim whitespace
+trimmed = stringTrim('  hello  ')  # 'hello'
+
+# Repeat strings
+repeated = stringRepeat('abc', 3)  # 'abcabcabc'
+~~~
+
+Extract and split strings:
+
+~~~ bare-script
+# Extract substring
+slice = stringSlice(text, 7, 12)  # 'World'
+
+# Split into array
+parts = stringSplit('a,b,c', ',')  # ['a', 'b', 'c']
+~~~
+
+Replace text:
+
+~~~ bare-script
+# Replace all occurrences
+replaced = stringReplace('Hello World', 'o', '0')  # 'Hell0 W0rld'
+~~~
+
+Create new strings:
+
+~~~ bare-script
+# Convert any value to string
+str = stringNew(42)  # '42'
+str2 = stringNew(true)  # 'true'
+~~~
+
+Strings in BareScript support Unicode characters and can be concatenated using the `+` operator:
+
+~~~ bare-script
+greeting = 'Hello, ' + 'World!'
+message = 'The answer is ' + 42  # Automatic conversion
+~~~
+
 
 ### Function Index
 
@@ -3578,6 +4743,86 @@ The upper-case string
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
+System functions provide core utilities for type checking, comparison, global variable management,
+logging, and HTTP requests.
+
+Logging:
+
+~~~ bare-script
+# Always log
+systemLog('Application started')
+
+# Log only in debug mode
+systemLogDebug('Debug information')
+~~~
+
+Global variable management:
+
+~~~ bare-script
+# Set a global variable
+systemGlobalSet('appConfig', {'debug': true})
+
+# Get a global variable
+config = systemGlobalGet('appConfig', {})
+~~~
+
+Fetch data from URLs:
+
+~~~ bare-script
+# Simple fetch
+async function getData():
+    response = systemFetch('data.json')
+    return jsonParse(response)
+endfunction
+
+# Fetch with request options
+async function postData():
+    request = { \
+        'url': 'submitAPI', \
+        'body': jsonStringify({'key': 'value'}), \
+        'headers': {'Content-Type': 'application/json'} \
+    }
+    response = systemFetch(request)
+    return response
+endfunction
+
+# Fetch multiple URLs
+async function getMultiple():
+    urls = ['data.json', 'data2.json']
+    responses = systemFetch(urls)
+    return responses
+endfunction
+~~~
+
+Create partial functions:
+
+~~~ bare-script
+# Create a function with pre-filled arguments
+add = function(a, b):
+    return a + b
+endfunction
+
+add5 = systemPartial(add, 5)
+result = add5(3)  # Returns 8
+~~~
+
+Type checking and comparison:
+
+~~~ bare-script
+# Get type of a value
+type = systemType([1, 2, 3])  # 'array'
+
+# Check if value is truthy
+bool = systemBoolean(0)  # false
+
+# Compare values
+cmp = systemCompare(5, 10)  # -1 (less than)
+
+# Test object identity
+same = systemIs(obj1, obj2)
+~~~
+
+
 ### Function Index
 
 - [systemBoolean](#var.vPublish=true&var.vSingle=true&systemboolean)
@@ -3805,7 +5050,7 @@ layout is as follows:
 `-- test
     |-- runTests.md
     |-- runTests.bare
-    |-- testCode1.bare
+    `-- testCode1.bare
 ~~~
 
 **runTests.md**
@@ -3839,7 +5084,7 @@ include 'testCode1.bare'
 coverageStop()
 
 # Test report
-return unittestReport({'minCoverage': 100})
+return unittestReport({'coverageMin': 100})
 ~~~
 
 **testCode1.bare**
@@ -4125,6 +5370,26 @@ Nothing
 ## url
 
 [Back to top](#var.vPublish=true&var.vSingle=true&_top)
+
+URL functions provide operations for encoding URLs and URL components. These functions ensure that
+special characters in URLs are properly escaped for use in web requests and links.
+
+Encode a complete URL:
+
+~~~ bare-script
+url = 'path?param=value with spaces'
+encoded = urlEncode(url)
+~~~
+
+Encode a URL component (query parameter, path segment, etc.):
+
+~~~ bare-script
+# Build a URL with encoded parameters
+baseUrl = 'search'
+query = urlEncodeComponent('term with spaces')
+fullUrl = baseUrl + '?q=' + query
+~~~
+
 
 ### Function Index
 
