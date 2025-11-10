@@ -6,7 +6,7 @@ layout is as follows:
 `-- test
     |-- runTests.md
     |-- runTests.bare
-    |-- testCode1.bare
+    `-- testCode1.bare
 ~~~
 
 **runTests.md**
@@ -40,7 +40,7 @@ include 'testCode1.bare'
 coverageStop()
 
 # Test report
-return unittestReport({'minCoverage': 100})
+return unittestReport({'coverageMin': 100})
 ~~~
 
 **testCode1.bare**
