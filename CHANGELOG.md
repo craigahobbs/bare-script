@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.6 (2025-11-14)
+
+- [7a2d332](https://github.com/craigahobbs/bare-script/commit/7a2d332) - improve dataTableMarkdown field value newline handling
+
 ## 3.8.5 (2025-11-06)
 
 - [755538e](https://github.com/craigahobbs/bare-script/commit/755538e) - fix unecessary async function linter check
