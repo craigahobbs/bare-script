@@ -15,6 +15,17 @@ endfunction
 unittestRunTest('testDataTableMarkdown')
 
 
+function testDataTableMarkdown_multiline():
+    data = [{'A': 1.5, 'B': 'A\nmultiline\nsentence.\n\nAfter paragraph.\n\n'}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    | B                                             |', \
+        '|------|-----------------------------------------------|', \
+        '| 1.50 | A multiline sentence.<br><br>After paragraph. |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_multiline')
+
+
 function testDataTableMarkdown_fields():
     data = [{'A': 1, 'B': 2, 'C': 3}]
     model = { \

@@ -127,7 +127,7 @@ function dataTableMarkdown(data, model):
             value = objectGet(row, field)
             valueType = systemType(value)
             if valueType == 'string':
-                valueFormat = value
+                valueFormat = stringTrim(value)
             elif valueType == 'number':
                 valueFormat = numberToFixed(value, precisionNumber, precisionTrim)
             elif valueType == 'datetime':
@@ -135,6 +135,12 @@ function dataTableMarkdown(data, model):
             else:
                 valueFormat = stringNew(value)
             endif
+
+            # Eliminate value string newlines
+            valueFormat = regexReplace(dataTableMarkdownRegexMultipleNewline, valueFormat, '<br><br>')
+            valueFormat = regexReplace(dataTableMarkdownRegexSingleNewline, valueFormat, ' ')
+
+            # Set the field value string
             objectSet(rowFormat, field, valueFormat)
 
             # Update the field width
@@ -188,6 +194,11 @@ function dataTableMarkdown(data, model):
 
     return lines
 endfunction
+
+
+# Field value newline replacement regular expressions
+dataTableMarkdownRegexMultipleNewline = regexNew('\r?\n(?:\r?\n)+')
+dataTableMarkdownRegexSingleNewline = regexNew('\r?\n')
 
 
 # Helper to generate the Markdown field text
