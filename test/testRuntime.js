@@ -690,6 +690,22 @@ test('executeScript, jumpif', () => {
 });
 
 
+test('executeScript, jumpif non-boolean', () => {
+    const script = validateScript({
+        'statements': [
+            {'jump': {
+                'label': 'label',
+                'expr': {'function': {'name': 'arrayNew', 'args': []}}
+            }},
+            {'return': {'expr': {'number': 2}}},
+            {'label': {'name':  'label'}},
+            {'return': {'expr': {'number': 1}}}
+        ]
+    });
+    assert.equal(executeScript(script), 2);
+});
+
+
 test('executeScript, jump error unknown label', () => {
     const script = validateScript({
         'statements': [
@@ -949,6 +965,21 @@ test('evaluateExpression, function if', () => {
     options.globals.test = false;
     assert.equal(evaluateExpression(expr, options), 'abc');
     assert.deepEqual(testValues, ['a', 'abc']);
+});
+
+
+test('evaluateExpression, function if non-boolean', () => {
+    const expr = validateExpression({
+        'function': {
+            'name': 'if',
+            'args': [
+                {'function': {'name': 'arrayNew', 'args': []}},
+                {'number': 1},
+                {'number': 2}
+            ]
+        }
+    });
+    assert.equal(evaluateExpression(expr), 2);
 });
 
 

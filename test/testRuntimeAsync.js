@@ -801,6 +801,22 @@ test('executeScriptAsync, jumpif', async () => {
 });
 
 
+test('executeScriptAsync, jumpif non-boolean', async () => {
+    const script = validateScript({
+        'statements': [
+            {'jump': {
+                'label': 'label',
+                'expr': {'function': {'name': 'arrayNew', 'args': []}}
+            }},
+            {'return': {'expr': {'number': 2}}},
+            {'label': {'name':  'label'}},
+            {'return': {'expr': {'number': 1}}}
+        ]
+    });
+    assert.equal(await executeScriptAsync(script), 2);
+});
+
+
 test('executeScriptAsync, jump error unknown label', async () => {
     const script = validateScript({
         'statements': [
@@ -1429,6 +1445,26 @@ test('evaluateExpressionAsync, function if', async () => {
     options.globals.test = false;
     assert.equal(await evaluateExpressionAsync(expr, options), 'abc');
     assert.deepEqual(testValues, ['a', 'abc']);
+});
+
+
+test('evaluateExpressionAsync, function if non-boolean', async () => {
+    const expr = validateExpression({
+        'function': {
+            'name': 'if',
+            'args': [
+                {'function': {'name': 'arrayNew', 'args': []}},
+                {'function': {'name': 'asyncFn'}},
+                {'number': 2}
+            ]
+        }
+    });
+    const options = {
+        'globals': {
+            'asyncFn': async () => 1
+        }
+    };
+    assert.equal(await evaluateExpressionAsync(expr, options), 2);
 });
 
 
