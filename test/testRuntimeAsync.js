@@ -1454,14 +1454,14 @@ test('evaluateExpressionAsync, function if non-boolean', async () => {
             'name': 'if',
             'args': [
                 {'function': {'name': 'arrayNew', 'args': []}},
-                {'function': {'name': 'asyncFn'}},
-                {'number': 2}
+                {'number': 1},
+                {'function': {'name': 'asyncFn'}}
             ]
         }
     });
     const options = {
         'globals': {
-            'asyncFn': async () => 1
+            'asyncFn': async () => 2
         }
     };
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
