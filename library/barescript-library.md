@@ -37,7 +37,6 @@ globals.
 - [regex](#var.vPublish=true&var.vSingle=true&regex)
 - [schema](#var.vPublish=true&var.vSingle=true&schema)
 - [schemaDoc.bare](#var.vPublish=true&var.vSingle=true&schemadoc-bare)
-- [schemaDocApp.bare](#var.vPublish=true&var.vSingle=true&schemadocapp-bare)
 - [string](#var.vPublish=true&var.vSingle=true&string)
 - [system](#var.vPublish=true&var.vSingle=true&system)
 - [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare)
@@ -4325,7 +4324,29 @@ The validated [type model](https://craigahobbs.github.io/schema-markdown-doc/doc
 
 ### Function Index
 
+- [schemaDocMain](#var.vPublish=true&var.vSingle=true&schemadocmain)
 - [schemaDocMarkdown](#var.vPublish=true&var.vSingle=true&schemadocmarkdown)
+
+---
+
+### schemaDocMain
+
+The Schema Markdown documentation viewer main entry point
+
+#### Arguments
+
+**url -**
+Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
+
+**title -**
+Optional. The schema title.
+
+**hideNoGroup -**
+Optional (default is false). If true, hide types with no group.
+
+#### Returns
+
+Nothing
 
 ---
 
@@ -4351,35 +4372,6 @@ Optional (default is null). The options object with optional members:
 #### Returns
 
 The array of Markdown text lines
-
----
-
-## schemaDocApp.bare
-
-### Function Index
-
-- [schemaDocAppMain](#var.vPublish=true&var.vSingle=true&schemadocappmain)
-
----
-
-### schemaDocAppMain
-
-The Schema Markdown documentation viewer main entry point
-
-#### Arguments
-
-**url -**
-Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
-
-**title -**
-Optional. The schema title.
-
-**hideNoGroup -**
-Optional (default is false). If true, hide types with no group.
-
-#### Returns
-
-Nothing
 
 ---
 
