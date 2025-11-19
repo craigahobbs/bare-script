@@ -11,7 +11,7 @@ globals.
 
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
 - [array](#var.vPublish=true&var.vSingle=true&array)
-- [baredocMain.bare](#var.vPublish=true&var.vSingle=true&baredocmain-bare)
+- [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare)
 - [coverage](#var.vPublish=true&var.vSingle=true&coverage)
 - [data](#var.vPublish=true&var.vSingle=true&data)
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
@@ -594,7 +594,7 @@ The sorted array
 
 ---
 
-## baredocMain.bare
+## baredoc.bare
 
 The "baredocMain.bare" include library provides the main entry point for creating BareScript library
 documentation applications. This library is used to generate documentation websites like the
