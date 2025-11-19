@@ -4,7 +4,7 @@
 
 # The data table model's Schema Markdown
 dataTableTypes = schemaParse( \
-    'group "<dataTable.bare>"', \
+    'group "dataTable.bare"', \
     '', \
     '', \
     '# A data table model', \

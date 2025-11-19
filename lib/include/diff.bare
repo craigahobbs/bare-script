@@ -4,7 +4,7 @@
 
 # The text line difference model
 diffTypes = schemaParse( \
-    'group "<diff.bare>"', \
+    'group "diff.bare"', \
     '', \
     '', \
     '# A list of text line differences', \

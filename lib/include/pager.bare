@@ -7,7 +7,7 @@ include <args.bare>
 
 # The pager model
 pagerTypes = schemaParse( \
-    'group "<pager.bare>"', \
+    'group "pager.bare"', \
     '', \
     '', \
     '# A pager application model', \

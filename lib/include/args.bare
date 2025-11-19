@@ -6,7 +6,7 @@ include <dataTable.bare>
 
 # The URL arguments model
 argsTypes = schemaParse( \
-    'group "<args.bare>"', \
+    'group "args.bare"', \
     '', \
     '', \
     '# An argument model list', \
