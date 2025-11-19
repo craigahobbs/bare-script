@@ -36,6 +36,8 @@ globals.
 - [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare)
 - [regex](#var.vPublish=true&var.vSingle=true&regex)
 - [schema](#var.vPublish=true&var.vSingle=true&schema)
+- [schemaDoc.bare](#var.vPublish=true&var.vSingle=true&schemadoc-bare)
+- [schemaDocApp.bare](#var.vPublish=true&var.vSingle=true&schemadocapp-bare)
 - [string](#var.vPublish=true&var.vSingle=true&string)
 - [system](#var.vPublish=true&var.vSingle=true&system)
 - [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare)
@@ -45,8 +47,6 @@ globals.
 ---
 
 ## args.bare
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "args.bare" include library contains functions for parsing/validating a MarkdownUp application's
 URL arguments, and functions for creating MarkdownUp application URLs and links.
@@ -224,8 +224,6 @@ The validated [arguments model](model.html#var.vName='ArgsArguments') or null if
 ---
 
 ## array
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Array functions provide operations for creating, manipulating, and querying arrays. Arrays are
 ordered collections of values that can be created using array literal syntax (e.g., `[1, 2, 3]`) or
@@ -598,8 +596,6 @@ The sorted array
 
 ## baredocMain.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "baredocMain.bare" include library provides the main entry point for creating BareScript library
 documentation applications. This library is used to generate documentation websites like the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
@@ -671,8 +667,6 @@ Nothing
 ---
 
 ## coverage
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Coverage functions provide runtime code coverage tracking for BareScript scripts. These functions
 are primarily used in unit testing to ensure that tests exercise all code paths.
@@ -775,8 +769,6 @@ Nothing
 ---
 
 ## data
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Data functions provide operations for manipulating and analyzing arrays of data objects (also known
 as data tables or datasets). These functions enable filtering, sorting, aggregating, joining, and
@@ -1025,8 +1017,6 @@ The validated data array
 
 ## dataTable.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "dataTable.bare" include library provides functions for rendering data arrays as formatted
 Markdown tables. This is useful for displaying tabular data in MarkdownUp applications.
 
@@ -1085,8 +1075,6 @@ The array of Markdown table line strings
 ---
 
 ## datetime
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Datetime functions provide operations for creating, manipulating, and formatting date and time
 values. Datetime values represent specific moments in time.
@@ -1359,8 +1347,6 @@ The full year
 
 ## diff.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "diff.bare" include library provides functions for computing line-by-line differences between
 two strings or arrays of strings. This is useful for comparing text files, showing changes, or
 implementing version control-like functionality.
@@ -1418,8 +1404,6 @@ The array of [difference models](model.html#var.vName='Differences')
 ---
 
 ## forms.bare
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "forms.bare" include library provides functions for creating form elements using
 [element models](https://github.com/craigahobbs/element-model#readme). These functions simplify the
@@ -1539,8 +1523,6 @@ The text input [element model](https://github.com/craigahobbs/element-model#read
 
 ## json
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 JSON functions provide operations for parsing and serializing JSON (JavaScript Object Notation)
 data. JSON is a lightweight data interchange format that is easy to read and write.
 
@@ -1609,8 +1591,6 @@ The JSON string
 
 ## markdownUp.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 `markdownUp.bare` contains implementations of the
 [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme)
 runtime functions, which enables many MarkdownUp applications to run on plain
@@ -1675,8 +1655,6 @@ $ bare -m app.bare
 ---
 
 ## markdownUp.bare: data
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: data" section contains functions for visualizing data in MarkdownUp
 applications. These functions integrate with the data manipulation functions to create charts and
@@ -1768,8 +1746,6 @@ Nothing
 ---
 
 ## markdownUp.bare: document
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: document" section contains functions for interacting with the document and
 browser DOM. These functions allow you to manipulate the document title, get input values, set
@@ -1977,8 +1953,6 @@ The fixed-up URL
 ---
 
 ## markdownUp.bare: draw
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: draw" section contains functions for creating vector graphics drawings. These
 functions provide a programmatic way to draw shapes, lines, text, and images using SVG.
@@ -2486,8 +2460,6 @@ The current drawing's width
 
 ## markdownUp.bare: elementModel
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "markdownUp.bare: elementModel" section contains functions for rendering
 [element models](https://github.com/craigahobbs/element-model#readme). Element models provide a
 declarative way to create HTML elements and handle user interactions.
@@ -2559,8 +2531,6 @@ Nothing
 ---
 
 ## markdownUp.bare: localStorage
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: localStorage" section contains functions for interacting with the browser's
 local storage. Local storage provides persistent key-value storage that survives browser restarts.
@@ -2679,8 +2649,6 @@ Nothing
 ---
 
 ## markdownUp.bare: markdown
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: markdown" section contains functions for parsing, rendering, and manipulating
 Markdown content. These are core functions for MarkdownUp applications.
@@ -2806,8 +2774,6 @@ The Markdown title or null if there is no title
 
 ## markdownUp.bare: schema
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "markdownUp.bare: schema" section contains functions for rendering schema type documentation.
 These functions create interactive documentation for data structures defined using
 [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/).
@@ -2866,8 +2832,6 @@ The schema type's documentation [element model](https://github.com/craigahobbs/e
 ---
 
 ## markdownUp.bare: sessionStorage
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: sessionStorage" section contains functions for interacting with the browser's
 session storage. Session storage provides key-value storage that persists for the duration of the
@@ -2984,8 +2948,6 @@ Nothing
 
 ## markdownUp.bare: url
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "markdownUp.bare: url" section contains functions for working with URLs in the browser
 environment.
 
@@ -3040,8 +3002,6 @@ The object URL string
 ---
 
 ## markdownUp.bare: window
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 The "markdownUp.bare: window" section contains functions for interacting with the browser window and
 its environment.
@@ -3230,8 +3190,6 @@ The browser window's width
 ---
 
 ## math
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Math functions provide standard mathematical operations including trigonometric functions,
 logarithms, rounding, and common calculations. These functions work with numeric values and return
@@ -3617,8 +3575,6 @@ The tangent of the angle
 
 ## number
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 Number functions provide operations for parsing, formatting, and converting numeric values.
 
 Parse strings as numbers:
@@ -3714,8 +3670,6 @@ The fixed-point notation string
 ---
 
 ## object
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Object functions provide operations for creating and manipulating objects. Objects are key-value
 collections that can be created using object literal syntax (e.g., `{'a': 1, 'b': 2}`) or with the
@@ -3917,8 +3871,6 @@ The value to set
 
 ## pager.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "pager.bare" include library is a simple, configurable, paged MarkdownUp application. The pager
 renders a menu of links to your pages and navigation links (start, next, previous). The pager
 supports three page types: function pages, Markdown pages, and external links.
@@ -4031,8 +3983,6 @@ The validated [pager model](model.html#var.vName='Pager') or null if validation 
 ---
 
 ## regex
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 Regular expression functions provide pattern matching and text manipulation capabilities. Regular
 expressions are patterns used to match character combinations in strings.
@@ -4222,8 +4172,6 @@ The array of split parts
 
 ## schema
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 Schema functions provide operations for parsing, validating, and working with
 [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type definitions.
 Schema Markdown is a human-readable schema definition language.
@@ -4373,9 +4321,69 @@ The validated [type model](https://craigahobbs.github.io/schema-markdown-doc/doc
 
 ---
 
-## string
+## schemaDoc.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
+### Function Index
+
+- [schemaDocMarkdown](#var.vPublish=true&var.vSingle=true&schemadocmarkdown)
+
+---
+
+### schemaDocMarkdown
+
+Generate the Schema Markdown user type documentation as an array of Markdown text lines
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+
+**typeName -**
+The type name
+
+**options -**
+Optional (default is null). The options object with optional members:
+- **actionURLs** - The [action URLs](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL') override
+- **actionCustom** - If true, the action has a custom response (default is false)
+- **headerPrefix** - The top-level header prefix string (default is "#")
+- **hideReferenced** - If true, referenced types are not rendered (default is false)
+
+#### Returns
+
+The array of Markdown text lines
+
+---
+
+## schemaDocApp.bare
+
+### Function Index
+
+- [schemaDocAppMain](#var.vPublish=true&var.vSingle=true&schemadocappmain)
+
+---
+
+### schemaDocAppMain
+
+The Schema Markdown documentation viewer main entry point
+
+#### Arguments
+
+**url -**
+Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
+
+**title -**
+Optional. The schema title.
+
+**hideNoGroup -**
+Optional (default is false). If true, hide types with no group.
+
+#### Returns
+
+Nothing
+
+---
+
+## string
 
 String functions provide operations for creating, manipulating, and analyzing text strings. Strings
 are sequences of characters enclosed in single or double quotes.
@@ -4741,8 +4749,6 @@ The upper-case string
 
 ## system
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 System functions provide core utilities for type checking, comparison, global variable management,
 logging, and HTTP requests.
 
@@ -5040,8 +5046,6 @@ Valid values are: 'array', 'boolean', 'datetime', 'function', 'null', 'number', 
 
 ## unittest.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "unittest.bare" include library contains functions for unit testing code. The typical project
 layout is as follows:
 
@@ -5211,8 +5215,6 @@ Nothing
 
 ## unittestMock.bare
 
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
-
 The "unittestMock.bare" include library contains functions for mocking functions for unit testing.
 Consider the following MarkdownUp application:
 
@@ -5368,8 +5370,6 @@ Nothing
 ---
 
 ## url
-
-[Back to top](#var.vPublish=true&var.vSingle=true&_top)
 
 URL functions provide operations for encoding URLs and URL components. These functions ensure that
 special characters in URLs are properly escaped for use in web requests and links.
