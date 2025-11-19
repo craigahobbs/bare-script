@@ -72,8 +72,22 @@ doc:
     # Generate the library model documentation
 	$(NODE_SHELL) node --input-type=module -e "$$DOC_LIBRARY_MODEL_JS" build/doc/library/model.json
 
+    # Generate the single-page library model documentation
+	cd build/doc/library/ && \
+	$(NODE_SHELL) npx bare -m -c 'include <schemaDocApp.bare>' \
+		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+		-c "schemaDocAppMain('model.json', 'The BareScript Library Models')" \
+		> barescript-library-model.md
+
     # Generate the runtime model documentation
 	$(NODE_SHELL) node --input-type=module -e "$$DOC_RUNTIME_MODEL_JS" build/doc/model/model.json
+
+    # Generate the single-page runtime model documentation
+	cd build/doc/model/ && \
+	$(NODE_SHELL) npx bare -m -c 'include <schemaDocApp.bare>' \
+		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+		-c "schemaDocAppMain('model.json', 'The BareScript Runtime Model')" \
+		> barescript-model.md
 
 
 # JavaScript to generate the expression library documentation

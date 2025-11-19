@@ -266,7 +266,6 @@ async function testBaredocMain_publish():
         ['markdownPrint', ['- [C Group](#var.vPublish=true&var.vSingle=true&c-group)']], \
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## A Group']], \
-        ['markdownPrint', ['', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)']], \
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_a](#var.vPublish=true&var.vSingle=true&func-a)']], \
         ['markdownPrint', ['- [func\\_c](#var.vPublish=true&var.vSingle=true&func-c)']], \
@@ -283,7 +282,6 @@ async function testBaredocMain_publish():
         ['markdownPrint', ['', 'Nothing']], \
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## C Group']], \
-        ['markdownPrint', ['', '[Back to top](#var.vPublish=true&var.vSingle=true&_top)']], \
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_d](#var.vPublish=true&var.vSingle=true&func-d)']], \
         ['markdownPrint', ['- [func\\_e](#var.vPublish=true&var.vSingle=true&func-e)']], \
@@ -870,8 +868,41 @@ async function testBaredocMain_doc():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['documentSetTitle', ['Library']], \
-        ['elementModelRender', [ \
-            [[{'html': 'h1', 'elem': {'text': 'struct Library'}}]] \
+        ['markdownPrint', [ \
+            [ \
+                '# struct Library', \
+                '', \
+                'A library documentation model', \
+                '', \
+                '| Name      | Type                            | Attributes     | Description           |', \
+                '|-----------|---------------------------------|----------------|-----------------------|', \
+                '| functions | [Function](#struct-function) [] | len(array) > 0 | The library functions |', \
+                '', \
+                '---', \
+                '', \
+                '## Referenced Types', \
+                '', \
+                '### struct Function', \
+                '', \
+                'A library function', \
+                '', \
+                '| Name   | Type                                            | Attributes                 | Description                                        |', \
+                '|--------|-------------------------------------------------|----------------------------|----------------------------------------------------|', \
+                '| name   | string                                          | len(value) > 0             | The function name                                  |', \
+                '| group  | string                                          | len(value) > 0             | The function group (e.g. "Math")                   |', \
+                "| doc    | string []                                       | len(array) > 0             | The function's documentation Markdown lines        |", \
+                '| args   | [FunctionArgument](#struct-functionargument) [] | optional<br>len(array) > 0 | The function arguments                             |', \
+                "| return | string []                                       | optional<br>len(array) > 0 | The function return's documentation Markdown lines |", \
+                '', \
+                '### struct FunctionArgument', \
+                '', \
+                'A function argument', \
+                '', \
+                '| Name | Type      | Attributes     | Description                                 |', \
+                '|------|-----------|----------------|---------------------------------------------|', \
+                '| name | string    | len(value) > 0 | The argument name                           |', \
+                "| doc  | string [] | len(array) > 0 | The argument's documentation Markdown lines |" \
+            ] \
         ]] \
     ])
 endfunction

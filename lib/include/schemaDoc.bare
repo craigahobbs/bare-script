@@ -1,0 +1,600 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <dataTable.bare>
+
+
+# $function: schemaDocMarkdown
+# $group: schemaDoc.bare
+# $doc: Generate the Schema Markdown user type documentation as an array of Markdown text lines
+# $arg types: The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+# $arg typeName: The type name
+# $arg options: Optional (default is null). The options object with optional members:
+# $arg options: - **actionURLs** - The [action URLs](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL') override
+# $arg options: - **actionCustom** - If true, the action has a custom response (default is false)
+# $arg options: - **headerPrefix** - The top-level header prefix string (default is "#")
+# $arg options: - **hideReferenced** - If true, referenced types are not rendered (default is false)
+# $return: The array of Markdown text lines
+function schemaDocMarkdown(types, typeName, options):
+    headerPrefix = if(options != null, objectGet(options, 'headerPrefix', '#'), '#')
+    hideReferenced = if(options != null, objectGet(options, 'hideReferenced', false), false)
+
+    # Get the user type
+    if !objectHas(types, typeName):
+        systemLogDebug('schemaDoc.bare: Unknown type "' + typeName + '"')
+        return null
+    endif
+    userType = objectGet(types, typeName)
+    action = objectGet(userType, 'action')
+
+    # Compute the referenced types
+    referencedTypes = schemaDocGetReferencedTypes(types, typeName)
+    if action != null:
+        typesFilter = [ \
+            typeName, objectGet(action, 'path'), objectGet(action, 'query'), objectGet(action, 'input'), \
+            objectGet(action, 'output'), objectGet(action, 'errors') \
+        ]
+    else:
+        typesFilter = [typeName]
+    endif
+
+    # Filter and sort referenced types
+    filteredTypeNames = []
+    for refTypeName in arraySort(objectKeys(referencedTypes)):
+        if arrayIndexOf(typesFilter, refTypeName) == -1:
+            arrayPush(filteredTypeNames, refTypeName)
+        endif
+    endfor
+
+    # The user type documentation
+    lines = []
+    arrayExtend(lines, schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix))
+
+    # Referenced type documentation
+    if filteredTypeNames && !hideReferenced:
+        arrayPush(lines, '')
+        arrayPush(lines, '---')
+        arrayPush(lines, '')
+        arrayPush(lines, headerPrefix + '# Referenced Types')
+        for refTypeName in filteredTypeNames:
+            arrayPush(lines, '')
+            arrayExtend(lines, schemaDocUserTypeMarkdown(types, refTypeName, options, headerPrefix + '##'))
+        endfor
+    endif
+
+    return lines
+endfunction
+
+
+# Helper function to generate user type documentation
+function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title, introLines):
+    userType = objectGet(types, typeName)
+    lines = []
+
+    # Title
+    arrayPush(lines, headerPrefix + ' ' + if(title != null, title, schemaDocTypeTitle(userType)))
+
+    # Struct?
+    if objectHas(userType, 'struct'):
+        struct = objectGet(userType, 'struct')
+
+        # Bases
+        if objectHas(struct, 'bases'):
+            bases = objectGet(struct, 'bases')
+            basesLinks = []
+            for base in bases:
+                arrayPush(basesLinks, '[' + markdownEscape(base) + '](#' + schemaDocTypeHref(objectGet(types, base)) + ')')
+            endfor
+            arrayPush(lines, '')
+            arrayPush(lines, 'Bases: ' + arrayJoin(basesLinks, ', '))
+        endif
+
+        # Documentation
+        if objectHas(struct, 'doc'):
+            arrayPush(lines, '')
+            arrayExtend(lines, objectGet(struct, 'doc'))
+        endif
+
+        # Members table
+        members = schemaDocGetStructMembers(types, struct)
+        if !members:
+            arrayPush(lines, '')
+            arrayPush(lines, 'The struct is empty.')
+        else:
+            # Any attributes or documentation?
+            hasAttr = false
+            hasDoc = false
+            for member in members:
+                hasAttr = hasAttr || schemaDocAttrText(member) != null
+                hasDoc = hasDoc || objectGet(member, 'doc')
+            endfor
+
+            # Members table data
+            tableData = []
+            for member in members:
+                memberName = objectGet(member, 'name')
+                row = { \
+                    'Name': memberName, \
+                    'Type': schemaDocTypeText(types, objectGet(member, 'type')) \
+                }
+                if hasAttr:
+                    objectSet(row, 'Attributes', schemaDocAttrText(member) || '')
+                endif
+                if hasDoc:
+                    doc = objectGet(member, 'doc')
+                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, ' '), ''))
+                endif
+                arrayPush(tableData, row)
+            endfor
+
+            # Members table
+            tableFields = ['Name', 'Type']
+            if hasAttr:
+                arrayPush(tableFields, 'Attributes')
+            endif
+            if hasDoc:
+                arrayPush(tableFields, 'Description')
+            endif
+            tableModel = {'fields': tableFields}
+            arrayPush(lines, '')
+            arrayExtend(lines, dataTableMarkdown(tableData, tableModel))
+        endif
+
+    # Enum?
+    elif objectHas(userType, 'enum'):
+        enum = objectGet(userType, 'enum')
+
+        # Bases
+        if objectHas(enum, 'bases'):
+            bases = objectGet(enum, 'bases')
+            basesLinks = []
+            for base in bases:
+                arrayPush(basesLinks, '[' + markdownEscape(base) + '](#' + schemaDocTypeHref(objectGet(types, base)) + ')')
+            endfor
+            arrayPush(lines, '')
+            arrayPush(lines, 'Bases: ' + arrayJoin(basesLinks, ', '))
+        endif
+
+        # Documentation
+        if objectHas(enum, 'doc'):
+            arrayPush(lines, '')
+            arrayExtend(lines, objectGet(enum, 'doc'))
+        endif
+
+        # Intro markdown
+        if systemType(introLines) == 'array':
+            arrayPush(lines, '')
+            arrayExtend(lines, introLines)
+        endif
+
+        # Values table
+        values = if(objectHas(enum, 'values'), schemaDocGetEnumValues(types, enum), null)
+        if values == null || !values:
+            arrayPush(lines, '')
+            arrayPush(lines, 'The enum is empty.')
+        else:
+            # Compute value documentation
+            hasDoc = false
+            for value in values:
+                hasDoc = hasDoc || objectGet(value, 'doc')
+            endfor
+
+            # Values table data
+            tableData = []
+            for value in values:
+                valueName = objectGet(value, 'name')
+                row = {'Value': valueName}
+                if hasDoc:
+                    doc = objectGet(value, 'doc')
+                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, ' '), ''))
+                endif
+                arrayPush(tableData, row)
+            endfor
+
+            # Values table
+            tableFields = ['Value']
+            if hasDoc:
+                arrayPush(tableFields, 'Description')
+            endif
+            tableModel = {'fields': tableFields}
+            arrayPush(lines, '')
+            arrayExtend(lines, dataTableMarkdown(tableData, tableModel))
+        endif
+
+    # Typedef?
+    elif objectHas(userType, 'typedef'):
+        typedef = objectGet(userType, 'typedef')
+
+        # Documentation
+        if objectHas(typedef, 'doc'):
+            arrayPush(lines, '')
+            arrayExtend(lines, objectGet(typedef, 'doc'))
+        endif
+
+        # Type table data
+        attrText = if(objectHas(typedef, 'attr'), schemaDocAttrText(typedef))
+        tableData = [{'Type': schemaDocTypeText(types, objectGet(typedef, 'type'))}]
+        if attrText != null:
+            objectSet(arrayGet(tableData, 0), 'Attributes', attrText)
+        endif
+
+        # Type table
+        tableFields = ['Type']
+        if attrText != null:
+            arrayPush(tableFields, 'Attributes')
+        endif
+        tableModel = {'fields': tableFields}
+        arrayPush(lines, '')
+        arrayExtend(lines, dataTableMarkdown(tableData, tableModel))
+
+    # Action?
+    elif objectHas(userType, 'action'):
+        action = objectGet(userType, 'action')
+
+        # Documentation
+        if objectHas(action, 'doc'):
+            arrayPush(lines, '')
+            arrayExtend(lines, objectGet(action, 'doc'))
+        endif
+
+        # URLs
+        actionURLs = if(options != null && objectHas(options, 'actionURLs'), objectGet(options, 'actionURLs'), objectGet(action, 'urls'))
+        if actionURLs:
+            arrayPush(lines, '')
+            arrayPush(lines, '**Note:** The request is exposed at the following ' + if(arrayLength(actionURLs) == 1, 'URL:', 'URLs:'))
+            for actionURL in actionURLs:
+                method = objectGet(actionURL, 'method')
+                path = objectGet(actionURL, 'path', '/' + typeName)
+                arrayPush(lines, '')
+                arrayPush(lines, '- [' + if(method, method + ' ', '') + markdownEscape(path) + '](' + urlEncode(path) + ')')
+            endfor
+        endif
+
+        # Path struct
+        if objectHas(action, 'path'):
+            arrayPush(lines, '')
+            arrayExtend( \
+                lines, \
+                schemaDocUserTypeMarkdown(types, objectGet(action, 'path'), options, headerPrefix + '#', 'Path Parameters') \
+            )
+        endif
+
+        # Query struct
+        if objectHas(action, 'query'):
+            arrayPush(lines, '')
+            arrayExtend( \
+                lines, \
+                schemaDocUserTypeMarkdown(types, objectGet(action, 'query'), options, headerPrefix + '#', 'Query Parameters') \
+            )
+        endif
+
+        # Input struct
+        if objectHas(action, 'input'):
+            arrayPush(lines, '')
+            arrayExtend( \
+                lines, \
+                schemaDocUserTypeMarkdown(types, objectGet(action, 'input'), options, headerPrefix + '#', 'Input Parameters') \
+            )
+        endif
+
+        # Output struct
+        actionCustom = options != null && objectGet(options, 'actionCustom')
+        if objectHas(action, 'output') && !actionCustom:
+            arrayPush(lines, '')
+            arrayExtend( \
+                lines, \
+                schemaDocUserTypeMarkdown(types, objectGet(action, 'output'), options, headerPrefix + '#', 'Output Parameters') \
+            )
+        endif
+
+        # Error enum
+        if !actionCustom:
+            # Add "UnexpectedError" to the action's errors
+            if objectHas(action, 'errors'):
+                actionErrorTypeName = objectGet(action, 'errors')
+                actionErrorTypes = schemaDocGetReferencedTypes(types, actionErrorTypeName)
+                actionErrorEnum = objectCopy(objectGet(objectGet(types, actionErrorTypeName), 'enum'))
+                if objectHas(actionErrorEnum, 'values'):
+                    objectSet(actionErrorEnum, 'values', arrayCopy(objectGet(actionErrorEnum, 'values')))
+                else:
+                    objectSet(actionErrorEnum, 'values', [])
+                endif
+            else:
+                actionErrorTypeName = typeName + '_errors'
+                actionErrorTypes = {}
+                actionErrorEnum = {'name': actionErrorTypeName, 'values': []}
+            endif
+
+            # Add UnexpectedError if not already present
+            values = objectGet(actionErrorEnum, 'values')
+            hasUnexpectedError = false
+            for value in values:
+                if objectGet(value, 'name') == 'UnexpectedError':
+                    hasUnexpectedError = true
+                    break
+                endif
+            endfor
+            if !hasUnexpectedError:
+                arrayPush(values, {'name': 'UnexpectedError'})
+            endif
+            objectSet(actionErrorTypes, actionErrorTypeName, {'enum': actionErrorEnum})
+            arrayPush(lines, '')
+            arrayExtend( \
+                lines, \
+                schemaDocUserTypeMarkdown( \
+                    actionErrorTypes, actionErrorTypeName, options, headerPrefix + '#', 'Error Codes', schemaDocActionErrorIntroLines \
+                ) \
+            )
+        endif
+    endif
+
+    return lines
+endfunction
+
+
+# Action error enum introduction text
+schemaDocActionErrorIntroLines = [ \
+    'If an application error occurs, the response is of the form:', \
+    '', \
+    '```json', \
+    '{', \
+    '    "error": "<error>",', \
+    '    "message": "<message>"', \
+    '}', \
+    '```', \
+    '', \
+    '`message` is optional. `error` is one of the following values:' \
+]
+
+
+# Helper function to get a type's title
+function schemaDocTypeTitle(userType):
+    if objectHas(userType, 'struct'):
+        struct = objectGet(userType, 'struct')
+        return if(objectGet(struct, 'union'), 'union ' + objectGet(struct, 'name'), 'struct ' + objectGet(struct, 'name'))
+    elif objectHas(userType, 'enum'):
+        return 'enum ' + objectGet(objectGet(userType, 'enum'), 'name')
+    elif objectHas(userType, 'typedef'):
+        return 'typedef ' + objectGet(objectGet(userType, 'typedef'), 'name')
+    endif
+    # objectHas(userType, 'action'):
+    return 'action ' + objectGet(objectGet(userType, 'action'), 'name')
+endfunction
+
+
+# Helper function to get a type href
+function schemaDocTypeHref(userType):
+    return markdownHeaderId(schemaDocTypeTitle(userType))
+endfunction
+
+
+# Helper function to get a type's text
+function schemaDocTypeText(types, type):
+    if objectHas(type, 'array'):
+        return schemaDocTypeText(types, objectGet(objectGet(type, 'array'), 'type')) + ' []'
+    elif objectHas(type, 'dict'):
+        dict = objectGet(type, 'dict')
+        keyType = objectGet(dict, 'keyType')
+        if keyType != null && !objectHas(keyType, 'builtin'):
+            return schemaDocTypeText(types, keyType) + ' : ' + schemaDocTypeText(types, objectGet(dict, 'type')) + ' {}'
+        endif
+        return schemaDocTypeText(types, objectGet(dict, 'type')) + ' {}'
+    elif objectHas(type, 'user'):
+        userName = objectGet(type, 'user')
+        userType = objectGet(types, userName)
+        return '[' + markdownEscape(userName) + '](#' + schemaDocTypeHref(userType) + ')'
+    endif
+    # objectHas(type, 'builtin'):
+    return objectGet(type, 'builtin')
+endfunction
+
+
+# Helper function to get a type's attribute text
+function schemaDocAttrText(member):
+    type = objectGet(member, 'type')
+    attr = objectGet(member, 'attr')
+    optional = objectGet(member, 'optional')
+
+    # Collect attribute parts
+    parts = []
+    typeName = if(objectHas(type, 'array'), 'array', if(objectHas(type, 'dict'), 'dict', 'value'))
+    schemaDocAttrParts(parts, typeName, attr, optional)
+
+    # Array or dict key/value attributes
+    if objectHas(type, 'array'):
+        array = objectGet(type, 'array')
+        if objectHas(array, 'attr'):
+            schemaDocAttrParts(parts, 'value', objectGet(array, 'attr'), false)
+        endif
+    elif objectHas(type, 'dict'):
+        dict = objectGet(type, 'dict')
+        if objectHas(dict, 'keyAttr'):
+            schemaDocAttrParts(parts, 'key', objectGet(dict, 'keyAttr'), false)
+        endif
+        if objectHas(dict, 'attr'):
+            schemaDocAttrParts(parts, 'value', objectGet(dict, 'attr'), false)
+        endif
+    endif
+
+    return if(parts, arrayJoin(parts, '<br>'), null)
+endfunction
+
+
+# Helper function to get a type's attribute parts
+function schemaDocAttrParts(parts, noun, attr, optional):
+    if optional:
+        arrayPush(parts, 'optional')
+    endif
+
+    if attr != null:
+        if objectHas(attr, 'nullable'):
+            arrayPush(parts, 'nullable')
+        endif
+        if objectHas(attr, 'gt'):
+            arrayPush(parts, noun + ' > ' + objectGet(attr, 'gt'))
+        endif
+        if objectHas(attr, 'gte'):
+            arrayPush(parts, noun + ' >= ' + objectGet(attr, 'gte'))
+        endif
+        if objectHas(attr, 'lt'):
+            arrayPush(parts, noun + ' < '+ objectGet(attr, 'lt'))
+        endif
+        if objectHas(attr, 'lte'):
+            arrayPush(parts, noun + ' <= ' + objectGet(attr, 'lte'))
+        endif
+        if objectHas(attr, 'eq'):
+            arrayPush(parts, noun + ' == ' + objectGet(attr, 'eq'))
+        endif
+        if objectHas(attr, 'lenGT'):
+            arrayPush(parts, 'len(' + noun + ')' + ' > ' + objectGet(attr, 'lenGT'))
+        endif
+        if objectHas(attr, 'lenGTE'):
+            arrayPush(parts, 'len(' + noun + ')' + ' >= ' + objectGet(attr, 'lenGTE'))
+        endif
+        if objectHas(attr, 'lenLT'):
+            arrayPush(parts, 'len(' + noun + ')' + ' < ' + objectGet(attr, 'lenLT'))
+        endif
+        if objectHas(attr, 'lenLTE'):
+            arrayPush(parts, 'len(' + noun + ')' + ' <= ' + objectGet(attr, 'lenLTE'))
+        endif
+        if objectHas(attr, 'lenEq'):
+            arrayPush(parts, 'len(' + noun + ')' + ' == ' + objectGet(attr, 'lenEq'))
+        endif
+    endif
+endfunction
+
+
+# Helper function to get struct members (with base members)
+function schemaDocGetStructMembers(types, struct):
+    members = []
+
+    # Add base members first
+    if objectHas(struct, 'bases'):
+        for baseName in objectGet(struct, 'bases'):
+            if objectHas(types, baseName):
+                baseType = objectGet(types, baseName)
+                if objectHas(baseType, 'struct'):
+                    baseMembers = schemaDocGetStructMembers(types, objectGet(baseType, 'struct'))
+                    arrayExtend(members, baseMembers)
+                endif
+            endif
+        endfor
+    endif
+
+    # Add this struct's members
+    if objectHas(struct, 'members'):
+        arrayExtend(members, objectGet(struct, 'members'))
+    endif
+
+    return members
+endfunction
+
+
+# Helper function to get enum values (with base values)
+function schemaDocGetEnumValues(types, enum):
+    values = []
+
+    # Add base values first
+    if objectHas(enum, 'bases'):
+        for baseName in objectGet(enum, 'bases'):
+            if objectHas(types, baseName):
+                baseType = objectGet(types, baseName)
+                if objectHas(baseType, 'enum'):
+                    baseValues = schemaDocGetEnumValues(types, objectGet(baseType, 'enum'))
+                    if baseValues != null:
+                        arrayExtend(values, baseValues)
+                    endif
+                endif
+            endif
+        endfor
+    endif
+
+    # Add this enum's values
+    if objectHas(enum, 'values'):
+        arrayExtend(values, objectGet(enum, 'values'))
+    endif
+
+    return values
+endfunction
+
+
+# Helper function to get a user type's referenced type model
+function schemaDocGetReferencedTypes(types, typeName, referencedTypes):
+    referencedTypes = if(referencedTypes, referencedTypes, {})
+    return schemaDocGetReferencedTypesHelper(types, {'user': typeName}, referencedTypes)
+endfunction
+
+
+function schemaDocGetReferencedTypesHelper(types, type, referencedTypes):
+    # Array?
+    if objectHas(type, 'array'):
+        array = objectGet(type, 'array')
+        schemaDocGetReferencedTypesHelper(types, objectGet(array, 'type'), referencedTypes)
+
+    # Dict?
+    elif objectHas(type, 'dict'):
+        dict = objectGet(type, 'dict')
+        schemaDocGetReferencedTypesHelper(types, objectGet(dict, 'type'), referencedTypes)
+        if objectHas(dict, 'keyType'):
+            schemaDocGetReferencedTypesHelper(types, objectGet(dict, 'keyType'), referencedTypes)
+        endif
+
+    # User type?
+    elif objectHas(type, 'user'):
+        typeName = objectGet(type, 'user')
+
+        # Already encountered?
+        if !objectHas(referencedTypes, typeName):
+            userType = objectGet(types, typeName)
+            objectSet(referencedTypes, typeName, userType)
+
+            # Struct?
+            if objectHas(userType, 'struct'):
+                struct = objectGet(userType, 'struct')
+                if objectHas(struct, 'bases'):
+                    for base in objectGet(struct, 'bases'):
+                        schemaDocGetReferencedTypesHelper(types, {'user': base}, referencedTypes)
+                    endfor
+                endif
+                for member in schemaDocGetStructMembers(types, struct):
+                    schemaDocGetReferencedTypesHelper(types, objectGet(member, 'type'), referencedTypes)
+                endfor
+
+            # Enum?
+            elif objectHas(userType, 'enum'):
+                enum = objectGet(userType, 'enum')
+                if objectHas(enum, 'bases'):
+                    for base in objectGet(enum, 'bases'):
+                        schemaDocGetReferencedTypesHelper(types, {'user': base}, referencedTypes)
+                    endfor
+                endif
+
+            # Typedef?
+            elif objectHas(userType, 'typedef'):
+                typedef = objectGet(userType, 'typedef')
+                schemaDocGetReferencedTypesHelper(types, objectGet(typedef, 'type'), referencedTypes)
+
+            # Action?
+            elif objectHas(userType, 'action'):
+                action = objectGet(userType, 'action')
+                if objectHas(action, 'path'):
+                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'path')}, referencedTypes)
+                endif
+                if objectHas(action, 'query'):
+                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'query')}, referencedTypes)
+                endif
+                if objectHas(action, 'input'):
+                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'input')}, referencedTypes)
+                endif
+                if objectHas(action, 'output'):
+                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'output')}, referencedTypes)
+                endif
+                if objectHas(action, 'errors'):
+                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'errors')}, referencedTypes)
+                endif
+            endif
+        endif
+    endif
+
+    return referencedTypes
+endfunction

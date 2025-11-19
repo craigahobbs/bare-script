@@ -1,0 +1,1000 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+include '../schemaDoc.bare'
+
+
+function testSchemaDocMarkdown_struct():
+    types = { \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct', \
+                'doc': ['This is my struct'], \
+                'members': [ \
+                    {'name': 'a', 'type': {'builtin': 'int'}, 'doc': ['The "a" member']}, \
+                    {'name': 'b', 'type': {'builtin': 'float'}, 'optional': true}, \
+                    {'name': 'c', 'type': {'user': 'MyStructEmpty'}}, \
+                    {'name': 'd', 'type': {'user': 'MyStructNoAttr'}} \
+                ] \
+            } \
+        }, \
+        'MyStructEmpty': { \
+            'struct': { \
+                'name': 'MyStructEmpty' \
+            } \
+        }, \
+        'MyStructNoAttr': { \
+            'struct': { \
+                'name': 'MyStructNoAttr', \
+                'members': [ \
+                    {'name': 'a', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyStruct'), \
+        [ \
+            '# struct MyStruct', \
+            '', \
+            'This is my struct', \
+            '', \
+            '| Name | Type                                     | Attributes | Description    |', \
+            '|------|------------------------------------------|------------|----------------|', \
+            '| a    | int                                      |            | The "a" member |', \
+            '| b    | float                                    | optional   |                |', \
+            '| c    | [MyStructEmpty](#struct-mystructempty)   |            |                |', \
+            '| d    | [MyStructNoAttr](#struct-mystructnoattr) |            |                |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### struct MyStructEmpty', \
+            '', \
+            'The struct is empty.', \
+            '', \
+            '### struct MyStructNoAttr', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| a    | int  |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_struct')
+
+
+function testSchemaDocMarkdown_structEmpty():
+    types = { \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyStruct'), \
+        [ \
+            '# struct MyStruct', \
+            '', \
+            'The struct is empty.' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_structEmpty')
+
+
+function testSchemaDocMarkdown_structBases():
+    types = { \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct', \
+                'bases': ['MyStruct2', 'MyStruct3'], \
+                'members': [ \
+                    {'name': 'a', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyStruct2': { \
+            'struct': { \
+                'name': 'MyStruct2', \
+                'bases': ['MyStruct4'], \
+                'members': [ \
+                    {'name': 'b', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyStruct3': { \
+            'struct': { \
+                'name': 'MyStruct3', \
+                'members': [ \
+                    {'name': 'c', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyStruct4': { \
+            'struct': { \
+                'name': 'MyStruct4', \
+                'members': [ \
+                    {'name': 'd', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyStruct'), \
+        [ \
+            '# struct MyStruct', \
+            '', \
+            'Bases: [MyStruct2](#struct-mystruct2), [MyStruct3](#struct-mystruct3)', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| d    | int  |', \
+            '| b    | int  |', \
+            '| c    | int  |', \
+            '| a    | int  |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### struct MyStruct2', \
+            '', \
+            'Bases: [MyStruct4](#struct-mystruct4)', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| d    | int  |', \
+            '| b    | int  |', \
+            '', \
+            '### struct MyStruct3', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| c    | int  |', \
+            '', \
+            '### struct MyStruct4', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| d    | int  |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_structBases')
+
+
+function testSchemaDocMarkdown_structUnion():
+    types = { \
+        'MyUnion': { \
+            'struct': { \
+                'name': 'MyUnion', \
+                'union': true \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyUnion'), \
+        [ \
+            '# union MyUnion', \
+            '', \
+            'The struct is empty.' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_structUnion')
+
+
+function testSchemaDocMarkdown_structCollections():
+    types = { \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct', \
+                'members': [ \
+                    {'name': 'a', 'type': {'array': {'type': {'builtin': 'int'}}}}, \
+                    {'name': 'b', 'type': {'dict': {'type': {'builtin': 'int'}}}}, \
+                    {'name': 'c', 'type': { \
+                        'array': { \
+                            'type': {'builtin': 'int'}, \
+                            'attr': {'gt': 0} \
+                        } \
+                    }}, \
+                    {'name': 'd', 'type': { \
+                        'dict': { \
+                            'type': {'builtin': 'int'}, \
+                            'attr': {'gt': 0}, \
+                            'keyAttr': {'lenGT': 0} \
+                        } \
+                    }}, \
+                    {'name': 'e', 'type': { \
+                        'dict': { \
+                            'type': {'builtin': 'int'}, \
+                            'attr': {'gt': 0}, \
+                            'keyType': {'user': 'MyEnum'} \
+                        } \
+                    }}, \
+                    {'name': 'f', 'type': { \
+                        'dict': { \
+                            'type': {'builtin': 'int'}, \
+                            'attr': {'gt': 0}, \
+                            'keyType': {'builtin': 'string'}, \
+                            'keyAttr': {'lenGT': 0} \
+                        } \
+                    }} \
+                ] \
+            } \
+        }, \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyStruct'), \
+        [ \
+            '# struct MyStruct', \
+            '', \
+            '| Name | Type                            | Attributes                |', \
+            '|------|---------------------------------|---------------------------|', \
+            '| a    | int []                          |                           |', \
+            '| b    | int {}                          |                           |', \
+            '| c    | int []                          | value > 0                 |', \
+            '| d    | int {}                          | len(key) > 0<br>value > 0 |', \
+            '| e    | [MyEnum](#enum-myenum) : int {} | value > 0                 |', \
+            '| f    | int {}                          | len(key) > 0<br>value > 0 |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### enum MyEnum', \
+            '', \
+            'The enum is empty.' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_structCollections')
+
+
+function testSchemaDocMarkdown_structAttrs():
+    types = { \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct', \
+                'members': [ \
+                    {'name': 'a', 'type': {'builtin': 'int'}, 'attr': {'gt': 0, 'lt': 10}}, \
+                    {'name': 'b', 'type': {'builtin': 'int'}, 'attr': {'gte': 0, 'lte': 10}}, \
+                    {'name': 'c', 'type': {'builtin': 'int'}, 'attr': {'eq': 10}}, \
+                    {'name': 'd', 'type': {'builtin': 'string'}, 'attr': {'lenGT': 0, 'lenLT': 10}}, \
+                    {'name': 'e', 'type': {'builtin': 'string'}, 'attr': {'lenGTE': 0, 'lenLTE': 10}}, \
+                    {'name': 'f', 'type': {'builtin': 'string'}, 'attr': {'lenEq': 10}}, \
+                    {'name': 'g', 'type': {'builtin': 'int'}, 'attr': {'nullable': true}} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyStruct'), \
+        [ \
+            '# struct MyStruct', \
+            '', \
+            '| Name | Type   | Attributes                          |', \
+            '|------|--------|-------------------------------------|', \
+            '| a    | int    | value > 0<br>value < 10             |', \
+            '| b    | int    | value >= 0<br>value <= 10           |', \
+            '| c    | int    | value == 10                         |', \
+            '| d    | string | len(value) > 0<br>len(value) < 10   |', \
+            '| e    | string | len(value) >= 0<br>len(value) <= 10 |', \
+            '| f    | string | len(value) == 10                    |', \
+            '| g    | int    | nullable                            |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_structAttrs')
+
+
+function testSchemaDocMarkdown_enum():
+    types = { \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum', \
+                'doc': ['This is my enum'], \
+                'values': [ \
+                    {'name': 'A', 'doc': ['The "A" value']}, \
+                    {'name': 'B'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyEnum'), \
+        [ \
+            '# enum MyEnum', \
+            '', \
+            'This is my enum', \
+            '', \
+            '| Value | Description   |', \
+            '|-------|---------------|', \
+            '| A     | The "A" value |', \
+            '| B     |               |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_enum')
+
+
+function testSchemaDocMarkdown_enumNoDoc():
+    types = { \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum', \
+                'values': [ \
+                    {'name': 'A'}, \
+                    {'name': 'B'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyEnum'), \
+        [ \
+            '# enum MyEnum', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| A     |', \
+            '| B     |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_enumNoDoc')
+
+
+function testSchemaDocMarkdown_enumEmpty():
+    types = { \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyEnum'), \
+        [ \
+            '# enum MyEnum', \
+            '', \
+            'The enum is empty.' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_enumEmpty')
+
+
+function testSchemaDocMarkdown_enumBases():
+    types = { \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum', \
+                'bases': ['MyEnum2', 'MyEnum3'], \
+                'values': [ \
+                    {'name': 'A'} \
+                ] \
+            } \
+        }, \
+        'MyEnum2': { \
+            'enum': { \
+                'name': 'MyEnum2', \
+                'bases': ['MyEnum4'], \
+                'values': [ \
+                    {'name': 'B'} \
+                ] \
+            } \
+        }, \
+        'MyEnum3': { \
+            'enum': { \
+                'name': 'MyEnum3', \
+                'values': [ \
+                    {'name': 'C'} \
+                ] \
+            } \
+        }, \
+        'MyEnum4': { \
+            'enum': { \
+                'name': 'MyEnum4', \
+                'values': [ \
+                    {'name': 'D'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyEnum'), \
+        [ \
+            '# enum MyEnum', \
+            '', \
+            'Bases: [MyEnum2](#enum-myenum2), [MyEnum3](#enum-myenum3)', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| D     |', \
+            '| B     |', \
+            '| C     |', \
+            '| A     |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### enum MyEnum2', \
+            '', \
+            'Bases: [MyEnum4](#enum-myenum4)', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| D     |', \
+            '| B     |', \
+            '', \
+            '### enum MyEnum3', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| C     |', \
+            '', \
+            '### enum MyEnum4', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| D     |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_enumBases')
+
+
+function testSchemaDocMarkdown_typedef():
+    types = { \
+        'MyTypedef': { \
+            'typedef': { \
+                'name': 'MyTypedef', \
+                'type': {'builtin': 'int'}, \
+                'attr': {'gt': 0}, \
+                'doc': ['This is my typedef'] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyTypedef'), \
+        [ \
+            '# typedef MyTypedef', \
+            '', \
+            'This is my typedef', \
+            '', \
+            '| Type | Attributes |', \
+            '|------|------------|', \
+            '| int  | value > 0  |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_typedef')
+
+
+function testSchemaDocMarkdown_typedefNoAttr():
+    types = { \
+        'MyTypedef': { \
+            'typedef': { \
+                'name': 'MyTypedef', \
+                'type': {'builtin': 'int'} \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyTypedef'), \
+        [ \
+            '# typedef MyTypedef', \
+            '', \
+            '| Type |', \
+            '|------|', \
+            '| int  |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_typedefNoAttr')
+
+
+function testSchemaDocMarkdown_typedefAttrGtLt():
+    types = { \
+        'MyTypedef': { \
+            'typedef': { \
+                'name': 'MyTypedef', \
+                'type': {'builtin': 'int'}, \
+                'attr': {'gt': 0, 'lt': 10} \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyTypedef'), \
+        [ \
+            '# typedef MyTypedef', \
+            '', \
+            '| Type | Attributes              |', \
+            '|------|-------------------------|', \
+            '| int  | value > 0<br>value < 10 |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_typedefAttrGtLt')
+
+
+function testSchemaDocMarkdown_action():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'doc': ['This is my action.'], \
+                'urls': [ \
+                    {}, \
+                    {'method': 'GET'}, \
+                    {'path': '/my_action'}, \
+                    {'method': 'GET', 'path': '/my_alias'} \
+                ], \
+                'path': 'MyAction_path', \
+                'query': 'MyAction_query', \
+                'input': 'MyAction_input', \
+                'output': 'MyAction_output', \
+                'errors': 'MyAction_errors' \
+            } \
+        }, \
+        'MyAction_path': { \
+            'struct': { \
+                'name': 'MyAction_path', \
+                'members': [ \
+                    {'name': 'a', 'type': {'user': 'MyStruct'}, 'doc': ['This is member "a"']} \
+                ] \
+            } \
+        }, \
+        'MyAction_query': { \
+            'struct': { \
+                'name': 'MyAction_query', \
+                'members': [ \
+                    {'name': 'b', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyAction_input': { \
+            'struct': { \
+                'name': 'MyAction_input', \
+                'members': [ \
+                    {'name': 'c', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyAction_output': { \
+            'struct': { \
+                'name': 'MyAction_output', \
+                'members': [ \
+                    {'name': 'd', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        }, \
+        'MyAction_errors': { \
+            'enum': { \
+                'name': 'MyAction_errors', \
+                'values': [ \
+                    {'name': 'MyError', 'doc': ['My error']} \
+                ] \
+            } \
+        }, \
+        'MyStruct': { \
+            'struct': { \
+                'name': 'MyStruct', \
+                'members': [ \
+                    {'name': 'value', 'type': {'builtin': 'int'}} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction'}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            'This is my action.', \
+            '', \
+            '**Note:** The request is exposed at the following URLs:', \
+            '', \
+            '- [/MyAction](/MyAction)', \
+            '', \
+            '- [GET /MyAction](/MyAction)', \
+            '', \
+            '- [/my\\_action](/my_action)', \
+            '', \
+            '- [GET /my\\_alias](/my_alias)', \
+            '', \
+            '## Path Parameters', \
+            '', \
+            '| Name | Type                         | Description        |', \
+            '|------|------------------------------|--------------------|', \
+            '| a    | [MyStruct](#struct-mystruct) | This is member "a" |', \
+            '', \
+            '## Query Parameters', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| b    | int  |', \
+            '', \
+            '## Input Parameters', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| c    | int  |', \
+            '', \
+            '## Output Parameters', \
+            '', \
+            '| Name | Type |', \
+            '|------|------|', \
+            '| d    | int  |', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           | Description |', \
+            '|-----------------|-------------|', \
+            '| MyError         | My error    |', \
+            '| UnexpectedError |             |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### struct MyStruct', \
+            '', \
+            '| Name  | Type |', \
+            '|-------|------|', \
+            '| value | int  |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_action')
+
+
+function testSchemaDocMarkdown_actionEmpty():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction'}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionEmpty')
+
+
+function testSchemaDocMarkdown_actionNullOptions():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', null), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionNullOptions')
+
+
+function testSchemaDocMarkdown_actionEmptyErrorValues():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'errors': 'MyAction_errors' \
+            } \
+        }, \
+        'MyAction_errors': { \
+            'enum': { \
+                'name': 'MyAction_errors' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction'}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionEmptyErrorValues')
+
+
+function testSchemaDocMarkdown_actionNoURLs():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction' \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction'}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionNoURLs')
+
+
+function testSchemaDocMarkdown_actionURLOverride():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'urls': [ \
+                    {'method': 'GET'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction', 'actionURLs': [{'method': 'GET', 'path': '/my_action'}]}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '**Note:** The request is exposed at the following URL:', \
+            '', \
+            '- [GET /my\\_action](/my_action)', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionURLOverride')
+
+
+function testSchemaDocMarkdown_actionURLOverrideEmpty():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'urls': [ \
+                    {'method': 'GET'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction', 'actionURLs': []}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionURLOverrideEmpty')
+
+
+function testSchemaDocMarkdown_actionCustomResponse():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'urls': [ \
+                    {'method': 'GET'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction', 'actionURLs': [], 'actionCustom': true}), \
+        [ \
+            '# action MyAction' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionCustomResponse')
+
+
+function testSchemaDocMarkdown_actionUnexpectedValueDefined():
+    types = { \
+        'MyAction': { \
+            'action': { \
+                'name': 'MyAction', \
+                'errors': 'MyActionErrors' \
+            } \
+        }, \
+        'MyActionErrors': { \
+            'enum': { \
+                'name': 'MyActionErrors', \
+                'values': [ \
+                    {'name': 'UnexpectedError'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyAction', {'params': 'name=MyAction', 'actionURLs': []}), \
+        [ \
+            '# action MyAction', \
+            '', \
+            '## Error Codes', \
+            '', \
+            'If an application error occurs, the response is of the form:', \
+            '', \
+            '```json', \
+            '{', \
+            '    "error": "<error>",', \
+            '    "message": "<message>"', \
+            '}', \
+            '```', \
+            '', \
+            '`message` is optional. `error` is one of the following values:', \
+            '', \
+            '| Value           |', \
+            '|-----------------|', \
+            '| UnexpectedError |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_actionUnexpectedValueDefined')
+
+
+function testSchemaDocMarkdown_unknownType():
+    unittestMockAll()
+
+    types = {}
+    result = schemaDocMarkdown(types, 'Unknown')
+
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schemaDoc.bare: Unknown type "Unknown"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocMarkdown_unknownType')

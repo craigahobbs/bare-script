@@ -4,10 +4,13 @@
 
 # Include all system includes
 include <args.bare>
+include <baredoc.bare>
 include <dataTable.bare>
 include <diff.bare>
 include <forms.bare>
 include <pager.bare>
+include <schemaDoc.bare>
+include <schemaDocApp.bare>
 include <unittest.bare>
 include <unittestMock.bare>
 
@@ -21,6 +24,8 @@ include '../dataTable.bare'
 include '../diff.bare'
 include '../forms.bare'
 include '../pager.bare'
+include '../schemaDoc.bare'
+include '../schemaDocApp.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
 
@@ -31,6 +36,8 @@ include 'testDataTable.bare'
 include 'testDiff.bare'
 include 'testForms.bare'
 include 'testPager.bare'
+include 'testSchemaDoc.bare'
+include 'testSchemaDocApp.bare'
 include 'testUnittest.bare'
 include 'testUnittestMock.bare'
 

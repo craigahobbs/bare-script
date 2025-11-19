@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <args.bare>
+include <schemaDoc.bare>
 
 
 # $function: baredocMain
@@ -22,7 +23,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     # Render library JSON documentation page?
     if objectGet(args, 'doc'):
         documentSetTitle('Library')
-        elementModelRender(schemaElements(baredocTypes, 'Library'))
+        markdownPrint(schemaDocMarkdown(baredocTypes, 'Library'))
         return
     endif
 
@@ -195,13 +196,14 @@ async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
     # Render the library function index
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '---', '')
-        baredocGroupPage(args, title, groupURLs, groups, groupName, true)
+        baredocGroupPage(args, title, groupURLs, groups, groupName)
     endfor
 endfunction
 
 
 # Render a library documentation group page
 async function baredocGroupPage(args, title, groupURLs, groups, groupName):
+    publish = objectGet(args, 'publish')
     single = objectGet(args, 'single')
     baseHeader = if(single, '##', '#')
 
@@ -221,7 +223,7 @@ async function baredocGroupPage(args, title, groupURLs, groups, groupName):
         markdownPrint(argsLink(baredocArguments, 'Index', {'group': null}), '')
     endif
     markdownPrint(baseHeader + ' ' + markdownEscape(groupName))
-    if single:
+    if single && !publish:
         markdownPrint('', argsLink(baredocArguments, 'Back to top', null, false, '_top'))
     endif
 

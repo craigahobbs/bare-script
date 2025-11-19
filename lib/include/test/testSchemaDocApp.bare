@@ -1,0 +1,536 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+include '../schemaDocApp.bare'
+
+
+# Test schema
+testSchemaDocAppModel = jsonStringify({ \
+    'TestEnum': { \
+        'enum': { \
+            'name': 'TestEnum', \
+            'docGroup': 'Test Group' \
+        } \
+    }, \
+    'TestStruct': { \
+        'struct': { \
+            'name': 'TestStruct', \
+            'docGroup': 'Test Group' \
+        } \
+    }, \
+    'TestTypedef': { \
+        'typedef': { \
+            'name': 'TestTypedef', \
+            'docGroup': 'Test Group', \
+            'type': {'builtin': 'string'} \
+        } \
+    }, \
+    'TestAction': { \
+        'action': { \
+            'name': 'TestAction', \
+            'docGroup': 'Test Group' \
+        } \
+    }, \
+    'UncategorizedEnum': { \
+        'enum': { \
+            'name': 'UncategorizedEnum' \
+        } \
+    }, \
+    'UncategorizedStruct': { \
+        'struct': { \
+            'name': 'UncategorizedStruct' \
+        } \
+    }, \
+    'UncategorizedTypedef': { \
+        'typedef': { \
+            'name': 'UncategorizedTypedef', \
+            'type': {'builtin': 'string'} \
+        } \
+    }, \
+    'UncategorizedAction': { \
+        'action': { \
+            'name': 'UncategorizedAction' \
+        } \
+    } \
+})
+
+
+async function testSchemaDocApp_index():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    schemaDocAppMain('model.json', 'The Test Model')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model']], \
+        ['markdownPrint', ['# The Test Model']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Actions']], \
+        ['markdownPrint', ['', "[UncategorizedAction](#var.vName='UncategorizedAction'&_top)"]], \
+        ['markdownPrint', ['', '## Enums']], \
+        ['markdownPrint', ['', "[UncategorizedEnum](#var.vName='UncategorizedEnum'&_top)"]], \
+        ['markdownPrint', ['', '## Structs']], \
+        ['markdownPrint', ['', "[UncategorizedStruct](#var.vName='UncategorizedStruct'&_top)"]], \
+        ['markdownPrint', ['', '## Test Group']], \
+        ['markdownPrint', ['', "[TestAction](#var.vName='TestAction'&_top)"]], \
+        ['markdownPrint', ['', "[TestEnum](#var.vName='TestEnum'&_top)"]], \
+        ['markdownPrint', ['', "[TestStruct](#var.vName='TestStruct'&_top)"]], \
+        ['markdownPrint', ['', "[TestTypedef](#var.vName='TestTypedef'&_top)"]], \
+        ['markdownPrint', ['', '## Typedefs']], \
+        ['markdownPrint', ['', "[UncategorizedTypedef](#var.vName='UncategorizedTypedef'&_top)"]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index')
+
+
+async function testSchemaDocApp_index_single():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    systemGlobalSet('vSingle', true)
+    schemaDocAppMain('model.json', 'The Test Model')
+    systemGlobalSet('vSingle', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model']], \
+        ['markdownPrint', ['# The Test Model']], \
+        ['markdownPrint', ['', '[Multi Page](#var=)']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ['- [Actions](#var.vSingle=true&actions)']], \
+        ['markdownPrint', ['- [Enums](#var.vSingle=true&enums)']], \
+        ['markdownPrint', ['- [Structs](#var.vSingle=true&structs)']], \
+        ['markdownPrint', ['- [Test Group](#var.vSingle=true&test-group)']], \
+        ['markdownPrint', ['- [Typedefs](#var.vSingle=true&typedefs)']], \
+        ['markdownPrint', ['', '---']], \
+        ['markdownPrint',['','## Actions']], \
+        ['markdownPrint',['','[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### action UncategorizedAction', \
+                '', \
+                '#### Error Codes', \
+                '', \
+                'If an application error occurs, the response is of the form:', \
+                '', \
+                '```json', \
+                '{', \
+                '    "error": "<error>",', \
+                '    "message": "<message>"', \
+                '}', \
+                '```', \
+                '', \
+                '`message` is optional. `error` is one of the following values:', \
+                '', \
+                '| Value           |', \
+                '|-----------------|', \
+                '| UnexpectedError |' \
+            ] \
+        ]], \
+        ['markdownPrint',['','---']], \
+        ['markdownPrint',['','## Enums']], \
+        ['markdownPrint',['','[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint',['',['### enum UncategorizedEnum','','The enum is empty.']]], \
+        ['markdownPrint',['','---']], \
+        ['markdownPrint',['','## Structs']], \
+        ['markdownPrint',['','[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint',['',['### struct UncategorizedStruct','','The struct is empty.']]], \
+        ['markdownPrint',['','---']], \
+        ['markdownPrint',['','## Test Group']], \
+        ['markdownPrint',['','[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### action TestAction', \
+                '', \
+                '#### Error Codes', \
+                '', \
+                'If an application error occurs, the response is of the form:', \
+                '', \
+                '```json', \
+                '{', \
+                '    "error\": "<error>",', \
+                '    "message": "<message>"', \
+                '}', \
+                '```', \
+                '', \
+                '`message` is optional. `error` is one of the following values:', \
+                '', \
+                '| Value           |', \
+                '|-----------------|', \
+                '| UnexpectedError |' \
+            ] \
+        ]], \
+        ['markdownPrint',['',['### enum TestEnum','','The enum is empty.']]], \
+        ['markdownPrint',['',['### struct TestStruct','','The struct is empty.']]], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### typedef TestTypedef', \
+                '', \
+                '| Type   |', \
+                '|--------|', \
+                '| string |' \
+            ] \
+        ]], \
+        ['markdownPrint',['','---']], \
+        ['markdownPrint',['','## Typedefs']], \
+        ['markdownPrint',['','[Back to top](#var.vSingle=true&_top)']], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### typedef UncategorizedTypedef', \
+                '', \
+                '| Type   |', \
+                '|--------|', \
+                '| string |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_single')
+
+
+async function testSchemaDocApp_index_single_publish():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    systemGlobalSet('vPublish', true)
+    systemGlobalSet('vSingle', true)
+    schemaDocAppMain('model.json', 'The Test Model', true)
+    systemGlobalSet('vPublish', null)
+    systemGlobalSet('vSingle', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model']], \
+        ['markdownPrint', ['# The Test Model']], \
+        ['markdownPrint', ['', '## Table of Contents', '']], \
+        ['markdownPrint', ['- [Test Group](#var.vPublish=true&var.vSingle=true&test-group)']], \
+        ['markdownPrint',['','---']], \
+        ['markdownPrint',['','## Test Group']], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### action TestAction', \
+                '', \
+                '#### Error Codes', \
+                '', \
+                'If an application error occurs, the response is of the form:', \
+                '', \
+                '```json', \
+                '{', \
+                '    "error\": "<error>",', \
+                '    "message": "<message>"', \
+                '}', \
+                '```', \
+                '', \
+                '`message` is optional. `error` is one of the following values:', \
+                '', \
+                '| Value           |', \
+                '|-----------------|', \
+                '| UnexpectedError |' \
+            ] \
+        ]], \
+        ['markdownPrint',['',['### enum TestEnum','','The enum is empty.']]], \
+        ['markdownPrint',['',['### struct TestStruct','','The struct is empty.']]], \
+        ['markdownPrint',[ \
+            '', \
+            [ \
+                '### typedef TestTypedef', \
+                '', \
+                '| Type   |', \
+                '|--------|', \
+                '| string |' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_single_publish')
+
+
+async function testSchemaDocApp_index_hideNoGroup():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    schemaDocAppMain('model.json', 'The Test Model', true)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model']], \
+        ['markdownPrint', ['# The Test Model']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Test Group']], \
+        ['markdownPrint', ['', "[TestAction](#var.vName='TestAction'&_top)"]], \
+        ['markdownPrint', ['', "[TestEnum](#var.vName='TestEnum'&_top)"]], \
+        ['markdownPrint', ['', "[TestStruct](#var.vName='TestStruct'&_top)"]], \
+        ['markdownPrint', ['', "[TestTypedef](#var.vName='TestTypedef'&_top)"]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_hideNoGroup')
+
+
+async function testSchemaDocApp_index_urlArgument():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'other.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    systemGlobalSet('vURL', 'other.json')
+    schemaDocAppMain('model.json', 'The Test Model')
+    systemGlobalSet('vURL', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['other.json']], \
+        ['documentSetTitle', ['other.json']], \
+        ['markdownPrint', ['# other.json']], \
+        ['markdownPrint', ['', "[Single Page](#var.vSingle=true&var.vURL='other.json')"]], \
+        ['markdownPrint', ['', '## Actions']], \
+        ['markdownPrint', ['', "[UncategorizedAction](#var.vName='UncategorizedAction'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', '## Enums']], \
+        ['markdownPrint', ['', "[UncategorizedEnum](#var.vName='UncategorizedEnum'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', '## Structs']], \
+        ['markdownPrint', ['', "[UncategorizedStruct](#var.vName='UncategorizedStruct'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', '## Test Group']], \
+        ['markdownPrint', ['', "[TestAction](#var.vName='TestAction'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', "[TestEnum](#var.vName='TestEnum'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', "[TestStruct](#var.vName='TestStruct'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', "[TestTypedef](#var.vName='TestTypedef'&var.vURL='other.json'&_top)"]], \
+        ['markdownPrint', ['', '## Typedefs']], \
+        ['markdownPrint', ['', "[UncategorizedTypedef](#var.vName='UncategorizedTypedef'&var.vURL='other.json'&_top)"]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlArgument')
+
+
+async function testSchemaDocApp_index_urlNull():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    schemaDocAppMain()
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['The Schema Markdown Type Model']], \
+        ['markdownPrint', ['# The Schema Markdown Type Model']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Enums']], \
+        ['markdownPrint', ['', "[BuiltinType](#var.vName='BuiltinType'&_top)"]], \
+        ['markdownPrint', ['', '## Structs']], \
+        ['markdownPrint', ['', "[Action](#var.vName='Action'&_top)"]], \
+        ['markdownPrint', ['', "[ActionURL](#var.vName='ActionURL'&_top)"]], \
+        ['markdownPrint', ['', "[Array](#var.vName='Array'&_top)"]], \
+        ['markdownPrint', ['', "[Attributes](#var.vName='Attributes'&_top)"]], \
+        ['markdownPrint', ['', "[Dict](#var.vName='Dict'&_top)"]], \
+        ['markdownPrint', ['', "[Enum](#var.vName='Enum'&_top)"]], \
+        ['markdownPrint', ['', "[EnumValue](#var.vName='EnumValue'&_top)"]], \
+        ['markdownPrint', ['', "[Struct](#var.vName='Struct'&_top)"]], \
+        ['markdownPrint', ['', "[StructMember](#var.vName='StructMember'&_top)"]], \
+        ['markdownPrint', ['', "[Type](#var.vName='Type'&_top)"]], \
+        ['markdownPrint', ['', "[Typedef](#var.vName='Typedef'&_top)"]], \
+        ['markdownPrint', ['', "[UserBase](#var.vName='UserBase'&_top)"]], \
+        ['markdownPrint', ['', "[UserType](#var.vName='UserType'&_top)"]], \
+        ['markdownPrint', ['', '## Typedefs']], \
+        ['markdownPrint', ['', "[Types](#var.vName='Types'&_top)"]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlNull')
+
+
+async function testSchemaDocApp_index_urlNullTitle():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    schemaDocAppMain('', 'Ignored')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentSetTitle', ['The Schema Markdown Type Model']], \
+        ['markdownPrint', ['# The Schema Markdown Type Model']], \
+        ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
+        ['markdownPrint', ['', '## Enums']], \
+        ['markdownPrint', ['', "[BuiltinType](#var.vName='BuiltinType'&_top)"]], \
+        ['markdownPrint', ['', '## Structs']], \
+        ['markdownPrint', ['', "[Action](#var.vName='Action'&_top)"]], \
+        ['markdownPrint', ['', "[ActionURL](#var.vName='ActionURL'&_top)"]], \
+        ['markdownPrint', ['', "[Array](#var.vName='Array'&_top)"]], \
+        ['markdownPrint', ['', "[Attributes](#var.vName='Attributes'&_top)"]], \
+        ['markdownPrint', ['', "[Dict](#var.vName='Dict'&_top)"]], \
+        ['markdownPrint', ['', "[Enum](#var.vName='Enum'&_top)"]], \
+        ['markdownPrint', ['', "[EnumValue](#var.vName='EnumValue'&_top)"]], \
+        ['markdownPrint', ['', "[Struct](#var.vName='Struct'&_top)"]], \
+        ['markdownPrint', ['', "[StructMember](#var.vName='StructMember'&_top)"]], \
+        ['markdownPrint', ['', "[Type](#var.vName='Type'&_top)"]], \
+        ['markdownPrint', ['', "[Typedef](#var.vName='Typedef'&_top)"]], \
+        ['markdownPrint', ['', "[UserBase](#var.vName='UserBase'&_top)"]], \
+        ['markdownPrint', ['', "[UserType](#var.vName='UserType'&_top)"]], \
+        ['markdownPrint', ['', '## Typedefs']], \
+        ['markdownPrint', ['', "[Types](#var.vName='Types'&_top)"]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlNullTitle')
+
+
+async function testSchemaDocApp_index_urlError():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    schemaDocAppMain('model.json', 'The Test Model')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.json"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlError')
+
+
+async function testSchemaDocApp_index_urlInvalid():
+    systemLogDebug('NOTICE: The following "jsonParse" error is expected:')
+
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': {} \
+        } \
+    })
+
+    # Render the index
+    schemaDocAppMain('model.json', 'The Test Model')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.json"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlInvalid')
+
+
+async function testSchemaDocApp_index_urlTextError():
+    # Setup mocks
+    unittestMockAll()
+
+    # Render the index
+    schemaDocAppMain('model.smd', 'The Test Model')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.smd']], \
+        ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.smd"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlTextError')
+
+
+async function testSchemaDocApp_index_urlTextInvalid():
+    systemLogDebug('NOTICE: The following "schemaParse" error is expected:')
+
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.smd': 'syntax error' \
+        } \
+    })
+
+    # Render the index
+    schemaDocAppMain('model.smd', 'The Test Model')
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.smd']], \
+        ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.smd"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_index_urlTextInvalid')
+
+
+async function testSchemaDocApp_type():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    systemGlobalSet('vName', 'TestStruct')
+    schemaDocAppMain('model.json', 'The Test Model')
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model - TestStruct']], \
+        ['markdownPrint', ['[Index](#var=)']], \
+        ['markdownPrint', [ \
+            [ \
+                '# struct TestStruct', \
+                '', \
+                'The struct is empty.' \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_type')
+
+
+async function testSchemaDocApp_type_unknown():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'model.json': testSchemaDocAppModel \
+        } \
+    })
+
+    # Render the index
+    systemGlobalSet('vName', 'Unknown')
+    schemaDocAppMain('model.json', 'The Test Model')
+    systemGlobalSet('vName', null)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['model.json']], \
+        ['documentSetTitle', ['The Test Model - Unknown']], \
+        ['markdownPrint', ['[Index](#var=)']], \
+        ['markdownPrint', ['', '**Error:** Unknown type "Unknown"']] \
+    ])
+endfunction
+unittestRunTest('testSchemaDocApp_type_unknown')
