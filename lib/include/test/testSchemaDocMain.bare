@@ -4,11 +4,11 @@
 include <unittest.bare>
 include <unittestMock.bare>
 
-include '../schemaDocApp.bare'
+include '../schemaDoc.bare'
 
 
 # Test schema
-testSchemaDocAppModel = jsonStringify({ \
+testSchemaDocMainModel = jsonStringify({ \
     'TestEnum': { \
         'enum': { \
             'name': 'TestEnum', \
@@ -58,16 +58,16 @@ testSchemaDocAppModel = jsonStringify({ \
 })
 
 
-async function testSchemaDocApp_index():
+async function testSchemaDocMain_index():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -90,20 +90,20 @@ async function testSchemaDocApp_index():
         ['markdownPrint', ['', "[UncategorizedTypedef](#var.vName='UncategorizedTypedef'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index')
+unittestRunTest('testSchemaDocMain_index')
 
 
-async function testSchemaDocApp_index_single():
+async function testSchemaDocMain_index_single():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
     systemGlobalSet('vSingle', true)
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
     systemGlobalSet('vSingle', null)
 
     # Reset mocks
@@ -205,21 +205,21 @@ async function testSchemaDocApp_index_single():
         ]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_single')
+unittestRunTest('testSchemaDocMain_index_single')
 
 
-async function testSchemaDocApp_index_single_publish():
+async function testSchemaDocMain_index_single_publish():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
     systemGlobalSet('vPublish', true)
     systemGlobalSet('vSingle', true)
-    schemaDocAppMain('model.json', 'The Test Model', true)
+    schemaDocMain('model.json', 'The Test Model', true)
     systemGlobalSet('vPublish', null)
     systemGlobalSet('vSingle', null)
 
@@ -269,19 +269,19 @@ async function testSchemaDocApp_index_single_publish():
         ]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_single_publish')
+unittestRunTest('testSchemaDocMain_index_single_publish')
 
 
-async function testSchemaDocApp_index_hideNoGroup():
+async function testSchemaDocMain_index_hideNoGroup():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
-    schemaDocAppMain('model.json', 'The Test Model', true)
+    schemaDocMain('model.json', 'The Test Model', true)
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -296,20 +296,20 @@ async function testSchemaDocApp_index_hideNoGroup():
         ['markdownPrint', ['', "[TestTypedef](#var.vName='TestTypedef'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_hideNoGroup')
+unittestRunTest('testSchemaDocMain_index_hideNoGroup')
 
 
-async function testSchemaDocApp_index_urlArgument():
+async function testSchemaDocMain_index_urlArgument():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'other.json': testSchemaDocAppModel \
+            'other.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
     systemGlobalSet('vURL', 'other.json')
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
     systemGlobalSet('vURL', null)
 
     # Reset mocks
@@ -333,15 +333,15 @@ async function testSchemaDocApp_index_urlArgument():
         ['markdownPrint', ['', "[UncategorizedTypedef](#var.vName='UncategorizedTypedef'&var.vURL='other.json'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlArgument')
+unittestRunTest('testSchemaDocMain_index_urlArgument')
 
 
-async function testSchemaDocApp_index_urlNull():
+async function testSchemaDocMain_index_urlNull():
     # Setup mocks
     unittestMockAll()
 
     # Render the index
-    schemaDocAppMain()
+    schemaDocMain()
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -368,15 +368,15 @@ async function testSchemaDocApp_index_urlNull():
         ['markdownPrint', ['', "[Types](#var.vName='Types'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlNull')
+unittestRunTest('testSchemaDocMain_index_urlNull')
 
 
-async function testSchemaDocApp_index_urlNullTitle():
+async function testSchemaDocMain_index_urlNullTitle():
     # Setup mocks
     unittestMockAll()
 
     # Render the index
-    schemaDocAppMain('', 'Ignored')
+    schemaDocMain('', 'Ignored')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -403,15 +403,15 @@ async function testSchemaDocApp_index_urlNullTitle():
         ['markdownPrint', ['', "[Types](#var.vName='Types'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlNullTitle')
+unittestRunTest('testSchemaDocMain_index_urlNullTitle')
 
 
-async function testSchemaDocApp_index_urlError():
+async function testSchemaDocMain_index_urlError():
     # Setup mocks
     unittestMockAll()
 
     # Render the index
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -419,10 +419,10 @@ async function testSchemaDocApp_index_urlError():
         ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.json"']] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlError')
+unittestRunTest('testSchemaDocMain_index_urlError')
 
 
-async function testSchemaDocApp_index_urlInvalid():
+async function testSchemaDocMain_index_urlInvalid():
     systemLogDebug('NOTICE: The following "jsonParse" error is expected:')
 
     # Setup mocks
@@ -433,7 +433,7 @@ async function testSchemaDocApp_index_urlInvalid():
     })
 
     # Render the index
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -441,15 +441,15 @@ async function testSchemaDocApp_index_urlInvalid():
         ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.json"']] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlInvalid')
+unittestRunTest('testSchemaDocMain_index_urlInvalid')
 
 
-async function testSchemaDocApp_index_urlTextError():
+async function testSchemaDocMain_index_urlTextError():
     # Setup mocks
     unittestMockAll()
 
     # Render the index
-    schemaDocAppMain('model.smd', 'The Test Model')
+    schemaDocMain('model.smd', 'The Test Model')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -457,10 +457,10 @@ async function testSchemaDocApp_index_urlTextError():
         ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.smd"']] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlTextError')
+unittestRunTest('testSchemaDocMain_index_urlTextError')
 
 
-async function testSchemaDocApp_index_urlTextInvalid():
+async function testSchemaDocMain_index_urlTextInvalid():
     systemLogDebug('NOTICE: The following "schemaParse" error is expected:')
 
     # Setup mocks
@@ -471,7 +471,7 @@ async function testSchemaDocApp_index_urlTextInvalid():
     })
 
     # Render the index
-    schemaDocAppMain('model.smd', 'The Test Model')
+    schemaDocMain('model.smd', 'The Test Model')
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
@@ -479,20 +479,20 @@ async function testSchemaDocApp_index_urlTextInvalid():
         ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.smd"']] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_index_urlTextInvalid')
+unittestRunTest('testSchemaDocMain_index_urlTextInvalid')
 
 
-async function testSchemaDocApp_type():
+async function testSchemaDocMain_type():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
     systemGlobalSet('vName', 'TestStruct')
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
     systemGlobalSet('vName', null)
 
     # Reset mocks
@@ -509,20 +509,20 @@ async function testSchemaDocApp_type():
         ]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_type')
+unittestRunTest('testSchemaDocMain_type')
 
 
-async function testSchemaDocApp_type_unknown():
+async function testSchemaDocMain_type_unknown():
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
-            'model.json': testSchemaDocAppModel \
+            'model.json': testSchemaDocMainModel \
         } \
     })
 
     # Render the index
     systemGlobalSet('vName', 'Unknown')
-    schemaDocAppMain('model.json', 'The Test Model')
+    schemaDocMain('model.json', 'The Test Model')
     systemGlobalSet('vName', null)
 
     # Reset mocks
@@ -533,4 +533,4 @@ async function testSchemaDocApp_type_unknown():
         ['markdownPrint', ['', '**Error:** Unknown type "Unknown"']] \
     ])
 endfunction
-unittestRunTest('testSchemaDocApp_type_unknown')
+unittestRunTest('testSchemaDocMain_type_unknown')

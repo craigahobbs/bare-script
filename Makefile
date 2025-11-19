@@ -74,9 +74,9 @@ doc:
 
     # Generate the single-page library model documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDocApp.bare>' \
+	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
-		-c "schemaDocAppMain('model.json', 'The BareScript Library Models')" \
+		-c "schemaDocMain('model.json', 'The BareScript Library Models')" \
 		> barescript-library-model.md
 
     # Generate the runtime model documentation
@@ -84,9 +84,9 @@ doc:
 
     # Generate the single-page runtime model documentation
 	cd build/doc/model/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDocApp.bare>' \
+	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
 		-v 'vSingle' 'true' -v 'vPublish' 'true' \
-		-c "schemaDocAppMain('model.json', 'The BareScript Runtime Model')" \
+		-c "schemaDocMain('model.json', 'The BareScript Runtime Model')" \
 		> barescript-model.md
 
 
