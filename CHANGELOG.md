@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.8.8 (2025-11-19)
+
+- [75deb21](https://github.com/craigahobbs/bare-script/commit/75deb21) - add schemaDoc.bare and schemaDocApp.bare
+
+- [ea1db9c](https://github.com/craigahobbs/bare-script/commit/ea1db9c) - fix coverage issue
+
+## 3.8.7 (2025-11-19)
+
+- [2490dbe](https://github.com/craigahobbs/bare-script/commit/2490dbe) - fix if/jump issue with non-boolean expression
+
 ## 3.8.6 (2025-11-14)
 
 - [7a2d332](https://github.com/craigahobbs/bare-script/commit/7a2d332) - improve dataTableMarkdown field value newline handling
