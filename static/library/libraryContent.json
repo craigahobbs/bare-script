@@ -2,7 +2,7 @@
     "": "content/intro.md",
     "args.bare": "content/args.md",
     "array": "content/array.md",
-    "baredocMain.bare": "content/baredocMain-bare.md",
+    "baredoc.bare": "content/baredoc-bare.md",
     "coverage": "content/coverage.md",
     "data": "content/data.md",
     "dataTable.bare": "content/dataTable-bare.md",

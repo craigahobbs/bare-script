@@ -6,7 +6,7 @@ include <schemaDoc.bare>
 
 
 # $function: baredocMain
-# $group: baredocMain.bare
+# $group: baredoc.bare
 # $doc: The BareScript library documentation application main entry point
 # $arg url: The library documentation JSON resource URL
 # $arg title: The library title
