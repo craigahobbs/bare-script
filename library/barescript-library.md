@@ -2812,14 +2812,14 @@ Render the element model with the [elementModelRender](#var.vName='elementModelR
 #### Arguments
 
 **types -**
-The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 **typeName -**
 The type name
 
 **actionURLs -**
 Optional (default is null). The
-[action URL overrides](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL').
+[action URL overrides](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='').
 
 **actionCustom -**
 Optional (default is false). If true, the action has a custom response.
@@ -4244,7 +4244,7 @@ text lines (may contain nested arrays of un-split lines)
 
 #### Returns
 
-The schema's [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 ---
 
@@ -4259,20 +4259,20 @@ The array of [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/
 text lines (may contain nested arrays of un-split lines)
 
 **types -**
-Optional. The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types').
+Optional. The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
 
 **filename -**
 Optional (default is ""). The file name.
 
 #### Returns
 
-The schema's [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 ---
 
 ### schemaTypeModel
 
-Get the [Schema Markdown Type Model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+Get the [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 #### Arguments
 
@@ -4280,7 +4280,7 @@ None
 
 #### Returns
 
-The [Schema Markdown Type Model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 ---
 
@@ -4291,7 +4291,7 @@ Validate an object to a schema type
 #### Arguments
 
 **types -**
-The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 **typeName -**
 The type name
@@ -4307,16 +4307,16 @@ The validated object or null if validation fails
 
 ### schemaValidateTypeModel
 
-Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 #### Arguments
 
 **types -**
-The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types') to validate
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
 
 #### Returns
 
-The validated [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The validated [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 ---
 
@@ -4357,14 +4357,14 @@ Generate the Schema Markdown user type documentation as an array of Markdown tex
 #### Arguments
 
 **types -**
-The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 **typeName -**
 The type name
 
 **options -**
 Optional (default is null). The options object with optional members:
-- **actionURLs** - The [action URLs](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL') override
+- **actionURLs** - The [action URLs](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='') override
 - **actionCustom** - If true, the action has a custom response (default is false)
 - **headerPrefix** - The top-level header prefix string (default is "#")
 - **hideReferenced** - If true, referenced types are not rendered (default is false)
