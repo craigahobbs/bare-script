@@ -141,10 +141,10 @@ schemaDocArguments = argsValidate([ \
 # $function: schemaDocMarkdown
 # $group: schemaDoc.bare
 # $doc: Generate the Schema Markdown user type documentation as an array of Markdown text lines
-# $arg types: The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
 # $arg options: Optional (default is null). The options object with optional members:
-# $arg options: - **actionURLs** - The [action URLs](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL') override
+# $arg options: - **actionURLs** - The [action URLs](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='') override
 # $arg options: - **actionCustom** - If true, the action has a custom response (default is false)
 # $arg options: - **headerPrefix** - The top-level header prefix string (default is "#")
 # $arg options: - **hideReferenced** - If true, referenced types are not rendered (default is false)

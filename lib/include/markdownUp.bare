@@ -518,10 +518,10 @@ endfunction
 # $group: markdownUp.bare: schema
 # $doc: Get a schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme).
 # $doc: Render the element model with the [elementModelRender](#var.vName='elementModelRender') function.
-# $arg types: The [type model](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='Types')
+# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
 # $arg actionURLs: Optional (default is null). The
-# $arg actionURLs: [action URL overrides](https://craigahobbs.github.io/schema-markdown-doc/doc/#var.vName='ActionURL').
+# $arg actionURLs: [action URL overrides](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='').
 # $arg actionCustom: Optional (default is false). If true, the action has a custom response.
 # $return: The schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme)
 function schemaElements(types, typeName):
