@@ -9,6 +9,7 @@ globals.
 
 ## Table of Contents
 
+- [Markdown](#var.vPublish=true&var.vSingle=true&markdown)
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
 - [array](#var.vPublish=true&var.vSingle=true&array)
 - [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare)
@@ -26,7 +27,6 @@ globals.
 - [markdownUp.bare: elementModel](#var.vPublish=true&var.vSingle=true&markdownup-bare-elementmodel)
 - [markdownUp.bare: localStorage](#var.vPublish=true&var.vSingle=true&markdownup-bare-localstorage)
 - [markdownUp.bare: markdown](#var.vPublish=true&var.vSingle=true&markdownup-bare-markdown)
-- [markdownUp.bare: schema](#var.vPublish=true&var.vSingle=true&markdownup-bare-schema)
 - [markdownUp.bare: sessionStorage](#var.vPublish=true&var.vSingle=true&markdownup-bare-sessionstorage)
 - [markdownUp.bare: url](#var.vPublish=true&var.vSingle=true&markdownup-bare-url)
 - [markdownUp.bare: window](#var.vPublish=true&var.vSingle=true&markdownup-bare-window)
@@ -42,6 +42,32 @@ globals.
 - [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare)
 - [unittestMock.bare](#var.vPublish=true&var.vSingle=true&unittestmock-bare)
 - [url](#var.vPublish=true&var.vSingle=true&url)
+
+---
+
+## Markdown
+
+### Function Index
+
+- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
+
+---
+
+### markdownElements
+
+Generate an element model from a Markdown model
+
+#### Arguments
+
+**markdownModel -**
+The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
+
+**generic -**
+Optional (default is false). If true, render markdown elements in a generic context.
+
+#### Returns
+
+The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
 
 ---
 
@@ -2771,65 +2797,6 @@ The Markdown title or null if there is no title
 
 ---
 
-## markdownUp.bare: schema
-
-The "markdownUp.bare: schema" section contains functions for rendering schema type documentation.
-These functions create interactive documentation for data structures defined using
-[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/).
-
-Generate documentation element model for a schema type:
-
-~~~ bare-script
-types = schemaParse( \
-    '# A person information struct', \
-    'struct Person', \
-    '', \
-    "    # The person's name", \
-    '    string name', \
-    '', \
-    "    # The person's age", \
-    '    int age', \
-    '', \
-    "    # The person's email address", \
-    '    optional string email' \
-)
-elements = schemaElements(types, 'Person')
-elementModelRender(elements)
-~~~
-
-
-### Function Index
-
-- [schemaElements](#var.vPublish=true&var.vSingle=true&schemaelements)
-
----
-
-### schemaElements
-
-Get a schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme).
-Render the element model with the [elementModelRender](#var.vName='elementModelRender') function.
-
-#### Arguments
-
-**types -**
-The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
-**typeName -**
-The type name
-
-**actionURLs -**
-Optional (default is null). The
-[action URL overrides](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='').
-
-**actionCustom -**
-Optional (default is false). If true, the action has a custom response.
-
-#### Returns
-
-The schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme)
-
----
-
 ## markdownUp.bare: sessionStorage
 
 The "markdownUp.bare: sessionStorage" section contains functions for interacting with the browser's
@@ -5302,6 +5269,7 @@ To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unit
 Optional (default is null). The map of function name to mock function data.
 The following functions make use of mock data:
 - **documentInputValue** - map of id to return value
+- **markdownElements** - array of return values
 - **markdownParse** - array of return values
 - **markdownTitle** - array of return values
 - **systemFetch** - map of URL to response text
