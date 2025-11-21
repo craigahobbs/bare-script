@@ -266,6 +266,12 @@ endfunction
 unittestRunTest('testMarkdownUp_localStorage')
 
 
+function testMarkdownUp_markdownElements():
+    unittestEqual(markdownElements(), null)
+endfunction
+unittestRunTest('testMarkdownUp_markdownElements')
+
+
 function testMarkdownUp_markdownEscape():
     unittestEqual( \
         markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
@@ -305,32 +311,6 @@ function testMarkdownUp_markdownTitle():
     unittestEqual(markdownTitle(), null)
 endfunction
 unittestRunTest('testMarkdownUp_markdownTitle')
-
-
-function testMarkdownUp_schemaElements():
-    types = { \
-        'TestStruct': {'struct': {'name': 'TestStruct'}} \
-    }
-    unittestDeepEqual(schemaElements(types, 'TestStruct'), [ \
-        [ \
-            {'html': 'h1', 'elem': {'text': 'struct TestStruct'}} \
-        ] \
-    ])
-endfunction
-unittestRunTest('testMarkdownUp_schemaElements')
-
-
-function testMarkdownUp_schemaElements_union():
-    types = { \
-        'TestStruct': {'struct': {'name': 'TestStruct', 'union': true}} \
-    }
-    unittestDeepEqual(schemaElements(types, 'TestStruct'), [ \
-        [ \
-            {'html': 'h1', 'elem': {'text': 'union TestStruct'}} \
-        ] \
-    ])
-endfunction
-unittestRunTest('testMarkdownUp_schemaElements_union')
 
 
 function testMarkdownUp_sessionStorage():

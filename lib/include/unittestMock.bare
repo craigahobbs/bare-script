@@ -31,6 +31,7 @@ unittestMockState = objectCopy(unittestMockStateDefault)
 # $arg data: Optional (default is null). The map of function name to mock function data.
 # $arg data: The following functions make use of mock data:
 # $arg data: - **documentInputValue** - map of id to return value
+# $arg data: - **markdownElements** - array of return values
 # $arg data: - **markdownParse** - array of return values
 # $arg data: - **markdownTitle** - array of return values
 # $arg data: - **systemFetch** - map of URL to response text
@@ -80,14 +81,12 @@ function unittestMockAll(data):
     unittestMockOne('localStorageSet', unittestMock_localStorageSet)
 
     # Markdown
+    unittestMockOne('markdownElements', systemPartial(unittestMock_markdownElements, if(data != null, objectGet(data, 'markdownElements'))))
     unittestMockOne('markdownEscape', unittestMock_markdownEscape)
     unittestMockOne('markdownHeaderId', unittestMock_markdownHeaderId)
     unittestMockOne('markdownParse', systemPartial(unittestMock_markdownParse, if(data != null, objectGet(data, 'markdownParse'))))
     unittestMockOneGeneric('markdownPrint')
     unittestMockOne('markdownTitle', systemPartial(unittestMock_markdownTitle, if(data != null, objectGet(data, 'markdownTitle'))))
-
-    # Schema
-    unittestMockOne('schemaElements', unittestMock_schemaElements)
 
     # Session Storage
     unittestMockOne('sessionStorageClear', unittestMock_sessionStorageClear)
@@ -287,6 +286,15 @@ endfunction
 #
 
 
+function unittestMock_markdownElements(data, args...):
+    # Record the mocked function call
+    arrayPush(unittestMockCalls, ['markdownElements', args])
+
+    # Return the mocked markdownElements response
+    return if(data != null, arrayShift(data))
+endfunction
+
+
 function unittestMock_markdownEscape(text):
     return regexReplace(unittestMock_markdownEscapeRegex, text, '\\$1')
 endfunction
@@ -323,25 +331,6 @@ function unittestMock_markdownTitle(data, args...):
 
     # Return the mocked markdownTitle response
     return if(data != null, arrayShift(data))
-endfunction
-
-
-#
-# Schema functions
-#
-
-
-function unittestMock_schemaElements(types, typeName):
-    userType = objectGet(types, typeName)
-    userTypeKey = arrayGet(objectKeys(userType), 0)
-    if userTypeKey == 'struct' && objectGet(objectGet(userType, 'struct'), 'union'):
-        userTypeKey = 'union'
-    endif
-    return [ \
-        [ \
-            {'html': 'h1', 'elem': {'text': userTypeKey + ' ' + typeName}} \
-        ] \
-    ]
 endfunction
 
 

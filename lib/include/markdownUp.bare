@@ -441,6 +441,16 @@ endfunction
 #
 
 
+# $function: markdownElements
+# $group: Markdown
+# $doc: Generate an element model from a Markdown model
+# $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
+# $arg generic: Optional (default is false). If true, render markdown elements in a generic context.
+# $return: The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
+function markdownElements():
+endfunction
+
+
 # $function: markdownEscape
 # $group: markdownUp.bare: markdown
 # $doc: Escape text for inclusion in Markdown text
@@ -506,35 +516,6 @@ endfunction
 # $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
 # $return: The Markdown title or null if there is no title
 function markdownTitle():
-endfunction
-
-
-#
-# Schema functions
-#
-
-
-# $function: schemaElements
-# $group: markdownUp.bare: schema
-# $doc: Get a schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme).
-# $doc: Render the element model with the [elementModelRender](#var.vName='elementModelRender') function.
-# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-# $arg typeName: The type name
-# $arg actionURLs: Optional (default is null). The
-# $arg actionURLs: [action URL overrides](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='').
-# $arg actionCustom: Optional (default is false). If true, the action has a custom response.
-# $return: The schema type's documentation [element model](https://github.com/craigahobbs/element-model#readme)
-function schemaElements(types, typeName):
-    userType = objectGet(types, typeName)
-    userTypeKey = arrayGet(objectKeys(userType), 0)
-    if userTypeKey == 'struct' && objectGet(objectGet(userType, 'struct'), 'union'):
-        userTypeKey = 'union'
-    endif
-    return [ \
-        [ \
-            {'html': 'h1', 'elem': {'text': userTypeKey + ' ' + typeName}} \
-        ] \
-    ]
 endfunction
 
 

@@ -8,6 +8,7 @@ include <unittestMock.bare>
 async function testUnittestMockAll():
     # Setup mocks
     unittestMockAll({ \
+        'markdownElements': [{'html': 'h1'}], \
         'documentInputValue': {'id1': 'value1'}, \
         'markdownParse': [{'parts': []}], \
         'markdownTitle': ['Title'], \
@@ -79,6 +80,7 @@ async function testUnittestMockAll():
     unittestEqual(localStorageGet('key2'), null)
 
     # Markdown
+    unittestDeepEqual(markdownElements({'parts': []}), {'html': 'h1'})
     unittestEqual( \
         markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
         'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
@@ -87,16 +89,6 @@ async function testUnittestMockAll():
     unittestDeepEqual(markdownParse('# Title'), {'parts': []})
     markdownPrint('# Title')
     unittestDeepEqual(markdownTitle({'parts': []}), 'Title')
-
-    # Schema
-    unittestDeepEqual( \
-        schemaElements({'TestStruct': {'struct': {'name': 'TestStruct'}}}, 'TestStruct'), \
-        [[{'html': 'h1', 'elem': {'text': 'struct TestStruct'}}]] \
-    )
-    unittestDeepEqual( \
-        schemaElements({'TestStruct': {'struct': {'name': 'TestStruct', 'union': true}}}, 'TestStruct'), \
-        [[{'html': 'h1', 'elem': {'text': 'union TestStruct'}}]] \
-    )
 
     # Session Storage
     unittestEqual(sessionStorageGet('key1'), null)
@@ -161,6 +153,7 @@ async function testUnittestMockAll():
         ['localStorageSet', ['key2', 'value2']], \
         ['localStorageRemove', ['key2']], \
         ['localStorageClear', []], \
+        ['markdownElements', [{'parts': []}]], \
         ['markdownParse', ['# Title']], \
         ['markdownPrint', ['# Title']], \
         ['markdownTitle', [{'parts': []}]], \
@@ -226,19 +219,3 @@ async function testUnittestMockAll_systemFetch_request_model():
     ])
 endfunction
 unittestRunTest('testUnittestMockAll_systemFetch_request_model')
-
-
-function testUnittestMockAll_schemaElements_union():
-    # Setup mocks
-    unittestMockAll()
-
-    # Call schemaElements with a union type
-    unittestDeepEqual( \
-        schemaElements({'TestUnion': {'union': {'name': 'TestUnion'}}}, 'TestUnion'), \
-        [[{'html': 'h1', 'elem': {'text': 'union TestUnion'}}]] \
-    )
-
-    # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), [])
-endfunction
-unittestRunTest('testUnittestMockAll_schemaElements_union')

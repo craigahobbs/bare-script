@@ -17,7 +17,6 @@
     "markdownUp.bare: elementModel": "content/markdownUp-bare-elementModel.md",
     "markdownUp.bare: localStorage": "content/markdownUp-bare-localStorage.md",
     "markdownUp.bare: markdown": "content/markdownUp-bare-markdown.md",
-    "markdownUp.bare: schema": "content/markdownUp-bare-schema.md",
     "markdownUp.bare: sessionStorage": "content/markdownUp-bare-sessionStorage.md",
     "markdownUp.bare: url": "content/markdownUp-bare-url.md",
     "markdownUp.bare: window": "content/markdownUp-bare-window.md",
