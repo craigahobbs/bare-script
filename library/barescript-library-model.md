@@ -2,18 +2,55 @@
 
 ## Table of Contents
 
-- [Aggregation](#var.vPublish=true&var.vSingle=true&aggregation)
-- [Line Chart](#var.vPublish=true&var.vSingle=true&line-chart)
-- [RegexMatch](#var.vPublish=true&var.vSingle=true&regexmatch)
-- [SystemFetch](#var.vPublish=true&var.vSingle=true&systemfetch)
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
+- [data](#var.vPublish=true&var.vSingle=true&data)
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
 - [diff.bare](#var.vPublish=true&var.vSingle=true&diff-bare)
 - [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare)
+- [regex](#var.vPublish=true&var.vSingle=true&regex)
+- [system](#var.vPublish=true&var.vSingle=true&system)
 
 ---
 
-## Aggregation
+## args.bare
+
+### struct ArgsArgument
+
+An argument model
+
+| Name        | Type                       | Attributes                 | Description                                                                                                           |
+|-------------|----------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| name        | string                     | len(value) > 0             | The argument name                                                                                                     |
+| type        | [ArgsType](#enum-argstype) | optional                   | The argument type                                                                                                     |
+| global      | string                     | optional<br>len(value) > 0 | The argument's global variable name                                                                                   |
+| explicit    | bool                       | optional                   | If true, the argument is explicit. An explicit argument is only included in the URL if it is in the arguments object. |
+| default     | any                        | optional                   | The default argument value                                                                                            |
+| description | string                     | optional<br>len(value) > 0 | The argument description                                                                                              |
+
+### typedef ArgsArguments
+
+An argument model list
+
+| Type                                    | Attributes     |
+|-----------------------------------------|----------------|
+| [ArgsArgument](#struct-argsargument) [] | len(array) > 0 |
+
+### enum ArgsType
+
+An argument value type
+
+| Value    |
+|----------|
+| bool     |
+| date     |
+| datetime |
+| float    |
+| int      |
+| string   |
+
+---
+
+## data
 
 ### struct Aggregation
 
@@ -46,10 +83,6 @@ An aggregation measure specification
 | field    | string                                           |            | The aggregation measure field     |
 | function | [AggregationFunction](#enum-aggregationfunction) |            | The aggregation function          |
 | name     | string                                           | optional   | The aggregated-measure field name |
-
----
-
-## Line Chart
 
 ### struct LineChart
 
@@ -100,72 +133,6 @@ A datetime format
 | year  | ISO datetime year format  |
 | month | ISO datetime month format |
 | day   | ISO datetime day format   |
-
----
-
-## RegexMatch
-
-### struct RegexMatch
-
-A regex match model
-
-| Name   | Type      | Attributes | Description                                                                                                      |
-|--------|-----------|------------|------------------------------------------------------------------------------------------------------------------|
-| index  | int       | value >= 0 | The zero-based index of the match in the input string                                                            |
-| input  | string    |            | The input string                                                                                                 |
-| groups | string {} |            | The matched groups. The "0" key is the full match text. Ordered (non-named) groups use keys "1", "2", and so on. |
-
----
-
-## SystemFetch
-
-### struct SystemFetchRequest
-
-A fetch request model
-
-| Name    | Type      | Attributes | Description         |
-|---------|-----------|------------|---------------------|
-| url     | string    |            | The resource URL    |
-| body    | string    | optional   | The request body    |
-| headers | string {} | optional   | The request headers |
-
----
-
-## args.bare
-
-### struct ArgsArgument
-
-An argument model
-
-| Name        | Type                       | Attributes                 | Description                                                                                                           |
-|-------------|----------------------------|----------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| name        | string                     | len(value) > 0             | The argument name                                                                                                     |
-| type        | [ArgsType](#enum-argstype) | optional                   | The argument type                                                                                                     |
-| global      | string                     | optional<br>len(value) > 0 | The argument's global variable name                                                                                   |
-| explicit    | bool                       | optional                   | If true, the argument is explicit. An explicit argument is only included in the URL if it is in the arguments object. |
-| default     | any                        | optional                   | The default argument value                                                                                            |
-| description | string                     | optional<br>len(value) > 0 | The argument description                                                                                              |
-
-### typedef ArgsArguments
-
-An argument model list
-
-| Type                                    | Attributes     |
-|-----------------------------------------|----------------|
-| [ArgsArgument](#struct-argsargument) [] | len(array) > 0 |
-
-### enum ArgsType
-
-An argument value type
-
-| Value    |
-|----------|
-| bool     |
-| date     |
-| datetime |
-| float    |
-| int      |
-| string   |
 
 ---
 
@@ -302,3 +269,31 @@ The page type
 | function | [PagerPageFunction](#struct-pagerpagefunction) | A function page          |
 | markdown | [PagerPageMarkdown](#struct-pagerpagemarkdown) | A markdown resource page |
 | link     | [PagerPageLink](#struct-pagerpagelink)         | A navigation link        |
+
+---
+
+## regex
+
+### struct RegexMatch
+
+A regex match model
+
+| Name   | Type      | Attributes | Description                                                                                                      |
+|--------|-----------|------------|------------------------------------------------------------------------------------------------------------------|
+| index  | int       | value >= 0 | The zero-based index of the match in the input string                                                            |
+| input  | string    |            | The input string                                                                                                 |
+| groups | string {} |            | The matched groups. The "0" key is the full match text. Ordered (non-named) groups use keys "1", "2", and so on. |
+
+---
+
+## system
+
+### struct SystemFetchRequest
+
+A fetch request model
+
+| Name    | Type      | Attributes | Description         |
+|---------|-----------|------------|---------------------|
+| url     | string    |            | The resource URL    |
+| body    | string    | optional   | The request body    |
+| headers | string {} | optional   | The request headers |
