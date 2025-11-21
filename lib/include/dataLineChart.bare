@@ -4,7 +4,7 @@
 
 # The line chart model
 dataLineChartTypes = schemaParse( \
-    'group "Line Chart"', \
+    'group "data"', \
     '', \
     '', \
     '# A line chart model', \
