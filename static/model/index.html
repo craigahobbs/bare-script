@@ -3,7 +3,6 @@
     <head>
         <title>The BareScript Model</title>
         <meta charset="UTF-8">
-        <meta name="description" content="The BareScript Model">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">
 
@@ -42,9 +41,9 @@
         const app = new MarkdownUp(window, {
             'markdownText': `\
 ~~~ markdown-script
-include 'https://craigahobbs.github.io/schema-markdown-doc/doc/app.bare'
+include <schemaDoc.bare>
 
-schemaMarkdownDoc('model.json', 'The BareScript Model')
+schemaDocMain('model.json', 'The BareScript Model')
 ~~~
 `});
         app.run();
