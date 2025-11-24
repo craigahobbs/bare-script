@@ -442,7 +442,7 @@ endfunction
 
 
 # $function: markdownElements
-# $group: Markdown
+# $group: markdownUp.bare: markdown
 # $doc: Generate an element model from a Markdown model
 # $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
 # $arg generic: Optional (default is false). If true, render markdown elements in a generic context.
