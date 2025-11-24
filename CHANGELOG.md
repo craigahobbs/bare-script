@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.11 (2025-11-24)
+
+- [c751f02](https://github.com/craigahobbs/bare-script/commit/c751f02) - improve baredoc.bare single-page load performance
+
 ## 3.8.10 (2025-11-21)
 
 - [5eb4e8e](https://github.com/craigahobbs/bare-script/commit/5eb4e8e) - markdownUp.bare: remove schemaElements, add markdownElements
