@@ -26,6 +26,7 @@
     "pager.bare": "content/pager.md",
     "regex": "content/regex.md",
     "schema": "content/schema.md",
+    "schemaDoc.bare": "content/schemaDoc-bare.md",
     "string": "content/string.md",
     "system": "content/system.md",
     "unittest.bare": "content/unittest.md",
