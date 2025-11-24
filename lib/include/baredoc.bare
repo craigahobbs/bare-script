@@ -90,14 +90,31 @@ async function baredocMain(url, title, menuLinks, groupURLs):
         return
     endif
 
+    # Fetch the group content URLs
+    groupContent = {}
+    if groupURLs != null:
+        # Fetch the content URLs
+        groupURLArray = []
+        groupNames = arraySort(objectKeys(groupURLs))
+        for groupName in groupNames:
+            arrayPush(groupURLArray, objectGet(groupURLs, groupName))
+        endfor
+        groupContentArray = systemFetch(groupURLArray)
+
+        # Assign the group contents
+        for groupName, ixGroupName in groupNames:
+            objectSet(groupContent, groupName, arrayGet(groupContentArray, ixGroupName))
+        endfor
+    endif
+
     # Render the page
     title = if(title != null && !objectHas(args, 'url'), title, url)
     if group != null:
-        baredocGroupPage(args, title, groupURLs, groups, group)
+        baredocGroupPage(args, title, groupURLs, groupContent, groups, group)
     elif single:
-        baredocSinglePage(args, title, menuLinks, groupURLs, groups)
+        baredocSinglePage(args, title, menuLinks, groupURLs, groupContent, groups)
     else:
-        baredocIndexPage(args, title, menuLinks, groupURLs, groups)
+        baredocIndexPage(args, title, menuLinks, groupURLs, groupContent, groups)
     endif
 endfunction
 
@@ -122,7 +139,7 @@ endfunction
 
 
 # Render a library documentation index page
-async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
+function baredocIndexPage(args, title, menuLinks, groupURLs, groupContent, groups):
     publish = objectGet(args, 'publish')
 
     # Render the menu and title
@@ -139,9 +156,9 @@ async function baredocIndexPage(args, title, menuLinks, groupURLs, groups):
     markdownPrint('# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
-    if groupURLs != null && objectHas(groupURLs, ''):
+    if objectHas(groupContent, ''):
         rootURL = objectGet(groupURLs, '')
-        rootMarkdown = systemFetch(rootURL)
+        rootMarkdown = objectGet(groupContent, '')
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
     endif
 
@@ -159,7 +176,7 @@ endfunction
 
 
 # Render the single-page library documentation
-async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
+function baredocSinglePage(args, title, menuLinks, groupURLs, groupContent, groups):
     publish = objectGet(args, 'publish')
 
     # Render the menu and title
@@ -176,9 +193,9 @@ async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
     markdownPrint('# ' + markdownEscape(title))
 
     # Render the index Markdown, if any
-    if groupURLs != null && objectHas(groupURLs, ''):
+    if objectHas(groupContent, ''):
         rootURL = objectGet(groupURLs, '')
-        rootMarkdown = systemFetch(rootURL)
+        rootMarkdown = objectGet(groupContent, '')
         markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
     endif
 
@@ -196,13 +213,13 @@ async function baredocSinglePage(args, title, menuLinks, groupURLs, groups):
     # Render the library function index
     for groupName in arraySort(objectKeys(groups)):
         markdownPrint('', '---', '')
-        baredocGroupPage(args, title, groupURLs, groups, groupName)
+        baredocGroupPage(args, title, groupURLs, groupContent, groups, groupName)
     endfor
 endfunction
 
 
 # Render a library documentation group page
-async function baredocGroupPage(args, title, groupURLs, groups, groupName):
+function baredocGroupPage(args, title, groupURLs, groupContent, groups, groupName):
     publish = objectGet(args, 'publish')
     single = objectGet(args, 'single')
     baseHeader = if(single, '##', '#')
@@ -227,11 +244,10 @@ async function baredocGroupPage(args, title, groupURLs, groups, groupName):
         markdownPrint('', argsLink(baredocArguments, 'Back to top', null, false, '_top'))
     endif
 
-
     # Render the group Markdown, if any
-    if groupURLs != null && objectHas(groupURLs, groupName):
+    if objectHas(groupContent, groupName):
         groupURL = objectGet(groupURLs, groupName)
-        groupMarkdown = systemFetch(groupURL)
+        groupMarkdown = objectGet(groupContent, groupName)
         markdownPrint('', if(groupMarkdown != null, groupMarkdown, '**Error:** Failed to load "' + markdownEscape(groupURL) + '"'))
     endif
 

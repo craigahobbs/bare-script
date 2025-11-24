@@ -197,9 +197,9 @@ async function testBaredocMain_single_index_content():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['index.md', 'testGroup.md']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
-        ['systemFetch', ['index.md']], \
         ['markdownPrint', ['', 'This is the index.']], \
         ['markdownPrint', ['', '[Multi Page](#var=)']], \
         ['markdownPrint', ['','## Table of Contents','']], \
@@ -208,7 +208,6 @@ async function testBaredocMain_single_index_content():
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## A Group']], \
         ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
-        ['systemFetch', ['testGroup.md']], \
         ['markdownPrint', ['', 'This is the group.']], \
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
@@ -452,9 +451,9 @@ async function testBaredocMain_index_content():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['index.md', 'testGroup.md']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
-        ['systemFetch', ['index.md']], \
         ['markdownPrint', ['', 'This is the index.']], \
         ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
         ['markdownPrint', ['', '## Table of Contents', '']], \
@@ -482,9 +481,9 @@ async function testBaredocMain_index_content_fetch():
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
         ['systemFetch', ['libraryContent.json']], \
+        ['systemFetch', [['index.md', 'testGroup.md']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
-        ['systemFetch', ['index.md']], \
         ['markdownPrint', ['', 'This is the index.']], \
         ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
         ['markdownPrint', ['', '## Table of Contents', '']], \
@@ -505,6 +504,7 @@ async function testBaredocMain_index_contentEmpty():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['b.md']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
         ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
@@ -527,9 +527,9 @@ async function testBaredocMain_index_contentError():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['index.md', 'testGroup.md']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
-        ['systemFetch', ['index.md']], \
         ['markdownPrint', ['', '**Error:** Failed to load "index.md"']], \
         ['markdownPrint', ['', '[Single Page](#var.vSingle=true)']], \
         ['markdownPrint', ['', '## Table of Contents', '']], \
@@ -687,10 +687,10 @@ async function testBaredocMain_group_content():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['c.md']]], \
         ['documentSetTitle', ['The Test Library - C Group']], \
         ['markdownPrint', ['[Index](#var=)', '']], \
         ['markdownPrint', ['# C Group']], \
-        ['systemFetch', ['c.md']], \
         ['markdownPrint', ['', 'These are the C functions.']], \
         ['markdownPrint', ['', '## Function Index', '']], \
         ['markdownPrint', ["- [func\\_d](#var.vGroup='C%20Group'&func-d)"]], \
@@ -722,10 +722,10 @@ async function testBaredocMain_group_contentError():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['c.md']]], \
         ['documentSetTitle', ['The Test Library - C Group']], \
         ['markdownPrint', ['[Index](#var=)', '']], \
         ['markdownPrint', ['# C Group']], \
-        ['systemFetch', ['c.md']], \
         ['markdownPrint', ['', '**Error:** Failed to load "c.md"']], \
         ['markdownPrint', ['', '## Function Index', '']], \
         ['markdownPrint', ["- [func\\_d](#var.vGroup='C%20Group'&func-d)"]], \
@@ -793,6 +793,7 @@ async function testBaredocMain_group_unknown():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['library.json']]], \
+        ['systemFetch', [['c.md']]], \
         ['documentSetTitle', ['The Test Library - Unknown']], \
         ['markdownPrint', ['', '**Error:** Unknown group "Unknown"']] \
     ])
