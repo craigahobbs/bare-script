@@ -9,7 +9,6 @@ globals.
 
 ## Table of Contents
 
-- [Markdown](#var.vPublish=true&var.vSingle=true&markdown)
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
 - [array](#var.vPublish=true&var.vSingle=true&array)
 - [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare)
@@ -42,32 +41,6 @@ globals.
 - [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare)
 - [unittestMock.bare](#var.vPublish=true&var.vSingle=true&unittestmock-bare)
 - [url](#var.vPublish=true&var.vSingle=true&url)
-
----
-
-## Markdown
-
-### Function Index
-
-- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
-
----
-
-### markdownElements
-
-Generate an element model from a Markdown model
-
-#### Arguments
-
-**markdownModel -**
-The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-
-**generic -**
-Optional (default is false). If true, render markdown elements in a generic context.
-
-#### Returns
-
-The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
 
 ---
 
@@ -2714,11 +2687,30 @@ MarkdownUp functions to create rich, interactive documents.
 
 ### Function Index
 
+- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
 - [markdownEscape](#var.vPublish=true&var.vSingle=true&markdownescape)
 - [markdownHeaderId](#var.vPublish=true&var.vSingle=true&markdownheaderid)
 - [markdownParse](#var.vPublish=true&var.vSingle=true&markdownparse)
 - [markdownPrint](#var.vPublish=true&var.vSingle=true&markdownprint)
 - [markdownTitle](#var.vPublish=true&var.vSingle=true&markdowntitle)
+
+---
+
+### markdownElements
+
+Generate an element model from a Markdown model
+
+#### Arguments
+
+**markdownModel -**
+The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
+
+**generic -**
+Optional (default is false). If true, render markdown elements in a generic context.
+
+#### Returns
+
+The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
 
 ---
 
