@@ -117,3 +117,52 @@ function testDiffLines_addEnd():
     )
 endfunction
 unittestRunTest('testDiffLines_addEnd')
+
+
+function testDiffLines_empty():
+    unittestDeepEqual(diffLines('', ''), [])
+endfunction
+unittestRunTest('testDiffLines_empty')
+
+
+function testDiffLines_emptyLeft():
+    unittestDeepEqual(diffLines('', '1\n2'), [{'type': 'Add', 'lines': ['1', '2']}])
+endfunction
+unittestRunTest('testDiffLines_emptyLeft')
+
+
+function testDiffLines_emptyRight():
+    unittestDeepEqual(diffLines('1\n2', ''), [{'type': 'Remove', 'lines': ['1', '2']}])
+endfunction
+unittestRunTest('testDiffLines_emptyRight')
+
+
+function testDiffLines_noNewlines():
+    unittestDeepEqual( \
+        diffLines('abc', 'def'), \
+        [ \
+            {'type': 'Remove', 'lines': ['abc']}, \
+            {'type': 'Add', 'lines': ['def']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_noNewlines')
+
+
+function testDiffLines_interleaved():
+    left = 'A\nB\nC\nD'
+    right = 'A\nX\nB\nY\nC\nZ'
+    unittestDeepEqual( \
+        diffLines(left, right), \
+        [ \
+            {'type': 'Identical', 'lines': ['A']}, \
+            {'type': 'Add', 'lines': ['X']}, \
+            {'type': 'Identical', 'lines': ['B']}, \
+            {'type': 'Add', 'lines': ['Y']}, \
+            {'type': 'Identical', 'lines': ['C']}, \
+            {'type': 'Remove', 'lines': ['D']}, \
+            {'type': 'Add', 'lines': ['Z']} \
+        ] \
+    )
+endfunction
+unittestRunTest('testDiffLines_interleaved')

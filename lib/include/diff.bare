@@ -44,25 +44,9 @@ diffTypes = schemaParse( \
 function diffLines(left, right):
     diffs = []
 
-    # Split the left into an array of lines
-    if systemType(left) == 'array':
-        leftLines = []
-        for leftPart in left:
-            arrayExtend(leftLines, regexSplit(diffRegexLineSplit, leftPart))
-        endfor
-    else:
-        leftLines = regexSplit(diffRegexLineSplit, left)
-    endif
-
-    # Split the right into an array of lines
-    if systemType(right) == 'array':
-        rightLines = []
-        for rightPart in right:
-            arrayExtend(rightLines, regexSplit(diffRegexLineSplit, rightPart))
-        endfor
-    else:
-        rightLines = regexSplit(diffRegexLineSplit, right)
-    endif
+    # Convert inputs to arrays of lines
+    leftLines = diffLinesToArray(left)
+    rightLines = diffLinesToArray(right)
 
     # Compute the differences
     ixLeft = 0
@@ -97,25 +81,23 @@ function diffLines(left, right):
         endif
 
         # Look ahead to find next matching point
-        foundMatch = false
+        matchIxLeft = null
+        matchIxRight = null
         ixLeftTmp = ixLeft
-        while ixLeftTmp < leftLength:
+        while ixLeftTmp < leftLength && matchIxLeft == null:
             ixRightTmp = ixRight
-            while ixRightTmp < rightLength:
+            while ixRightTmp < rightLength && matchIxLeft == null:
                 if arrayGet(leftLines, ixLeftTmp) == arrayGet(rightLines, ixRightTmp):
-                    foundMatch = true
-                    break
+                    matchIxLeft = ixLeftTmp
+                    matchIxRight = ixRightTmp
                 endif
                 ixRightTmp = ixRightTmp + 1
             endwhile
-            if foundMatch:
-                break
-            endif
             ixLeftTmp = ixLeftTmp + 1
         endwhile
 
         # If no match found, use remaining lines
-        if !foundMatch:
+        if matchIxLeft == null:
             if ixLeft < leftLength:
                 arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
                 ixLeft = leftLength
@@ -128,19 +110,39 @@ function diffLines(left, right):
         endif
 
         # Add removed lines if any
-        if ixLeftTmp > ixLeft:
-            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft, ixLeftTmp)})
-            ixLeft = ixLeftTmp
+        if matchIxLeft > ixLeft:
+            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft, matchIxLeft)})
+            ixLeft = matchIxLeft
         endif
 
         # Add added lines if any
-        if ixRightTmp > ixRight:
-            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight, ixRightTmp)})
-            ixRight = ixRightTmp
+        if matchIxRight > ixRight:
+            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight, matchIxRight)})
+            ixRight = matchIxRight
         endif
     endwhile
 
     return diffs
+endfunction
+
+
+# Helper function to convert input to array of lines
+function diffLinesToArray(input):
+    # Array input?
+    if systemType(input) == 'array':
+        lines = []
+        for part in input:
+            arrayExtend(lines, regexSplit(diffRegexLineSplit, part))
+        endfor
+        return lines
+    endif
+
+    # String input
+    lines = regexSplit(diffRegexLineSplit, input)
+    if arrayLength(lines) == 1 && arrayGet(lines, 0) == '':
+        return []
+    endif
+    return lines
 endfunction
 
 
