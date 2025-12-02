@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.13 (2025-12-02)
+
+- [509fe15](https://github.com/craigahobbs/bare-script/commit/509fe15) - diff.bare improvements
+
 ## 3.8.11 (2025-11-24)
 
 - [c751f02](https://github.com/craigahobbs/bare-script/commit/c751f02) - improve baredoc.bare single-page load performance
