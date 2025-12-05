@@ -25,6 +25,7 @@ function qrcodeTestMain():
     markdownPrint(argsLink(qrcodeTestArguments, 'Model', {'model': true}), '# ' + markdownEscape(title))
 
     # Render the text input
+    documentSetFocus(qrcodeTestMessageId)
     elementModelRender([ \
         {'html': 'p', 'elem': {'html': 'b', 'elem': {'text': 'Message:'}}}, \
         {'html': 'p', 'elem': formsTextElements(qrcodeTestMessageId, message, 100, qrcodeTestOnMessage)}, \
