@@ -1,0 +1,530 @@
+include 'qrcodeVersions.bare'
+
+
+# $function: qrcodeDraw
+# $group: qrcode.bare
+# $doc: Draw a QR code at the specified position and size
+# $arg message: The QR code message
+# $arg x: The X-coordinate, in pixels, of the left-side of the QR code
+# $arg y: The Y-coordinate, in pixels, of the top of the QR code
+# $arg size: The size of the QR code, in pixels
+# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+function qrcodeDraw(message, x, y, size, level):
+    # Get the QR code pixel matrix
+    matrix = qrcodeMatrix(message, level)
+    if !matrix:
+        return
+    endif
+    qrcodeSize = arrayLength(matrix)
+
+    # Draw the white background
+    drawStyle('none', 0, 'white')
+    drawRect(x, y, size, size)
+
+    # Draw the black pixels
+    ixRow = 0
+    pixelSize = size / (qrcodeSize + 2)
+    borderSize = pixelSize
+    drawStyle('none', 0, 'black')
+    while ixRow < qrcodeSize:
+        ixCol = 0
+        while ixCol < qrcodeSize:
+            if arrayGet(arrayGet(matrix, ixRow), ixCol):
+                drawPathRect(borderSize + x + ixCol * pixelSize, borderSize + y + ixRow * pixelSize, pixelSize, pixelSize)
+            endif
+            ixCol = ixCol + 1
+        endwhile
+        ixRow = ixRow + 1
+    endwhile
+endfunction
+
+
+# $function: qrcodeMatrix
+# $group: qrcode.bare
+# $doc: Generate a QR code pixel matrix
+# $arg message: The QR code message
+# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+# $return: The QR code pixel matrix
+function qrcodeMatrix(message, level):
+    level = level || 'low'
+
+    # Find the QR code model
+    for qrcode in qrcodeVersions:
+        qrcodeSize = objectGet(qrcode, 'size')
+        alignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
+
+        # Create the pixel matrix
+        matrix = []
+        ixRow = 0
+        while ixRow < qrcodeSize:
+            arrayPush(matrix, arrayNewSize(qrcodeSize, null))
+            ixRow = ixRow + 1
+        endwhile
+
+        # Position squares
+        qrcodeMatrixPositionSquare(matrix, 3, 3)
+        qrcodeMatrixPositionSquare(matrix, 3, qrcodeSize - 4)
+        qrcodeMatrixPositionSquare(matrix, qrcodeSize - 4, 3)
+
+        # Alignment patterns
+        if alignmentPatterns:
+            for alignmentPattern in alignmentPatterns:
+                qrcodeAlignmentPattern(matrix, objectGet(alignmentPattern, 'x'), objectGet(alignmentPattern, 'y'))
+            endfor
+        endif
+
+        # Timing strips
+        qrcodeTimingStrips(matrix)
+
+        # Format strips
+        qrcodeFormatStrips(matrix, qrcode, level)
+
+        # Version blocks
+        qrcodeVersionBlocks(matrix, qrcode)
+
+        # Compute the data pixels and bits - does it fit?
+        dataPixels = qrcodeDataPixels(matrix)
+        dataBits = qrcodeDataBits(qrcode, level, message)
+        if arrayLength(dataBits) <= arrayLength(dataPixels):
+            # Set the message data with error correction
+            qrcodeMatrixPixels(matrix, dataPixels, dataBits)
+            return matrix
+        endif
+    endfor
+
+    # Mwssage too long
+    systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
+    return null
+endfunction
+
+
+# Get the list of available data pixel positions in the QR code
+function qrcodeDataPixels(matrix):
+    dataPixels = []
+    qrcodeSize = arrayLength(matrix)
+
+    # Iterate pixel pairs - up and down, right to left
+    x = qrcodeSize - 1
+    y = qrcodeSize - 1
+    up = true
+    while true:
+        # Add the pixel pair (right then left) if its unused
+        if arrayGet(arrayGet(matrix, y), x) == null:
+            arrayPush(dataPixels, [x, y])
+        endif
+        if x > 0 && arrayGet(arrayGet(matrix, y), x - 1) == null:
+            arrayPush(dataPixels, [x - 1, y])
+        endif
+
+        # Move the pixel pair
+        if (up && y == 0) || (!up && y == qrcodeSize - 1):
+            up = !up
+            x = x - 2
+            if x < 0:
+                break
+            endif
+        else:
+            y = y + if(up, -1, 1)
+        endif
+    endwhile
+
+    return dataPixels
+endfunction
+
+
+# Get the message data bits (includes mode, size, data, terminator, error correction codewords)
+function qrcodeDataBits(qrcode, level, message):
+    version = objectGet(qrcode, 'version')
+
+    # Create the char code array and determine the data mode
+    messageChars = []
+    hasAlpha = false
+    hasKanji = false
+    hasBinary = false
+    ixChar = 0
+    messageLength = stringLength(message)
+    while ixChar < messageLength:
+        charValue = stringCharCodeAt(message, ixChar)
+        char = stringFromCharCode(charValue)
+        arrayPush(messageChars, charValue)
+
+        # Determine the character type
+        lowByte = 0xff & charValue
+        highByte = 0xffffff00 & charValue
+        isAlpha = stringIndexOf(qrcodeModeAlphaChars, char) != -1
+        isKanji = (lowByte >= 0x40 && lowByte <= 0xFC) && ((highByte >= 0x81 && highByte <= 0x9F) || (highByte >= 0xE0 && highByte <= 0xEB))
+        isBinary = !isAlpha && !isKanji && stringIndexOf(qrcodeModeNumericChars, char) != -1
+        hasAlpha = hasAlpha || isAlpha
+        hasKanji = hasKanji || isKanji
+        hasBinary = hasBinary || isBinary
+
+        ixChar = ixChar + 1
+    endwhile
+
+    # TODO
+    hasBinary = true
+
+    # Determine the data mode
+    if hasBinary || (hasAlpha && hasKanji):
+        mode = 'binary'
+        modeBits = [0, 1, 0, 0]
+    elif hasAlpha:
+        mode = 'alphanum'
+        modeBits = [0, 0, 1, 0]
+    elif hasKanji:
+        mode = 'kanji'
+        modeBits = [1, 0, 0, 0]
+    else:
+        mode = 'numeric'
+        modeBits = [0, 0, 0, 1]
+    endif
+
+    # Compute the message bits
+    if mode == 'binary':
+        messageBits = qrcodeBytesToBits(messageChars)
+    elif mode == 'alphanum':
+        # TODO
+    elif mode == 'kanji':
+        # TODO
+    else: # if mode == 'numeric':
+        # TODO
+    endif
+
+    # Terminate and byte-pad the message bits
+    # TODO
+
+    # Compute the message bytes
+    messageBytes = qrcodeBitsToBytes(messageBits)
+    messageSize = arrayLength(messageBytes)
+
+    # Compute the error correction bits
+    ecBits = qrcodeErrorCorrectionBits(qrcode, level, messageBytes)
+
+    # Determine the size bits
+    if mode == 'binary':
+        if version < 10:
+            sizeBits = qrcodeBytesToBits([0xff & messageSize])
+        else:
+            sizeBits = qrcodeBytesToBits([0xff & (messageSize >> 8), 0xff & messageSize])
+        endif
+    elif mode == 'alphanum':
+        # TODO
+    elif mode == 'kanji':
+        # TODO
+    else: # if mode == 'numeric':
+        # TODO
+    endif
+
+    # Return the data bits
+    bits = arrayNew()
+    arrayExtend(bits, modeBits)
+    arrayExtend(bits, sizeBits)
+    arrayExtend(bits, messageBits)
+    arrayExtend(bits, ecBits)
+    return bits
+endfunction
+
+
+# QR code mode chars
+qrcodeModeNumericChars = '0123456789'
+qrcodeModeAlphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
+
+
+# Convert byte array to bit array
+function qrcodeBytesToBits(bytes):
+    bits = []
+    reversedBits = []
+    for byteValue in bytes:
+        # Extract the 8 bits from the byte value (in reverse order)
+        while byteValue:
+            arrayPush(reversedBits, byteValue & 1)
+            byteValue = byteValue >> 1
+        endwhile
+
+        # Pad the byte with zeros
+        arrayExtend(reversedBits, arrayNewSize(arrayLength(reversedBits) % 8, 0))
+
+        # Reverse the bits
+        while reversedBits:
+            arrayPush(bits, arrayPop(reversedBits))
+        endwhile
+    endfor
+    return bits
+endfunction
+
+
+# Convert bit array to byte array
+function qrcodeBitsToBytes(bits):
+    bytes = []
+    ixBit = 0
+    bitsLength = arrayLength(bits)
+    while ixBit < bitsLength:
+       byteBits = arraySlice(bits, ixBit, mathMin(ixBit + 8, bitsLength))
+       arrayExtend(byteBits, arrayNewSize(arrayLength(byteBits) % 8, 0))
+       byteValue = numberParseInt(arrayJoin(byteBits, ''), 2)
+       arrayPush(bytes, byteValue)
+       ixBit = ixBit + 8
+    endwhile
+    return bytes
+endfunction
+
+
+# Helper to set a position square's pixels
+function qrcodeMatrixPositionSquare(matrix, x, y):
+    qrcodeMatrixSquare(matrix, x - 4, y - 4, 9, 0)
+    qrcodeMatrixSquare(matrix, x - 3, y - 3, 7, 1)
+    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 0)
+    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 1)
+endfunction
+
+
+# Helper to set an alignment pattern's pixels
+function qrcodeAlignmentPattern(matrix, x, y):
+    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 1)
+    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 0)
+    qrcodeMatrixSquare(matrix, x, y, 1, 1)
+endfunction
+
+
+# Helper to set the timing strips pixels
+function qrcodeTimingStrips(matrix):
+    qrcodeSize = arrayLength(matrix)
+    ix = 8
+    ixEnd = qrcodeSize - 8
+    while ix < ixEnd:
+        arraySet(arrayGet(matrix, 6), ix, if(ix % 2, 0, 1))
+        arraySet(arrayGet(matrix, ix), 6, if(ix % 2, 0, 1))
+        ix = ix + 1
+    endwhile
+endfunction
+
+
+# Helper to set the format strips pixels
+function qrcodeFormatStrips(matrix, qrcode, level):
+    qrcodeSize = arrayLength(matrix)
+
+    # The always-black pixel
+    arraySet(arrayGet(matrix, qrcodeSize - 8), 8, 1)
+
+    # Do nothing more for now
+    return qrcode && level && null
+endfunction
+
+
+# Helper to set the version blocks pixels
+function qrcodeVersionBlocks(matrix, qrcode):
+    versionBits = objectGet(qrcode, 'versionBits')
+    if versionBits:
+        qrcodeSize = arrayLength(matrix)
+        bottomLeftPixels = [ \
+            [0, qrcodeSize - 11], [0, qrcodeSize - 10], [0, qrcodeSize - 9], \
+            [1, qrcodeSize - 11], [1, qrcodeSize - 10], [1, qrcodeSize - 9], \
+            [2, qrcodeSize - 11], [2, qrcodeSize - 10], [2, qrcodeSize - 9], \
+            [3, qrcodeSize - 11], [3, qrcodeSize - 10], [3, qrcodeSize - 9], \
+            [4, qrcodeSize - 11], [4, qrcodeSize - 10], [4, qrcodeSize - 9], \
+            [5, qrcodeSize - 11], [5, qrcodeSize - 10], [5, qrcodeSize - 9] \
+        ]
+        topRightPixels = [ \
+            [qrcodeSize - 11, 0], [qrcodeSize - 10, 0], [qrcodeSize - 9, 0], \
+            [qrcodeSize - 11, 1], [qrcodeSize - 10, 1], [qrcodeSize - 9, 1], \
+            [qrcodeSize - 11, 2], [qrcodeSize - 10, 2], [qrcodeSize - 9, 2], \
+            [qrcodeSize - 11, 3], [qrcodeSize - 10, 3], [qrcodeSize - 9, 3], \
+            [qrcodeSize - 11, 4], [qrcodeSize - 10, 4], [qrcodeSize - 9, 4], \
+            [qrcodeSize - 11, 5], [qrcodeSize - 10, 5], [qrcodeSize - 9, 5] \
+        ]
+        qrcodeMatrixPixels(matrix, bottomLeftPixels, versionBits)
+        qrcodeMatrixPixels(matrix, topRightPixels, versionBits)
+    endif
+endfunction
+
+
+# Helper to set a solid square's pixels
+function qrcodeMatrixSquare(matrix, x, y, size, colorValue):
+    matrixSize = arrayLength(matrix)
+    xEnd = x + size
+    yEnd = y + size
+    iy = y
+    while iy < yEnd:
+        ix = x
+        while ix < xEnd:
+            if ix >= 0 && ix < matrixSize && iy >= 0 && iy < matrixSize:
+                arraySet(arrayGet(matrix, iy), ix, colorValue)
+            endif
+            ix = ix + 1
+        endwhile
+        iy = iy + 1
+    endwhile
+endfunction
+
+
+# Helper to set a pixel array's pixels
+function qrcodeMatrixPixels(matrix, pixels, bits):
+    for bitValue, ixBit in bits:
+        pixel = arrayGet(pixels, ixBit)
+        arraySet(arrayGet(matrix, arrayGet(pixel, 1)), arrayGet(pixel, 0), bitValue)
+    endfor
+endfunction
+
+
+# Compute error correction bits for the message
+function qrcodeErrorCorrectionBits(qrcode, level, messageBytes):
+    errorCorrection = objectGet(qrcode, 'errorCorrection')
+    errorCorrectionLevel = objectGet(errorCorrection, level)
+    ecCodewordsPerBlock = objectGet(errorCorrectionLevel, 'errorCodewordsPerBlock')
+    blockGroups = objectGet(errorCorrectionLevel, 'blockGroups')
+
+    # Get the generator polynomial for this codeword count
+    generator = qrcodeGetGeneratorPolynomial(ecCodewordsPerBlock)
+
+    # Process each block group and collect codewords
+    ecCodewords = []
+    messageOffset = 0
+
+    for blockGroup in blockGroups:
+        blockCount = objectGet(blockGroup, 'blockCount')
+        dataCodewordsPerBlock = objectGet(blockGroup, 'dataCodewordsPerBlock')
+
+        # Process each block in the group
+        ixBlock = 0
+        while ixBlock < blockCount:
+            # Extract the data codewords for this block
+            blockData = []
+            ixData = 0
+            while ixData < dataCodewordsPerBlock:
+                if messageOffset + ixData < arrayLength(messageBytes):
+                    arrayPush(blockData, arrayGet(messageBytes, messageOffset + ixData))
+                else:
+                    arrayPush(blockData, 0)
+                endif
+                ixData = ixData + 1
+            endwhile
+
+            # Compute codewords for this block
+            blockEC = qrcodeComputeECCodewords(blockData, generator, ecCodewordsPerBlock)
+            arrayExtend(ecCodewords, blockEC)
+
+            messageOffset = messageOffset + dataCodewordsPerBlock
+            ixBlock = ixBlock + 1
+        endwhile
+    endfor
+
+    # Convert EC codewords back to bits
+    return qrcodeBytesToBits(ecCodewords)
+endfunction
+
+
+# Get the generator polynomial for a given number of error correction codewords
+function qrcodeGetGeneratorPolynomial(ecCount):
+    # Start with (x - alpha^0) = [1, 1]
+    generator = [1]
+
+    # Multiply by (x - alpha^i) for i = 0 to ecCount-1
+    ixExp = 0
+    while ixExp < ecCount:
+        # Multiply generator by (x - alpha^ixExp)
+        newGenerator = arrayNewSize(arrayLength(generator) + 1, 0)
+        ixCoeff = 0
+        while ixCoeff < arrayLength(generator):
+            # x term: shift coefficient up
+            arraySet(newGenerator, ixCoeff, arrayGet(newGenerator, ixCoeff) ^ arrayGet(generator, ixCoeff))
+
+            # -alpha^ixExp term: multiply and add
+            alphaExp = arrayGet(qrcodeGFExp, ixExp)
+            product = qrcodeGFMultiply(arrayGet(generator, ixCoeff), alphaExp)
+            arraySet(newGenerator, ixCoeff + 1, arrayGet(newGenerator, ixCoeff + 1) ^ product)
+            ixCoeff = ixCoeff + 1
+        endwhile
+        generator = newGenerator
+        ixExp = ixExp + 1
+    endwhile
+
+    return generator
+endfunction
+
+
+# Compute error correction codewords for a data block using polynomial division
+function qrcodeComputeECCodewords(data, generator, ecCount):
+    # Create working array: data + zeros for error correction
+    genLength = arrayLength(generator)
+    workLength = arrayLength(data) + ecCount
+    work = arrayNewSize(workLength, 0)
+
+    # Copy data to work array
+    ixData = 0
+    while ixData < arrayLength(data):
+        arraySet(work, ixData, arrayGet(data, ixData))
+        ixData = ixData + 1
+    endwhile
+
+    # Perform polynomial division
+    ixStep = 0
+    while ixStep < arrayLength(data):
+        coeff = arrayGet(work, ixStep)
+        if coeff != 0:
+            # Multiply generator by coeff and XOR with work
+            ixGen = 0
+            while ixGen < genLength:
+                product = qrcodeGFMultiply(arrayGet(generator, ixGen), coeff)
+                workIndex = ixStep + ixGen
+                if workIndex < workLength:
+                    arraySet(work, workIndex, arrayGet(work, workIndex) ^ product)
+                endif
+                ixGen = ixGen + 1
+            endwhile
+        endif
+        ixStep = ixStep + 1
+    endwhile
+
+    # Extract codewords (remainder)
+    result = []
+    ixEC = 0
+    while ixEC < ecCount:
+        arrayPush(result, arrayGet(work, arrayLength(data) + ixEC))
+        ixEC = ixEC + 1
+    endwhile
+
+    return result
+endfunction
+
+
+# Multiply two values in GF(2^8)
+function qrcodeGFMultiply(a, b):
+    if a == 0 || b == 0:
+        return 0
+    endif
+
+    # Use log/antilog tables for multiplication
+    logSum = (arrayGet(qrcodeGFLog, a) + arrayGet(qrcodeGFLog, b)) % 255
+    return arrayGet(qrcodeGFExp, logSum)
+endfunction
+
+
+# GF(2^8) exponent table (alpha^i for i = 0 to 255)
+# Primitive polynomial: x^8 + x^4 + x^3 + x^2 + 1 (0x11D)
+qrcodeGFExp = [ \
+    1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 19, 38, 76, 152, 45, 90, 180, 117, 234, 201, 143, 3, 6, 12, \
+    24, 48, 96, 192, 157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181, 119, 238, 193, 159, 35, 70, 140, 5, 10, 20, 40, 80, \
+    160, 93, 186, 105, 210, 185, 111, 222, 161, 95, 190, 97, 194, 153, 47, 94, 188, 101, 202, 137, 15, 30, 60, 120, 240, \
+    253, 231, 211, 187, 107, 214, 177, 127, 254, 225, 223, 163, 91, 182, 113, 226, 217, 175, 67, 134, 17, 34, 68, 136, 13, \
+    26, 52, 104, 208, 189, 103, 206, 129, 31, 62, 124, 248, 237, 199, 147, 59, 118, 236, 197, 151, 51, 102, 204, 133, 23, \
+    46, 92, 184, 109, 218, 169, 79, 158, 33, 66, 132, 21, 42, 84, 168, 77, 154, 41, 82, 164, 85, 170, 73, 146, 57, 114, \
+    228, 213, 183, 115, 230, 209, 191, 99, 198, 145, 63, 126, 252, 229, 215, 179, 123, 246, 241, 255, 227, 219, 171, 75, \
+    150, 49, 98, 196, 149, 55, 110, 220, 165, 87, 174, 65, 130, 25, 50, 100, 200, 141, 7, 14, 28, 56, 112, 224, 221, 167, \
+    83, 166, 81, 162, 89, 178, 121, 242, 249, 239, 195, 155, 43, 86, 172, 69, 138, 9, 18, 36, 72, 144, 61, 122, 244, 245, \
+    247, 243, 251, 235, 203, 139, 11, 22, 44, 88, 176, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 1 \
+]
+
+
+# GF(2^8) logarithm table (log_alpha(i) for i = 1 to 255, index 0 is unused)
+qrcodeGFLog = [ \
+    0, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75, 4, 100, 224, 14, 52, 141, 239, 129, 28, 193, 105, 248, \
+    200, 8, 76, 113, 5, 138, 101, 47, 225, 36, 15, 33, 53, 147, 142, 218, 240, 18, 130, 69, 29, 181, 194, 125, 106, 39, \
+    249, 185, 201, 154, 9, 120, 77, 228, 114, 166, 6, 191, 139, 98, 102, 221, 48, 253, 226, 152, 37, 179, 16, 145, 34, \
+    136, 54, 208, 148, 206, 143, 150, 219, 189, 241, 210, 19, 92, 131, 56, 70, 64, 30, 66, 182, 163, 195, 72, 126, 110, \
+    107, 58, 40, 84, 250, 133, 186, 61, 202, 94, 155, 159, 10, 21, 121, 43, 78, 212, 229, 172, 115, 243, 167, 87, 7, 112, \
+    192, 247, 140, 128, 99, 13, 103, 74, 222, 237, 49, 197, 254, 24, 227, 165, 153, 119, 38, 184, 180, 124, 17, 68, 146, \
+    217, 35, 32, 137, 46, 55, 63, 209, 91, 149, 188, 207, 205, 144, 135, 151, 178, 220, 252, 190, 97, 242, 86, 211, 171, \
+    20, 42, 93, 158, 132, 60, 57, 83, 71, 109, 65, 162, 31, 45, 67, 216, 183, 123, 164, 118, 196, 23, 73, 236, 127, 12, \
+    111, 246, 108, 161, 59, 82, 41, 157, 85, 170, 251, 96, 134, 177, 187, 204, 62, 90, 203, 89, 95, 176, 156, 169, 160, \
+    81, 11, 245, 22, 235, 122, 117, 44, 215, 79, 174, 213, 233, 230, 231, 173, 232, 116, 214, 244, 234, 168, 80, 88, 175 \
+]

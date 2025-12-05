@@ -1,0 +1,73 @@
+include <args.bare>
+include <forms.bare>
+include <schemaDoc.bare>
+
+include 'qrcode.bare'
+
+
+# QR code application main entry point
+function qrcodeTestMain():
+    # Parse arguments
+    args = argsParse(qrcodeTestArguments)
+    message = objectGet(args, 'message')
+
+    # Show the model documentation?
+    if objectGet(args, 'model'):
+        documentSetTitle('QRCode Model')
+        markdownPrint(argsLink(qrcodeTestArguments, 'Home'))
+        markdownPrint(schemaDocMarkdown(qrcodeTypes, 'QRCode'))
+        return
+    endif
+
+    # Render the title
+    title = 'Test'
+    documentSetTitle(title)
+    markdownPrint(argsLink(qrcodeTestArguments, 'Model', {'model': true}), '# ' + markdownEscape(title))
+
+    # Render the text input
+    elementModelRender([ \
+        {'html': 'p', 'elem': {'html': 'b', 'elem': {'text': 'Message:'}}}, \
+        {'html': 'p', 'elem': formsTextElements(qrcodeTestMessageId, message, 100, qrcodeTestOnMessage)}, \
+        {'html': 'p', 'elem': [ \
+            formsLinkButtonElements('Create QR Code', qrcodeTestOnMessage), \
+            {'text': ' | '}, \
+            formsLinkButtonElements('Reset', qrcodeTestOnReset) \
+        ]} \
+    ])
+
+    # Create the drawing and render the background
+    width = 400
+    height = 300
+    widthHeight = mathMin(width, height)
+    drawNew(width, height)
+    drawStyle('none', 0, 'blue')
+    drawRect(0, 0, width, height)
+
+    # Draw the QR codes
+    qrcodeDraw(message, 0.1 * width, 0.1 * height, 0.6 * widthHeight)
+    qrcodeDraw(message, 0.7 * width, 0.6 * height, 0.3 * widthHeight)
+endfunction
+
+
+# Message ID
+qrcodeTestMessageId = 'message'
+
+
+# Message on-click
+function qrcodeTestOnMessage():
+    message = documentInputValue(qrcodeTestMessageId)
+    windowSetLocation(argsURL(qrcodeTestArguments, {'message': message}))
+endfunction
+
+
+# Reset on-click
+function qrcodeTestOnReset():
+    windowSetLocation(argsURL(qrcodeTestArguments, {'message': null}))
+endfunction
+
+
+# The QR code application arguments
+qrcodeTestArguments = argsValidate([ \
+    {'name': 'message', 'default': 'https://craigahobbs.github.io/'}, \
+    {'name': 'model', 'type': 'bool', 'default': false, 'explicit': true} \
+])

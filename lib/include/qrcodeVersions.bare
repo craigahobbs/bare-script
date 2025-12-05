@@ -1,0 +1,337 @@
+# The QR code model
+qrcodeTypes = schemaParse( \
+    '# The QR code model', \
+    'struct QRCode', \
+    '', \
+    '    # The QR code version', \
+    '    int(> 0) version', \
+    '', \
+    '    # The QR code size', \
+    '    int(> 0) size', \
+    '', \
+    '    # The alignment pattern center positions', \
+    '    optional AlignmentPattern[] alignmentPatterns', \
+    '', \
+    '    # The version information bits (18 bits for versions 7+)', \
+    '    optional int[len == 18] versionBits', \
+    '', \
+    '    # The error correction metadata map', \
+    '    ErrorCorrection errorCorrection', \
+    '', \
+    '', \
+    '# A list of QR code models', \
+    'typedef QRCode[] QRCodeModels', \
+    '', \
+    '', \
+    '# A QR code alignment pattern', \
+    'struct AlignmentPattern', \
+    '', \
+    '    # The center X coordinate', \
+    '    int x', \
+    '', \
+    '    # The center Y coordinate', \
+    '    int y', \
+    '', \
+    '', \
+    "# A QR code's error correction constants", \
+    'struct ErrorCorrection', \
+    '', \
+    '    # Low (recovery capacity ~7%)', \
+    '    ErrorCorrectionLevel low', \
+    '', \
+    '    # Medium (recovery capacity ~15%)', \
+    '    ErrorCorrectionLevel medium', \
+    '', \
+    '    # Quartile (recovery capacity ~25%)', \
+    '    ErrorCorrectionLevel quartile', \
+    '', \
+    '    # High (recovery capacity ~30%)', \
+    '    ErrorCorrectionLevel high', \
+    '', \
+    '', \
+    "# A QR code's error correction level constants", \
+    'struct ErrorCorrectionLevel', \
+    '', \
+    '    # Total codewords in the symbol', \
+    '    int totalCodewords', \
+    '', \
+    '    # Error correction codewords per block (uniform across all blocks)', \
+    '    int errorCodewordsPerBlock', \
+    '', \
+    '    # The block groups (typically 1 or 2)', \
+    '    BlockGroup[len > 0] blockGroups', \
+    '', \
+    '', \
+    '# A QR code block group for error correction', \
+    'struct BlockGroup', \
+    '', \
+    '    # Number of blocks in the group', \
+    '    int(> 0) blockCount', \
+    '', \
+    '    # Data codewords per block in the group', \
+    '    int(> 0) dataCodewordsPerBlock' \
+)
+
+
+# QR code models
+qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
+    { \
+        'version': 2, \
+        'size': 25, \
+        'alignmentPatterns': [ \
+            {'x': 18, 'y': 18} \
+        ], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 44, \
+                'errorCodewordsPerBlock': 10, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 34} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 44, \
+                'errorCodewordsPerBlock': 16, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 28} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 44, \
+                'errorCodewordsPerBlock': 22, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 22} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 44, \
+                'errorCodewordsPerBlock': 28, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 16} \
+                ] \
+            } \
+        } \
+    }, \
+    { \
+        'version': 3, \
+        'size': 29, \
+        'alignmentPatterns': [ \
+            {'x': 22, 'y': 22} \
+        ], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 70, \
+                'errorCodewordsPerBlock': 15, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 55} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 70, \
+                'errorCodewordsPerBlock': 26, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 44} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 70, \
+                'errorCodewordsPerBlock': 18, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 17} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 70, \
+                'errorCodewordsPerBlock': 22, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 13} \
+                ] \
+            } \
+        } \
+    }, \
+    { \
+        'version': 5, \
+        'size': 37, \
+        'alignmentPatterns': [ \
+            {'x': 30, 'y': 30} \
+        ], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 134, \
+                'errorCodewordsPerBlock': 26, \
+                'blockGroups': [ \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 108} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 134, \
+                'errorCodewordsPerBlock': 24, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 43} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 134, \
+                'errorCodewordsPerBlock': 18, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 15}, \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 16} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 134, \
+                'errorCodewordsPerBlock': 22, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 11}, \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 12} \
+                ] \
+            } \
+        } \
+    }, \
+    { \
+        'version': 7, \
+        'size': 45, \
+        'alignmentPatterns': [ \
+            {'x': 6, 'y': 22}, \
+            {'x': 22, 'y': 6}, \
+            {'x': 22, 'y': 22}, \
+            {'x': 22, 'y': 38}, \
+            {'x': 38, 'y': 22}, \
+            {'x': 38, 'y': 38} \
+        ], \
+        'versionBits': [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 196, \
+                'errorCodewordsPerBlock': 20, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 78} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 196, \
+                'errorCodewordsPerBlock': 18, \
+                'blockGroups': [ \
+                    {'blockCount': 4, 'dataCodewordsPerBlock': 31} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 196, \
+                'errorCodewordsPerBlock': 18, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 14}, \
+                    {'blockCount': 4, 'dataCodewordsPerBlock': 15} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 196, \
+                'errorCodewordsPerBlock': 26, \
+                'blockGroups': [ \
+                    {'blockCount': 4, 'dataCodewordsPerBlock': 13}, \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 14} \
+                ] \
+            } \
+        } \
+    }, \
+    { \
+        'version': 10, \
+        'size': 57, \
+        'alignmentPatterns': [ \
+            {'x': 6, 'y': 28}, \
+            {'x': 28, 'y': 6}, \
+            {'x': 28, 'y': 28}, \
+            {'x': 28, 'y': 50}, \
+            {'x': 50, 'y': 28}, \
+            {'x': 50, 'y': 50} \
+        ], \
+        'versionBits': [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 346, \
+                'errorCodewordsPerBlock': 18, \
+                'blockGroups': [ \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 68}, \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 69} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 346, \
+                'errorCodewordsPerBlock': 26, \
+                'blockGroups': [ \
+                    {'blockCount': 4, 'dataCodewordsPerBlock': 43}, \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 44} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 346, \
+                'errorCodewordsPerBlock': 24, \
+                'blockGroups': [ \
+                    {'blockCount': 6, 'dataCodewordsPerBlock': 19}, \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 20} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 346, \
+                'errorCodewordsPerBlock': 28, \
+                'blockGroups': [ \
+                    {'blockCount': 6, 'dataCodewordsPerBlock': 15}, \
+                    {'blockCount': 2, 'dataCodewordsPerBlock': 16} \
+                ] \
+            } \
+        } \
+    }, \
+    { \
+        'version': 15, \
+        'size': 77, \
+        'alignmentPatterns': [ \
+            {'x': 6, 'y': 26}, \
+            {'x': 6, 'y': 48}, \
+            {'x': 26, 'y': 6}, \
+            {'x': 26, 'y': 26}, \
+            {'x': 26, 'y': 48}, \
+            {'x': 26, 'y': 70}, \
+            {'x': 48, 'y': 6}, \
+            {'x': 48, 'y': 26}, \
+            {'x': 48, 'y': 48}, \
+            {'x': 48, 'y': 70}, \
+            {'x': 70, 'y': 26}, \
+            {'x': 70, 'y': 48}, \
+            {'x': 70, 'y': 70} \
+        ], \
+        'versionBits': [0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0], \
+        'errorCorrection': { \
+            'low': { \
+                'totalCodewords': 655, \
+                'errorCodewordsPerBlock': 22, \
+                'blockGroups': [ \
+                    {'blockCount': 5, 'dataCodewordsPerBlock': 87}, \
+                    {'blockCount': 1, 'dataCodewordsPerBlock': 88} \
+                ] \
+            }, \
+            'medium': { \
+                'totalCodewords': 655, \
+                'errorCodewordsPerBlock': 24, \
+                'blockGroups': [ \
+                    {'blockCount': 5, 'dataCodewordsPerBlock': 41}, \
+                    {'blockCount': 5, 'dataCodewordsPerBlock': 42} \
+                ] \
+            }, \
+            'quartile': { \
+                'totalCodewords': 655, \
+                'errorCodewordsPerBlock': 30, \
+                'blockGroups': [ \
+                    {'blockCount': 5, 'dataCodewordsPerBlock': 24}, \
+                    {'blockCount': 7, 'dataCodewordsPerBlock': 25} \
+                ] \
+            }, \
+            'high': { \
+                'totalCodewords': 655, \
+                'errorCodewordsPerBlock': 24, \
+                'blockGroups': [ \
+                    {'blockCount': 11, 'dataCodewordsPerBlock': 12}, \
+                    {'blockCount': 7, 'dataCodewordsPerBlock': 13} \
+                ] \
+            } \
+        } \
+    } \
+])

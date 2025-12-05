@@ -1,0 +1,11 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../qrcode.bare'
+include '../unittest.bare'
+
+
+function testQrcode():
+    unittestDeepEqual(arrayLength(qrcodeMatrix('https://test.com')), 25)
+endfunction
+unittestRunTest('testQrcode')

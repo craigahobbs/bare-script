@@ -1,10 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-include <unittest.bare>
-include <unittestMock.bare>
-
 include '../baredoc.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
 
 
 # Test library
