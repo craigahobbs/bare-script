@@ -69,18 +69,18 @@ function qrcodeMatrix(message, level):
         # Alignment patterns
         if alignmentPatterns:
             for alignmentPattern in alignmentPatterns:
-                qrcodeAlignmentPattern(matrix, objectGet(alignmentPattern, 'x'), objectGet(alignmentPattern, 'y'))
+                qrcodeMatrixAlignmentPattern(matrix, objectGet(alignmentPattern, 'x'), objectGet(alignmentPattern, 'y'))
             endfor
         endif
 
         # Timing strips
-        qrcodeTimingStrips(matrix)
+        qrcodeMatrixTimingStrips(matrix)
 
         # Format strips
-        qrcodeFormatStrips(matrix, qrcode, level)
+        qrcodeMatrixFormatStrips(matrix, qrcode, level)
 
         # Version blocks
-        qrcodeVersionBlocks(matrix, qrcode)
+        qrcodeMatrixVersionBlocks(matrix, qrcode)
 
         # Compute the data pixels and bits - does it fit?
         dataPixels = qrcodeDataPixels(matrix)
@@ -88,6 +88,7 @@ function qrcodeMatrix(message, level):
         if arrayLength(dataBits) <= arrayLength(dataPixels):
             # Set the message data with error correction
             qrcodeMatrixPixels(matrix, dataPixels, dataBits)
+
             return matrix
         endif
     endfor
@@ -95,6 +96,101 @@ function qrcodeMatrix(message, level):
     # Mwssage too long
     systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
     return null
+endfunction
+
+
+# Helper to set a position square's pixels
+function qrcodeMatrixPositionSquare(matrix, x, y):
+    qrcodeMatrixSquare(matrix, x - 4, y - 4, 9, 0)
+    qrcodeMatrixSquare(matrix, x - 3, y - 3, 7, 1)
+    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 0)
+    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 1)
+endfunction
+
+
+# Helper to set an alignment pattern's pixels
+function qrcodeMatrixAlignmentPattern(matrix, x, y):
+    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 1)
+    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 0)
+    qrcodeMatrixSquare(matrix, x, y, 1, 1)
+endfunction
+
+
+# Helper to set the timing strips pixels
+function qrcodeMatrixTimingStrips(matrix):
+    qrcodeSize = arrayLength(matrix)
+    ix = 8
+    ixEnd = qrcodeSize - 8
+    while ix < ixEnd:
+        arraySet(arrayGet(matrix, 6), ix, if(ix % 2, 0, 1))
+        arraySet(arrayGet(matrix, ix), 6, if(ix % 2, 0, 1))
+        ix = ix + 1
+    endwhile
+endfunction
+
+
+# Helper to set the format strips pixels
+function qrcodeMatrixFormatStrips(matrix, qrcode, level):
+    qrcodeSize = arrayLength(matrix)
+
+    # The always-black pixel
+    arraySet(arrayGet(matrix, qrcodeSize - 8), 8, 1)
+
+    # TODO
+    return qrcode && level && null
+endfunction
+
+
+# Helper to set the version blocks pixels
+function qrcodeMatrixVersionBlocks(matrix, qrcode):
+    versionBits = objectGet(qrcode, 'versionBits')
+    if versionBits:
+        qrcodeSize = arrayLength(matrix)
+        bottomLeftPixels = [ \
+            [0, qrcodeSize - 11], [0, qrcodeSize - 10], [0, qrcodeSize - 9], \
+            [1, qrcodeSize - 11], [1, qrcodeSize - 10], [1, qrcodeSize - 9], \
+            [2, qrcodeSize - 11], [2, qrcodeSize - 10], [2, qrcodeSize - 9], \
+            [3, qrcodeSize - 11], [3, qrcodeSize - 10], [3, qrcodeSize - 9], \
+            [4, qrcodeSize - 11], [4, qrcodeSize - 10], [4, qrcodeSize - 9], \
+            [5, qrcodeSize - 11], [5, qrcodeSize - 10], [5, qrcodeSize - 9] \
+        ]
+        topRightPixels = [ \
+            [qrcodeSize - 11, 0], [qrcodeSize - 10, 0], [qrcodeSize - 9, 0], \
+            [qrcodeSize - 11, 1], [qrcodeSize - 10, 1], [qrcodeSize - 9, 1], \
+            [qrcodeSize - 11, 2], [qrcodeSize - 10, 2], [qrcodeSize - 9, 2], \
+            [qrcodeSize - 11, 3], [qrcodeSize - 10, 3], [qrcodeSize - 9, 3], \
+            [qrcodeSize - 11, 4], [qrcodeSize - 10, 4], [qrcodeSize - 9, 4], \
+            [qrcodeSize - 11, 5], [qrcodeSize - 10, 5], [qrcodeSize - 9, 5] \
+        ]
+        qrcodeMatrixPixels(matrix, bottomLeftPixels, versionBits)
+        qrcodeMatrixPixels(matrix, topRightPixels, versionBits)
+    endif
+endfunction
+
+
+# Helper to set a solid square's pixels
+function qrcodeMatrixSquare(matrix, x, y, size, colorValue):
+    qrcodeSize = arrayLength(matrix)
+    xEnd = mathMin(qrcodeSize, x + size)
+    yEnd = mathMin(qrcodeSize, y + size)
+    iy = mathMax(0, y)
+    while iy < yEnd:
+        ix = mathMax(0, x)
+        while ix < xEnd:
+            arraySet(arrayGet(matrix, iy), ix, colorValue)
+            ix = ix + 1
+        endwhile
+        iy = iy + 1
+    endwhile
+endfunction
+
+
+# Helper to set a pixel array's pixels
+function qrcodeMatrixPixels(matrix, pixels, bits):
+    for bitValue, ixBit in bits:
+        pixel = arrayGet(pixels, ixBit)
+        arraySet(arrayGet(matrix, arrayGet(pixel, 1)), arrayGet(pixel, 0), bitValue)
+    endfor
 endfunction
 
 
@@ -266,103 +362,6 @@ function qrcodeBitsToBytes(bits):
        ixBit = ixBit + 8
     endwhile
     return bytes
-endfunction
-
-
-# Helper to set a position square's pixels
-function qrcodeMatrixPositionSquare(matrix, x, y):
-    qrcodeMatrixSquare(matrix, x - 4, y - 4, 9, 0)
-    qrcodeMatrixSquare(matrix, x - 3, y - 3, 7, 1)
-    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 0)
-    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 1)
-endfunction
-
-
-# Helper to set an alignment pattern's pixels
-function qrcodeAlignmentPattern(matrix, x, y):
-    qrcodeMatrixSquare(matrix, x - 2, y - 2, 5, 1)
-    qrcodeMatrixSquare(matrix, x - 1, y - 1, 3, 0)
-    qrcodeMatrixSquare(matrix, x, y, 1, 1)
-endfunction
-
-
-# Helper to set the timing strips pixels
-function qrcodeTimingStrips(matrix):
-    qrcodeSize = arrayLength(matrix)
-    ix = 8
-    ixEnd = qrcodeSize - 8
-    while ix < ixEnd:
-        arraySet(arrayGet(matrix, 6), ix, if(ix % 2, 0, 1))
-        arraySet(arrayGet(matrix, ix), 6, if(ix % 2, 0, 1))
-        ix = ix + 1
-    endwhile
-endfunction
-
-
-# Helper to set the format strips pixels
-function qrcodeFormatStrips(matrix, qrcode, level):
-    qrcodeSize = arrayLength(matrix)
-
-    # The always-black pixel
-    arraySet(arrayGet(matrix, qrcodeSize - 8), 8, 1)
-
-    # Do nothing more for now
-    return qrcode && level && null
-endfunction
-
-
-# Helper to set the version blocks pixels
-function qrcodeVersionBlocks(matrix, qrcode):
-    versionBits = objectGet(qrcode, 'versionBits')
-    if versionBits:
-        qrcodeSize = arrayLength(matrix)
-        bottomLeftPixels = [ \
-            [0, qrcodeSize - 11], [0, qrcodeSize - 10], [0, qrcodeSize - 9], \
-            [1, qrcodeSize - 11], [1, qrcodeSize - 10], [1, qrcodeSize - 9], \
-            [2, qrcodeSize - 11], [2, qrcodeSize - 10], [2, qrcodeSize - 9], \
-            [3, qrcodeSize - 11], [3, qrcodeSize - 10], [3, qrcodeSize - 9], \
-            [4, qrcodeSize - 11], [4, qrcodeSize - 10], [4, qrcodeSize - 9], \
-            [5, qrcodeSize - 11], [5, qrcodeSize - 10], [5, qrcodeSize - 9] \
-        ]
-        topRightPixels = [ \
-            [qrcodeSize - 11, 0], [qrcodeSize - 10, 0], [qrcodeSize - 9, 0], \
-            [qrcodeSize - 11, 1], [qrcodeSize - 10, 1], [qrcodeSize - 9, 1], \
-            [qrcodeSize - 11, 2], [qrcodeSize - 10, 2], [qrcodeSize - 9, 2], \
-            [qrcodeSize - 11, 3], [qrcodeSize - 10, 3], [qrcodeSize - 9, 3], \
-            [qrcodeSize - 11, 4], [qrcodeSize - 10, 4], [qrcodeSize - 9, 4], \
-            [qrcodeSize - 11, 5], [qrcodeSize - 10, 5], [qrcodeSize - 9, 5] \
-        ]
-        qrcodeMatrixPixels(matrix, bottomLeftPixels, versionBits)
-        qrcodeMatrixPixels(matrix, topRightPixels, versionBits)
-    endif
-endfunction
-
-
-# Helper to set a solid square's pixels
-function qrcodeMatrixSquare(matrix, x, y, size, colorValue):
-    matrixSize = arrayLength(matrix)
-    xEnd = x + size
-    yEnd = y + size
-    iy = y
-    while iy < yEnd:
-        ix = x
-        while ix < xEnd:
-            if ix >= 0 && ix < matrixSize && iy >= 0 && iy < matrixSize:
-                arraySet(arrayGet(matrix, iy), ix, colorValue)
-            endif
-            ix = ix + 1
-        endwhile
-        iy = iy + 1
-    endwhile
-endfunction
-
-
-# Helper to set a pixel array's pixels
-function qrcodeMatrixPixels(matrix, pixels, bits):
-    for bitValue, ixBit in bits:
-        pixel = arrayGet(pixels, ixBit)
-        arraySet(arrayGet(matrix, arrayGet(pixel, 1)), arrayGet(pixel, 0), bitValue)
-    endfor
 endfunction
 
 
