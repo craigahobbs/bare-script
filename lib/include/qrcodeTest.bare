@@ -36,6 +36,9 @@ function qrcodeTestMain():
         ]} \
     ])
 
+    # Render the QR code size
+    markdownPrint('**Size:** ' + arrayLength(qrcodeMatrix(message)))
+
     # Create the drawing and render the background
     width = 400
     height = 300
