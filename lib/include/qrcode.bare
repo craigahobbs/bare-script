@@ -144,7 +144,7 @@ function qrcodeMatrixFormatStrips(matrix, level, mask):
     arraySet(arrayGet(matrix, qrcodeSize - 8), 8, 1)
 
     # Set the format strip bits
-    formatStripBits = objectGet(objectGet(qrcodeMatrixFormatStripsLevelMaskBCH, level), stringNew(mask))
+    formatStripBits = objectGet(objectGet(qrcodeMatrixFormatStripsBitsLookup, level), stringNew(mask))
     pixelsTopLeft = [ \
         [8, 0], [8, 1], [8, 2], [8, 3], \
         [8, 4], [8, 5], [8, 7], [8, 8], \
@@ -210,7 +210,7 @@ qrcodeMatrixFormatStripsBitsLookup = { \
 # Helper to set the version blocks pixels
 function qrcodeMatrixVersionBlocks(matrix, qrcode):
     qrcodeVersion = objectGet(qrcode, 'version')
-    versionBits = objectGet(qrcode, stringNew(qrcodeVersion))
+    versionBits = objectGet(qrcodeMatrixVersionBitsLookup, stringNew(qrcodeVersion))
     if versionBits:
         qrcodeSize = arrayLength(matrix)
         bottomLeftPixels = [ \
@@ -236,7 +236,7 @@ endfunction
 
 
 # Version bits lookup table
-qrcodeMatrixVersionBCH = { \
+qrcodeMatrixVersionBitsLookup = { \
     '7': [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0], \
     '10': [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1], \
     '15': [0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0] \
@@ -486,5 +486,5 @@ endfunction
 # Compute error correction bits for the message
 function qrcodeErrorCorrectionBits(qrcode, level, messageBytes):
     # TODO
-    return qrcode || level || messageBytes || []
+    return qrcode && level && messageBytes && []
 endfunction
