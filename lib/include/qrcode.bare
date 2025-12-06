@@ -73,8 +73,8 @@ function qrcodeMatrix(message, level):
             endfor
         endif
 
-        # Timing strips
-        qrcodeMatrixTimingStrips(matrix)
+        # Timing strip
+        qrcodeMatrixTimingStrip(matrix)
 
         # Format strips
         mask = 0
@@ -123,8 +123,8 @@ function qrcodeMatrixAlignmentPattern(matrix, x, y):
 endfunction
 
 
-# Helper to set the timing strips pixels
-function qrcodeMatrixTimingStrips(matrix):
+# Helper to set the timing strip pixels
+function qrcodeMatrixTimingStrip(matrix):
     qrcodeSize = arrayLength(matrix)
     ix = 8
     ixEnd = qrcodeSize - 8
@@ -162,8 +162,8 @@ function qrcodeMatrixFormatStrips(matrix, level, mask):
 endfunction
 
 
-# Level + mask BCH error correction code lookup table
-qrcodeMatrixFormatStripsLevelMaskBCH = { \
+# Format strip bits lookup table
+qrcodeMatrixFormatStripsBitsLookup = { \
     'low': { \
         '0': [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0], \
         '1': [1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1], \
@@ -209,7 +209,8 @@ qrcodeMatrixFormatStripsLevelMaskBCH = { \
 
 # Helper to set the version blocks pixels
 function qrcodeMatrixVersionBlocks(matrix, qrcode):
-    versionBits = objectGet(qrcode, 'versionBits')
+    qrcodeVersion = objectGet(qrcode, 'version')
+    versionBits = objectGet(qrcode, stringNew(qrcodeVersion))
     if versionBits:
         qrcodeSize = arrayLength(matrix)
         bottomLeftPixels = [ \
@@ -232,6 +233,14 @@ function qrcodeMatrixVersionBlocks(matrix, qrcode):
         qrcodeMatrixPixels(matrix, topRightPixels, versionBits)
     endif
 endfunction
+
+
+# Version bits lookup table
+qrcodeMatrixVersionBCH = { \
+    '7': [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0], \
+    '10': [0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1], \
+    '15': [0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0] \
+}
 
 
 # Helper to set a solid square's pixels
