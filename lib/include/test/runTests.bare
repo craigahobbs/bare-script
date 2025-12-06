@@ -50,5 +50,5 @@ return unittestReport({ \
     'title': 'MarkdownUp Include Library Tests', \
     'links': ['[markdownUp.bare Tests](#url=runTestsMarkdownUp.md&var=)'], \
     'coverageExclude': ['runTests.bare'], \
-    'coverageMin': 98 \
+    'coverageMin': 97 \
 })

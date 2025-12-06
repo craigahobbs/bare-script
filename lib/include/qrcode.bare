@@ -46,7 +46,7 @@ endfunction
 # $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
 # $return: The QR code pixel matrix
 function qrcodeMatrix(message, level):
-    level = level || 'low'
+    level = if(level != null, level, 'low')
 
     # Find the QR code model
     for qrcode in qrcodeVersions:
@@ -78,7 +78,7 @@ function qrcodeMatrix(message, level):
 
         # Format strips
         mask = 0
-        qrcodeMatrixFormatStrips(matrix, qrcode, level, mask)
+        qrcodeMatrixFormatStrips(matrix, level, mask)
 
         # Version blocks
         qrcodeMatrixVersionBlocks(matrix, qrcode)
@@ -137,14 +137,74 @@ endfunction
 
 
 # Helper to set the format strips pixels
-function qrcodeMatrixFormatStrips(matrix, qrcode, level, mask):
+function qrcodeMatrixFormatStrips(matrix, level, mask):
     qrcodeSize = arrayLength(matrix)
 
     # The always-black pixel
     arraySet(arrayGet(matrix, qrcodeSize - 8), 8, 1)
 
-    # TODO
+    # Set the format strip bits
+    formatStripBits = objectGet(objectGet(qrcodeMatrixFormatStripsLevelMaskBCH, level), stringNew(mask))
+    pixelsTopLeft = [ \
+        [8, 0], [8, 1], [8, 2], [8, 3], \
+        [8, 4], [8, 5], [8, 7], [8, 8], \
+        [7, 8], [5, 8], [4, 8], [3, 8], \
+        [2, 8], [1, 8], [0, 8] \
+    ]
+    pixelsNonTopLeft = [ \
+        [8, qrcodeSize - 7], [8, qrcodeSize - 6], [8, qrcodeSize - 5], \
+        [8, qrcodeSize - 4], [8, qrcodeSize - 3], [8, qrcodeSize - 2], [8, qrcodeSize - 1], \
+        [qrcodeSize - 1, 8], [qrcodeSize - 2, 8], [qrcodeSize - 3, 8], [qrcodeSize - 4, 8], \
+        [qrcodeSize - 5, 8], [qrcodeSize - 6, 8], [qrcodeSize - 7, 8], [qrcodeSize - 8, 8] \
+    ]
+    qrcodeMatrixPixels(matrix, pixelsTopLeft, formatStripBits)
+    qrcodeMatrixPixels(matrix, pixelsNonTopLeft, formatStripBits)
 endfunction
+
+
+# Level + mask BCH error correction code lookup table
+qrcodeMatrixFormatStripsLevelMaskBCH = { \
+    'low': { \
+        '0': [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0], \
+        '1': [1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1], \
+        '2': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0], \
+        '3': [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1], \
+        '4': [1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1], \
+        '5': [1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0], \
+        '6': [1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1], \
+        '7': [1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0] \
+    }, \
+    'medium': { \
+        '0': [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0], \
+        '1': [1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1], \
+        '2': [1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0], \
+        '3': [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1], \
+        '4': [1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1], \
+        '5': [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0], \
+        '6': [1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1], \
+        '7': [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0] \
+    }, \
+    'quartile': { \
+        '0': [0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1], \
+        '1': [0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0], \
+        '2': [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1], \
+        '3': [0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0], \
+        '4': [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0], \
+        '5': [0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1], \
+        '6': [0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0], \
+        '7': [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1] \
+    }, \
+    'high': { \
+        '0': [0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1], \
+        '1': [0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0], \
+        '2': [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1], \
+        '3': [0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0], \
+        '4': [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0], \
+        '5': [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1], \
+        '6': [0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0], \
+        '7': [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1] \
+    } \
+}
 
 
 # Helper to set the version blocks pixels
@@ -417,5 +477,5 @@ endfunction
 # Compute error correction bits for the message
 function qrcodeErrorCorrectionBits(qrcode, level, messageBytes):
     # TODO
-    return []
+    return qrcode || level || messageBytes || []
 endfunction
