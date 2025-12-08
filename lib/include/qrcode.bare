@@ -329,57 +329,21 @@ function qrcodeDataBits(qrcode, level, message):
 
     # Create the char code array and determine the data mode
     messageChars = []
-    hasAlpha = false
-    hasKanji = false
-    hasBinary = false
     ixChar = 0
     messageLength = stringLength(message)
     while ixChar < messageLength:
         charValue = stringCharCodeAt(message, ixChar)
-        char = stringFromCharCode(charValue)
         arrayPush(messageChars, charValue)
-
-        # Determine the character type
-        lowByte = 0xff & charValue
-        highByte = 0xffffff00 & charValue
-        isAlpha = stringIndexOf(qrcodeModeAlphaChars, char) != -1
-        isKanji = (lowByte >= 0x40 && lowByte <= 0xFC) && ((highByte >= 0x81 && highByte <= 0x9F) || (highByte >= 0xE0 && highByte <= 0xEB))
-        isBinary = !isAlpha && !isKanji && stringIndexOf(qrcodeModeNumericChars, char) != -1
-        hasAlpha = hasAlpha || isAlpha
-        hasKanji = hasKanji || isKanji
-        hasBinary = hasBinary || isBinary
-
         ixChar = ixChar + 1
     endwhile
 
-    # TODO - remove
-    hasBinary = true
+    # Note: Always use 'binary' mode for now
 
-    # Determine the data mode
-    if hasBinary || (hasAlpha && hasKanji):
-        mode = 'binary'
-        modeBits = [0, 1, 0, 0]
-    elif hasAlpha:
-        mode = 'alphanum'
-        modeBits = [0, 0, 1, 0]
-    elif hasKanji:
-        mode = 'kanji'
-        modeBits = [1, 0, 0, 0]
-    else:
-        mode = 'numeric'
-        modeBits = [0, 0, 0, 1]
-    endif
+    # Determine the mode bits
+    modeBits = [0, 1, 0, 0]
 
     # Compute the message bits
-    if mode == 'binary':
-        messageBits = qrcodeIntegersToBits(messageChars)
-    elif mode == 'alphanum':
-        # TODO
-    elif mode == 'kanji':
-        # TODO
-    else: # if mode == 'numeric':
-        # TODO
-    endif
+    messageBits = qrcodeIntegersToBits(messageChars)
 
     # Terminate and byte-pad the message bits
     # TODO
@@ -392,18 +356,10 @@ function qrcodeDataBits(qrcode, level, message):
     ecBits = qrcodeErrorCorrectionBits(qrcode, level, messageBytes)
 
     # Determine the size bits
-    if mode == 'binary':
-        if version < 10:
-            sizeBits = qrcodeIntegersToBits([0xff & messageSize])
-        else:
-            sizeBits = qrcodeIntegersToBits([0xff & (messageSize >> 8), 0xff & messageSize])
-        endif
-    elif mode == 'alphanum':
-        # TODO
-    elif mode == 'kanji':
-        # TODO
-    else: # if mode == 'numeric':
-        # TODO
+    if version < 10:
+        sizeBits = qrcodeIntegersToBits([0xff & messageSize])
+    else:
+        sizeBits = qrcodeIntegersToBits([0xff & (messageSize >> 8), 0xff & messageSize])
     endif
 
     # Return the data bits
