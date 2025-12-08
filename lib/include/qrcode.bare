@@ -83,18 +83,12 @@ function qrcodeMatrix(message, level):
         # Version blocks
         qrcodeMatrixVersionBlocks(matrix, qrcode)
 
-        # Copy the base matrix
-        matrixBase = jsonParse(jsonStringify(matrix))
-
         # Compute the data pixels and bits - does it fit?
         dataPixels = qrcodeDataPixels(matrix)
         dataBits = qrcodeDataBits(qrcode, level, message)
         if arrayLength(dataBits) <= arrayLength(dataPixels):
             # Set the message data with error correction
-            qrcodeMatrixPixels(matrix, dataPixels, dataBits)
-
-            # Apply the mask
-            qrcodeMatrixMask(matrix, matrixBase, mask)
+            qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
 
             return matrix
         endif
@@ -261,27 +255,14 @@ endfunction
 
 
 # Helper to set a pixel array's pixels
-function qrcodeMatrixPixels(matrix, pixels, bits):
+function qrcodeMatrixPixels(matrix, pixels, bits, mask):
     for bitValue, ixBit in bits:
         pixel = arrayGet(pixels, ixBit)
-        arraySet(arrayGet(matrix, arrayGet(pixel, 1)), arrayGet(pixel, 0), bitValue)
-    endfor
-endfunction
+        ix = arrayGet(pixel, 0)
+        iy = arrayGet(pixel, 1)
 
-
-# Get a mask matrix
-function qrcodeMatrixMask(matrix, matrixBase, mask):
-    qrcodeSize = arrayLength(matrix)
-    iy = 0
-    while iy < qrcodeSize:
-        ix = 0
-        while ix < qrcodeSize:
-            # Don't mask base matrix bits
-            if arrayGet(arrayGet(matrixBase, iy), ix) != null:
-                jump maskSkip
-            endif
-
-            # Compute the mask bit
+        # Apply an XOR mask, if requested
+        if mask != null:
             if mask == 0:
                 maskBit = if((iy + ix) % 2, 0, 1)
             elif mask == 1:
@@ -299,16 +280,12 @@ function qrcodeMatrixMask(matrix, matrixBase, mask):
             else: # mask == 7
                 maskBit = if((((iy + ix) % 2) + ((iy * ix) % 3)) % 2, 0, 1)
             endif
+            bitValue = bitValue ^ maskBit
+        endif
 
-            # XOR the mask bit
-            bitValue = arrayGet(arrayGet(matrix, iy), ix) || 0
-            arraySet(arrayGet(matrix, iy), ix, bitValue ^ maskBit)
-
-        maskSkip:
-            ix = ix + 1
-        endwhile
-        iy = iy + 1
-    endwhile
+        # Set the pixel
+        arraySet(arrayGet(matrix, iy), ix, bitValue)
+    endfor
 endfunction
 
 
@@ -395,7 +372,7 @@ function qrcodeDataBits(qrcode, level, message):
 
     # Compute the message bits
     if mode == 'binary':
-        messageBits = qrcodeBytesToBits(messageChars)
+        messageBits = qrcodeIntegersToBits(messageChars)
     elif mode == 'alphanum':
         # TODO
     elif mode == 'kanji':
@@ -417,9 +394,9 @@ function qrcodeDataBits(qrcode, level, message):
     # Determine the size bits
     if mode == 'binary':
         if version < 10:
-            sizeBits = qrcodeBytesToBits([0xff & messageSize])
+            sizeBits = qrcodeIntegersToBits([0xff & messageSize])
         else:
-            sizeBits = qrcodeBytesToBits([0xff & (messageSize >> 8), 0xff & messageSize])
+            sizeBits = qrcodeIntegersToBits([0xff & (messageSize >> 8), 0xff & messageSize])
         endif
     elif mode == 'alphanum':
         # TODO
@@ -444,8 +421,8 @@ qrcodeModeNumericChars = '0123456789'
 qrcodeModeAlphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 
 
-# Convert byte array to bit array
-function qrcodeBytesToBits(bytes):
+# Convert an integer array to bit array
+function qrcodeIntegersToBits(bytes):
     bits = []
     reversedBits = []
     for byteValue in bytes:
