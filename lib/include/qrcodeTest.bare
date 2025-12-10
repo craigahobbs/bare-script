@@ -47,9 +47,8 @@ function qrcodeTestMain():
     drawStyle('none', 0, 'blue')
     drawRect(0, 0, width, height)
 
-    # Draw the QR codes
-    qrcodeDraw(message, 0.1 * width, 0.1 * height, 0.6 * widthHeight)
-    qrcodeDraw(message, 0.7 * width, 0.6 * height, 0.3 * widthHeight)
+    # Draw the QR code
+    qrcodeDraw(message, 0.1 * width, 0.1 * height, 0.8 * widthHeight)
 endfunction
 
 

@@ -49,8 +49,11 @@ qrcodeTypes = schemaParse( \
     "# A QR code's error correction level constants", \
     'struct ErrorCorrectionLevel', \
     '', \
-    '    # Total codewords in the symbol', \
+    '    # Total codewords in the symbol (message, ec)', \
     '    int totalCodewords', \
+    '', \
+    '    # Total message codewords (mode, size, message, terminator, padding)', \
+    '    int(> 0) totalMessageCodewords', \
     '', \
     '    # Error correction codewords per block (uniform across all blocks)', \
     '    int errorCodewordsPerBlock', \
@@ -70,7 +73,8 @@ qrcodeTypes = schemaParse( \
 )
 
 
-# QR code models
+# QR code models sorted ascending by version
+# Note: This list is incomplete for now - this is a known issue
 qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
     { \
         'version': 2, \
@@ -81,6 +85,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 44, \
+                'totalMessageCodewords': 34, \
                 'errorCodewordsPerBlock': 10, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 34} \
@@ -88,6 +93,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 44, \
+                'totalMessageCodewords': 28, \
                 'errorCodewordsPerBlock': 16, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 28} \
@@ -95,6 +101,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 44, \
+                'totalMessageCodewords': 22, \
                 'errorCodewordsPerBlock': 22, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 22} \
@@ -102,6 +109,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 44, \
+                'totalMessageCodewords': 16, \
                 'errorCodewordsPerBlock': 28, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 16} \
@@ -118,6 +126,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 70, \
+                'totalMessageCodewords': 55, \
                 'errorCodewordsPerBlock': 15, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 55} \
@@ -125,6 +134,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 70, \
+                'totalMessageCodewords': 44, \
                 'errorCodewordsPerBlock': 26, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 44} \
@@ -132,6 +142,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 70, \
+                'totalMessageCodewords': 34, \
                 'errorCodewordsPerBlock': 18, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 17} \
@@ -139,6 +150,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 70, \
+                'totalMessageCodewords': 26, \
                 'errorCodewordsPerBlock': 22, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 13} \
@@ -155,6 +167,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 134, \
+                'totalMessageCodewords': 108, \
                 'errorCodewordsPerBlock': 26, \
                 'blockGroups': [ \
                     {'blockCount': 1, 'dataCodewordsPerBlock': 108} \
@@ -162,6 +175,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 134, \
+                'totalMessageCodewords': 86, \
                 'errorCodewordsPerBlock': 24, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 43} \
@@ -169,6 +183,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 134, \
+                'totalMessageCodewords': 62, \
                 'errorCodewordsPerBlock': 18, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 15}, \
@@ -177,6 +192,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 134, \
+                'totalMessageCodewords': 46, \
                 'errorCodewordsPerBlock': 22, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 11}, \
@@ -199,6 +215,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 196, \
+                'totalMessageCodewords': 156, \
                 'errorCodewordsPerBlock': 20, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 78} \
@@ -206,6 +223,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 196, \
+                'totalMessageCodewords': 124, \
                 'errorCodewordsPerBlock': 18, \
                 'blockGroups': [ \
                     {'blockCount': 4, 'dataCodewordsPerBlock': 31} \
@@ -213,6 +231,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 196, \
+                'totalMessageCodewords': 88, \
                 'errorCodewordsPerBlock': 18, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 14}, \
@@ -221,6 +240,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 196, \
+                'totalMessageCodewords': 66, \
                 'errorCodewordsPerBlock': 26, \
                 'blockGroups': [ \
                     {'blockCount': 4, 'dataCodewordsPerBlock': 13}, \
@@ -243,6 +263,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 346, \
+                'totalMessageCodewords': 274, \
                 'errorCodewordsPerBlock': 18, \
                 'blockGroups': [ \
                     {'blockCount': 2, 'dataCodewordsPerBlock': 68}, \
@@ -251,6 +272,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 346, \
+                'totalMessageCodewords': 216, \
                 'errorCodewordsPerBlock': 26, \
                 'blockGroups': [ \
                     {'blockCount': 4, 'dataCodewordsPerBlock': 43}, \
@@ -259,6 +281,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 346, \
+                'totalMessageCodewords': 154, \
                 'errorCodewordsPerBlock': 24, \
                 'blockGroups': [ \
                     {'blockCount': 6, 'dataCodewordsPerBlock': 19}, \
@@ -267,6 +290,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 346, \
+                'totalMessageCodewords': 122, \
                 'errorCodewordsPerBlock': 28, \
                 'blockGroups': [ \
                     {'blockCount': 6, 'dataCodewordsPerBlock': 15}, \
@@ -296,6 +320,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
         'errorCorrection': { \
             'low': { \
                 'totalCodewords': 655, \
+                'totalMessageCodewords': 523, \
                 'errorCodewordsPerBlock': 22, \
                 'blockGroups': [ \
                     {'blockCount': 5, 'dataCodewordsPerBlock': 87}, \
@@ -304,6 +329,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'medium': { \
                 'totalCodewords': 655, \
+                'totalMessageCodewords': 415, \
                 'errorCodewordsPerBlock': 24, \
                 'blockGroups': [ \
                     {'blockCount': 5, 'dataCodewordsPerBlock': 41}, \
@@ -312,6 +338,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'quartile': { \
                 'totalCodewords': 655, \
+                'totalMessageCodewords': 295, \
                 'errorCodewordsPerBlock': 30, \
                 'blockGroups': [ \
                     {'blockCount': 5, 'dataCodewordsPerBlock': 24}, \
@@ -320,6 +347,7 @@ qrcodeVersions = schemaValidate(qrcodeTypes, 'QRCodeModels', [ \
             }, \
             'high': { \
                 'totalCodewords': 655, \
+                'totalMessageCodewords': 223, \
                 'errorCodewordsPerBlock': 24, \
                 'blockGroups': [ \
                     {'blockCount': 11, 'dataCodewordsPerBlock': 12}, \

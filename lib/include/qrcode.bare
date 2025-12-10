@@ -18,18 +18,19 @@ function qrcodeDraw(message, x, y, size, level):
     qrcodeSize = arrayLength(matrix)
 
     # Draw the white background
-    drawStyle('none', 0, 'white')
+    drawStyle('none', 0, 'green')
     drawRect(x, y, size, size)
 
     # Draw the black pixels
     ixRow = 0
     pixelSize = size / (qrcodeSize + 2)
     borderSize = pixelSize
-    drawStyle('none', 0, 'black')
     while ixRow < qrcodeSize:
         ixCol = 0
         while ixCol < qrcodeSize:
-            if arrayGet(arrayGet(matrix, ixRow), ixCol):
+            pixelValue = arrayGet(arrayGet(matrix, ixRow), ixCol)
+            if pixelValue != null:
+                drawStyle('none', 0, if(pixelValue, 'black', 'white'))
                 drawPathRect(borderSize + x + ixCol * pixelSize, borderSize + y + ixRow * pixelSize, pixelSize, pixelSize)
             endif
             ixCol = ixCol + 1
@@ -50,7 +51,10 @@ function qrcodeMatrix(message, level):
 
     # Find the QR code model
     for qrcode in qrcodeVersions:
+        qrcodeVersion = objectGet(qrcode, 'version')
         qrcodeSize = objectGet(qrcode, 'size')
+        qrcodeECLevel = objectGet(objectGet(qrcode, 'errorCorrection'), level)
+        qrcodeTotalCodewords = objectGet(qrcodeECLevel, 'totalCodewords')
         alignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
 
         # Create the pixel matrix
@@ -77,21 +81,40 @@ function qrcodeMatrix(message, level):
         qrcodeMatrixTimingStrip(matrix)
 
         # Format strips
+        # Note: Mask is intentionally hard-coded to 0 for now - this is a known issue
         mask = 0
         qrcodeMatrixFormatStrips(matrix, level, mask)
 
         # Version blocks
         qrcodeMatrixVersionBlocks(matrix, qrcode)
 
-        # Compute the data pixels and bits - does it fit?
+        # Compute the data pixels
         dataPixels = qrcodeDataPixels(matrix)
-        dataBits = qrcodeDataBits(qrcode, level, message)
-        if arrayLength(dataBits) <= arrayLength(dataPixels):
-            # Set the message data with error correction
-            qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
+        dataPixelsLength = arrayLength(dataPixels)
 
-            return matrix
+        # Validate that the computed data pixel count is equal to the pre-computed total data bits count (allowing for remainder bits)
+        dataPixelsAdjustedCount = mathFloor(dataPixelsLength / 8) * 8
+        totalBitCount = qrcodeTotalCodewords * 8
+        if dataPixelsAdjustedCount != totalBitCount:
+            dataPixelsRemainder = dataPixelsLength % 8
+            systemLogDebug( \
+                'qrcode.bare - QR code version ' + qrcodeVersion + \
+                ' computed data pixels count (' + dataPixelsAdjustedCount + ', ' + dataPixelsRemainder + ' remainder) ' + \
+                'does not equal the QR code model pre-computed total data bit count (' + (totalBitCount) + ')' \
+            )
         endif
+
+        # Get the message bits (mode, version, message, terminator) - keep searching if this QR code is too small
+        messageBits = qrcodeMessageBits(qrcode, level, message)
+        if messageBits == null:
+            continue
+        endif
+
+        # Set the full data bits
+        dataBits = qrcodeDataBits(qrcode, level, message)
+        qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
+
+        return matrix
     endfor
 
     # Mwssage too long
@@ -323,9 +346,51 @@ function qrcodeDataPixels(matrix):
 endfunction
 
 
-# Get the message data bits (includes mode, size, data, terminator, error correction codewords)
+# Get the full data bits (includes mode, size, message, terminator, padding, ec)
 function qrcodeDataBits(qrcode, level, message):
-    version = objectGet(qrcode, 'version')
+    qrcodeECLevel = objectGet(objectGet(qrcode, 'errorCorrection'), level)
+    qrcodeTotalMessageCodewords = objectGet(qrcodeECLevel, 'totalMessageCodewords')
+
+    # Compute the message bits
+    messageBits = qrcodeMessageBits(qrcode, level, message)
+    messageBytes = qrcodeBitsToBytes(messageBits)
+
+    # Padding bits
+    totalMessageBitCount = qrcodeTotalMessageCodewords * 8
+    remainingBitCount = totalMessageBitCount - arrayLength(messageBits)
+    paddingBits = []
+    byteCount = mathFloor(remainingBitCount / 8)
+    ix = 0
+    while ix < byteCount:
+        padValue = if(ix % 2, 17, 236)
+        padBits = qrcodeIntegersToBits([padValue])
+        arrayExtend(paddingBits, padBits)
+        ix = ix + 1
+    endwhile
+
+    # Compute the error correction bits
+    ecBits = qrcodeECBits(qrcode, level, messageBytes)
+
+    # Return the data bits
+    dataBits = []
+    arrayExtend(dataBits, messageBits)
+    arrayExtend(dataBits, paddingBits)
+    arrayExtend(dataBits, ecBits)
+    return dataBits
+endfunction
+
+
+# Get the terminated message bits (mode, size, message, terminator)
+function qrcodeMessageBits(qrcode, level, message):
+    qrcodeVersion = objectGet(qrcode, 'version')
+    qrcodeECLevel = objectGet(objectGet(qrcode, 'errorCorrection'), level)
+    qrcodeTotalMessageCodewords = objectGet(qrcodeECLevel, 'totalMessageCodewords')
+
+    # Note: Always use 'binary' mode for now - this is a known issue
+
+    # Determine the mode bits
+    modeBits = [0, 1, 0, 0]
+    modeBitsLength = arrayLength(modeBits)
 
     # Create the char code array and determine the data mode
     messageChars = []
@@ -337,44 +402,43 @@ function qrcodeDataBits(qrcode, level, message):
         ixChar = ixChar + 1
     endwhile
 
-    # Note: Always use 'binary' mode for now
-
-    # Determine the mode bits
-    modeBits = [0, 1, 0, 0]
-
-    # Compute the message bits
+    # Compute the message bits and bytes (for binary mode)
     messageBits = qrcodeIntegersToBits(messageChars)
-
-    # Terminate and byte-pad the message bits
-    # TODO
-
-    # Compute the message bytes
+    messageBitsLength = arrayLength(messageBits)
     messageBytes = qrcodeBitsToBytes(messageBits)
-    messageSize = arrayLength(messageBytes)
+    messageBytesLength = arrayLength(messageBytes)
 
-    # Compute the error correction bits
-    ecBits = qrcodeErrorCorrectionBits(qrcode, level, messageBytes)
-
-    # Determine the size bits
-    if version < 10:
-        sizeBits = qrcodeIntegersToBits([0xff & messageSize])
+    # Determine the size bits (for binary mode)
+    if qrcodeVersion < 10:
+        sizeBits = qrcodeIntegersToBits([0xff & messageBytesLength])
     else:
-        sizeBits = qrcodeIntegersToBits([0xff & (messageSize >> 8), 0xff & messageSize])
+        sizeBits = qrcodeIntegersToBits([0xff & (messageBytesLength >> 8), 0xff & messageBytesLength])
     endif
+    sizeBitsLength = arrayLength(sizeBits)
 
-    # Return the data bits
-    bits = arrayNew()
-    arrayExtend(bits, modeBits)
-    arrayExtend(bits, sizeBits)
-    arrayExtend(bits, messageBits)
-    arrayExtend(bits, ecBits)
-    return bits
+    # Add terminator (min(4, remaining) zeros)
+    totalMessageBitCount = qrcodeTotalMessageCodewords * 8
+    usedBitCount = modeBitsLength + sizeBitsLength + messageBitsLength
+    remainingBitCount = totalMessageBitCount - usedBitCount
+    if remainingBitCount < 0:
+        return null
+    endif
+    termLen = mathMin(4, remainingBitCount)
+    terminatorBits = arrayNewSize(termLen, 0)
+
+    # Add bit padding (zeros to align to multiple of 8)
+    alignZeros = (8 - (usedBitCount % 8)) % 8
+    alignBits = arrayNewSize(alignZeros, 0)
+
+    # Compute the total message bits
+    totalMessageBitsArray = []
+    arrayExtend(totalMessageBitsArray, modeBits)
+    arrayExtend(totalMessageBitsArray, sizeBits)
+    arrayExtend(totalMessageBitsArray, messageBits)
+    arrayExtend(totalMessageBitsArray, terminatorBits)
+    arrayExtend(totalMessageBitsArray, alignBits)
+    return totalMessageBitsArray
 endfunction
-
-
-# QR code mode chars
-qrcodeModeNumericChars = '0123456789'
-qrcodeModeAlphaChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 
 
 # Convert an integer array to bit array
@@ -417,7 +481,7 @@ endfunction
 
 
 # Compute error correction bits for the message
-function qrcodeErrorCorrectionBits(qrcode, level, messageBytes):
+function qrcodeECBits(qrcode, level, messageBytes):
     # TODO
-    return qrcode && level && messageBytes && []
+    return []
 endfunction
