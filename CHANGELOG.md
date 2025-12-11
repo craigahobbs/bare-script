@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.14 (2025-12-11)
+
+- [ee434c7](https://github.com/craigahobbs/bare-script/commit/ee434c7) - fix number parsing issue
+
 ## 3.8.13 (2025-12-02)
 
 - [509fe15](https://github.com/craigahobbs/bare-script/commit/509fe15) - diff.bare improvements
