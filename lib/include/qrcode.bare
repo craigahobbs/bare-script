@@ -18,7 +18,7 @@ function qrcodeDraw(message, x, y, size, level):
     qrcodeSize = arrayLength(matrix)
 
     # Draw the white background
-    drawStyle('none', 0, 'green')
+    drawStyle('none', 0, 'white')
     drawRect(x, y, size, size)
 
     # Draw the black pixels
@@ -81,8 +81,8 @@ function qrcodeMatrix(message, level):
         qrcodeMatrixTimingStrip(matrix)
 
         # Format strips
-        # Note: Mask is intentionally hard-coded to 0 for now - this is a known issue
-        mask = 0
+        # Note: Mask is intentionally hard-coded to 5 for now - this is a known issue
+        mask = 5
         qrcodeMatrixFormatStrips(matrix, level, mask)
 
         # Version blocks
