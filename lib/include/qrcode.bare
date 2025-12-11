@@ -434,17 +434,16 @@ function qrcodeMessageBits(qrcode, level, message):
     sizeBitsLength = arrayLength(sizeBits)
 
     # Add terminator (min(4, remaining) zeros)
-    totalMessageBitCount = qrcodeTotalMessageCodewords * 8
     usedBitCount = modeBitsLength + sizeBitsLength + messageBitsLength
-    remainingBitCount = totalMessageBitCount - usedBitCount
+    remainingBitCount = qrcodeTotalMessageCodewords * 8 - usedBitCount
     if remainingBitCount < 0:
         return null
     endif
     termLen = mathMin(4, remainingBitCount)
     terminatorBits = arrayNewSize(termLen, 0)
-    usedBitCount = usedBitCount + termLen
 
     # Add bit padding (zeros to align to multiple of 8)
+    usedBitCount = usedBitCount + termLen
     alignZeros = (8 - (usedBitCount % 8)) % 8
     alignBits = arrayNewSize(alignZeros, 0)
 
