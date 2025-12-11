@@ -364,7 +364,7 @@ function qrcodeDataBits(qrcode, level, message):
     ix = 0
     while ix < byteCount:
         padValue = if(ix % 2, 17, 236)
-        padBits = qrcodeIntegersToBits([padValue])
+        padBits = qrcodeBytesToBits([padValue])
         arrayExtend(paddingBits, padBits)
         ix = ix + 1
     endwhile
@@ -420,16 +420,16 @@ function qrcodeMessageBits(qrcode, level, message):
     endwhile
 
     # Compute the message bits and bytes (for binary mode)
-    messageBits = qrcodeIntegersToBits(messageChars)
+    messageBits = qrcodeBytesToBits(messageChars)
     messageBitsLength = arrayLength(messageBits)
     messageBytes = qrcodeBitsToBytes(messageBits)
     messageBytesLength = arrayLength(messageBytes)
 
     # Determine the size bits (for binary mode)
     if qrcodeVersion < 10:
-        sizeBits = qrcodeIntegersToBits([0xff & messageBytesLength])
+        sizeBits = qrcodeBytesToBits([0xff & messageBytesLength])
     else:
-        sizeBits = qrcodeIntegersToBits([0xff & (messageBytesLength >> 8), 0xff & messageBytesLength])
+        sizeBits = qrcodeBytesToBits([0xff & (messageBytesLength >> 8), 0xff & messageBytesLength])
     endif
     sizeBitsLength = arrayLength(sizeBits)
 
@@ -459,19 +459,20 @@ function qrcodeMessageBits(qrcode, level, message):
 endfunction
 
 
-# Convert an integer array to bit array
-function qrcodeIntegersToBits(bytes):
+# Convert a byte value array to bit array
+function qrcodeBytesToBits(bytes):
     bits = []
     reversedBits = []
     for byteValue in bytes:
-        # Extract the 8 bits from the byte value (in reverse order)
-        while byteValue:
-            arrayPush(reversedBits, byteValue & 1)
-            byteValue = byteValue >> 1
-        endwhile
-
-        # Pad the byte with zeros
-        arrayExtend(reversedBits, arrayNewSize(arrayLength(reversedBits) % 8, 0))
+        # Extract the 8 bits per byte from the byte value (in reverse order)
+        extractByteValue:
+            ixBit = 0
+            while ixBit < 8:
+                arrayPush(reversedBits, byteValue & 1)
+                byteValue = byteValue >> 1
+                ixBit = ixBit + 1
+            endwhile
+        jumpif (byteValue) extractByteValue
 
         # Reverse the bits
         while reversedBits:
@@ -489,7 +490,7 @@ function qrcodeBitsToBytes(bits):
     bitsLength = arrayLength(bits)
     while ixBit < bitsLength:
        byteBits = arraySlice(bits, ixBit, mathMin(ixBit + 8, bitsLength))
-       arrayExtend(byteBits, arrayNewSize(arrayLength(byteBits) % 8, 0))
+       arrayExtend(byteBits, arrayNewSize(8 - arrayLength(byteBits), 0))
        byteValue = numberParseInt(arrayJoin(byteBits, ''), 2)
        arrayPush(bytes, byteValue)
        ixBit = ixBit + 8
@@ -541,7 +542,7 @@ function qrcodeECBits(qrcode, level, fullMessageBytes):
     endwhile
 
     # Convert to bits
-    ecBits = qrcodeIntegersToBits(interleavedEC)
+    ecBits = qrcodeBytesToBits(interleavedEC)
     return ecBits
 endfunction
 

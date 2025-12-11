@@ -9,7 +9,7 @@ include <dataTable.bare>
 include <diff.bare>
 include <forms.bare>
 include <pager.bare>
-include <qrcode.bare>
+#include <qrcode.bare>
 include <schemaDoc.bare>
 include <unittest.bare>
 include <unittestMock.bare>

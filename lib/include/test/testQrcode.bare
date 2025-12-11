@@ -9,3 +9,38 @@ function testQrcode():
     unittestDeepEqual(arrayLength(qrcodeMatrix('https://test.com')), 25)
 endfunction
 unittestRunTest('testQrcode')
+
+
+function testQrcodeBytesToBits():
+    unittestDeepEqual( \
+        qrcodeBytesToBits([163]), \
+        [1, 0, 1, 0, 0, 0, 1, 1] \
+    )
+    unittestDeepEqual( \
+        qrcodeBytesToBits([0]), \
+        [0, 0, 0, 0, 0, 0, 0, 0] \
+    )
+    bytes = [132, 33]
+    unittestDeepEqual( \
+        qrcodeBytesToBits(bytes), \
+        [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] \
+    )
+endfunction
+unittestRunTest('testQrcodeBytesToBits')
+
+
+function testQrcodeBitsToBytes():
+    unittestDeepEqual( \
+        qrcodeBitsToBytes([1, 0, 1, 0, 0, 0, 1, 1]), \
+        [163] \
+    )
+    unittestDeepEqual( \
+        qrcodeBitsToBytes([0, 0, 0]), \
+        [0] \
+    )
+    unittestDeepEqual( \
+        qrcodeBitsToBytes([1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0]), \
+        [163, 128] \
+    )
+endfunction
+unittestRunTest('testQrcodeBitsToBytes')
