@@ -2707,6 +2707,9 @@ test('parseExpression, number literal', () => {
 
     expr = parseExpression('0x1fF');
     assert.deepEqual(validateExpression(expr), {'number': 511});
+
+    expr = parseExpression('0x20 + 0x01');
+    assert.deepEqual(validateExpression(expr), {'binary': {'op': '+', 'left': {'number': 32}, 'right': {'number': 1}}});
 });
 
 
