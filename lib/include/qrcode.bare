@@ -375,7 +375,7 @@ function qrcodeDataBits(qrcode, level, message):
     arrayExtend(fullMessageBits, paddingBits)
     fullMessageBytes = qrcodeBitsToBytes(fullMessageBits)
     if arrayLength(fullMessageBits) != totalMessageBitCount:
-        systemLog('*** BAD fullMessageBits: version = ' + qrcodeVersion + \
+        systemLogDebug('qrcode.bare - fullMessageBits: version = ' + qrcodeVersion + \
             ', actual = ' + arrayLength(fullMessageBits) + ', expected = ' + totalMessageBitCount)
     endif
 
