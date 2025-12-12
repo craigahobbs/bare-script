@@ -505,7 +505,7 @@ function qrcodeECBits(qrcode, level, fullMessageBytes):
     # Compute EC per block
     ecBlocks = []
     for dataBlock in dataBlocks:
-        fullBlock = rs_encode_msg(dataBlock, errorCodewordsPerBlock)
+        fullBlock = qrcodeECBitsRSEncodeMessage(dataBlock, errorCodewordsPerBlock)
         ec = arraySlice(fullBlock, arrayLength(dataBlock), arrayLength(fullBlock))
         arrayPush(ecBlocks, ec)
     endfor
@@ -530,25 +530,25 @@ endfunction
 
 
 # Helper for RS encoding a single block (returns full codeword: data + EC)
-function rs_encode_msg(msg_in, nsym):
+function qrcodeECBitsRSEncodeMessage(msgIn, nsym):
     gen = objectGet(rsGenPolys, stringNew(nsym))
-    msg_out = []
-    arrayExtend(msg_out, msg_in)
+    msgOut = []
+    arrayExtend(msgOut, msgIn)
     ix = 0
     while ix < nsym:
-        arrayPush(msg_out, 0)
+        arrayPush(msgOut, 0)
         ix = ix + 1
     endwhile
-    len_msg = arrayLength(msg_in)
+    lenMsg = arrayLength(msgIn)
     i = 0
-    while i < len_msg:
-        coef = arrayGet(msg_out, i)
+    while i < lenMsg:
+        coef = arrayGet(msgOut, i)
         if coef != 0:
             j = 1
-            len_gen = arrayLength(gen)
-            while j < len_gen:
-                old_val = arrayGet(msg_out, i + j)
-                arraySet(msg_out, i + j, old_val ^ gf_mul(coef, arrayGet(gen, j)))
+            lenGen = arrayLength(gen)
+            while j < lenGen:
+                oldVal = arrayGet(msgOut, i + j)
+                arraySet(msgOut, i + j, oldVal ^ qrcodeGaloisFieldMultiply(coef, arrayGet(gen, j)))
                 j = j + 1
             endwhile
         endif
@@ -556,25 +556,25 @@ function rs_encode_msg(msg_in, nsym):
     endwhile
     # Restore data part for systematic form
     i = 0
-    while i < len_msg:
-        arraySet(msg_out, i, arrayGet(msg_in, i))
+    while i < lenMsg:
+        arraySet(msgOut, i, arrayGet(msgIn, i))
         i = i + 1
     endwhile
-    return msg_out
+    return msgOut
 endfunction
 
 
-# Helper for GF multiplication
-function gf_mul(a, b):
+# Helper for Galois field (GF) multiplication
+function qrcodeGaloisFieldMultiply(a, b):
     if a == 0 || b == 0:
         return 0
     endif
-    return arrayGet(expTable, (arrayGet(logTable, a) + arrayGet(logTable, b)) % 255)
+    return arrayGet(qrcodeGaloisFieldExpTable, (arrayGet(qrcodeGaloisFieldLogTable, a) + arrayGet(qrcodeGaloisFieldLogTable, b)) % 255)
 endfunction
 
 
 # Precomputed EXP and LOG tables for GF(256)
-expTable = [ \
+qrcodeGaloisFieldExpTable = [ \
     1, 2, 4, 8, 16, 32, 64, 128, 29, 58, 116, 232, 205, 135, 19, 38, 76, 152, 45, 90, 180, 117, 234, 201, 143, 3, 6, 12, \
     24, 48, 96, 192, 157, 39, 78, 156, 37, 74, 148, 53, 106, 212, 181, 119, 238, 193, 159, 35, 70, 140, 5, 10, 20, 40, 80, \
     160, 93, 186, 105, 210, 185, 111, 222, 161, 95, 190, 97, 194, 153, 47, 94, 188, 101, 202, 137, 15, 30, 60, 120, 240, \
@@ -586,7 +586,7 @@ expTable = [ \
     83, 166, 81, 162, 89, 178, 121, 242, 249, 239, 195, 155, 43, 86, 172, 69, 138, 9, 18, 36, 72, 144, 61, 122, 244, 245, \
     247, 243, 251, 235, 203, 139, 11, 22, 44, 88, 176, 125, 250, 233, 207, 131, 27, 54, 108, 216, 173, 71, 142, 0 \
 ]
-logTable = [ \
+qrcodeGaloisFieldLogTable = [ \
     0, 0, 1, 25, 2, 50, 26, 198, 3, 223, 51, 238, 27, 104, 199, 75, 4, 100, 224, 14, 52, 141, 239, 129, 28, 193, 105, 248, \
     200, 8, 76, 113, 5, 138, 101, 47, 225, 36, 15, 33, 53, 147, 142, 218, 240, 18, 130, 69, 29, 181, 194, 125, 106, 39, \
     249, 185, 201, 154, 9, 120, 77, 228, 114, 166, 6, 191, 139, 98, 102, 221, 48, 253, 226, 152, 37, 179, 16, 145, 34, \
