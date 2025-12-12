@@ -77,7 +77,7 @@ function qrcodeMatrix(message, level):
         endif
 
         # Timing strip
-        qrcodeMatrixTimingStrip(matrix)
+        qrcodeMatrixTimingStrips(matrix)
 
         # Format strips
         # Note: Mask is intentionally hard-coded to 5 for now - this is a known issue
@@ -92,19 +92,22 @@ function qrcodeMatrix(message, level):
         if messageBits != null:
             # Compute the data pixels
             dataPixels = qrcodeDataPixels(matrix)
-            dataPixelsLength = arrayLength(dataPixels)
 
             # Compute the data bits
             dataBits = qrcodeDataBits(qrcode, level, message)
 
             # Add the data remainder bits
-            remainderLength = dataPixelsLength - qrcodeTotalCodewords * 8
+            remainderLength = arrayLength(dataPixels) - qrcodeTotalCodewords * 8
             if remainderLength > 0:
                 arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
             endif
 
             # Set the full data bits
             qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
+
+            # Score each mask
+            # Note: This isn't implemented for now - this is a known issue
+
             return matrix
         endif
     endfor
@@ -133,7 +136,7 @@ endfunction
 
 
 # Helper to set the timing strip pixels
-function qrcodeMatrixTimingStrip(matrix):
+function qrcodeMatrixTimingStrips(matrix):
     qrcodeSize = arrayLength(matrix)
     ix = 8
     ixEnd = qrcodeSize - 8
@@ -340,9 +343,7 @@ endfunction
 
 # Get the full data bits (includes mode, size, message, terminator, padding, ec)
 function qrcodeDataBits(qrcode, level, message):
-    qrcodeVersion = objectGet(qrcode, 'version')
     qrcodeECLevel = objectGet(objectGet(qrcode, 'errorCorrection'), level)
-    qrcodeTotalCodewords = objectGet(qrcodeECLevel, 'totalCodewords')
     qrcodeTotalMessageCodewords = objectGet(qrcodeECLevel, 'totalMessageCodewords')
 
     # Compute the message bits
@@ -366,19 +367,9 @@ function qrcodeDataBits(qrcode, level, message):
     arrayExtend(fullMessageBits, messageBits)
     arrayExtend(fullMessageBits, paddingBits)
     fullMessageBytes = qrcodeBitsToBytes(fullMessageBits)
-    if arrayLength(fullMessageBits) != totalMessageBitCount:
-        systemLogDebug('qrcode.bare - fullMessageBits: version = ' + qrcodeVersion + \
-            ', actual = ' + arrayLength(fullMessageBits) + ', expected = ' + totalMessageBitCount)
-    endif
 
     # Compute the error correction bits
     ecBits = qrcodeECBits(qrcode, level, fullMessageBytes)
-    actualECCodewordCount = arrayLength(ecBits) / 8
-    expectedECCodewordCount = qrcodeTotalCodewords - qrcodeTotalMessageCodewords
-    if actualECCodewordCount != expectedECCodewordCount:
-        systemLog('*** BAD ecBytes: version = ' + qrcodeVersion + \
-            ', actual = ' + actualECCodewordCount + ', expected = ' + expectedECCodewordCount)
-    endif
 
     # Return the data bits
     dataBits = []
