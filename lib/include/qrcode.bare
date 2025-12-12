@@ -18,10 +18,11 @@ function qrcodeDraw(message, x, y, size, level):
     qrcodeSize = arrayLength(matrix)
 
     # Draw the white background
-    drawStyle('none', 0, 'green')
+    drawStyle('none', 0, 'white')
     drawRect(x, y, size, size)
 
     # Draw the black pixels
+    drawStyle('none', 0, 'black')
     ixRow = 0
     pixelSize = size / (qrcodeSize + 2)
     borderSize = pixelSize
@@ -29,8 +30,7 @@ function qrcodeDraw(message, x, y, size, level):
         ixCol = 0
         while ixCol < qrcodeSize:
             pixelValue = arrayGet(arrayGet(matrix, ixRow), ixCol)
-            if pixelValue != null:
-                drawStyle('none', 0, if(pixelValue, 'black', 'white'))
+            if pixelValue:
                 drawPathRect(borderSize + x + ixCol * pixelSize, borderSize + y + ixRow * pixelSize, pixelSize, pixelSize)
             endif
             ixCol = ixCol + 1
