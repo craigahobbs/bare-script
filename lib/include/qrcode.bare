@@ -499,14 +499,13 @@ function qrcodeMatrixScore(matrix):
     qrcodeSize = arrayLength(matrix)
     score = 0
 
-    # Create the string rows
-    stringRows = []
+    # Add the string rows
+    stringRowsAndColumns = []
     for row in matrix:
-        arrayPush(stringRows, arrayJoin(row, ''))
+        arrayPush(stringRowsAndColumns, arrayJoin(row, ''))
     endfor
 
-    # Create the string columns - also compute the 2x2 count and "dark" count
-    stringColumns = []
+    # Add the string columns - also compute the 2x2 count and "dark" count
     twoByCount = 0
     twoBySize = qrcodeSize - 1
     darkCount = 0
@@ -516,17 +515,15 @@ function qrcodeMatrixScore(matrix):
         iy = 0
         while iy < qrcodeSize:
             row = arrayGet(matrix, iy)
+            row2 = if(ix < twoBySize && iy < twoBySize, arrayGet(matrix, iy + 1))
             bit = arrayGet(row, ix)
 
             # Add the column bit
             arrayPush(column, bit)
 
             # Count the 2x2 blocks
-            if ix < twoBySize && iy < twoBySize:
-                row2 = arrayGet(matrix, iy + 1)
-                if bit == arrayGet(row, ix + 1) && bit == arrayGet(row2, ix) && bit == arrayGet(row2, ix + 1):
-                    twoByCount = twoByCount + 1
-                endif
+            if row2 && bit == arrayGet(row, ix + 1) && bit == arrayGet(row2, ix) && bit == arrayGet(row2, ix + 1):
+                twoByCount = twoByCount + 1
             endif
 
             # Count "dark" pixels
@@ -538,21 +535,14 @@ function qrcodeMatrixScore(matrix):
         endwhile
 
         # Add the column string
-        arrayPush(stringColumns, arrayJoin(column, ''))
-
+        arrayPush(stringRowsAndColumns, arrayJoin(column, ''))
         ix = ix + 1
     endwhile
-
-    # Create the array of both rows and columns
-    stringRowsAndColumns = arrayCopy(stringRows)
-    arrayExtend(stringRowsAndColumns, stringColumns)
 
     # Penalty 1: Five or more same-colored modules in a row/column
     for stringRow in stringRowsAndColumns:
         for runMatch in regexMatchAll(qrcodeMatrixScoreRunRegex, stringRow):
-            groups = objectGet(runMatch, 'groups')
-            runLength = stringLength(objectGet(groups, '0'))
-            score = score + 3 + (runLength - 5)
+            score = score + 3 + (stringLength(objectGet(objectGet(runMatch, 'groups'), '0')) - 5)
         endfor
     endfor
 
@@ -566,8 +556,7 @@ function qrcodeMatrixScore(matrix):
 
     # Penalty 4: Proportion of dark modules
     darkPercent = (darkCount * 100) / (qrcodeSize * qrcodeSize)
-    penalty4 = mathFloor(mathAbs(darkPercent - 50) / 5)
-    score = score + penalty4 * 10
+    score = score + mathFloor(mathAbs(darkPercent - 50) / 5) * 10
 
     return score
 endfunction
