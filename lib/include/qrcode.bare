@@ -79,10 +79,8 @@ function qrcodeMatrix(message, level):
         # Timing strip
         qrcodeMatrixTimingStrips(matrix)
 
-        # Format strips
-        # Note: Mask is intentionally hard-coded to 5 for now - this is a known issue
-        mask = 5
-        qrcodeMatrixFormatStrips(matrix, level, mask)
+        # Format strips - use mask 0 as placeholder bits for qrcodeDataPixels
+        qrcodeMatrixFormatStrips(matrix, level, 0)
 
         # Version blocks
         qrcodeMatrixVersionBlocks(matrix, qrcode)
@@ -102,19 +100,188 @@ function qrcodeMatrix(message, level):
                 arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
             endif
 
-            # Set the full data bits
-            qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
+            # Score for each mask
+            bestMatrix = null
+            bestScore = null
+            mask = 0
+            while mask < 8:
+                # Set full data bits with mask
+                maskMatrix = jsonParse(jsonStringify(matrix))
+                qrcodeMatrixPixels(maskMatrix, dataPixels, dataBits, mask)
 
-            # Score each mask
-            # Note: This isn't implemented for now - this is a known issue
+                # Set the format strips bits
+                qrcodeMatrixFormatStrips(maskMatrix, level, mask)
 
-            return matrix
+                # Compute the mask's score
+                maskScore = qrcodeMatrixScore(maskMatrix)
+                if bestScore == null || maskScore < bestScore:
+                    bestMatrix = maskMatrix
+                    bestScore = maskScore
+                endif
+                mask = mask + 1
+            endwhile
+
+            return bestMatrix
         endif
     endfor
 
     # Mwssage too long
     systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
     return null
+endfunction
+
+
+# Helper to compute the masked matrix score
+function qrcodeMatrixScore(matrix):
+    qrcodeSize = arrayLength(matrix)
+    score = 0
+
+    # Penalty 1: Five or more same-colored modules in a row/column
+    # Horizontal runs
+    iy = 0
+    while iy < qrcodeSize:
+        runLength = 1
+        runColor = arrayGet(arrayGet(matrix, iy), 0)
+        ix = 1
+        while ix < qrcodeSize:
+            currentColor = arrayGet(arrayGet(matrix, iy), ix)
+            if currentColor == runColor:
+                runLength = runLength + 1
+            else:
+                if runLength >= 5:
+                    score = score + 3 + (runLength - 5)
+                endif
+                runLength = 1
+                runColor = currentColor
+            endif
+            ix = ix + 1
+        endwhile
+        if runLength >= 5:
+            score = score + 3 + (runLength - 5)
+        endif
+        iy = iy + 1
+    endwhile
+
+    # Vertical runs
+    ix = 0
+    while ix < qrcodeSize:
+        runLength = 1
+        runColor = arrayGet(arrayGet(matrix, 0), ix)
+        iy = 1
+        while iy < qrcodeSize:
+            currentColor = arrayGet(arrayGet(matrix, iy), ix)
+            if currentColor == runColor:
+                runLength = runLength + 1
+            else:
+                if runLength >= 5:
+                    score = score + 3 + (runLength - 5)
+                endif
+                runLength = 1
+                runColor = currentColor
+            endif
+            iy = iy + 1
+        endwhile
+        if runLength >= 5:
+            score = score + 3 + (runLength - 5)
+        endif
+        ix = ix + 1
+    endwhile
+
+    # Penalty 2: 2x2 blocks of same color
+    iy = 0
+    while iy < qrcodeSize - 1:
+        ix = 0
+        while ix < qrcodeSize - 1:
+            color = arrayGet(arrayGet(matrix, iy), ix)
+            if color == arrayGet(arrayGet(matrix, iy), ix + 1) && \
+               color == arrayGet(arrayGet(matrix, iy + 1), ix) && \
+               color == arrayGet(arrayGet(matrix, iy + 1), ix + 1):
+                score = score + 3
+            endif
+            ix = ix + 1
+        endwhile
+        iy = iy + 1
+    endwhile
+
+    # Penalty 3: Finder-like patterns (1011101 with 4 white modules on either side)
+    # Pattern: 10111010000 or 00001011101
+    pattern1 = [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0]
+    pattern2 = [0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]
+    patternLen = 11
+
+    # Horizontal pattern check
+    iy = 0
+    while iy < qrcodeSize:
+        ix = 0
+        while ix <= qrcodeSize - patternLen:
+            match1 = true
+            match2 = true
+            ip = 0
+            while ip < patternLen:
+                pixel = arrayGet(arrayGet(matrix, iy), ix + ip)
+                if pixel != arrayGet(pattern1, ip):
+                    match1 = false
+                endif
+                if pixel != arrayGet(pattern2, ip):
+                    match2 = false
+                endif
+                ip = ip + 1
+            endwhile
+            if match1 || match2:
+                score = score + 40
+            endif
+            ix = ix + 1
+        endwhile
+        iy = iy + 1
+    endwhile
+
+    # Vertical pattern check
+    ix = 0
+    while ix < qrcodeSize:
+        iy = 0
+        while iy <= qrcodeSize - patternLen:
+            match1 = true
+            match2 = true
+            ip = 0
+            while ip < patternLen:
+                pixel = arrayGet(arrayGet(matrix, iy + ip), ix)
+                if pixel != arrayGet(pattern1, ip):
+                    match1 = false
+                endif
+                if pixel != arrayGet(pattern2, ip):
+                    match2 = false
+                endif
+                ip = ip + 1
+            endwhile
+            if match1 || match2:
+                score = score + 40
+            endif
+            iy = iy + 1
+        endwhile
+        ix = ix + 1
+    endwhile
+
+    # Penalty 4: Proportion of dark modules
+    darkCount = 0
+    totalCount = qrcodeSize * qrcodeSize
+    iy = 0
+    while iy < qrcodeSize:
+        ix = 0
+        while ix < qrcodeSize:
+            if arrayGet(arrayGet(matrix, iy), ix) == 1:
+                darkCount = darkCount + 1
+            endif
+            ix = ix + 1
+        endwhile
+        iy = iy + 1
+    endwhile
+
+    # Calculate percentage and penalty
+    darkPercent = (darkCount * 100) / totalCount
+    penalty4 = mathFloor(mathAbs(darkPercent - 50) / 5)
+    score = score + penalty4 * 10
+
+    return score
 endfunction
 
 
