@@ -18,7 +18,7 @@ function qrcodeDraw(message, x, y, size, level):
     qrcodeSize = arrayLength(matrix)
 
     # Draw the white background
-    drawStyle('none', 0, 'white')
+    drawStyle('none', 0, 'green')
     drawRect(x, y, size, size)
 
     # Draw the black pixels
@@ -51,11 +51,10 @@ function qrcodeMatrix(message, level):
 
     # Find the QR code model
     for qrcode in qrcodeVersions:
-        qrcodeVersion = objectGet(qrcode, 'version')
         qrcodeSize = objectGet(qrcode, 'size')
+        qrcodeAlignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
         qrcodeECLevel = objectGet(objectGet(qrcode, 'errorCorrection'), level)
         qrcodeTotalCodewords = objectGet(qrcodeECLevel, 'totalCodewords')
-        alignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
 
         # Create the pixel matrix
         matrix = []
@@ -71,8 +70,8 @@ function qrcodeMatrix(message, level):
         qrcodeMatrixPositionSquare(matrix, qrcodeSize - 4, 3)
 
         # Alignment patterns
-        if alignmentPatterns:
-            for alignmentPattern in alignmentPatterns:
+        if qrcodeAlignmentPatterns:
+            for alignmentPattern in qrcodeAlignmentPatterns:
                 qrcodeMatrixAlignmentPattern(matrix, objectGet(alignmentPattern, 'x'), objectGet(alignmentPattern, 'y'))
             endfor
         endif
@@ -88,33 +87,26 @@ function qrcodeMatrix(message, level):
         # Version blocks
         qrcodeMatrixVersionBlocks(matrix, qrcode)
 
-        # Compute the data pixels
-        dataPixels = qrcodeDataPixels(matrix)
-        dataPixelsLength = arrayLength(dataPixels)
-
-        # Validate that the computed data pixel count is equal to the pre-computed total data bits count (allowing for remainder bits)
-        dataPixelsAdjustedCount = mathFloor(dataPixelsLength / 8) * 8
-        totalBitCount = qrcodeTotalCodewords * 8
-        if dataPixelsAdjustedCount != totalBitCount:
-            dataPixelsRemainder = dataPixelsLength % 8
-            systemLogDebug( \
-                'qrcode.bare - QR code version ' + qrcodeVersion + \
-                ' computed data pixels count (' + dataPixelsAdjustedCount + ', ' + dataPixelsRemainder + ' remainder) ' + \
-                'does not equal the QR code model pre-computed total data bit count (' + (totalBitCount) + ')' \
-            )
-        endif
-
-        # Get the message bits (mode, version, message, terminator) - keep searching if this QR code is too small
+        # Get the message bits (mode, version, message, terminator) - non-null means we've found it
         messageBits = qrcodeMessageBits(qrcode, level, message)
-        if messageBits == null:
-            continue
+        if messageBits != null:
+            # Compute the data pixels
+            dataPixels = qrcodeDataPixels(matrix)
+            dataPixelsLength = arrayLength(dataPixels)
+
+            # Compute the data bits
+            dataBits = qrcodeDataBits(qrcode, level, message)
+
+            # Add the data remainder bits
+            remainderLength = dataPixelsLength - qrcodeTotalCodewords * 8
+            if remainderLength > 0:
+                arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
+            endif
+
+            # Set the full data bits
+            qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
+            return matrix
         endif
-
-        # Set the full data bits
-        dataBits = qrcodeDataBits(qrcode, level, message)
-        qrcodeMatrixPixels(matrix, dataPixels, dataBits, mask)
-
-        return matrix
     endfor
 
     # Mwssage too long

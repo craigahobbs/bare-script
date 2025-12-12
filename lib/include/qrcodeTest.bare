@@ -28,7 +28,7 @@ function qrcodeTestMain():
     documentSetFocus(qrcodeTestMessageId)
     elementModelRender([ \
         {'html': 'p', 'elem': {'html': 'b', 'elem': {'text': 'Message:'}}}, \
-        {'html': 'p', 'elem': formsTextElements(qrcodeTestMessageId, message, 100, qrcodeTestOnMessage)}, \
+        {'html': 'p', 'elem': formsTextElements(qrcodeTestMessageId, message, 60, qrcodeTestOnMessage)}, \
         {'html': 'p', 'elem': [ \
             formsLinkButtonElements('Create QR Code', qrcodeTestOnMessage), \
             {'text': ' | '}, \
