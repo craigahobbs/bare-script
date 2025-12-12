@@ -131,90 +131,6 @@ function qrcodeMatrix(message, level):
 endfunction
 
 
-# Helper to compute the masked matrix score
-function qrcodeMatrixScore(matrix):
-    qrcodeSize = arrayLength(matrix)
-    score = 0
-
-    # Create the string rows
-    stringRows = []
-    for row in matrix:
-        arrayPush(stringRows, arrayJoin(row, ''))
-    endfor
-
-    # Create the string columns - also compute the 2x2 count and "dark" count
-    stringColumns = []
-    twoByCount = 0
-    twoBySize = qrcodeSize - 1
-    darkCount = 0
-    ix = 0
-    while ix < qrcodeSize:
-        column = []
-        iy = 0
-        while iy < qrcodeSize:
-            row = arrayGet(matrix, iy)
-            bit = arrayGet(row, ix)
-
-            # Add the column bit
-            arrayPush(column, bit)
-
-            # Count the 2x2 blocks
-            if ix < twoBySize && iy < twoBySize:
-                row2 = arrayGet(matrix, iy + 1)
-                if bit == arrayGet(row, ix + 1) && bit == arrayGet(row2, ix) && bit == arrayGet(row2, ix + 1):
-                    twoByCount = twoByCount + 1
-                endif
-            endif
-
-            # Count "dark" pixels
-            if bit:
-                darkCount = darkCount + 1
-            endif
-
-            iy = iy + 1
-        endwhile
-
-        # Add the column string
-        arrayPush(stringColumns, arrayJoin(column, ''))
-
-        ix = ix + 1
-    endwhile
-
-    # Create the array of both rows and columns
-    stringRowsAndColumns = arrayCopy(stringRows)
-    arrayExtend(stringRowsAndColumns, stringColumns)
-
-    # Penalty 1: Five or more same-colored modules in a row/column
-    for stringRow in stringRowsAndColumns:
-        for runMatch in regexMatchAll(qrcodeMatrixScoreRunRegex, stringRow):
-            groups = objectGet(runMatch, 'groups')
-            runLength = stringLength(objectGet(groups, '0'))
-            score = score + 3 + (runLength - 5)
-        endfor
-    endfor
-
-    # Penalty 2: 2x2 blocks of same color
-    score = score + 3 * twoByCount
-
-    # Penalty 3: Finder-like patterns (1011101 with 4 white modules on either side)
-    for stringRow in stringRowsAndColumns:
-        score = score + 40 * arrayLength(regexMatchAll(qrcodeMatrixScorePatternRegex, stringRow))
-    endfor
-
-    # Penalty 4: Proportion of dark modules
-    darkPercent = (darkCount * 100) / (qrcodeSize * qrcodeSize)
-    penalty4 = mathFloor(mathAbs(darkPercent - 50) / 5)
-    score = score + penalty4 * 10
-
-    return score
-endfunction
-
-
-# QR matrix scorinn pattern regular expressions
-qrcodeMatrixScoreRunRegex = regexNew('(?:0{5,}|1{5,})')
-qrcodeMatrixScorePatternRegex = regexNew('(?:10111010000|00001011101)')
-
-
 # Helper to set a position square's pixels
 function qrcodeMatrixPositionSquare(matrix, x, y):
     qrcodeMatrixSquare(matrix, x - 4, y - 4, 9, 0)
@@ -576,6 +492,90 @@ function qrcodeBitsToBytes(bits):
     endwhile
     return bytes
 endfunction
+
+
+# Helper to compute the masked matrix score
+function qrcodeMatrixScore(matrix):
+    qrcodeSize = arrayLength(matrix)
+    score = 0
+
+    # Create the string rows
+    stringRows = []
+    for row in matrix:
+        arrayPush(stringRows, arrayJoin(row, ''))
+    endfor
+
+    # Create the string columns - also compute the 2x2 count and "dark" count
+    stringColumns = []
+    twoByCount = 0
+    twoBySize = qrcodeSize - 1
+    darkCount = 0
+    ix = 0
+    while ix < qrcodeSize:
+        column = []
+        iy = 0
+        while iy < qrcodeSize:
+            row = arrayGet(matrix, iy)
+            bit = arrayGet(row, ix)
+
+            # Add the column bit
+            arrayPush(column, bit)
+
+            # Count the 2x2 blocks
+            if ix < twoBySize && iy < twoBySize:
+                row2 = arrayGet(matrix, iy + 1)
+                if bit == arrayGet(row, ix + 1) && bit == arrayGet(row2, ix) && bit == arrayGet(row2, ix + 1):
+                    twoByCount = twoByCount + 1
+                endif
+            endif
+
+            # Count "dark" pixels
+            if bit:
+                darkCount = darkCount + 1
+            endif
+
+            iy = iy + 1
+        endwhile
+
+        # Add the column string
+        arrayPush(stringColumns, arrayJoin(column, ''))
+
+        ix = ix + 1
+    endwhile
+
+    # Create the array of both rows and columns
+    stringRowsAndColumns = arrayCopy(stringRows)
+    arrayExtend(stringRowsAndColumns, stringColumns)
+
+    # Penalty 1: Five or more same-colored modules in a row/column
+    for stringRow in stringRowsAndColumns:
+        for runMatch in regexMatchAll(qrcodeMatrixScoreRunRegex, stringRow):
+            groups = objectGet(runMatch, 'groups')
+            runLength = stringLength(objectGet(groups, '0'))
+            score = score + 3 + (runLength - 5)
+        endfor
+    endfor
+
+    # Penalty 2: 2x2 blocks of same color
+    score = score + 3 * twoByCount
+
+    # Penalty 3: Finder-like patterns (1011101 with 4 white modules on either side)
+    for stringRow in stringRowsAndColumns:
+        score = score + 40 * arrayLength(regexMatchAll(qrcodeMatrixScorePatternRegex, stringRow))
+    endfor
+
+    # Penalty 4: Proportion of dark modules
+    darkPercent = (darkCount * 100) / (qrcodeSize * qrcodeSize)
+    penalty4 = mathFloor(mathAbs(darkPercent - 50) / 5)
+    score = score + penalty4 * 10
+
+    return score
+endfunction
+
+
+# QR matrix scorinn pattern regular expressions
+qrcodeMatrixScoreRunRegex = regexNew('(?:0{5,}|1{5,})')
+qrcodeMatrixScorePatternRegex = regexNew('(?:10111010000|00001011101)')
 
 
 # Compute error correction bits for the message
