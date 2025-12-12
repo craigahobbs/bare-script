@@ -30,7 +30,7 @@ function qrcodeTestMain():
         {'html': 'p', 'elem': {'html': 'b', 'elem': {'text': 'Message:'}}}, \
         {'html': 'p', 'elem': formsTextElements(qrcodeTestMessageId, message, 60, qrcodeTestOnMessage)}, \
         {'html': 'p', 'elem': [ \
-            formsLinkButtonElements('Create QR Code', qrcodeTestOnMessage), \
+            formsLinkButtonElements('Update', qrcodeTestOnMessage), \
             {'text': ' | '}, \
             formsLinkButtonElements('Reset', qrcodeTestOnReset) \
         ]} \
