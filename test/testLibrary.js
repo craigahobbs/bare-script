@@ -4105,6 +4105,9 @@ test('library, stringSplit', () => {
     // Not found
     assert.deepEqual(scriptFunctions.stringSplit(['foo', ', '], null), ['foo']);
 
+    // Empty string separator
+    assert.deepEqual(scriptFunctions.stringSplit(['foo', ''], null), ['f', 'o', 'o']);
+
     // Non-string value
     assert.throws(
         () => {
