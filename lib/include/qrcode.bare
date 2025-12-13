@@ -4,14 +4,14 @@ include 'qrcodeVersions.bare'
 # $function: qrcodeDraw
 # $group: qrcode.bare
 # $doc: Draw a QR code at the specified position and size
-# $arg message: The QR code message
+# $arg message: The QR code message or the QR code matrix
 # $arg x: The X-coordinate, in pixels, of the left-side of the QR code
 # $arg y: The Y-coordinate, in pixels, of the top of the QR code
 # $arg size: The size of the QR code, in pixels
 # $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
 function qrcodeDraw(message, x, y, size, level):
     # Get the QR code pixel matrix
-    matrix = qrcodeMatrix(message, level)
+    matrix = if(systemType(message) == 'string', qrcodeMatrix(message, level), message)
     if !matrix:
         return
     endif
@@ -22,10 +22,11 @@ function qrcodeDraw(message, x, y, size, level):
     drawRect(x, y, size, size)
 
     # Draw the black pixels
+    # Note: The standard recommendation is a 4-module quiet zone on all sides.
     drawStyle('none', 0, 'black')
     ixRow = 0
-    pixelSize = size / (qrcodeSize + 2)
-    borderSize = pixelSize
+    pixelSize = size / (qrcodeSize + 8)
+    borderSize = pixelSize * 4
     while ixRow < qrcodeSize:
         ixCol = 0
         while ixCol < qrcodeSize:
@@ -100,9 +101,10 @@ function qrcodeMatrix(message, level):
                 arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
             endif
 
-            # Score for each mask
+            # Compute the penalty for each mask
+            bestMask = null
             bestMatrix = null
-            bestScore = null
+            bestPenalty = null
             mask = 0
             while mask < 8:
                 # Set full data bits with mask
@@ -112,20 +114,22 @@ function qrcodeMatrix(message, level):
                 # Set the format strips bits
                 qrcodeMatrixFormatStrips(maskMatrix, level, mask)
 
-                # Compute the mask's score
-                maskScore = qrcodeMatrixScore(maskMatrix)
-                if bestScore == null || maskScore < bestScore:
+                # Compute the mask's penalty
+                maskPenalty = qrcodeMatrixPenalty(maskMatrix)
+                if bestPenalty == null || maskPenalty < bestPenalty:
+                    bestMask = mask
                     bestMatrix = maskMatrix
-                    bestScore = maskScore
+                    bestPenalty = maskPenalty
                 endif
                 mask = mask + 1
             endwhile
+            systemLogDebug('qrcode.bare - mask ' + bestMask + ' selected')
 
             return bestMatrix
         endif
     endfor
 
-    # Mwssage too long
+    # Message too long
     systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
     return null
 endfunction
@@ -342,7 +346,9 @@ function qrcodeDataPixels(matrix):
         if (up && y == 0) || (!up && y == qrcodeSize - 1):
             up = !up
             x = x - 2
-            if x < 0:
+            if x == 6:
+                x = 5
+            elif x < 0:
                 break
             endif
         else:
@@ -494,10 +500,10 @@ function qrcodeBitsToBytes(bits):
 endfunction
 
 
-# Helper to compute the masked matrix score
-function qrcodeMatrixScore(matrix):
+# Helper to compute the masked matrix penalty
+function qrcodeMatrixPenalty(matrix):
     qrcodeSize = arrayLength(matrix)
-    score = 0
+    penalty = 0
 
     # Add the string rows
     stringRowsAndColumns = []
@@ -541,30 +547,30 @@ function qrcodeMatrixScore(matrix):
 
     # Penalty 1: Five or more same-colored modules in a row/column
     for stringRow in stringRowsAndColumns:
-        for runMatch in regexMatchAll(qrcodeMatrixScoreRunRegex, stringRow):
-            score = score + 3 + (stringLength(objectGet(objectGet(runMatch, 'groups'), '0')) - 5)
+        for runMatch in regexMatchAll(qrcodeMatrixPenaltyRunRegex, stringRow):
+            penalty = penalty + 3 + (stringLength(objectGet(objectGet(runMatch, 'groups'), '0')) - 5)
         endfor
     endfor
 
     # Penalty 2: 2x2 blocks of same color
-    score = score + 3 * twoByCount
+    penalty = penalty + 3 * twoByCount
 
     # Penalty 3: Finder-like patterns (1011101 with 4 white modules on either side)
     for stringRow in stringRowsAndColumns:
-        score = score + 40 * arrayLength(regexMatchAll(qrcodeMatrixScorePatternRegex, stringRow))
+        penalty = penalty + 40 * arrayLength(regexMatchAll(qrcodeMatrixPenaltyPatternRegex, stringRow))
     endfor
 
     # Penalty 4: Proportion of dark modules
     darkPercent = (darkCount * 100) / (qrcodeSize * qrcodeSize)
-    score = score + mathFloor(mathAbs(darkPercent - 50) / 5) * 10
+    penalty = penalty + mathFloor(mathAbs(darkPercent - 50) / 5) * 10
 
-    return score
+    return penalty
 endfunction
 
 
 # QR matrix scorinn pattern regular expressions
-qrcodeMatrixScoreRunRegex = regexNew('(?:0{5,}|1{5,})')
-qrcodeMatrixScorePatternRegex = regexNew('(?:10111010000|00001011101)')
+qrcodeMatrixPenaltyRunRegex = regexNew('(?:0{5,}|1{5,})')
+qrcodeMatrixPenaltyPatternRegex = regexNew('(?:10111010000|00001011101)')
 
 
 # Compute error correction bits for the message

@@ -46,8 +46,8 @@ endfunction
 unittestRunTest('testQrcodeBitsToBytes')
 
 
-function testQrcodeMatrixScore():
-    # Test matrix with no penalties (all zeros, score should be 178)
+function testQrcodeMatrixPenalty():
+    # Test matrix with no penalties (all zeros, penalty should be 178)
     matrixZero = [ \
         [0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0], \
@@ -55,7 +55,7 @@ function testQrcodeMatrixScore():
         [0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixZero), 178)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixZero), 178)
 
     # Test matrix with 5 consecutive 1s in a row (penalty 1: 111)
     matrixRow = [ \
@@ -65,7 +65,7 @@ function testQrcodeMatrixScore():
         [0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixRow), 111)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixRow), 111)
 
     # Test matrix with 5 consecutive 1s in a column (penalty 1: 111)
     matrixCol = [ \
@@ -75,7 +75,7 @@ function testQrcodeMatrixScore():
         [1, 0, 0, 0, 0], \
         [1, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixCol), 111)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixCol), 111)
 
     # Test matrix with 2x2 blocks of same color (penalty 2: 117)
     matrixBlock = [ \
@@ -85,7 +85,7 @@ function testQrcodeMatrixScore():
         [0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixBlock), 117)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixBlock), 117)
 
     # Test matrix with finder-like patterns (penalty 3: 593)
     matrixFinder = [ \
@@ -101,10 +101,10 @@ function testQrcodeMatrixScore():
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixFinder), 593)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixFinder), 593)
 
     # Test penalty 4: proportion of dark modules (for 5x5 matrix with 1 dark module, ~20% dark)
-    # Score for penalty 4 is |prevMultiple - 50| / 5 * 10, where prevMultiple is floor(20/5)*5 = 20, so |20-50|/5 *10 = 30/5*10=60
+    # Penalty 4 is |prevMultiple - 50| / 5 * 10, where prevMultiple is floor(20/5)*5 = 20, so |20-50|/5 *10 = 30/5*10=60
     matrixDark = [ \
         [1, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0], \
@@ -112,6 +112,6 @@ function testQrcodeMatrixScore():
         [0, 0, 0, 0, 0], \
         [0, 0, 0, 0, 0] \
     ]
-    unittestDeepEqual(qrcodeMatrixScore(matrixDark), 159)
+    unittestDeepEqual(qrcodeMatrixPenalty(matrixDark), 159)
 endfunction
-unittestRunTest('testQrcodeMatrixScore')
+unittestRunTest('testQrcodeMatrixPenalty')
