@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.8.15 (2025-12-15)
+
+- [ef54019](https://github.com/craigahobbs/bare-script/commit/ef54019) - add arrayReverse, numberToString, stringEncode, and stringDecode library functions
+
+- [6b2de7e](https://github.com/craigahobbs/bare-script/commit/6b2de7e) - add stringSplit empty separator test
+
 ## 3.8.14 (2025-12-11)
 
 - [ee434c7](https://github.com/craigahobbs/bare-script/commit/ee434c7) - fix number parsing issue
