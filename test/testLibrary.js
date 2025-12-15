@@ -613,6 +613,25 @@ test('library, arrayPush', () => {
 });
 
 
+test('library, arrayReverse', () => {
+    const array = [3, 1, 2];
+    const reversedArray = scriptFunctions.arrayReverse([array], null);
+    assert.deepEqual(reversedArray, [2, 1, 3]);
+    assert.equal(reversedArray, array);
+
+    // Non-array
+    assert.throws(
+        () => {
+            scriptFunctions.arrayReverse([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "array" argument value, null'
+        }
+    );
+});
+
+
 test('library, arraySet', () => {
     const array = [1, 2, 3];
     assert.equal(scriptFunctions.arraySet([array, 1, 5], null), 5);
@@ -816,8 +835,9 @@ test('library, arraySlice', () => {
 
 test('library, arraySort', () => {
     const array = [3, 2, 1];
-    assert.deepEqual(scriptFunctions.arraySort([array], null), [1, 2, 3]);
-    assert.deepEqual(array, [1, 2, 3]);
+    const sortedArray = scriptFunctions.arraySort([array], null);
+    assert.deepEqual(sortedArray, [1, 2, 3]);
+    assert.deepEqual(sortedArray, array);
 
     // Compare function
     function compareFn(args, compareOptions) {
@@ -2410,7 +2430,7 @@ test('library, mathTan', () => {
 //
 
 
-test('library, numberToFixed', () => {
+test('library, numberParseFloat', () => {
     assert.equal(scriptFunctions.numberParseFloat(['123.45'], null), 123.45);
 
     // Parse failure
@@ -2499,7 +2519,7 @@ test('library, numberParseInt', () => {
 });
 
 
-test('library, numberParseFloat', () => {
+test('library, numberToFixed', () => {
     assert.equal(scriptFunctions.numberToFixed([1.125], null), '1.13');
 
     // Digits
@@ -2553,6 +2573,77 @@ test('library, numberParseFloat', () => {
         {
             'name': 'ValueArgsError',
             'message': 'Invalid "digits" argument value, -1'
+        }
+    );
+});
+
+
+test('library, numberToString', () => {
+    assert.equal(scriptFunctions.numberToString([123], null), '123');
+    assert.equal(scriptFunctions.numberToString([123, 2], null), '1111011');
+    assert.equal(scriptFunctions.numberToString([123, 16], null), '7b');
+
+    // Non-integer value
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([123.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, 123.5'
+        }
+    );
+
+    // Negative value
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([-123], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, -123'
+        }
+    );
+
+    // Non-number radix
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([10, 'abc'], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, "abc"'
+        }
+    );
+
+    // Non-integer radix
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([10, 2.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 2.5'
+        }
+    );
+
+    // Invalid radix
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([10, 1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 1'
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.numberToString([10, 37], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "radix" argument value, 37'
         }
     );
 });
@@ -3579,6 +3670,40 @@ test('library, stringCharCodeAt', () => {
         {
             'name': 'ValueArgsError',
             'message': 'Invalid "index" argument value, 1.5',
+            'returnValue': null
+        }
+    );
+});
+
+
+test('library, stringDecode', () => {
+    assert.deepEqual(scriptFunctions.stringDecode([[102, 111, 111]], null), 'foo');
+
+    // Non-string value
+    assert.throws(
+        () => {
+            scriptFunctions.stringDecode([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "bytes" argument value, null',
+            'returnValue': null
+        }
+    );
+});
+
+
+test('library, stringEncode', () => {
+    assert.deepEqual(scriptFunctions.stringEncode(['foo'], null), [102, 111, 111]);
+
+    // Non-string value
+    assert.throws(
+        () => {
+            scriptFunctions.stringEncode([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
             'returnValue': null
         }
     );
