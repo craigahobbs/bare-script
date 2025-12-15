@@ -282,6 +282,7 @@ flat = arrayFlat(nested, 2)
 - [arrayNewSize](#var.vPublish=true&var.vSingle=true&arraynewsize)
 - [arrayPop](#var.vPublish=true&var.vSingle=true&arraypop)
 - [arrayPush](#var.vPublish=true&var.vSingle=true&arraypush)
+- [arrayReverse](#var.vPublish=true&var.vSingle=true&arrayreverse)
 - [arraySet](#var.vPublish=true&var.vSingle=true&arrayset)
 - [arrayShift](#var.vPublish=true&var.vSingle=true&arrayshift)
 - [arraySlice](#var.vPublish=true&var.vSingle=true&arrayslice)
@@ -517,6 +518,21 @@ The array
 
 ---
 
+### arrayReverse
+
+Reverse an array in place
+
+#### Arguments
+
+**array -**
+The array
+
+#### Returns
+
+The reversed array
+
+---
+
 ### arraySet
 
 Set an array element value
@@ -576,7 +592,7 @@ The new array slice
 
 ### arraySort
 
-Sort an array
+Sort an array in place
 
 #### Arguments
 
@@ -3570,6 +3586,7 @@ trimmed = numberToFixed(3.5, 2, true)  # '3.5' instead of '3.50'
 - [numberParseFloat](#var.vPublish=true&var.vSingle=true&numberparsefloat)
 - [numberParseInt](#var.vPublish=true&var.vSingle=true&numberparseint)
 - [numberToFixed](#var.vPublish=true&var.vSingle=true&numbertofixed)
+- [numberToString](#var.vPublish=true&var.vSingle=true&numbertostring)
 
 ---
 
@@ -3624,6 +3641,24 @@ Optional (default is false). If true, trim trailing zeroes and decimal point.
 #### Returns
 
 The fixed-point notation string
+
+---
+
+### numberToString
+
+Convert an integer to a string
+
+#### Arguments
+
+**x -**
+The integer
+
+**radix -**
+Optional (default is 10). The number base.
+
+#### Returns
+
+The integer as a string of the given base
 
 ---
 
@@ -4438,6 +4473,8 @@ message = 'The answer is ' + 42  # Automatic conversion
 ### Function Index
 
 - [stringCharCodeAt](#var.vPublish=true&var.vSingle=true&stringcharcodeat)
+- [stringDecode](#var.vPublish=true&var.vSingle=true&stringdecode)
+- [stringEncode](#var.vPublish=true&var.vSingle=true&stringencode)
 - [stringEndsWith](#var.vPublish=true&var.vSingle=true&stringendswith)
 - [stringFromCharCode](#var.vPublish=true&var.vSingle=true&stringfromcharcode)
 - [stringIndexOf](#var.vPublish=true&var.vSingle=true&stringindexof)
@@ -4470,6 +4507,36 @@ The character index
 #### Returns
 
 The character code
+
+---
+
+### stringDecode
+
+Decode a UTF-8 byte value array to a string
+
+#### Arguments
+
+**bytes -**
+The UTF-8 byte array
+
+#### Returns
+
+The string
+
+---
+
+### stringEncode
+
+Encode a string as a UTF-8 byte value array
+
+#### Arguments
+
+**string -**
+The string
+
+#### Returns
+
+The UTF-8 byte array
 
 ---
 
