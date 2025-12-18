@@ -1,7 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-include <unittest.bare>
+include '../dataTable.bare'
+include '../unittest.bare'
 
 
 function testDataTableMarkdown():
