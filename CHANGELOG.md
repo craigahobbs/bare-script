@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.16 (2025-12-18)
+
+- [815b4a6](https://github.com/craigahobbs/bare-script/commit/815b4a6) - add qrcode.bare
+
 ## 3.8.15 (2025-12-15)
 
 - [ef54019](https://github.com/craigahobbs/bare-script/commit/ef54019) - add arrayReverse, numberToString, stringEncode, and stringDecode library functions
