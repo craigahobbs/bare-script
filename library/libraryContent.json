@@ -24,6 +24,7 @@
     "number": "content/number.md",
     "object": "content/object.md",
     "pager.bare": "content/pager.md",
+    "qrcode.bare": "content/qrcode.md",
     "regex": "content/regex.md",
     "schema": "content/schema.md",
     "schemaDoc.bare": "content/schemaDoc-bare.md",
