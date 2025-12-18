@@ -33,6 +33,7 @@ globals.
 - [number](#var.vPublish=true&var.vSingle=true&number)
 - [object](#var.vPublish=true&var.vSingle=true&object)
 - [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare)
+- [qrcode.bare](#var.vPublish=true&var.vSingle=true&qrcode-bare)
 - [regex](#var.vPublish=true&var.vSingle=true&regex)
 - [schema](#var.vPublish=true&var.vSingle=true&schema)
 - [schemaDoc.bare](#var.vPublish=true&var.vSingle=true&schemadoc-bare)
@@ -3972,6 +3973,60 @@ The [pager model](model.html#var.vName='Pager')
 #### Returns
 
 The validated [pager model](model.html#var.vName='Pager') or null if validation fails
+
+---
+
+## qrcode.bare
+
+### Function Index
+
+- [qrcodeDraw](#var.vPublish=true&var.vSingle=true&qrcodedraw)
+- [qrcodeMatrix](#var.vPublish=true&var.vSingle=true&qrcodematrix)
+
+---
+
+### qrcodeDraw
+
+Draw a QR code at the specified position and size
+
+#### Arguments
+
+**message -**
+The QR code message or the QR code matrix
+
+**x -**
+The X-coordinate, in pixels, of the left-side of the QR code
+
+**y -**
+The Y-coordinate, in pixels, of the top of the QR code
+
+**size -**
+The size of the QR code, in pixels
+
+**level -**
+Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+
+#### Returns
+
+Nothing
+
+---
+
+### qrcodeMatrix
+
+Generate a QR code pixel matrix
+
+#### Arguments
+
+**message -**
+The QR code message
+
+**level -**
+Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+
+#### Returns
+
+The QR code pixel matrix
 
 ---
 
