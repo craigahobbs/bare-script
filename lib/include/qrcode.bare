@@ -55,90 +55,92 @@ endfunction
 function qrcodeMatrix(message, level):
     level = if(level != null, level, 'low')
 
-    # Find the QR code model
-    for qrcode in qrcodeVersions:
-        size = objectGet(qrcode, 'size')
-        alignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
-        ecLevel = objectGet(qrcode, level)
-        totalCodewords = objectGet(ecLevel, 'totalCodewords')
-
-        # Create the pixel matrix
-        matrix = []
-        ixRow = 0
-        while ixRow < size:
-            arrayPush(matrix, arrayNewSize(size, null))
-            ixRow = ixRow + 1
-        endwhile
-
-        # Position squares
-        qrcodeMatrixPositionSquare(matrix, 3, 3)
-        qrcodeMatrixPositionSquare(matrix, 3, size - 4)
-        qrcodeMatrixPositionSquare(matrix, size - 4, 3)
-
-        # Alignment patterns
-        if alignmentPatterns:
-            ixLast = arrayLength(alignmentPatterns) - 1
-            for alignX, ixX in alignmentPatterns:
-                for alignY, ixY in alignmentPatterns:
-                    if !(ixX == 0 && ixY == 0) && !(ixX == 0 && ixY == ixLast) && !(ixX == ixLast && ixY == 0):
-                        qrcodeMatrixAlignmentPattern(matrix, alignX, alignY)
-                    endif
-                endfor
-            endfor
-        endif
-
-        # Timing strip
-        qrcodeMatrixTimingStrips(matrix)
-
-        # Format strips - use mask 0 as placeholder bits for qrcodeDataPixels
-        qrcodeMatrixFormatStrips(matrix, level, 0)
-
-        # Version blocks
-        qrcodeMatrixVersionBlocks(matrix, qrcode)
-
-        # Get the message bits (mode, version, message, terminator) - non-null means we've found it
-        messageBits = qrcodeMessageBits(qrcode, level, message)
+    # Find the QR code model that fits the message bits (mode, version, message, terminator)
+    qrcode = null
+    for qrcodeFind in qrcodeVersions:
+        messageBits = qrcodeMessageBits(qrcodeFind, level, message)
         if messageBits != null:
-            # Compute the data pixels
-            dataPixels = qrcodeDataPixels(matrix)
-
-            # Compute the data bits
-            dataBits = qrcodeDataBits(qrcode, level, message)
-
-            # Add the data remainder bits
-            remainderLength = arrayLength(dataPixels) - totalCodewords * 8
-            if remainderLength > 0:
-                arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
-            endif
-
-            # Compute the penalty for each mask
-            bestMatrix = null
-            bestPenalty = null
-            mask = 0
-            while mask < 8:
-                # Set full data bits with mask
-                maskMatrix = jsonParse(jsonStringify(matrix))
-                qrcodeMatrixPixels(maskMatrix, dataPixels, dataBits, mask)
-
-                # Set the format strips bits
-                qrcodeMatrixFormatStrips(maskMatrix, level, mask)
-
-                # Compute the mask's penalty
-                maskPenalty = qrcodeMatrixPenalty(maskMatrix)
-                if bestPenalty == null || maskPenalty < bestPenalty:
-                    bestMatrix = maskMatrix
-                    bestPenalty = maskPenalty
-                endif
-                mask = mask + 1
-            endwhile
-
-            return bestMatrix
+            qrcode = qrcodeFind
+            break
         endif
     endfor
+    if qrcode == null:
+        systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
+        return null
+    endif
+    size = objectGet(qrcode, 'size')
+    alignmentPatterns = objectGet(qrcode, 'alignmentPatterns')
+    ecLevel = objectGet(qrcode, level)
+    totalCodewords = objectGet(ecLevel, 'totalCodewords')
 
-    # Message too long
-    systemLogDebug('qrcode.bare: qrcodeMatrix - Message too long (' + stringLength(message) + ')')
-    return null
+    # Create the pixel matrix
+    matrix = []
+    ixRow = 0
+    while ixRow < size:
+        arrayPush(matrix, arrayNewSize(size, null))
+        ixRow = ixRow + 1
+    endwhile
+
+    # Position squares
+    qrcodeMatrixPositionSquare(matrix, 3, 3)
+    qrcodeMatrixPositionSquare(matrix, 3, size - 4)
+    qrcodeMatrixPositionSquare(matrix, size - 4, 3)
+
+    # Alignment patterns
+    if alignmentPatterns:
+        ixLast = arrayLength(alignmentPatterns) - 1
+        for alignX, ixX in alignmentPatterns:
+            for alignY, ixY in alignmentPatterns:
+                if !(ixX == 0 && ixY == 0) && !(ixX == 0 && ixY == ixLast) && !(ixX == ixLast && ixY == 0):
+                    qrcodeMatrixAlignmentPattern(matrix, alignX, alignY)
+                endif
+            endfor
+        endfor
+    endif
+
+    # Timing strip
+    qrcodeMatrixTimingStrips(matrix)
+
+    # Format strips - use mask 0 as placeholder bits for qrcodeDataPixels
+    qrcodeMatrixFormatStrips(matrix, level, 0)
+
+    # Version blocks
+    qrcodeMatrixVersionBlocks(matrix, qrcode)
+
+    # Compute the data pixels
+    dataPixels = qrcodeDataPixels(matrix)
+
+    # Compute the data bits
+    dataBits = qrcodeDataBits(qrcode, level, message)
+
+    # Add the data remainder bits
+    remainderLength = arrayLength(dataPixels) - totalCodewords * 8
+    if remainderLength > 0:
+        arrayExtend(dataBits, arrayNewSize(remainderLength, 0))
+    endif
+
+    # Compute the penalty for each mask
+    bestMatrix = null
+    bestPenalty = null
+    mask = 0
+    while mask < 8:
+        # Set full data bits with mask
+        maskMatrix = jsonParse(jsonStringify(matrix))
+        qrcodeMatrixPixels(maskMatrix, dataPixels, dataBits, mask)
+
+        # Set the format strips bits
+        qrcodeMatrixFormatStrips(maskMatrix, level, mask)
+
+        # Compute the mask's penalty
+        maskPenalty = qrcodeMatrixPenalty(maskMatrix)
+        if bestPenalty == null || maskPenalty < bestPenalty:
+            bestMatrix = maskMatrix
+            bestPenalty = maskPenalty
+        endif
+        mask = mask + 1
+    endwhile
+
+    return bestMatrix
 endfunction
 
 
