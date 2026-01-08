@@ -3610,6 +3610,72 @@ test('script library, schemaValidateTypeModel', () => {
 //
 
 
+test('library, stringCharAt', () => {
+    assert.equal(scriptFunctions.stringCharAt(['abc', 0], null), 'a');
+    assert.equal(scriptFunctions.stringCharAt(['abc', 0.], null), 'a');
+    assert.equal(scriptFunctions.stringCharAt(['abc', 1], null), 'b');
+    assert.equal(scriptFunctions.stringCharAt(['abc', 2], null), 'c');
+
+    // Invalid index
+    assert.throws(
+        () => {
+            scriptFunctions.stringCharAt(['abc', -1], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, -1',
+            'returnValue': null
+        }
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.stringCharAt(['abc', 4], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 4',
+            'returnValue': null
+        }
+    );
+
+    // Non-string value
+    assert.throws(
+        () => {
+            scriptFunctions.stringCharAt([null, 0], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
+
+    // Non-number index
+    assert.throws(
+        () => {
+            scriptFunctions.stringCharAt(['abc', null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, null',
+            'returnValue': null
+        }
+    );
+
+    // Non-integer index
+    assert.throws(
+        () => {
+            scriptFunctions.stringCharAt(['abc', 1.5], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "index" argument value, 1.5',
+            'returnValue': null
+        }
+    );
+});
+
+
 test('library, stringCharCodeAt', () => {
     assert.equal(scriptFunctions.stringCharCodeAt(['abc', 0], null), 97);
     assert.equal(scriptFunctions.stringCharCodeAt(['abc', 0.], null), 97);
@@ -3796,6 +3862,10 @@ test('library, stringIndexOf', () => {
 
     // Not Found with index
     assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', 5], null), -1);
+    assert.equal(scriptFunctions.stringIndexOf(['foo bar', 'bar', 7], null), -1);
+
+    // Empty string
+    assert.equal(scriptFunctions.stringIndexOf(['', 'bar'], null), -1);
 
     // Non-string value
     assert.throws(
@@ -3858,11 +3928,11 @@ test('library, stringIndexOf', () => {
     );
     assert.throws(
         () => {
-            scriptFunctions.stringIndexOf(['foo bar', 'bar', 7], null);
+            scriptFunctions.stringIndexOf(['foo bar', 'bar', 8], null);
         },
         {
             'name': 'ValueArgsError',
-            'message': 'Invalid "index" argument value, 7',
+            'message': 'Invalid "index" argument value, 8',
             'returnValue': -1
         }
     );
@@ -3874,7 +3944,7 @@ test('library, stringLastIndexOf', () => {
 
     // Index provided
     assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 10], null), 8);
-    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 10.0], null), 8);
+    assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 11.0], null), 8);
     assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 9], null), 8);
     assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 8], null), 8);
     assert.equal(scriptFunctions.stringLastIndexOf(['foo bar bar', 'bar', 7], null), 4);
@@ -3946,11 +4016,11 @@ test('library, stringLastIndexOf', () => {
     );
     assert.throws(
         () => {
-            scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 7], null);
+            scriptFunctions.stringLastIndexOf(['foo bar', 'bar', 8], null);
         },
         {
             'name': 'ValueArgsError',
-            'message': 'Invalid "index" argument value, 7',
+            'message': 'Invalid "index" argument value, 8',
             'returnValue': -1
         }
     );

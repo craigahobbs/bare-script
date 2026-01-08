@@ -1,0 +1,369 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+include '../elementModel.bare'
+include '../unittest.bare'
+
+
+function testElementModelValidate():
+    unittestDeepEqual( \
+        elementModelValidate({ \
+            'html': 'html', \
+            'elem': [ \
+                {'html': 'h1', 'elem': {'text': 'Title'}}, \
+                { \
+                    'html': 'p', \
+                    'attr': null, \
+                    'elem': [ \
+                        {'text': 'This is some '}, \
+                        {'text': ''}, \
+                        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'bolded text!'}} \
+                    ] \
+                }, \
+                {'html': 'hr', 'elem': null} \
+            ] \
+        }), \
+        { \
+            'html': 'html', \
+            'elem': [ \
+                {'html': 'h1', 'elem': {'text': 'Title'}}, \
+                { \
+                    'html': 'p', \
+                    'attr': null, \
+                    'elem': [ \
+                        {'text': 'This is some '}, \
+                        {'text': ''}, \
+                        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'bolded text!'}} \
+                    ] \
+                }, \
+                {'html': 'hr', 'elem': null} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testElementModelValidate')
+
+
+function testElementModelValidate_null():
+    unittestEqual(elementModelValidate(null), null)
+endfunction
+unittestRunTest('testElementModelValidate_null')
+
+
+function testElementModelValidate_callbackNull():
+    unittestDeepEqual( \
+        elementModelValidate({'html': 'html', 'callback': null}), \
+        {'html': 'html', 'callback': null} \
+    )
+endfunction
+unittestRunTest('testElementModelValidate_callbackNull')
+
+
+function testElementModelValidate_errorMissingElementMember():
+    unittestEqual(elementModelValidate({}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorMissingElementMember')
+
+
+function testElementModelValidate_errorMultipleElementMembers():
+    unittestEqual(elementModelValidate({'html': 'html', 'svg': 'svg'}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorMultipleElementMembers')
+
+
+function testElementModelValidate_errorUnknownMember():
+    unittestEqual(elementModelValidate({'html': 'html', 'unknown': 'abc'}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorUnknownMember')
+
+
+function testElementModelValidate_errorHtmlLength():
+    unittestEqual(elementModelValidate({'html': ''}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorHtmlLength')
+
+
+function testElementModelValidate_errorHtmlType():
+    unittestEqual(elementModelValidate({'html': 0}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorHtmlType')
+
+
+function testElementModelValidate_errorSvgLength():
+    unittestEqual(elementModelValidate({'svg': ''}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorSvgLength')
+
+
+function testElementModelValidate_errorSvgType():
+    unittestEqual(elementModelValidate({'svg': 0}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorSvgType')
+
+
+function testElementModelValidate_errorTextType():
+    unittestEqual(elementModelValidate({'text': 0}), {'text': 0})
+endfunction
+unittestRunTest('testElementModelValidate_errorTextType')
+
+
+function testElementModelValidate_errorAttrType():
+    unittestEqual(elementModelValidate({'html': 'html', 'attr': 0}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorAttrType')
+
+
+function testElementModelValidate_errorAttrTextElement():
+    unittestEqual(elementModelValidate({'text': 'abc', 'attr': null}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorAttrTextElement')
+
+
+function testElementModelValidate_errorElemType():
+    unittestEqual(elementModelValidate({'html': 'html', 'elem': [0]}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorElemType')
+
+
+function testElementModelValidate_errorElemTextElement():
+    unittestEqual(elementModelValidate({'text': 'abc', 'elem': null}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorElemTextElement')
+
+
+function testElementModelValidate_errorCallbackInvalidValue():
+    unittestEqual(elementModelValidate({'html': 'html', 'callback': 0}), null)
+endfunction
+unittestRunTest('testElementModelValidate_errorCallbackInvalidValue')
+
+
+function testElementModelToString_null():
+    unittestEqual(elementModelToString(null), '')
+endfunction
+unittestRunTest('testElementModelToString_null')
+
+
+function testElementModelToString_emptyArray():
+    unittestEqual(elementModelToString([]), '')
+endfunction
+unittestRunTest('testElementModelToString_emptyArray')
+
+
+function testElementModelToString_text():
+    unittestEqual(elementModelToString([{'text': 'Hello '}, {'text': 5}]), 'Hello 5')
+endfunction
+unittestRunTest('testElementModelToString_text')
+
+
+function testElementModelToString_textEscape():
+    unittestEqual(elementModelToString({'text': '<&>"\''}), '&lt;&amp;&gt;&quot;&#039;')
+endfunction
+unittestRunTest('testElementModelToString_textEscape')
+
+
+function testElementModelToString_simpleHtml():
+    unittestEqual(elementModelToString({'html': 'div'}), '<div></div>')
+endfunction
+unittestRunTest('testElementModelToString_simpleHtml')
+
+
+function testElementModelToString_htmlWithAttr():
+    unittestEqual(elementModelToString({'html': 'div', 'attr': {'id': 'foo', 'class': 'bar'}}), '<div class="bar" id="foo"></div>')
+endfunction
+unittestRunTest('testElementModelToString_htmlWithAttr')
+
+
+function testElementModelToString_attrEscape():
+    unittestEqual(elementModelToString({'html': 'div', 'attr': {'title': '"&"'}}), '<div title="&quot;&amp;&quot;"></div>')
+endfunction
+unittestRunTest('testElementModelToString_attrEscape')
+
+
+function testElementModelToString_attrNullValue():
+    unittestEqual(elementModelToString({'html': 'div', 'attr': {'id': null}}), '<div></div>')
+endfunction
+unittestRunTest('testElementModelToString_attrNullValue')
+
+
+function testElementModelToString_attrNull():
+    unittestEqual(elementModelToString({'html': 'div', 'attr': null}), '<div></div>')
+endfunction
+unittestRunTest('testElementModelToString_attrNull')
+
+
+function testElementModelToString_htmlWithChildren():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}), '<div>Hello</div>')
+endfunction
+unittestRunTest('testElementModelToString_htmlWithChildren')
+
+
+function testElementModelToString_array():
+    unittestEqual( \
+        elementModelToString([ \
+            {'html': 'p', 'elem': {'text': 'One'}}, \
+            {'html': 'p', 'elem': {'text': 'Two'}} \
+        ]), \
+        '<p>One</p><p>Two</p>' \
+    )
+endfunction
+unittestRunTest('testElementModelToString_array')
+
+
+function testElementModelToString_svg():
+    unittestEqual(elementModelToString({'svg': 'svg'}), '<svg xmlns="http://www.w3.org/2000/svg"></svg>')
+endfunction
+unittestRunTest('testElementModelToString_svg')
+
+
+function testElementModelToString_void():
+    unittestEqual(elementModelToString({'html': 'br'}), '<br />')
+endfunction
+unittestRunTest('testElementModelToString_void')
+
+
+function testElementModelToString_voidWithChildren():
+    unittestEqual(elementModelToString({'html': 'br', 'elem': {'text': 'no'}}), '<br />')
+endfunction
+unittestRunTest('testElementModelToString_voidWithChildren')
+
+
+function testElementModelToString_ignoreCallback():
+    unittestEqual(elementModelToString({'html': 'div', 'callback': null}), '<div></div>')
+endfunction
+unittestRunTest('testElementModelToString_ignoreCallback')
+
+
+function testElementModelToString_nonStringAttrValue():
+    unittestEqual(elementModelToString({'html': 'span', 'attr': {'style': 0}}), '<span style="0"></span>')
+endfunction
+unittestRunTest('testElementModelToString_nonStringAttrValue')
+
+
+function testElementModelToString_basic():
+    unittestEqual( \
+        elementModelToString([ \
+            {'html': 'h1', 'elem': {'text': 'Hello, World!'}}, \
+            [ \
+                {'html': 'p', 'elem': {'text': 'Word'}}, \
+                {'html': 'p', 'elem': [{'text': 2}, {'text': ' Words'}]}, \
+                {'html': 'p', 'elem': []}, \
+                {'html': 'p', 'elem': null} \
+            ], \
+            {'html': 'div', 'attr': {'id': 'Id', 'class': null}} \
+        ]), \
+        '<h1>Hello, World!</h1><p>Word</p><p>2 Words</p><p></p><p></p><div id="Id"></div>' \
+    )
+endfunction
+unittestRunTest('testElementModelToString_basic')
+
+
+function testElementModelToString_complex():
+    unittestEqual( \
+        elementModelToString({ \
+            'html': 'html', \
+            'elem': [ \
+                {'html': 'h1', 'elem': {'text': 'Title'}}, \
+                { \
+                    'html': 'p', \
+                    'elem': [ \
+                        {'text': 'This is some '}, \
+                        {'text': ''}, \
+                        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'bolded text!'}} \
+                    ] \
+                }, \
+                {'html': 'hr', 'elem': null} \
+            ] \
+        }), \
+        '<!DOCTYPE html>\n<html><h1>Title</h1><p>This is some <span style="font-weight: bold;">bolded text!</span></p><hr /></html>' \
+    )
+endfunction
+unittestRunTest('testElementModelToString_complex')
+
+
+function testElementModelToString_svgComplex():
+    unittestEqual( \
+        elementModelToString([ \
+            {'svg': 'svg', 'attr': {'width': '600', 'height': '400'}, 'elem': [ \
+                { \
+                    'svg': 'rect', \
+                    'attr': {'x': '10', 'y': '10', 'width': '20', 'height': '20', 'style': 'fill: #ff0000;'} \
+                }, \
+                { \
+                    'svg': 'rect', \
+                    'attr': {'x': '10', 'y': '10', 'width': '20', 'height': '20', 'style': 'fill: #00ff00;'} \
+                } \
+            ]} \
+        ]), \
+        '<svg height="400" width="600" xmlns="http://www.w3.org/2000/svg"><rect height="20" style="fill: #ff0000;" width="20" x="10" y="10"></rect><rect height="20" style="fill: #00ff00;" width="20" x="10" y="10"></rect></svg>' \
+    )
+endfunction
+unittestRunTest('testElementModelToString_svgComplex')
+
+
+function testElementModelToString_indentNumber():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}, 2), '<div>\n  Hello\n</div>\n')
+endfunction
+unittestRunTest('testElementModelToString_indentNumber')
+
+
+function testElementModelToString_indentString():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}, '\t'), '<div>\n\tHello\n</div>\n')
+endfunction
+unittestRunTest('testElementModelToString_indentString')
+
+
+function testElementModelToString_indentNull():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}, null), '<div>Hello</div>')
+endfunction
+unittestRunTest('testElementModelToString_indentNull')
+
+
+function testElementModelToString_indentComplex():
+    unittestEqual( \
+        elementModelToString({ \
+            'html': 'html', \
+            'elem': [ \
+                {'html': 'h1', 'elem': {'text': 'Title'}}, \
+                { \
+                    'html': 'p', \
+                    'elem': [ \
+                        {'text': 'This is some '}, \
+                        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'bolded text!'}} \
+                    ] \
+                } \
+            ] \
+        }, 2), \
+        '<!DOCTYPE html>\n<html>\n  <h1>\n    Title\n  </h1>\n  <p>\n    This is some \n    <span style="font-weight: bold;">\n      bolded text!\n    </span>\n  </p>\n</html>\n' \
+    )
+endfunction
+unittestRunTest('testElementModelToString_indentComplex')
+
+
+function testElementModelToString_indentVoid():
+    unittestEqual(elementModelToString({'html': 'br'}, 2), '<br />\n')
+endfunction
+unittestRunTest('testElementModelToString_indentVoid')
+
+
+function testElementModelToString_indentInvalid():
+    unittestEqual(elementModelToString({'html': 'div'}, {}), '<div></div>')
+endfunction
+unittestRunTest('testElementModelToString_indentInvalid')
+
+
+function testElementModelToString_indentNegativeNumber():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}, -1), '<div>Hello</div>')
+endfunction
+unittestRunTest('testElementModelToString_indentNegativeNumber')
+
+
+function testElementModelToString_indentZero():
+    unittestEqual(elementModelToString({'html': 'div', 'elem': {'text': 'Hello'}}, 0), '<div>Hello</div>')
+endfunction
+unittestRunTest('testElementModelToString_indentZero')
+
+
+function testElementModelToString_textNoSpecialChars():
+    unittestEqual(elementModelToString({'text': 'hello world 123'}), 'hello world 123')
+endfunction
+unittestRunTest('testElementModelToString_textNoSpecialChars')

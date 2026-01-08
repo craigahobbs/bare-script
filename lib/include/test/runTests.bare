@@ -7,9 +7,10 @@ include <args.bare>
 include <baredoc.bare>
 include <dataTable.bare>
 include <diff.bare>
+#include <elementModel.bare>
 include <forms.bare>
 include <pager.bare>
-#include <qrcode.bare>
+include <qrcode.bare>
 include <schemaDoc.bare>
 include <unittest.bare>
 include <unittestMock.bare>
@@ -22,6 +23,7 @@ include '../args.bare'
 include '../baredoc.bare'
 include '../dataTable.bare'
 include '../diff.bare'
+include '../elementModel.bare'
 include '../forms.bare'
 include '../pager.bare'
 include '../qrcode.bare'
@@ -34,6 +36,7 @@ include 'testArgs.bare'
 include 'testBaredoc.bare'
 include 'testDataTable.bare'
 include 'testDiff.bare'
+include 'testElementModel.bare'
 include 'testForms.bare'
 include 'testPager.bare'
 include 'testQrcode.bare'

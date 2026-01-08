@@ -3,7 +3,6 @@
 
 include <args.bare>
 include <dataTable.bare>
-include <schemaDoc.bare>
 
 
 # $function: schemaDocMain

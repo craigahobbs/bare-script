@@ -43,6 +43,69 @@ function qrcodeDraw(message, x, y, size, level):
 endfunction
 
 
+# $function: qrcodeElements
+# $group: qrcode.bare
+# $doc: Generate the element model for a QR code
+# $arg message: The QR code message or the QR code matrix
+# $arg size: The size of the QR code, in pixels
+# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+# $return: The QR code SVG [element model](https://github.com/craigahobbs/element-model#readme)
+function qrcodeElements(message, size, level):
+    # Get the QR code pixel matrix
+    matrix = if(systemType(message) == 'string', qrcodeMatrix(message, level), message)
+    qrcodeSize = arrayLength(matrix)
+
+    # Compute the black pixel paths
+    # Note: The standard recommendation is a 4-module quiet zone on all sides.
+    cellPaths = []
+    ixRow = 0
+    pixelSize = size / (qrcodeSize + 8)
+    borderSize = pixelSize * 4
+    precision = 6
+    while ixRow < qrcodeSize:
+        ixCol = 0
+        while ixCol < qrcodeSize:
+            pixelValue = arrayGet(arrayGet(matrix, ixRow), ixCol)
+            if pixelValue:
+                pixelLeft = borderSize + ixCol * pixelSize
+                pixelTop = borderSize + ixRow * pixelSize
+                arrayPush(cellPaths, arrayJoin([ \
+                    'M', numberToFixed(pixelLeft, precision), numberToFixed(pixelTop, precision), \
+                    'H', numberToFixed(pixelLeft + pixelSize, precision), \
+                    'V', numberToFixed(pixelTop + pixelSize, precision), \
+                    'H', numberToFixed(pixelLeft, precision), \
+                    'Z' \
+                ], ' '))
+            endif
+            ixCol = ixCol + 1
+        endwhile
+        ixRow = ixRow + 1
+    endwhile
+
+    # Create the QR code SVG element model
+    return { \
+        'svg': 'svg', \
+        'attr': {'width': size, 'height': size}, \
+        'elem': [ \
+            { \
+                'svg': 'rect', \
+                'attr': { \
+                    'x': '0', 'y': '0', 'width': size, 'height': size, \
+                    'fill': 'white', 'stroke': 'none', 'stroke-width': '0', 'stroke-dasharray': 'none' \
+                } \
+            }, \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'fill': 'black', 'stroke': 'none', 'stroke-width': '0', 'stroke-dasharray': 'none', \
+                    'd': arrayJoin(cellPaths, ' ') \
+                } \
+            } \
+        ] \
+    }
+endfunction
+
+
 # $function: qrcodeMatrix
 # $group: qrcode.bare
 # $doc: Generate a QR code pixel matrix

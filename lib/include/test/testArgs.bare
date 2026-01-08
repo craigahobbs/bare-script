@@ -811,7 +811,7 @@ endfunction
 unittestRunTest('testArgsLinkMarkdownUpURL_noVars')
 
 
-function testArgsHelp():
+async function testArgsHelp():
     unittestDeepEqual(argsHelp(testArgsArguments), [ \
         '| Variable | Type     | Default | Explicit | Description |', \
         '|----------|----------|---------|----------|-------------|', \
@@ -827,7 +827,7 @@ endfunction
 unittestRunTest('testArgsHelp')
 
 
-function testArgsHelpDefault():
+async function testArgsHelpDefault():
     argsHelpResult = argsHelp([ \
         {'name': 'print', 'type': 'bool', 'default': true}, \
         {'name': 'begin', 'type': 'date', 'default': datetimeNew(2023, 11, 1)}, \
@@ -855,7 +855,7 @@ endfunction
 unittestRunTest('testArgsHelpDefault')
 
 
-function testArgsHelpExplicit():
+async function testArgsHelpExplicit():
     argsHelpResult = argsHelp([ \
         {'name': 'name', 'explicit': true}, \
         {'name': 'url', 'global': 'vURL'} \
@@ -870,7 +870,7 @@ endfunction
 unittestRunTest('testArgsHelpExplicit')
 
 
-function testArgsHelpDescription():
+async function testArgsHelpDescription():
     argsHelpResult = argsHelp([ \
         {'name': 'name', 'description': 'The name'}, \
         {'name': 'url', 'global': 'vURL'} \
@@ -885,7 +885,7 @@ endfunction
 unittestRunTest('testArgsHelpDescription')
 
 
-function testArgsHelpNoExtra():
+async function testArgsHelpNoExtra():
     argsHelpResult = argsHelp([ \
         {'name': 'name'}, \
         {'name': 'url', 'global': 'vURL'} \

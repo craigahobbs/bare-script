@@ -443,6 +443,25 @@ test('lintScript, function unecessary async unknown ok', () => {
 });
 
 
+test('lintScript, function unecessary async include ok', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'async': true,
+                    'statements': [
+                        {'include': {'includes': [{'url': 'util.bare'}]}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next */
+    assert.deepEqual(lintScript(validateScript(script), {'nonExistFn': null}), []);
+});
+
+
 test('lintScript, function requires async', () => {
     const script = {
         'statements': [
@@ -478,6 +497,29 @@ test('lintScript, function requires async arg', () => {
                     'name': 'testFn',
                     'statements': [
                         {'return': {'expr': {'function': {'name': 'nonAsyncFn', 'args': [{'function': {'name': 'asyncFn'}}]}}}}
+                    ]
+                }
+            }
+        ]
+    };
+    /* c8 ignore next 3 */
+    // eslint-disable-next-line require-await
+    const asyncFn = async () => true;
+    const nonAsyncFn = () => true;
+    assert.deepEqual(lintScript(validateScript(script), {asyncFn, nonAsyncFn}), [
+        ':1: Function "testFn" requires async'
+    ]);
+});
+
+
+test('lintScript, function requires async include', () => {
+    const script = {
+        'statements': [
+            {
+                'function': {
+                    'name': 'testFn',
+                    'statements': [
+                        {'include': {'includes': [{'url': 'util.bare'}]}}
                     ]
                 }
             }
