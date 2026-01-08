@@ -17,6 +17,7 @@ globals.
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
 - [datetime](#var.vPublish=true&var.vSingle=true&datetime)
 - [diff.bare](#var.vPublish=true&var.vSingle=true&diff-bare)
+- [elementModel.bare](#var.vPublish=true&var.vSingle=true&elementmodel-bare)
 - [forms.bare](#var.vPublish=true&var.vSingle=true&forms-bare)
 - [json](#var.vPublish=true&var.vSingle=true&json)
 - [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare)
@@ -1415,6 +1416,97 @@ The "right" string or array of strings
 #### Returns
 
 The array of [difference models](model.html#var.vName='Differences')
+
+---
+
+## elementModel.bare
+
+The "elementModel.bare" include library contains functions for validating and rendering
+[element models](https://github.com/craigahobbs/element-model#readme)
+to HTML or SVG strings. Element models are data structures representing HTML or SVG elements, useful
+for building user interfaces in a programmatic way.
+
+Consider the following example of creating a simple HTML element model and rendering it to a string.
+First, include the "elementModel.bare" library and define an element model for a div containing a
+heading and a paragraph.
+
+~~~ bare-script
+include <elementModel.bare>
+
+elements = elementModelValidate({ \
+    'html': 'div', \
+    'attr': {'id': 'myDiv', 'class': 'container'}, \
+    'elem': [ \
+        {'html': 'h1', 'elem': {'text': 'Hello, World!'}}, \
+        {'html': 'p', 'elem': {'text': 'This is a paragraph.'}} \
+    ] \
+})
+~~~
+
+Then, render the element model to an HTML string using the `elementModelToString` function:
+
+~~~ bare-script
+htmlString = elementModelToString(elements)
+~~~
+
+For SVG elements, set the tag to 'svg' instead of 'html'. The `elementModelToString` function will
+automatically add the necessary xmlns attribute for SVG.
+
+~~~ bare-script
+elements = elementModelValidate({ \
+    'svg': 'svg', \
+    'attr': {'width': '100', 'height': '100'}, \
+    'elem': { \
+        'svg': 'circle', \
+        'attr': {'cx': '50', 'cy': '50', 'r': '40', 'fill': 'blue'} \
+    } \
+})
+svgString = elementModelToString(elements)
+~~~
+
+Element models support nested arrays of elements, text nodes, attributes, and optional callback
+functions for event handling (though callbacks are ignored during stringification).
+
+
+### Function Index
+
+- [elementModelToString](#var.vPublish=true&var.vSingle=true&elementmodeltostring)
+- [elementModelValidate](#var.vPublish=true&var.vSingle=true&elementmodelvalidate)
+
+---
+
+### elementModelToString
+
+Render an element model to an HTML or SVG string
+
+#### Arguments
+
+**elements -**
+The element model.
+An element model is either null, an element object, or an array of any of these.
+
+**indent -**
+Optional (default is null). The indentation string or number of spaces
+
+#### Returns
+
+The HTML or SVG string
+
+---
+
+### elementModelValidate
+
+Validate an element model
+
+#### Arguments
+
+**elements -**
+The element model.
+An element model is either null, an element object, or an array of any of these.
+
+#### Returns
+
+The element model if valid, null otherwise
 
 ---
 
@@ -3998,6 +4090,7 @@ See the [live QR code generator demo](https://craigahobbs.github.io/qrcode/) for
 ### Function Index
 
 - [qrcodeDraw](#var.vPublish=true&var.vSingle=true&qrcodedraw)
+- [qrcodeElements](#var.vPublish=true&var.vSingle=true&qrcodeelements)
 - [qrcodeMatrix](#var.vPublish=true&var.vSingle=true&qrcodematrix)
 
 ---
@@ -4026,6 +4119,27 @@ Optional (default is 'low'). The error correction level: 'low', 'medium', 'quart
 #### Returns
 
 Nothing
+
+---
+
+### qrcodeElements
+
+Generate the element model for a QR code
+
+#### Arguments
+
+**message -**
+The QR code message or the QR code matrix
+
+**size -**
+The size of the QR code, in pixels
+
+**level -**
+Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+
+#### Returns
+
+The QR code SVG [element model](https://github.com/craigahobbs/element-model#readme)
 
 ---
 
@@ -4544,6 +4658,7 @@ message = 'The answer is ' + 42  # Automatic conversion
 
 ### Function Index
 
+- [stringCharAt](#var.vPublish=true&var.vSingle=true&stringcharat)
 - [stringCharCodeAt](#var.vPublish=true&var.vSingle=true&stringcharcodeat)
 - [stringDecode](#var.vPublish=true&var.vSingle=true&stringdecode)
 - [stringEncode](#var.vPublish=true&var.vSingle=true&stringencode)
@@ -4561,6 +4676,24 @@ message = 'The answer is ' + 42  # Automatic conversion
 - [stringStartsWith](#var.vPublish=true&var.vSingle=true&stringstartswith)
 - [stringTrim](#var.vPublish=true&var.vSingle=true&stringtrim)
 - [stringUpper](#var.vPublish=true&var.vSingle=true&stringupper)
+
+---
+
+### stringCharAt
+
+Get the character of a string at an index
+
+#### Arguments
+
+**string -**
+The string
+
+**index -**
+The index of the character
+
+#### Returns
+
+The character string
 
 ---
 
