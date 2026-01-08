@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.8.17 (2026-01-08)
+
+- [50c485e](https://github.com/craigahobbs/bare-script/commit/50c485e) - add elementModel.bare, qrcodeElements
+
+- [9f7815f](https://github.com/craigahobbs/bare-script/commit/9f7815f) - improve qrcode.bare
+
+- [5a52be3](https://github.com/craigahobbs/bare-script/commit/5a52be3) - improve qrcodeMatrix
+
 ## 3.8.16 (2025-12-18)
 
 - [815b4a6](https://github.com/craigahobbs/bare-script/commit/815b4a6) - add qrcode.bare
