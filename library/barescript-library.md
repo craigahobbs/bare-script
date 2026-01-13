@@ -3174,6 +3174,9 @@ Write text to the clipboard
 **text -**
 The text to write
 
+**type -**
+The clipboard content type (default is "text/plain")
+
 #### Returns
 
 Nothing
