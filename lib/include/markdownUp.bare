@@ -595,6 +595,7 @@ endfunction
 # $group: markdownUp.bare: window
 # $doc: Write text to the clipboard
 # $arg text: The text to write
+# $arg type: The clipboard content type (default is "text/plain")
 function windowClipboardWrite(text):
     return objectSet(markdownUpState, 'windowClipboard', text)
 endfunction
