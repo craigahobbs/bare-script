@@ -2125,6 +2125,11 @@ test('library, mathCos', () => {
 });
 
 
+test('library, mathE', () => {
+    assert.equal(scriptFunctions.mathE([], null), Math.E);
+});
+
+
 test('library, mathFloor', () => {
     assert.equal(scriptFunctions.mathFloor([1.125], null), 1);
 
