@@ -3336,6 +3336,7 @@ pi = mathPi()  # 3.141592653589793
 - [mathAtan2](#var.vPublish=true&var.vSingle=true&mathatan2)
 - [mathCeil](#var.vPublish=true&var.vSingle=true&mathceil)
 - [mathCos](#var.vPublish=true&var.vSingle=true&mathcos)
+- [mathE](#var.vPublish=true&var.vSingle=true&mathe)
 - [mathFloor](#var.vPublish=true&var.vSingle=true&mathfloor)
 - [mathLn](#var.vPublish=true&var.vSingle=true&mathln)
 - [mathLog](#var.vPublish=true&var.vSingle=true&mathlog)
@@ -3456,6 +3457,20 @@ The angle, in radians
 #### Returns
 
 The cosine of the angle
+
+---
+
+### mathE
+
+Return Euler's number
+
+#### Arguments
+
+None
+
+#### Returns
+
+Euler's number
 
 ---
 
