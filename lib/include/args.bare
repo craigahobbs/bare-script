@@ -232,7 +232,7 @@ function argsGlobalName(argument):
     global = objectGet(argument, 'global')
     if global == null:
         name = objectGet(argument, 'name')
-        global = 'v' + stringUpper(stringSlice(name, 0, 1)) + stringSlice(name, 1)
+        global = 'v' + stringUpper(stringCharAt(name, 0)) + stringSlice(name, 1)
     endif
     return global
 endfunction

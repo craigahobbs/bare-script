@@ -583,8 +583,8 @@ function qrcodeModeAlphanumericBits(message):
     messageLengthMinusOne = messageLength - 1
     ixChar = 0
     while ixChar < messageLength:
-        value1 = stringIndexOf(qrcodeModeAlphanumericStr, stringSlice(message, ixChar, ixChar + 1))
-        value2 = if(ixChar < messageLengthMinusOne, stringIndexOf(qrcodeModeAlphanumericStr, stringSlice(message, ixChar + 1, ixChar + 2)))
+        value1 = stringIndexOf(qrcodeModeAlphanumericStr, stringCharAt(message, ixChar))
+        value2 = if(ixChar < messageLengthMinusOne, stringIndexOf(qrcodeModeAlphanumericStr, stringCharAt(message, ixChar + 1)))
         if value2 == null:
             arrayExtend(messageBits, qrcodeBytesToBits([value1], 6))
         else:
