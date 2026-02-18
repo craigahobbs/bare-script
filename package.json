@@ -31,8 +31,10 @@
         "schema-markdown": "~1.2"
     },
     "devDependencies": {
+        "@eslint/js": "~10.0",
         "c8": "~10.1",
-        "eslint": "~9.39",
+        "eslint": "~10.0",
+        "globals": "^17.3.0",
         "jsdoc": "~4.0"
     }
 }
