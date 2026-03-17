@@ -4691,6 +4691,7 @@ message = 'The answer is ' + 42  # Automatic conversion
 - [stringReplace](#var.vPublish=true&var.vSingle=true&stringreplace)
 - [stringSlice](#var.vPublish=true&var.vSingle=true&stringslice)
 - [stringSplit](#var.vPublish=true&var.vSingle=true&stringsplit)
+- [stringSplitLines](#var.vPublish=true&var.vSingle=true&stringsplitlines)
 - [stringStartsWith](#var.vPublish=true&var.vSingle=true&stringstartswith)
 - [stringTrim](#var.vPublish=true&var.vSingle=true&stringtrim)
 - [stringUpper](#var.vPublish=true&var.vSingle=true&stringupper)
@@ -4958,6 +4959,21 @@ The separator string
 #### Returns
 
 The array of split-out strings
+
+---
+
+### stringSplitLines
+
+Split a string at line boundaries
+
+#### Arguments
+
+**string -**
+The string to split
+
+#### Returns
+
+The array of line strings
 
 ---
 
