@@ -132,19 +132,15 @@ function diffLinesToArray(input):
     if systemType(input) == 'array':
         lines = []
         for part in input:
-            arrayExtend(lines, regexSplit(diffRegexLineSplit, part))
+            arrayExtend(lines, stringSplitLines(part))
         endfor
         return lines
     endif
 
     # String input
-    lines = regexSplit(diffRegexLineSplit, input)
+    lines = stringSplitLines(input)
     if arrayLength(lines) == 1 && arrayGet(lines, 0) == '':
         return []
     endif
     return lines
 endfunction
-
-
-# Regex for splitting lines
-diffRegexLineSplit = regexNew('\r?\n')

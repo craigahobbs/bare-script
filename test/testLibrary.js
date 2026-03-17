@@ -4334,6 +4334,30 @@ test('library, stringSplit', () => {
 });
 
 
+test('library, stringSplitLines', () => {
+    assert.deepEqual(scriptFunctions.stringSplitLines(['foo\nbar'], null), ['foo', 'bar']);
+    assert.deepEqual(scriptFunctions.stringSplitLines(['foo\n\nbar\nbonk'], null), ['foo', '', 'bar', 'bonk']);
+
+    // Single line
+    assert.deepEqual(scriptFunctions.stringSplitLines(['foo'], null), ['foo']);
+
+    // Empty string
+    assert.deepEqual(scriptFunctions.stringSplitLines([''], null), ['']);
+
+    // Non-string value
+    assert.throws(
+        () => {
+            scriptFunctions.stringSplitLines([null], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "string" argument value, null',
+            'returnValue': null
+        }
+    );
+});
+
+
 test('library, stringStartsWith', () => {
     assert.equal(scriptFunctions.stringStartsWith(['foo bar', 'foo'], null), true);
     assert.equal(scriptFunctions.stringStartsWith(['foo bar', 'bar'], null), false);
