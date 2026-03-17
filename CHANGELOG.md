@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.8.19 (2026-03-17)
+
+- [4c5c7cf](https://github.com/craigahobbs/bare-script/commit/4c5c7cf) - add stringSplitLines library function
+
+- [77947db](https://github.com/craigahobbs/bare-script/commit/77947db) - use stringCharAt where applicable
+
 ## 3.8.18 (2026-01-26)
 
 - [c02c9e2](https://github.com/craigahobbs/bare-script/commit/c02c9e2) - add mathE function
