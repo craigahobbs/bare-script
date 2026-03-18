@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.20 (2026-03-18)
+
+- [125dfa8](https://github.com/craigahobbs/bare-script/commit/125dfa8) - add the barescriptParseExpression and barescriptEvaluateExpression functions
+
 ## 3.8.19 (2026-03-17)
 
 - [4c5c7cf](https://github.com/craigahobbs/bare-script/commit/4c5c7cf) - add stringSplitLines library function
