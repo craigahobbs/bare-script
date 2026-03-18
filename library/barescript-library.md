@@ -12,6 +12,7 @@ globals.
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
 - [array](#var.vPublish=true&var.vSingle=true&array)
 - [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare)
+- [barescript](#var.vPublish=true&var.vSingle=true&barescript)
 - [coverage](#var.vPublish=true&var.vSingle=true&coverage)
 - [data](#var.vPublish=true&var.vSingle=true&data)
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
@@ -679,6 +680,72 @@ Optional map of group name to group Markdown content URL ('' is index) or JSON r
 #### Returns
 
 Nothing
+
+---
+
+## barescript
+
+The "barescript" library contains functions for parsing and evaluating BareScript expressions. To
+parse and evaluate a BareScript expression:
+
+```barescript
+exprStr = '5 * N'
+expr = barescriptParseExpression(exprStr)
+systemLog(barescriptEvaluateExpression(expr, {'N': 10}))
+systemLog(barescriptEvaluateExpression(expr, {'N': 11}))
+```
+
+This outputs:
+
+```
+50
+55
+```
+
+
+### Function Index
+
+- [barescriptEvaluateExpression](#var.vPublish=true&var.vSingle=true&barescriptevaluateexpression)
+- [barescriptParseExpression](#var.vPublish=true&var.vSingle=true&barescriptparseexpression)
+
+---
+
+### barescriptEvaluateExpression
+
+Evaluate a [BareScript expression model](../model/#var.vName='Expression')
+
+#### Arguments
+
+**expr -**
+The [BareScript expression model](../model/#var.vName='Expression')
+
+**locals -**
+Optional (default is null). The local variables object.
+
+**builtins -**
+Optional (default is true). If true, include the [built-in expression functions](expression.html).
+
+#### Returns
+
+The expression result
+
+---
+
+### barescriptParseExpression
+
+Parse a BareScript expression
+
+#### Arguments
+
+**exprStr -**
+The expression string
+
+**arrayLiterals -**
+Optional (default is true). If true, allow array literals.
+
+#### Returns
+
+The [BareScript expression model](../model/#var.vName='Expression')
 
 ---
 
