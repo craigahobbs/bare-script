@@ -3,6 +3,7 @@
     "args.bare": "content/args.md",
     "array": "content/array.md",
     "baredoc.bare": "content/baredoc-bare.md",
+    "barescript": "content/barescript.md",
     "coverage": "content/coverage.md",
     "data": "content/data.md",
     "dataTable.bare": "content/dataTable-bare.md",

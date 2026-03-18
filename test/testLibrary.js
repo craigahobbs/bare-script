@@ -875,6 +875,83 @@ test('library, arraySort', () => {
 
 
 //
+// BareScript functions
+//
+
+
+test('library, barescriptEvaluateExpression', () => {
+    let expr = {'function': {'args': [{'number': 5.0}, {'variable': 'true'}], 'name': 'arrayNew'}};
+    assert.deepEqual(
+        scriptFunctions.barescriptEvaluateExpression([expr], null),
+        [5, true]
+    );
+
+    // Locals
+    expr = {'binary': {'left': {'number': 2.0}, 'op': '*', 'right': {'variable': 'A'}}};
+    assert.equal(
+        scriptFunctions.barescriptEvaluateExpression([expr, {'A': 5}], null),
+        10
+    );
+
+    // Builtins
+    expr = {'function': {'args': [{'function': {'args': [], 'name': 'pi'}}], 'name': 'cos'}};
+    assert.deepEqual(
+        scriptFunctions.barescriptEvaluateExpression([expr, null, true], null),
+        -1
+    );
+    assert.throws(
+        () => {
+            scriptFunctions.barescriptEvaluateExpression([expr, null, false], null);
+        },
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Undefined function "pi"'
+        }
+    );
+
+    // Invalid expression
+    assert.throws(
+        () => {
+            scriptFunctions.barescriptEvaluateExpression([{'foo': 'bar'}], null);
+        },
+        {
+            'name': 'ValidationError',
+            'message': "Unknown member 'foo'"
+        }
+    );
+});
+
+
+test('library, barescriptParseExpression', () => {
+    assert.deepEqual(
+        scriptFunctions.barescriptParseExpression(['[5, true]'], null),
+        {'function': {'args': [{'number': 5.0}, {'variable': 'true'}], 'name': 'arrayNew'}}
+    );
+
+    // No array literals
+    assert.deepEqual(
+        scriptFunctions.barescriptParseExpression(['[Field name]', false], null),
+        {'variable': 'Field name'}
+    );
+
+    // Invalid expression
+    assert.throws(
+        () => {
+            scriptFunctions.barescriptParseExpression(['foo bar', false], null);
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+Syntax error
+foo bar
+   ^
+`
+        }
+    );
+});
+
+
+//
 // Coverage functions
 //
 
