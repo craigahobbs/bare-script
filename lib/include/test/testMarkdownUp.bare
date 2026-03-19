@@ -43,14 +43,16 @@ unittestRunTest('testMarkdownUp_dataTable')
 
 
 function testMarkdownUp_dataTable_invalidData():
-    systemLogDebug('NOTICE: The following "dataValidate" error is expected:')
     unittestMockOneGeneric('systemLog')
+    unittestMockOneGeneric('systemLogDebug')
     data = [ \
         {'A': 1}, \
         {'A': 'asdfasdf'} \
     ]
     unittestEqual(dataTable(data), null)
-    unittestDeepEqual(unittestMockEnd(), [])
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+    ])
 endfunction
 unittestRunTest('testMarkdownUp_dataTable_invalidData')
 

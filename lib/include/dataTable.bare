@@ -1,6 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <data.bare>
+
 
 # The data table model's Schema Markdown
 dataTableTypes = schemaParse( \

@@ -1,0 +1,674 @@
+# Licensed the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../baredocCLI.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testBaredocCLIParse():
+    source = arrayJoin([ \
+        '# $function: myFunction', \
+        '# $group: My Group', \
+        '# $doc: This is my function.', \
+        '# $doc:', \
+        '# $doc: More on the function.', \
+        '# $arg arg1: The first argument', \
+        '# $arg arg2: The second argument.', \
+        '# $arg arg2:', \
+        '# $arg arg2: More on the second argument.', \
+        '# $return: The message', \
+        'function myFunction(arg1, arg2)', \
+        "    message = 'Hello'", \
+        '    systemLog(message)', \
+        '    return message', \
+        'endfunction' \
+    ], '\n')
+    functions = {}
+    errors = baredocCLIParse(functions, source)
+    unittestDeepEqual(errors, [])
+    unittestDeepEqual(functions, { \
+        'myFunction': { \
+            'args': [ \
+                {'doc': ['The first argument'], 'name': 'arg1'}, \
+                {'doc': ['The second argument.', '', 'More on the second argument.'], 'name': 'arg2'} \
+            ], \
+            'doc': ['This is my function.', '', 'More on the function.'], \
+            'group': 'My Group', \
+            'name': 'myFunction', \
+            'return': ['The message'] \
+        } \
+    })
+endfunction
+unittestRunTest('testBaredocCLIParse')
+
+
+async function testBaredocCLIMain():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function.', \
+                '# $doc:', \
+                '# $doc: More on the function.', \
+                '# $arg arg1: The first argument', \
+                '# $arg arg2: The second argument.', \
+                '# $arg arg2:', \
+                '# $arg arg2: More on the second argument.', \
+                '# $return: The message', \
+                'function myFunction(arg1, arg2)', \
+                "    message = 'Hello'", \
+                '    systemLog(message)', \
+                '    return message', \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 0)
+    expected = jsonStringify({ \
+        'functions': [ \
+            { \
+                'args': [ \
+                    {'doc': ['The first argument'], 'name': 'arg1'}, \
+                    {'doc': ['The second argument.', '', 'More on the second argument.'], 'name': 'arg2'} \
+                ], \
+                'doc': ['This is my function.', '', 'More on the function.'], \
+                'group': 'My Group', \
+                'name': 'myFunction', \
+                'return': ['The message'] \
+            } \
+        ] \
+    })
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['systemLog', [expected]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain')
+
+
+async function testBaredocCLIMain_help():
+    # Setup mock
+    unittestMockAll()
+
+    # Run
+    systemGlobalSet('vHelp', true)
+    result = baredocCLIMain()
+    systemGlobalSet('vHelp', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', [ \
+            [ \
+                '| Variable | Type   | Default | Description                                          |', \
+                '|----------|--------|---------|------------------------------------------------------|', \
+                "| vFiles   | string | '[]'    | The JSON-encoded list of input source code filenames |", \
+                '| vHelp    | bool   |         | Show argument help                                   |', \
+                "| vOutput  | string | '-'     | The output file                                      |" \
+            ] \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_help')
+
+
+async function testBaredocCLIMain_invalidFilesJSON():
+    systemLogDebug('NOTICE: The following "jsonParse" error is expected:')
+
+    # Setup mock
+    unittestMockAll()
+
+    # Run
+    systemGlobalSet('vFiles', '[')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', ['**Error:** Invalid input file list JSON']] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_invalidFilesJSON')
+
+
+async function testBaredocCLIMain_nonArrayFiles():
+    # Setup mock
+    unittestMockAll()
+
+    # Run
+    systemGlobalSet('vFiles', '"abc"')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', ['**Error:** Invalid input file list JSON']] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_nonArrayFiles')
+
+
+async function testBaredocCLIMain_stdout():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 0)
+    expected = jsonStringify({ \
+        'functions': [ \
+            { \
+                'doc': ['This is my function'], \
+                'group': 'My Group', \
+                'name': 'myFunction' \
+            } \
+        ] \
+    })
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['systemLog', [expected]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_stdout')
+
+
+async function testBaredocCLIMain_functionDocLeadingTrim():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc:', \
+                '# $doc: This is my function', \
+                '# $doc:', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 0)
+    expected = jsonStringify({ \
+        'functions': [ \
+            { \
+                'doc': ['This is my function', ''], \
+                'group': 'My Group', \
+                'name': 'myFunction' \
+            } \
+        ] \
+    })
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['systemLog', [expected]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_functionDocLeadingTrim')
+
+
+async function testBaredocCLIMain_argDocLeadingTrim():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function', \
+                '# $arg arg:', \
+                '# $arg arg: The first argument', \
+                '# $arg arg:', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 0)
+    expected = jsonStringify({ \
+        'functions': [ \
+            { \
+                'args': [{'doc': ['The first argument', ''], 'name': 'arg'}], \
+                'doc': ['This is my function'], \
+                'group': 'My Group', \
+                'name': 'myFunction' \
+            } \
+        ] \
+    })
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['systemLog', [expected]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_argDocLeadingTrim')
+
+
+async function testBaredocCLIMain_fetchError():
+    # Setup mock - systemFetch returns null for missing file
+    unittestMockAll()
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', ['```', 'Failed to load "test.bare"\nerror: No library functions', '```']] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_fetchError')
+
+
+async function testBaredocCLIMain_writeError():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function.', \
+                'function myFunction(arg1, arg2)', \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    systemGlobalSet('vOutput', 'test.json')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+    systemGlobalSet('vOutput', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    expected = jsonStringify({ \
+        'functions': [ \
+            { \
+                'doc': ['This is my function.'], \
+                'group': 'My Group', \
+                'name': 'myFunction' \
+            } \
+        ] \
+    })
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['systemFetch', [{'url': 'test.json', 'body': expected}]], \
+        ['markdownPrint', ['**Error:** Failed to write "test.json"']] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_writeError')
+
+
+async function testBaredocCLIMain_errorNoFunctions():
+    # Setup mock
+    unittestMockAll()
+
+    # Run
+    result = baredocCLIMain()
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', ['```', 'error: No library functions', '```']] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorNoFunctions')
+
+
+async function testBaredocCLIMain_errorMissingFunctionMembers():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'error: Function "myFunction" missing group', \
+                'error: Function "myFunction" missing documentation' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorMissingFunctionMembers')
+
+
+async function testBaredocCLIMain_errorKeywordOutsideFunction():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $group: My Group', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:1: group keyword outside function', \
+                'error: No library functions' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorKeywordOutsideFunction')
+
+
+async function testBaredocCLIMain_errorEmptyGroup():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group:', \
+                '# $doc: This is my function', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:2: Invalid function group name ""', \
+                'error: Function "myFunction" missing group' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorEmptyGroup')
+
+
+async function testBaredocCLIMain_errorGroupRedefinition():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $group: My Other Group', \
+                '# $doc: This is my function', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:3: Function "myFunction" group redefinition' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorGroupRedefinition')
+
+
+async function testBaredocCLIMain_errorEmptyFunction():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function:', \
+                '# $group: My Group', \
+                '# $doc: This is my function', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:1: Invalid function name ""', \
+                'test.bare:2: group keyword outside function', \
+                'test.bare:3: doc keyword outside function', \
+                'error: No library functions' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorEmptyFunction')
+
+
+async function testBaredocCLIMain_errorFunctionRedefinition():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction', \
+                '', \
+                '# $function: myFunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:8: Function "myFunction" redefinition' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorFunctionRedefinition')
+
+
+async function testBaredocCLIMain_errorArgOutsideFunction():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $arg arg: My arg', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:1: Function argument "arg" outside function', \
+                'error: No library functions' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorArgOutsideFunction')
+
+
+async function testBaredocCLIMain_errorInvalidKeyword():
+    # Setup mock
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.bare': arrayJoin([ \
+                '# $function: myFunction', \
+                '# $group: My Group', \
+                '# $doc: This is my function', \
+                '# $returns: Bad return keyword', \
+                'function myFunction()', \
+                "    systemLog('Hello')", \
+                'endfunction' \
+            ], '\n') \
+        } \
+    })
+
+    # Run
+    systemGlobalSet('vFiles', '["test.bare"]')
+    result = baredocCLIMain()
+    systemGlobalSet('vFiles', null)
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['test.bare']], \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'test.bare:4: Invalid documentation comment "returns"' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_errorInvalidKeyword')
+
+
+async function testBaredocCLIMain_noArgs():
+    # Setup mock
+    unittestMockAll()
+
+    # Run
+    result = baredocCLIMain()
+
+    # Verify
+    unittestEqual(result, 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['markdownPrint', [ \
+            '```', \
+            arrayJoin([ \
+                'error: No library functions' \
+            ], '\n'), \
+            '```' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIMain_noArgs')

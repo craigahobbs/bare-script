@@ -1,24 +1,21 @@
-The "baredoc.bare" include library provides the main entry point for creating BareScript library
-documentation applications. This library is used to generate documentation websites like the
+The "baredoc.bare" include library contains the BareScript library documentation application, baredoc.
+See baredoc in action by visiting the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
 
-To create a documentation application, include the library and call the
-[baredocMain](#var.vGroup='baredoc.bare'&baredoc) function with your library's JSON resource
-URL:
+To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#baredocmain)
+function with your [library model JSON](model.html#var.vName='BaredocLibrary') URL and library name:
 
 ~~~ bare-script
 include <baredoc.bare>
 
-baredocMain( \
-    'my-library.json', \
-    'My Library' \
-)
+baredocMain('my-library.json', 'My Library')
 ~~~
 
-The library JSON resource should contain function and type documentation in the format expected by
-the documentation renderer. You can also provide optional menu links and group content URLs:
+You can add menu links and group content URLs:
 
 ~~~ bare-script
+include <baredoc.bare>
+
 menuLinks = [ \
     ['Home', 'index.html'], \
     ['GitHub', 'https://github.com/example/my-library'] \
@@ -29,10 +26,5 @@ groupURLs = { \
     'myGroup': 'group-content.md' \
 }
 
-baredocMain( \
-    'my-library.json', \
-    'My Library', \
-    menuLinks, \
-    groupURLs \
-)
+baredocMain('my-library.json', 'My Library', menuLinks, groupURLs)
 ~~~

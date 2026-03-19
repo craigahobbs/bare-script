@@ -1,0 +1,831 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../data.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+#
+# dataParseCSV tests
+#
+
+
+function testParseCSV():
+    unittestMockAll()
+    data = dataParseCSV( \
+        'ColumnA,Column B,ColumnC,ColumnD\n' + \
+        '1,abc,"10","xyz"\n' + \
+        '2,def,"11","pdq"\n' \
+    )
+    unittestDeepEqual(data, [ \
+        {'ColumnA': '1', 'Column B': 'abc', 'ColumnC': '10', 'ColumnD': 'xyz'}, \
+        {'ColumnA': '2', 'Column B': 'def', 'ColumnC': '11', 'ColumnD': 'pdq'} \
+    ])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testParseCSV')
+
+
+function testParseCSV_array():
+    data = dataParseCSV([ \
+        'A,B\na1,b1', \
+        'a2,b2' \
+    ])
+    unittestDeepEqual(data, [ \
+        {'A': 'a1', 'B': 'b1'}, \
+        {'A': 'a2', 'B': 'b2'} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_array')
+
+
+function testParseCSV_shortRow():
+    data = dataParseCSV( \
+        'A,B\n' + \
+        'a1,b1\n' + \
+        'a2\n' \
+    )
+    unittestDeepEqual(data, [ \
+        {'A': 'a1', 'B': 'b1'}, \
+        {'A': 'a2', 'B': null} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_shortRow')
+
+
+function testParseCSV_blankLines():
+    data = dataParseCSV([ \
+        'A,B', \
+        '  ', \
+        'a1,b1', \
+        '', \
+        'a2,b2' \
+    ])
+    unittestDeepEqual(data, [ \
+        {'A': 'a1', 'B': 'b1'}, \
+        {'A': 'a2', 'B': 'b2'} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_blankLines')
+
+
+function testParseCSV_quotes():
+    data = dataParseCSV( \
+        'A,B\n' + \
+        '"a,1",b1\n' + \
+        'a2,"b,2"\n' \
+    )
+    unittestDeepEqual(data, [ \
+        {'A': 'a,1', 'B': 'b1'}, \
+        {'A': 'a2', 'B': 'b,2'} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_quotes')
+
+
+function testParseCSV_quotesEscaped():
+    data = dataParseCSV( \
+        'A,B\n' + \
+        '"a,""1""",b1\n' + \
+        'a2,"b,""2"""\n' \
+    )
+    unittestDeepEqual(data, [ \
+        {'A': 'a,"1"', 'B': 'b1'}, \
+        {'A': 'a2', 'B': 'b,"2"'} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_quotesEscaped')
+
+
+function testParseCSV_spaces():
+    data = dataParseCSV([ \
+        'A,B', \
+        ' a1,b1 ', \
+        ' "a2","b2" ' \
+    ])
+    unittestDeepEqual(data, [ \
+        {'A': ' a1', 'B': 'b1 '}, \
+        {'A': ' "a2"', 'B': 'b2'} \
+    ])
+endfunction
+unittestRunTest('testParseCSV_spaces')
+
+
+function testParseCSV_emptyFile():
+    data = dataParseCSV('')
+    unittestDeepEqual(data, [])
+endfunction
+unittestRunTest('testParseCSV_emptyFile')
+
+
+#
+# dataValidate tests
+#
+
+
+function testValidateData():
+    data = [ \
+        {'A': 1, 'B': '5', 'C': 10}, \
+        {'A': 2, 'B': '6', 'C': null}, \
+        {'A': 3, 'B': '7', 'C': null} \
+    ]
+    result = dataValidate(data)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': '5', 'C': 10}, \
+        {'A': 2, 'B': '6', 'C': null}, \
+        {'A': 3, 'B': '7', 'C': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData')
+
+
+function testValidateData_csv():
+    data = [ \
+        {'A': 1, 'B': '5', 'C': 10}, \
+        {'A': 2, 'B': 6, 'C': null}, \
+        {'A': 3, 'B': '7', 'C': 'null'}, \
+        {'A': 4, 'B': 8, 'C': ''} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 5, 'C': 10}, \
+        {'A': 2, 'B': 6, 'C': null}, \
+        {'A': 3, 'B': 7, 'C': null}, \
+        {'A': 4, 'B': 8, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_csv')
+
+
+function testValidateData_datetime():
+    data = [ \
+        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
+        {'date': '2022-08-30'}, \
+        {'date': '2022-08-30T11:04:00Z'}, \
+        {'date': null} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
+        {'date': datetimeISOParse('2022-08-30')}, \
+        {'date': datetimeISOParse('2022-08-30T11:04:00Z')}, \
+        {'date': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_datetime')
+
+
+function testValidateData_datetimeString():
+    data = [ \
+        {'date': '2022-08-30'}, \
+        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
+        {'date': '2022-08-30T11:04:00Z'}, \
+        {'date': null}, \
+        {'date': 'null'}, \
+        {'date': ''} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'date': datetimeISOParse('2022-08-30')}, \
+        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
+        {'date': datetimeISOParse('2022-08-30T11:04:00Z')}, \
+        {'date': null}, \
+        {'date': null}, \
+        {'date': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_datetimeString')
+
+
+function testValidateData_bool():
+    data = [ \
+        {'A': 1, 'B': true}, \
+        {'A': 2, 'B': false}, \
+        {'A': 3, 'B': 'true'}, \
+        {'A': 4, 'B': 'false'}, \
+        {'A': 5, 'B': null} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': true}, \
+        {'A': 2, 'B': false}, \
+        {'A': 3, 'B': true}, \
+        {'A': 4, 'B': false}, \
+        {'A': 5, 'B': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_bool')
+
+
+function testValidateData_boolString():
+    data = [ \
+        {'A': 1, 'B': 'true'}, \
+        {'A': 2, 'B': 'false'}, \
+        {'A': 3, 'B': true}, \
+        {'A': 4, 'B': false}, \
+        {'A': 5, 'B': null}, \
+        {'A': 5, 'B': 'null'}, \
+        {'A': 5, 'B': ''} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': true}, \
+        {'A': 2, 'B': false}, \
+        {'A': 3, 'B': true}, \
+        {'A': 4, 'B': false}, \
+        {'A': 5, 'B': null}, \
+        {'A': 5, 'B': null}, \
+        {'A': 5, 'B': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_boolString')
+
+
+function testValidateData_undetermined():
+    data = [ \
+        {'A': '', 'B': 'null'}, \
+        {'A': 2, 'B': ''} \
+    ]
+    result = dataValidate(data, true)
+    unittestDeepEqual(result, [ \
+        {'A': null, 'B': null}, \
+        {'A': 2, 'B': ''} \
+    ])
+endfunction
+unittestRunTest('testValidateData_undetermined')
+
+
+function testValidateData_numberError():
+    unittestMockAll()
+    data = [ \
+        {'A': 1}, \
+        {'A': '2'} \
+    ]
+    result = dataValidate(data)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_numberError')
+
+
+function testValidateData_numberErrorBool():
+    unittestMockAll()
+    data = [ \
+        {'A': 1}, \
+        {'A': true} \
+    ]
+    result = dataValidate(data)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_numberErrorBool')
+
+
+function testValidateData_numberErrorCSV():
+    unittestMockAll()
+    data = [ \
+        {'A': 1}, \
+        {'A': 'abc'} \
+    ]
+    result = dataValidate(data, true)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type number']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_numberErrorCSV')
+
+
+function testValidateData_datetimeError():
+    unittestMockAll()
+    data = [ \
+        {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
+        {'A': 2} \
+    ]
+    result = dataValidate(data)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type datetime']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_datetimeError')
+
+
+function testValidateData_datetimeErrorCSV():
+    unittestMockAll()
+    data = [ \
+        {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
+        {'A': 'abc'} \
+    ]
+    result = dataValidate(data, true)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type datetime']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_datetimeErrorCSV')
+
+
+function testValidateData_booleanError():
+    unittestMockAll()
+    data = [ \
+        {'A': false}, \
+        {'A': 2} \
+    ]
+    result = dataValidate(data)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type boolean']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_booleanError')
+
+
+function testValidateData_booleanErrorCSV():
+    unittestMockAll()
+    data = [ \
+        {'A': true}, \
+        {'A': 'abc'} \
+    ]
+    result = dataValidate(data, true)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type boolean']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_booleanErrorCSV')
+
+
+function testValidateData_stringError():
+    unittestMockAll()
+    data = [ \
+        {'A': 'a1'}, \
+        {'A': 2} \
+    ]
+    result = dataValidate(data, true)
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type string']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_stringError')
+
+
+function testValidateData_invalidDataArray():
+    unittestMockAll()
+    result = dataValidate('not an array')
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid data array']] \
+    ])
+endfunction
+unittestRunTest('testValidateData_invalidDataArray')
+
+
+#
+# dataJoin tests
+#
+
+
+function testJoinData():
+    leftData = [ \
+        {'a': 1, 'b': 5}, \
+        {'a': 1, 'b': 6}, \
+        {'a': 2, 'b': 7}, \
+        {'a': 3, 'b': 8} \
+    ]
+    rightData = [ \
+        {'a': 1, 'c': 10}, \
+        {'a': 2, 'c': 11}, \
+        {'a': 2, 'c': 12} \
+    ]
+    result = dataJoin(leftData, rightData, 'a')
+    unittestDeepEqual(result, [ \
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10}, \
+        {'a': 1, 'b': 6, 'a2': 1, 'c': 10}, \
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 11}, \
+        {'a': 2, 'b': 7, 'a2': 2, 'c': 12}, \
+        {'a': 3, 'b': 8} \
+    ])
+endfunction
+unittestRunTest('testJoinData')
+
+
+function testJoinData_left():
+    leftData = [ \
+        {'a': 1, 'b': 5}, \
+        {'a': 2, 'b': 7} \
+    ]
+    rightData = [ \
+        {'a': 1, 'c': 10} \
+    ]
+    result = dataJoin(leftData, rightData, 'a')
+    unittestDeepEqual(result, [ \
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10}, \
+        {'a': 2, 'b': 7} \
+    ])
+
+    resultLeft = dataJoin(leftData, rightData, 'a', null, true)
+    unittestDeepEqual(resultLeft, [ \
+        {'a': 1, 'b': 5, 'a2': 1, 'c': 10} \
+    ])
+endfunction
+unittestRunTest('testJoinData_left')
+
+
+function testJoinData_variables():
+    leftData = [ \
+        {'a': 1, 'b': 5}, \
+        {'a': 1, 'b': 6}, \
+        {'a': 2, 'b': 7} \
+    ]
+    rightData = [ \
+        {'a': 2, 'c': 10}, \
+        {'a': 4, 'c': 11}, \
+        {'a': 4, 'c': 12} \
+    ]
+    result = dataJoin(leftData, rightData, 'a', 'a / denominator', null, {'denominator': 2})
+    unittestDeepEqual(result, [ \
+        {'a': 1, 'b': 5, 'a2': 2, 'c': 10}, \
+        {'a': 1, 'b': 6, 'a2': 2, 'c': 10}, \
+        {'a': 2, 'b': 7, 'a2': 4, 'c': 11}, \
+        {'a': 2, 'b': 7, 'a2': 4, 'c': 12} \
+    ])
+endfunction
+unittestRunTest('testJoinData_variables')
+
+
+function testJoinData_unique():
+    leftData = [ \
+        {'a': 1, 'b': 5}, \
+        {'a': 1, 'b': 6}, \
+        {'a': 2, 'b': 7}, \
+        {'a': 3, 'b': 8} \
+    ]
+    rightData = [ \
+        {'a': 1, 'a2': 0, 'c': 10}, \
+        {'a': 2, 'a2': 0, 'c': 11}, \
+        {'a': 2, 'a2': 0, 'c': 12} \
+    ]
+    result = dataJoin(leftData, rightData, 'a')
+    unittestDeepEqual(result, [ \
+        {'a': 1, 'b': 5, 'a2': 0, 'a3': 1, 'c': 10}, \
+        {'a': 1, 'b': 6, 'a2': 0, 'a3': 1, 'c': 10}, \
+        {'a': 2, 'b': 7, 'a2': 0, 'a3': 2, 'c': 11}, \
+        {'a': 2, 'b': 7, 'a2': 0, 'a3': 2, 'c': 12}, \
+        {'a': 3, 'b': 8} \
+    ])
+endfunction
+unittestRunTest('testJoinData_unique')
+
+
+#
+# dataCalculatedField tests
+#
+
+
+function testAddCalculatedField():
+    data = [ \
+        {'A': 1, 'B': 5}, \
+        {'A': 2, 'B': 6} \
+    ]
+    result = dataCalculatedField(data, 'C', 'A * B')
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 5, 'C': 5}, \
+        {'A': 2, 'B': 6, 'C': 12} \
+    ])
+endfunction
+unittestRunTest('testAddCalculatedField')
+
+
+function testAddCalculatedField_variables():
+    data = [ \
+        {'A': 1}, \
+        {'A': 2} \
+    ]
+    result = dataCalculatedField(data, 'C', 'A * B', {'B': 5})
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'C': 5}, \
+        {'A': 2, 'C': 10} \
+    ])
+endfunction
+unittestRunTest('testAddCalculatedField_variables')
+
+
+#
+# dataFilter tests
+#
+
+
+function testFilterData():
+    data = [ \
+        {'A': 1, 'B': 5}, \
+        {'A': 6, 'B': 2}, \
+        {'A': 3, 'B': 7} \
+    ]
+    result = dataFilter(data, 'A > B')
+    unittestDeepEqual(result, [ \
+        {'A': 6, 'B': 2} \
+    ])
+endfunction
+unittestRunTest('testFilterData')
+
+
+function testFilterData_variables():
+    data = [ \
+        {'A': 1, 'B': 5}, \
+        {'A': 6, 'B': 2}, \
+        {'A': 3, 'B': 7} \
+    ]
+    result = dataFilter(data, 'A > test', {'test': 5})
+    unittestDeepEqual(result, [ \
+        {'A': 6, 'B': 2} \
+    ])
+endfunction
+unittestRunTest('testFilterData_variables')
+
+
+#
+# dataAggregate tests
+#
+
+
+function testAggregateData():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 4}, \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1} \
+    ]
+    aggregation = { \
+        'measures': [ \
+            {'field': 'C', 'function': 'average'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'C': 4.5} \
+    ])
+endfunction
+unittestRunTest('testAggregateData')
+
+
+function testAggregateData_categories():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 4}, \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'average'}, \
+            {'field': 'C', 'function': 'average', 'name': 'Average(C)'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 4.5, 'Average(C)': 4.5}, \
+        {'A': 1, 'B': 2, 'C': 7.5, 'Average(C)': 7.5}, \
+        {'A': 2, 'B': 1, 'C': 9.5, 'Average(C)': 9.5}, \
+        {'A': 2, 'B': 2, 'C': null, 'Average(C)': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_categories')
+
+
+function testAggregateData_count():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'count'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 2}, \
+        {'A': 1, 'B': 2, 'C': 2}, \
+        {'A': 2, 'B': 1, 'C': 2}, \
+        {'A': 2, 'B': 2, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_count')
+
+
+function testAggregateData_max():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 1, 'C': 4}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'max'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_max')
+
+
+function testAggregateData_min():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 1, 'C': 4}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'min'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 4}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 2, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_min')
+
+
+function testAggregateData_stddev():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 10}, \
+        {'A': 2, 'B': 1, 'C': 5}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'stddev'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 0.5}, \
+        {'A': 1, 'B': 2, 'C': 1.5}, \
+        {'A': 2, 'B': 1, 'C': 2.5}, \
+        {'A': 2, 'B': 2, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_stddev')
+
+
+function testAggregateData_sum():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 1}, \
+        {'A': 1, 'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    aggregation = { \
+        'categories': ['A', 'B'], \
+        'measures': [ \
+            {'field': 'C', 'function': 'sum'} \
+        ] \
+    }
+    result = dataAggregate(data, aggregation)
+    unittestDeepEqual(result, [ \
+        {'A': 1, 'B': 1, 'C': 11}, \
+        {'A': 1, 'B': 2, 'C': 15}, \
+        {'A': 2, 'B': 1, 'C': 19}, \
+        {'A': 2, 'B': 2, 'C': null} \
+    ])
+endfunction
+unittestRunTest('testAggregateData_sum')
+
+
+function testAggregateData_invalidModel():
+    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestMockAll()
+    result = dataAggregate([], {})
+    unittestEqual(result, null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataAggregate - invalid aggregation model']] \
+    ])
+endfunction
+unittestRunTest('testAggregateData_invalidModel')
+
+
+#
+# dataSort tests
+#
+
+
+function testSortData():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1}, \
+        {'B': 2, 'C': 7}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2} \
+    ]
+    result = dataSort(data, [['A', true], ['B', false]])
+    unittestDeepEqual(result, [ \
+        {'A': 2, 'B': 1, 'C': 9}, \
+        {'A': 2, 'B': 1, 'C': 10}, \
+        {'A': 2, 'B': 2}, \
+        {'A': 1}, \
+        {'A': 1, 'B': 1, 'C': 5}, \
+        {'A': 1, 'B': 1, 'C': 6}, \
+        {'A': 1, 'B': 2, 'C': 8}, \
+        {'B': 2, 'C': 7} \
+    ])
+endfunction
+unittestRunTest('testSortData')
+
+
+#
+# dataTop tests
+#
+
+
+function testTopData():
+    data = [ \
+        {'A': 'abc', 'B': 1, 'C': 1}, \
+        {'A': 'abc', 'B': 1, 'C': 2}, \
+        {'A': 'abc', 'B': 1, 'C': 3}, \
+        {'A': 'abc', 'B': 2, 'C': 1}, \
+        {'A': 'abc', 'B': 2, 'C': 2}, \
+        {'A': 'def', 'B': 1, 'C': 1}, \
+        {'A': 'ghi', 'C': 1} \
+    ]
+
+    result1 = dataTop(data, 2, ['A', 'B'])
+    unittestDeepEqual(result1, [ \
+        {'A': 'abc', 'B': 1, 'C': 1}, \
+        {'A': 'abc', 'B': 1, 'C': 2}, \
+        {'A': 'abc', 'B': 2, 'C': 1}, \
+        {'A': 'abc', 'B': 2, 'C': 2}, \
+        {'A': 'def', 'B': 1, 'C': 1}, \
+        {'A': 'ghi', 'C': 1} \
+    ])
+
+    result2 = dataTop(data, 1, ['A'])
+    unittestDeepEqual(result2, [ \
+        {'A': 'abc', 'B': 1, 'C': 1}, \
+        {'A': 'def', 'B': 1, 'C': 1}, \
+        {'A': 'ghi', 'C': 1} \
+    ])
+
+    result3 = dataTop(data, 3)
+    unittestDeepEqual(result3, [ \
+        {'A': 'abc', 'B': 1, 'C': 1}, \
+        {'A': 'abc', 'B': 1, 'C': 2}, \
+        {'A': 'abc', 'B': 1, 'C': 3} \
+    ])
+endfunction
+unittestRunTest('testTopData')

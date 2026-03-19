@@ -3,6 +3,7 @@
 
 include '../dataTable.bare'
 include '../unittest.bare'
+include '../unittestMock.bare'
 
 
 function testDataTableMarkdown():
@@ -117,12 +118,15 @@ unittestRunTest('testDataTableMarkdown_formats')
 
 
 function testDataTableMarkdown_invalidData():
+    unittestMockAll()
     data = [ \
         {'A': 1}, \
         {'A': 'asdfasdf'} \
     ]
-    systemLogDebug('NOTICE: The following "dataValidate" error is expected:')
     unittestDeepEqual(dataTableMarkdown(data), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+    ])
 endfunction
 unittestRunTest('testDataTableMarkdown_invalidData')
 

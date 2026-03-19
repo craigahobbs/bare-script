@@ -120,7 +120,6 @@ export DOC_EXPR_JS
 define DOC_LIBRARY_MODEL_JS
 import {fetchReadWrite, logStdout} from './lib/optionsNode.js';
 import {regexMatchTypes, systemFetchTypes} from './lib/library.js';
-import {aggregationTypes} from './lib/data.js';
 import {argv} from 'node:process';
 import {executeScriptAsync} from './lib/runtimeAsync.js';
 import {parseScript} from './lib/parser.js';
@@ -131,11 +130,12 @@ import {writeFileSync} from 'node:fs';
 const [, typeModelPath] = argv;
 
 // Create the library type model
-const types = {...aggregationTypes, ...regexMatchTypes, ...systemFetchTypes};
+const types = {...regexMatchTypes, ...systemFetchTypes};
 
 // Create the include library type model
 const script = parseScript(`\
 include 'lib/include/args.bare'
+include 'lib/include/data.bare'
 include 'lib/include/dataLineChart.bare'
 include 'lib/include/dataTable.bare'
 include 'lib/include/diff.bare'
@@ -143,6 +143,7 @@ include 'lib/include/pager.bare'
 
 includeTypes = {}
 objectAssign(includeTypes, argsTypes)
+objectAssign(includeTypes, dataAggregationTypes)
 objectAssign(includeTypes, dataLineChartTypes)
 objectAssign(includeTypes, dataTableTypes)
 objectAssign(includeTypes, diffTypes)

@@ -23,7 +23,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     # Render library JSON documentation page?
     if objectGet(args, 'doc'):
         documentSetTitle('Library')
-        markdownPrint(schemaDocMarkdown(baredocTypes, 'Library'))
+        markdownPrint(schemaDocMarkdown(baredocTypes, 'BaredocLibrary'))
         return
     endif
 
@@ -32,7 +32,7 @@ async function baredocMain(url, title, menuLinks, groupURLs):
     urls = if(systemType(url) == 'array', url, [url])
     for libraryJSON, ixLibrary in systemFetch(urls):
         libraryPart = if(libraryJSON != null, jsonParse(libraryJSON))
-        libraryPart = if(libraryPart != null, schemaValidate(baredocTypes, 'Library', libraryPart))
+        libraryPart = if(libraryPart != null, schemaValidate(baredocTypes, 'BaredocLibrary', libraryPart))
         if libraryPart == null:
             libraryURL = arrayGet(urls, ixLibrary)
             markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
@@ -294,38 +294,41 @@ endfunction
 
 # The library documentation schema
 baredocTypes = schemaParse( \
+    'group "baredoc.bare"', \
+    '', \
+    '', \
     '# A library documentation model', \
-    'struct Library', \
+    'struct BaredocLibrary', \
     '', \
     '    # The library functions', \
-    '    Function[len > 0] functions', \
+    '    BaredocFunction[] functions', \
     '', \
     '', \
     '# A library function', \
-    'struct Function', \
+    'struct BaredocFunction', \
     '', \
     '    # The function name', \
-    '    string(len > 0) name', \
+    '    string name', \
     '', \
     '    # The function group (e.g. "Math")', \
-    '    string(len > 0) group', \
+    '    string group', \
     '', \
     "    # The function's documentation Markdown lines", \
-    '    string[len > 0] doc', \
+    '    string[] doc', \
     '', \
     '    # The function arguments', \
-    '    optional FunctionArgument[len > 0] args', \
+    '    optional BaredocFunctionArgument[] args', \
     '', \
     "    # The function return's documentation Markdown lines", \
-    '    optional string[len > 0] return', \
+    '    optional string[] return', \
     '', \
     '', \
     '# A function argument', \
-    'struct FunctionArgument', \
+    'struct BaredocFunctionArgument', \
     '', \
     '    # The argument name', \
-    '    string(len > 0) name', \
+    '    string name', \
     '', \
     "    # The argument's documentation Markdown lines", \
-    '    string[len > 0] doc' \
+    '    string[] doc' \
 )

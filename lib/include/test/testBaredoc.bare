@@ -870,38 +870,38 @@ async function testBaredocMain_doc():
         ['documentSetTitle', ['Library']], \
         ['markdownPrint', [ \
             [ \
-                '# struct Library', \
+                '# struct BaredocLibrary', \
                 '', \
                 'A library documentation model', \
                 '', \
-                '| Name      | Type                            | Attributes     | Description           |', \
-                '|-----------|---------------------------------|----------------|-----------------------|', \
-                '| functions | [Function](#struct-function) [] | len(array) > 0 | The library functions |', \
+                '| Name      | Type                                          | Description           |', \
+                '|-----------|-----------------------------------------------|-----------------------|', \
+                '| functions | [BaredocFunction](#struct-baredocfunction) [] | The library functions |', \
                 '', \
                 '---', \
                 '', \
                 '## Referenced Types', \
                 '', \
-                '### struct Function', \
+                '### struct BaredocFunction', \
                 '', \
                 'A library function', \
                 '', \
-                '| Name   | Type                                            | Attributes                 | Description                                        |', \
-                '|--------|-------------------------------------------------|----------------------------|----------------------------------------------------|', \
-                '| name   | string                                          | len(value) > 0             | The function name                                  |', \
-                '| group  | string                                          | len(value) > 0             | The function group (e.g. "Math")                   |', \
-                "| doc    | string []                                       | len(array) > 0             | The function's documentation Markdown lines        |", \
-                '| args   | [FunctionArgument](#struct-functionargument) [] | optional<br>len(array) > 0 | The function arguments                             |', \
-                "| return | string []                                       | optional<br>len(array) > 0 | The function return's documentation Markdown lines |", \
+                '| Name   | Type                                                          | Attributes | Description                                        |', \
+                '|--------|---------------------------------------------------------------|------------|----------------------------------------------------|', \
+                '| name   | string                                                        |            | The function name                                  |', \
+                '| group  | string                                                        |            | The function group (e.g. "Math")                   |', \
+                "| doc    | string []                                                     |            | The function's documentation Markdown lines        |", \
+                '| args   | [BaredocFunctionArgument](#struct-baredocfunctionargument) [] | optional   | The function arguments                             |', \
+                "| return | string []                                                     | optional   | The function return's documentation Markdown lines |", \
                 '', \
-                '### struct FunctionArgument', \
+                '### struct BaredocFunctionArgument', \
                 '', \
                 'A function argument', \
                 '', \
-                '| Name | Type      | Attributes     | Description                                 |', \
-                '|------|-----------|----------------|---------------------------------------------|', \
-                '| name | string    | len(value) > 0 | The argument name                           |', \
-                "| doc  | string [] | len(array) > 0 | The argument's documentation Markdown lines |" \
+                '| Name | Type      | Description                                 |', \
+                '|------|-----------|---------------------------------------------|', \
+                '| name | string    | The argument name                           |', \
+                "| doc  | string [] | The argument's documentation Markdown lines |" \
             ] \
         ]] \
     ])

@@ -5,6 +5,8 @@
 # Include all system includes
 include <args.bare>
 include <baredoc.bare>
+#include <baredocCLI.bare>
+#include <data.bare>
 include <dataTable.bare>
 include <diff.bare>
 include <elementModel.bare>
@@ -21,6 +23,8 @@ coverageStart()
 # Override all system includes
 include '../args.bare'
 include '../baredoc.bare'
+include '../baredocCLI.bare'
+include '../data.bare'
 include '../dataTable.bare'
 include '../diff.bare'
 include '../elementModel.bare'
@@ -34,6 +38,8 @@ include '../unittestMock.bare'
 # Run markdownUp include library unit tests
 include 'testArgs.bare'
 include 'testBaredoc.bare'
+include 'testBaredocCLI.bare'
+include 'testData.bare'
 include 'testDataTable.bare'
 include 'testDiff.bare'
 include 'testElementModel.bare'
