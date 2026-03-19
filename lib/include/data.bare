@@ -77,7 +77,8 @@ function dataParseCSV(text):
         endfor
     endif
 
-    return result
+    # Validate the data (as CSV)
+    return dataValidate(result, true)
 endfunction
 
 dataParseCSVBlankLine = regexNew('^\s*$')
@@ -276,8 +277,8 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     endfor
 
     # Parse the join expressions
-    leftExprParsed = barescriptParseExpression(joinExpr)
-    rightExprParsed = if(rightExpr != null, barescriptParseExpression(rightExpr), leftExprParsed)
+    leftExprParsed = barescriptParseExpression(joinExpr, false)
+    rightExprParsed = if(rightExpr != null, barescriptParseExpression(rightExpr, false), leftExprParsed)
 
     # Bucket the right rows by their expression value
     rightCategoryRows = {}
@@ -322,7 +323,7 @@ endfunction
 # $return: The updated data array
 function dataCalculatedField(data, fieldName, expr, variables):
     # Parse the calculation expression
-    calcExpr = barescriptParseExpression(expr)
+    calcExpr = barescriptParseExpression(expr, false)
 
     # Compute the calculated field for each row
     for row in data:
@@ -345,7 +346,7 @@ function dataFilter(data, expr, variables):
     result = []
 
     # Parse the filter expression
-    filterExpr = barescriptParseExpression(expr)
+    filterExpr = barescriptParseExpression(expr, false)
 
     # Filter the data
     for row in data:

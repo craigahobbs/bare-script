@@ -19,8 +19,8 @@ function testParseCSV():
         '2,def,"11","pdq"\n' \
     )
     unittestDeepEqual(data, [ \
-        {'ColumnA': '1', 'Column B': 'abc', 'ColumnC': '10', 'ColumnD': 'xyz'}, \
-        {'ColumnA': '2', 'Column B': 'def', 'ColumnC': '11', 'ColumnD': 'pdq'} \
+        {'ColumnA': 1, 'Column B': 'abc', 'ColumnC': 10, 'ColumnD': 'xyz'}, \
+        {'ColumnA': 2, 'Column B': 'def', 'ColumnC': 11, 'ColumnD': 'pdq'} \
     ])
     unittestDeepEqual(unittestMockEnd(), [])
 endfunction
