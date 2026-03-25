@@ -11,7 +11,7 @@ include '../unittestMock.bare'
 #
 
 
-function testParseCSV():
+function testDataParseCSV():
     unittestMockAll()
     data = dataParseCSV( \
         'ColumnA,Column B,ColumnC,ColumnD\n' + \
@@ -24,10 +24,10 @@ function testParseCSV():
     ])
     unittestDeepEqual(unittestMockEnd(), [])
 endfunction
-unittestRunTest('testParseCSV')
+unittestRunTest('testDataParseCSV')
 
 
-function testParseCSV_array():
+function testDataParseCSV_array():
     data = dataParseCSV([ \
         'A,B\na1,b1', \
         'a2,b2' \
@@ -37,10 +37,10 @@ function testParseCSV_array():
         {'A': 'a2', 'B': 'b2'} \
     ])
 endfunction
-unittestRunTest('testParseCSV_array')
+unittestRunTest('testDataParseCSV_array')
 
 
-function testParseCSV_shortRow():
+function testDataParseCSV_shortRow():
     data = dataParseCSV( \
         'A,B\n' + \
         'a1,b1\n' + \
@@ -51,10 +51,10 @@ function testParseCSV_shortRow():
         {'A': 'a2', 'B': null} \
     ])
 endfunction
-unittestRunTest('testParseCSV_shortRow')
+unittestRunTest('testDataParseCSV_shortRow')
 
 
-function testParseCSV_blankLines():
+function testDataParseCSV_blankLines():
     data = dataParseCSV([ \
         'A,B', \
         '  ', \
@@ -67,10 +67,10 @@ function testParseCSV_blankLines():
         {'A': 'a2', 'B': 'b2'} \
     ])
 endfunction
-unittestRunTest('testParseCSV_blankLines')
+unittestRunTest('testDataParseCSV_blankLines')
 
 
-function testParseCSV_quotes():
+function testDataParseCSV_quotes():
     data = dataParseCSV( \
         'A,B\n' + \
         '"a,1",b1\n' + \
@@ -81,10 +81,10 @@ function testParseCSV_quotes():
         {'A': 'a2', 'B': 'b,2'} \
     ])
 endfunction
-unittestRunTest('testParseCSV_quotes')
+unittestRunTest('testDataParseCSV_quotes')
 
 
-function testParseCSV_quotesEscaped():
+function testDataParseCSV_quotesEscaped():
     data = dataParseCSV( \
         'A,B\n' + \
         '"a,""1""",b1\n' + \
@@ -95,10 +95,10 @@ function testParseCSV_quotesEscaped():
         {'A': 'a2', 'B': 'b,"2"'} \
     ])
 endfunction
-unittestRunTest('testParseCSV_quotesEscaped')
+unittestRunTest('testDataParseCSV_quotesEscaped')
 
 
-function testParseCSV_spaces():
+function testDataParseCSV_spaces():
     data = dataParseCSV([ \
         'A,B', \
         ' a1,b1 ', \
@@ -109,14 +109,14 @@ function testParseCSV_spaces():
         {'A': ' "a2"', 'B': 'b2'} \
     ])
 endfunction
-unittestRunTest('testParseCSV_spaces')
+unittestRunTest('testDataParseCSV_spaces')
 
 
-function testParseCSV_emptyFile():
+function testDataParseCSV_emptyFile():
     data = dataParseCSV('')
     unittestDeepEqual(data, [])
 endfunction
-unittestRunTest('testParseCSV_emptyFile')
+unittestRunTest('testDataParseCSV_emptyFile')
 
 
 #
@@ -124,7 +124,7 @@ unittestRunTest('testParseCSV_emptyFile')
 #
 
 
-function testValidateData():
+function testDataValidate():
     data = [ \
         {'A': 1, 'B': '5', 'C': 10}, \
         {'A': 2, 'B': '6', 'C': null}, \
@@ -137,10 +137,10 @@ function testValidateData():
         {'A': 3, 'B': '7', 'C': null} \
     ])
 endfunction
-unittestRunTest('testValidateData')
+unittestRunTest('testDataValidate')
 
 
-function testValidateData_csv():
+function testDataValidate_csv():
     data = [ \
         {'A': 1, 'B': '5', 'C': 10}, \
         {'A': 2, 'B': 6, 'C': null}, \
@@ -155,10 +155,10 @@ function testValidateData_csv():
         {'A': 4, 'B': 8, 'C': null} \
     ])
 endfunction
-unittestRunTest('testValidateData_csv')
+unittestRunTest('testDataValidate_csv')
 
 
-function testValidateData_datetime():
+function testDataValidate_datetime():
     data = [ \
         {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
         {'date': '2022-08-30'}, \
@@ -173,10 +173,10 @@ function testValidateData_datetime():
         {'date': null} \
     ])
 endfunction
-unittestRunTest('testValidateData_datetime')
+unittestRunTest('testDataValidate_datetime')
 
 
-function testValidateData_datetimeString():
+function testDataValidate_datetimeString():
     data = [ \
         {'date': '2022-08-30'}, \
         {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
@@ -195,10 +195,10 @@ function testValidateData_datetimeString():
         {'date': null} \
     ])
 endfunction
-unittestRunTest('testValidateData_datetimeString')
+unittestRunTest('testDataValidate_datetimeString')
 
 
-function testValidateData_bool():
+function testDataValidate_bool():
     data = [ \
         {'A': 1, 'B': true}, \
         {'A': 2, 'B': false}, \
@@ -215,10 +215,10 @@ function testValidateData_bool():
         {'A': 5, 'B': null} \
     ])
 endfunction
-unittestRunTest('testValidateData_bool')
+unittestRunTest('testDataValidate_bool')
 
 
-function testValidateData_boolString():
+function testDataValidate_boolString():
     data = [ \
         {'A': 1, 'B': 'true'}, \
         {'A': 2, 'B': 'false'}, \
@@ -239,10 +239,10 @@ function testValidateData_boolString():
         {'A': 5, 'B': null} \
     ])
 endfunction
-unittestRunTest('testValidateData_boolString')
+unittestRunTest('testDataValidate_boolString')
 
 
-function testValidateData_undetermined():
+function testDataValidate_undetermined():
     data = [ \
         {'A': '', 'B': 'null'}, \
         {'A': 2, 'B': ''} \
@@ -253,10 +253,10 @@ function testValidateData_undetermined():
         {'A': 2, 'B': ''} \
     ])
 endfunction
-unittestRunTest('testValidateData_undetermined')
+unittestRunTest('testDataValidate_undetermined')
 
 
-function testValidateData_numberError():
+function testDataValidate_numberError():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
@@ -268,10 +268,10 @@ function testValidateData_numberError():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
     ])
 endfunction
-unittestRunTest('testValidateData_numberError')
+unittestRunTest('testDataValidate_numberError')
 
 
-function testValidateData_numberErrorBool():
+function testDataValidate_numberErrorBool():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
@@ -283,10 +283,10 @@ function testValidateData_numberErrorBool():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
     ])
 endfunction
-unittestRunTest('testValidateData_numberErrorBool')
+unittestRunTest('testDataValidate_numberErrorBool')
 
 
-function testValidateData_numberErrorCSV():
+function testDataValidate_numberErrorCSV():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
@@ -298,10 +298,10 @@ function testValidateData_numberErrorCSV():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type number']] \
     ])
 endfunction
-unittestRunTest('testValidateData_numberErrorCSV')
+unittestRunTest('testDataValidate_numberErrorCSV')
 
 
-function testValidateData_datetimeError():
+function testDataValidate_datetimeError():
     unittestMockAll()
     data = [ \
         {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
@@ -313,10 +313,10 @@ function testValidateData_datetimeError():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type datetime']] \
     ])
 endfunction
-unittestRunTest('testValidateData_datetimeError')
+unittestRunTest('testDataValidate_datetimeError')
 
 
-function testValidateData_datetimeErrorCSV():
+function testDataValidate_datetimeErrorCSV():
     unittestMockAll()
     data = [ \
         {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
@@ -328,10 +328,10 @@ function testValidateData_datetimeErrorCSV():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type datetime']] \
     ])
 endfunction
-unittestRunTest('testValidateData_datetimeErrorCSV')
+unittestRunTest('testDataValidate_datetimeErrorCSV')
 
 
-function testValidateData_booleanError():
+function testDataValidate_booleanError():
     unittestMockAll()
     data = [ \
         {'A': false}, \
@@ -343,10 +343,10 @@ function testValidateData_booleanError():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type boolean']] \
     ])
 endfunction
-unittestRunTest('testValidateData_booleanError')
+unittestRunTest('testDataValidate_booleanError')
 
 
-function testValidateData_booleanErrorCSV():
+function testDataValidate_booleanErrorCSV():
     unittestMockAll()
     data = [ \
         {'A': true}, \
@@ -358,10 +358,10 @@ function testValidateData_booleanErrorCSV():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type boolean']] \
     ])
 endfunction
-unittestRunTest('testValidateData_booleanErrorCSV')
+unittestRunTest('testDataValidate_booleanErrorCSV')
 
 
-function testValidateData_stringError():
+function testDataValidate_stringError():
     unittestMockAll()
     data = [ \
         {'A': 'a1'}, \
@@ -373,10 +373,10 @@ function testValidateData_stringError():
         ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type string']] \
     ])
 endfunction
-unittestRunTest('testValidateData_stringError')
+unittestRunTest('testDataValidate_stringError')
 
 
-function testValidateData_invalidDataArray():
+function testDataValidate_invalidDataArray():
     unittestMockAll()
     result = dataValidate('not an array')
     unittestEqual(result, null)
@@ -384,7 +384,7 @@ function testValidateData_invalidDataArray():
         ['systemLogDebug', ['data: dataValidate - invalid data array']] \
     ])
 endfunction
-unittestRunTest('testValidateData_invalidDataArray')
+unittestRunTest('testDataValidate_invalidDataArray')
 
 
 #
@@ -392,7 +392,7 @@ unittestRunTest('testValidateData_invalidDataArray')
 #
 
 
-function testJoinData():
+function testDataJoin():
     leftData = [ \
         {'a': 1, 'b': 5}, \
         {'a': 1, 'b': 6}, \
@@ -413,10 +413,10 @@ function testJoinData():
         {'a': 3, 'b': 8} \
     ])
 endfunction
-unittestRunTest('testJoinData')
+unittestRunTest('testDataJoin')
 
 
-function testJoinData_left():
+function testDataJoin_left():
     leftData = [ \
         {'a': 1, 'b': 5}, \
         {'a': 2, 'b': 7} \
@@ -435,10 +435,10 @@ function testJoinData_left():
         {'a': 1, 'b': 5, 'a2': 1, 'c': 10} \
     ])
 endfunction
-unittestRunTest('testJoinData_left')
+unittestRunTest('testDataJoin_left')
 
 
-function testJoinData_variables():
+function testDataJoin_variables():
     leftData = [ \
         {'a': 1, 'b': 5}, \
         {'a': 1, 'b': 6}, \
@@ -457,10 +457,10 @@ function testJoinData_variables():
         {'a': 2, 'b': 7, 'a2': 4, 'c': 12} \
     ])
 endfunction
-unittestRunTest('testJoinData_variables')
+unittestRunTest('testDataJoin_variables')
 
 
-function testJoinData_unique():
+function testDataJoin_unique():
     leftData = [ \
         {'a': 1, 'b': 5}, \
         {'a': 1, 'b': 6}, \
@@ -481,7 +481,7 @@ function testJoinData_unique():
         {'a': 3, 'b': 8} \
     ])
 endfunction
-unittestRunTest('testJoinData_unique')
+unittestRunTest('testDataJoin_unique')
 
 
 #
@@ -489,7 +489,7 @@ unittestRunTest('testJoinData_unique')
 #
 
 
-function testAddCalculatedField():
+function testDataCalculatedField():
     data = [ \
         {'A': 1, 'B': 5}, \
         {'A': 2, 'B': 6} \
@@ -500,10 +500,10 @@ function testAddCalculatedField():
         {'A': 2, 'B': 6, 'C': 12} \
     ])
 endfunction
-unittestRunTest('testAddCalculatedField')
+unittestRunTest('testDataCalculatedField')
 
 
-function testAddCalculatedField_variables():
+function testDataCalculatedField_variables():
     data = [ \
         {'A': 1}, \
         {'A': 2} \
@@ -514,7 +514,7 @@ function testAddCalculatedField_variables():
         {'A': 2, 'C': 10} \
     ])
 endfunction
-unittestRunTest('testAddCalculatedField_variables')
+unittestRunTest('testDataCalculatedField_variables')
 
 
 #
@@ -522,7 +522,7 @@ unittestRunTest('testAddCalculatedField_variables')
 #
 
 
-function testFilterData():
+function testDataFilter():
     data = [ \
         {'A': 1, 'B': 5}, \
         {'A': 6, 'B': 2}, \
@@ -533,10 +533,10 @@ function testFilterData():
         {'A': 6, 'B': 2} \
     ])
 endfunction
-unittestRunTest('testFilterData')
+unittestRunTest('testDataFilter')
 
 
-function testFilterData_variables():
+function testDataFilter_variables():
     data = [ \
         {'A': 1, 'B': 5}, \
         {'A': 6, 'B': 2}, \
@@ -547,7 +547,7 @@ function testFilterData_variables():
         {'A': 6, 'B': 2} \
     ])
 endfunction
-unittestRunTest('testFilterData_variables')
+unittestRunTest('testDataFilter_variables')
 
 
 #
@@ -555,7 +555,7 @@ unittestRunTest('testFilterData_variables')
 #
 
 
-function testAggregateData():
+function testDataAggregate():
     data = [ \
         {'A': 1, 'B': 1, 'C': 4}, \
         {'A': 1, 'B': 1, 'C': 5}, \
@@ -571,10 +571,10 @@ function testAggregateData():
         {'C': 4.5} \
     ])
 endfunction
-unittestRunTest('testAggregateData')
+unittestRunTest('testDataAggregate')
 
 
-function testAggregateData_categories():
+function testDataAggregate_categories():
     data = [ \
         {'A': 1, 'B': 1, 'C': 4}, \
         {'A': 1, 'B': 1, 'C': 5}, \
@@ -600,10 +600,10 @@ function testAggregateData_categories():
         {'A': 2, 'B': 2, 'C': null, 'Average(C)': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_categories')
+unittestRunTest('testDataAggregate_categories')
 
 
-function testAggregateData_count():
+function testDataAggregate_count():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -628,10 +628,10 @@ function testAggregateData_count():
         {'A': 2, 'B': 2, 'C': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_count')
+unittestRunTest('testDataAggregate_count')
 
 
-function testAggregateData_max():
+function testDataAggregate_max():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -657,10 +657,10 @@ function testAggregateData_max():
         {'A': 2, 'B': 2, 'C': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_max')
+unittestRunTest('testDataAggregate_max')
 
 
-function testAggregateData_min():
+function testDataAggregate_min():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -686,10 +686,10 @@ function testAggregateData_min():
         {'A': 2, 'B': 2, 'C': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_min')
+unittestRunTest('testDataAggregate_min')
 
 
-function testAggregateData_stddev():
+function testDataAggregate_stddev():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -714,10 +714,10 @@ function testAggregateData_stddev():
         {'A': 2, 'B': 2, 'C': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_stddev')
+unittestRunTest('testDataAggregate_stddev')
 
 
-function testAggregateData_sum():
+function testDataAggregate_sum():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -742,10 +742,10 @@ function testAggregateData_sum():
         {'A': 2, 'B': 2, 'C': null} \
     ])
 endfunction
-unittestRunTest('testAggregateData_sum')
+unittestRunTest('testDataAggregate_sum')
 
 
-function testAggregateData_invalidModel():
+function testDataAggregate_invalidModel():
     systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
     unittestMockAll()
     result = dataAggregate([], {})
@@ -754,7 +754,7 @@ function testAggregateData_invalidModel():
         ['systemLogDebug', ['data: dataAggregate - invalid aggregation model']] \
     ])
 endfunction
-unittestRunTest('testAggregateData_invalidModel')
+unittestRunTest('testDataAggregate_invalidModel')
 
 
 #
@@ -762,7 +762,7 @@ unittestRunTest('testAggregateData_invalidModel')
 #
 
 
-function testSortData():
+function testDataSort():
     data = [ \
         {'A': 1, 'B': 1, 'C': 5}, \
         {'A': 1, 'B': 1, 'C': 6}, \
@@ -785,7 +785,7 @@ function testSortData():
         {'B': 2, 'C': 7} \
     ])
 endfunction
-unittestRunTest('testSortData')
+unittestRunTest('testDataSort')
 
 
 #
@@ -793,7 +793,7 @@ unittestRunTest('testSortData')
 #
 
 
-function testTopData():
+function testDataTop():
     data = [ \
         {'A': 'abc', 'B': 1, 'C': 1}, \
         {'A': 'abc', 'B': 1, 'C': 2}, \
@@ -828,4 +828,4 @@ function testTopData():
         {'A': 'abc', 'B': 1, 'C': 3} \
     ])
 endfunction
-unittestRunTest('testTopData')
+unittestRunTest('testDataTop')

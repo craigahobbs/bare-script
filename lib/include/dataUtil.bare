@@ -1,0 +1,56 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# Helper function to format labels
+function dataUtilFormatValue(value, precision, datetime, trim):
+    precision = if(precision != null, precision, dataUtilDefaultPrecision)
+    trim = if(trim != null, trim, dataUtilDefaultTrim)
+    type = systemType(value)
+    if type == 'datetime':
+        if datetime == 'year':
+            # Round to nearest year
+            valueRounded = if(datetimeMonth(value) < 6, value, datetimeNew(datetimeYear(value), 1, 1))
+            isoFormat = stringNew(valueRounded)
+            return stringSlice(isoFormat, 0, stringIndexOf(isoFormat, 'T') - 6)
+        elif datetime == 'month':
+            # Round to the nearest month
+            valueRounded = if(datetimeDay(value) < 15, value, datetimeNew(datetimeYear(value), datetimeMonth(value) + 1, 1))
+            isoFormat = stringNew(valueRounded)
+            return stringSlice(isoFormat, 0, stringIndexOf(isoFormat, 'T') - 3)
+        elif datetime == 'day':
+            isoFormat = stringNew(value)
+            return stringSlice(isoFormat, 0, stringIndexOf(isoFormat, 'T'))
+        endif
+        return regexReplace(dataUtilRegexDateCleanup, stringNew(value), '')
+    elif type == 'number':
+        numberFormat = numberToFixed(value, precision)
+        return if(trim, regexReplace(dataUtilRegexNumberCleanup, numberFormat, ''), numberFormat)
+    endif
+    return stringNew(value)
+endfunction
+
+
+# Defaults
+dataUtilDefaultPrecision = 2
+dataUtilDefaultTrim = true
+
+
+# Value formatting cleanup regex
+dataUtilRegexNumberCleanup = regexNew('\\.0*$')
+dataUtilRegexDateCleanup = regexNew('(?:(?:(?:-01)?T00:00)?:00)?(?:\\.\\d{1,6})?(?:Z|[+-]\\d\\d:\\d\\d)$')
+
+
+# Helper function to compute a value's parameter
+function dataUtilValueParameter(value, minValue, maxValue):
+    if minValue == maxValue:
+        return 0
+    endif
+    return (value - minValue) / (maxValue - minValue)
+endfunction
+
+
+# Helper function to compute a value from a parameter
+function dataUtilParameterValue(param, minValue, maxValue):
+    return minValue + param * (maxValue - minValue)
+endfunction

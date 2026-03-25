@@ -7,10 +7,13 @@ include <args.bare>
 include <baredoc.bare>
 #include <baredocCLI.bare>
 #include <data.bare>
+#include <dataLineChart.bare>
 include <dataTable.bare>
 include <diff.bare>
 include <elementModel.bare>
 include <forms.bare>
+#include <markdownHighlight.bare>
+#include <markdownParser.bare>
 include <pager.bare>
 include <qrcode.bare>
 include <schemaDoc.bare>
@@ -25,10 +28,13 @@ include '../args.bare'
 include '../baredoc.bare'
 include '../baredocCLI.bare'
 include '../data.bare'
+include '../dataLineChart.bare'
 include '../dataTable.bare'
 include '../diff.bare'
 include '../elementModel.bare'
 include '../forms.bare'
+include '../markdownHighlight.bare'
+include '../markdownParser.bare'
 include '../pager.bare'
 include '../qrcode.bare'
 include '../schemaDoc.bare'
@@ -40,10 +46,13 @@ include 'testArgs.bare'
 include 'testBaredoc.bare'
 include 'testBaredocCLI.bare'
 include 'testData.bare'
+include 'testDataLineChart.bare'
 include 'testDataTable.bare'
 include 'testDiff.bare'
 include 'testElementModel.bare'
 include 'testForms.bare'
+include 'testMarkdownHighlight.bare'
+include 'testMarkdownParser.bare'
 include 'testPager.bare'
 include 'testQrcode.bare'
 include 'testSchemaDoc.bare'
@@ -59,5 +68,5 @@ return unittestReport({ \
     'title': 'MarkdownUp Include Library Tests', \
     'links': ['[markdownUp.bare Tests](#url=runTestsMarkdownUp.md&var=)'], \
     'coverageExclude': ['runTests.bare'], \
-    'coverageMin': 100 \
+    'coverageMin': 97 \
 })

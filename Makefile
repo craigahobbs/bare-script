@@ -50,12 +50,18 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_SHELL) npx baredoc lib/library.js lib/include/*.bare -o build/doc/library/library.json
+	$(NODE_SHELL) npx bare -m \
+		-v 'vFiles' "'$$(jq -n --args '$$ARGS.positional' lib/library.js lib/include/*.bare)'" \
+		-v 'vOutput' "'build/doc/library/library.json'" \
+		-c 'include <baredocCLI.bare>' \
+		-c 'return baredocCLIMain()'
 
     # Generate the single-page library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <baredoc.bare>' \
 		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
 		> barescript-library.md
 
@@ -64,8 +70,10 @@ doc:
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <baredoc.bare>' \
 		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
 		> barescript-expression-library.md
 
@@ -74,8 +82,10 @@ doc:
 
     # Generate the single-page library model documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <schemaDoc.bare>' \
 		-c "schemaDocMain('model.json', 'The BareScript Library Models')" \
 		> barescript-library-model.md
 
@@ -84,8 +94,10 @@ doc:
 
     # Generate the single-page runtime model documentation
 	cd build/doc/model/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <schemaDoc.bare>' \
 		-c "schemaDocMain('model.json', 'The BareScript Runtime Model')" \
 		> barescript-model.md
 

@@ -3,21 +3,21 @@
 
 
 # $function: dataParseCSV
-# $group: data
+# $group: data.bare
 # $doc: Parse CSV text to a data array
 # $arg text: The CSV text
 # $return: The data array
 function dataParseCSV(text):
     # Collect all lines from variadic text arguments
-    if systemType(text) == 'string':
-        lines = stringSplitLines(text)
-    else:
+    if systemType(text) == 'array':
         lines = []
         for textPart in text:
             if textPart != null:
                 arrayExtend(lines, stringSplitLines(textPart))
             endif
         endfor
+    else:
+        lines = stringSplitLines(text)
     endif
 
     # Filter blank lines and split into rows
@@ -33,11 +33,10 @@ function dataParseCSV(text):
         linePart = line
         while linePart != null:
             # Quoted field?
-            mQuoted = regexMatch(dataParseCSVQuotedField, linePart) || regexMatch(dataParseCSVQuotedFieldEnd, linePart)
+            mQuoted = regexMatch(dataParseCSVQuotedField, linePart)
             if mQuoted != null:
                 groups = objectGet(mQuoted, 'groups')
-                fieldVal = stringReplace(objectGet(groups, '1'), '""', '"')
-                arrayPush(row, fieldVal)
+                arrayPush(row, stringReplace(objectGet(groups, '1'), '""', '"'))
                 linePart = stringSlice(linePart, stringLength(objectGet(groups, '0')))
                 continue
             endif
@@ -82,12 +81,11 @@ function dataParseCSV(text):
 endfunction
 
 dataParseCSVBlankLine = regexNew('^\s*$')
-dataParseCSVQuotedField = regexNew('^"((?:""|[^"])*)",')
-dataParseCSVQuotedFieldEnd = regexNew('^"((?:""|[^"])*)"\s*$')
+dataParseCSVQuotedField = regexNew('^"((?:""|[^"])*)"(,|\s*$)')
 
 
 # $function: dataValidate
-# $group: data
+# $group: data.bare
 # $doc: Validate a data array
 # $arg data: The data array
 # $arg csv: Optional (default is false). If true, parse value strings.
@@ -103,36 +101,30 @@ function dataValidate(data, csv):
     types = {}
     for row in data:
         for field in objectKeys(row):
-            # Skip fields whose type is already determined
-            if objectHas(types, field) && objectGet(types, field) != null:
-                continue
-            endif
-
-            value = objectGet(row, field)
-            valueType = systemType(value)
-
-            if valueType == 'boolean':
-                objectSet(types, field, 'boolean')
-            elif valueType == 'number':
-                objectSet(types, field, 'number')
-            elif valueType == 'datetime':
-                objectSet(types, field, 'datetime')
-            elif valueType == 'string':
-                if !csv:
-                    objectSet(types, field, 'string')
-                elif value == '' || value == 'null':
-                    # Can't determine type yet
-                    if !objectHas(types, field):
-                        objectSet(types, field, null)
-                    endif
-                elif datetimeISOParse(value) != null:
-                    objectSet(types, field, 'datetime')
-                elif value == 'true' || value == 'false':
+            if objectGet(types, field) == null:
+                value = objectGet(row, field)
+                valueType = systemType(value)
+                if valueType == 'boolean':
                     objectSet(types, field, 'boolean')
-                elif numberParseFloat(value) != null:
+                elif valueType == 'number':
                     objectSet(types, field, 'number')
-                else:
-                    objectSet(types, field, 'string')
+                elif valueType == 'datetime':
+                    objectSet(types, field, 'datetime')
+                elif valueType == 'string':
+                    if !csv:
+                        objectSet(types, field, 'string')
+                    elif value == '' || value == 'null':
+                        # Can't determine type yet
+                        objectSet(types, field, null)
+                    elif value == 'true' || value == 'false':
+                        objectSet(types, field, 'boolean')
+                    elif numberParseFloat(value) != null:
+                        objectSet(types, field, 'number')
+                    elif datetimeISOParse(value) != null:
+                        objectSet(types, field, 'datetime')
+                    else:
+                        objectSet(types, field, 'string')
+                    endif
                 endif
             endif
         endfor
@@ -148,9 +140,6 @@ function dataValidate(data, csv):
     # Validate and coerce field values
     for row in data:
         for field in objectKeys(row):
-            if !objectHas(types, field):
-                continue
-            endif
             fieldType = objectGet(types, field)
             value = objectGet(row, field)
             valueType = systemType(value)
@@ -158,10 +147,8 @@ function dataValidate(data, csv):
             # Null string in csv mode
             if csv && value == 'null':
                 objectSet(row, field, null)
-                continue
-            endif
 
-            if fieldType == 'number':
+            elif fieldType == 'number':
                 if csv && valueType == 'string':
                     if value == '':
                         objectSet(row, field, null)
@@ -227,7 +214,7 @@ endfunction
 
 
 # $function: dataJoin
-# $group: data
+# $group: data.bare
 # $doc: Join two data arrays
 # $arg leftData: The left data array
 # $arg rightData: The right data array
@@ -241,24 +228,20 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     # Compute the map of right field name to joined row field name (handle collisions)
     leftNames = {}
     for leftRow in leftData:
-        if systemType(leftRow) == 'object':
-            for fieldName in objectKeys(leftRow):
-                if !objectHas(leftNames, fieldName):
-                    objectSet(leftNames, fieldName, fieldName)
-                endif
-            endfor
-        endif
+        for fieldName in objectKeys(leftRow):
+            if !objectHas(leftNames, fieldName):
+                objectSet(leftNames, fieldName, fieldName)
+            endif
+        endfor
     endfor
 
     rightNamesRaw = {}
     for rightRow in rightData:
-        if systemType(rightRow) == 'object':
-            for fieldName in objectKeys(rightRow):
-                if !objectHas(rightNamesRaw, fieldName):
-                    objectSet(rightNamesRaw, fieldName, fieldName)
-                endif
-            endfor
-        endif
+        for fieldName in objectKeys(rightRow):
+            if !objectHas(rightNamesRaw, fieldName):
+                objectSet(rightNamesRaw, fieldName, fieldName)
+            endif
+        endfor
     endfor
 
     rightNames = {}
@@ -283,19 +266,21 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     # Bucket the right rows by their expression value
     rightCategoryRows = {}
     for rightRow in rightData:
-        rowVars = if(variables != null, objectAssign(objectCopy(rightRow), variables), rightRow)
-        categoryKey = jsonStringify(barescriptEvaluateExpression(rightExprParsed, rowVars))
-        if !objectHas(rightCategoryRows, categoryKey):
-            objectSet(rightCategoryRows, categoryKey, [])
+        rightRowVars = if(variables != null, objectAssign(objectCopy(rightRow), variables), rightRow)
+        categoryKey = jsonStringify(barescriptEvaluateExpression(rightExprParsed, rightRowVars))
+        rightCategoryKeys = objectGet(rightCategoryRows, categoryKey)
+        if rightCategoryKeys == null:
+            rightCategoryKeys = []
+            objectSet(rightCategoryRows, categoryKey, rightCategoryKeys)
         endif
-        arrayPush(objectGet(rightCategoryRows, categoryKey), rightRow)
+        arrayPush(rightCategoryKeys, rightRow)
     endfor
 
     # Join the left with the right
     resultData = []
     for leftRow in leftData:
-        rowVars = if(variables != null, objectAssign(objectCopy(leftRow), variables), leftRow)
-        categoryKey = jsonStringify(barescriptEvaluateExpression(leftExprParsed, rowVars))
+        leftRowVars = if(variables != null, objectAssign(objectCopy(leftRow), variables), leftRow)
+        categoryKey = jsonStringify(barescriptEvaluateExpression(leftExprParsed, leftRowVars))
         if objectHas(rightCategoryRows, categoryKey):
             for rightRow in objectGet(rightCategoryRows, categoryKey):
                 joinRow = objectCopy(leftRow)
@@ -314,7 +299,7 @@ endfunction
 
 
 # $function: dataCalculatedField
-# $group: data
+# $group: data.bare
 # $doc: Add a calculated field to a data array
 # $arg data: The data array
 # $arg fieldName: The calculated field name
@@ -336,7 +321,7 @@ endfunction
 
 
 # $function: dataFilter
-# $group: data
+# $group: data.bare
 # $doc: Filter a data array
 # $arg data: The data array
 # $arg expr: The filter expression
@@ -361,25 +346,23 @@ endfunction
 
 
 # $function: dataAggregate
-# $group: data
+# $group: data.bare
 # $doc: Aggregate a data array
 # $arg data: The data array
-# $arg aggregation: The [aggregation model](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='Aggregation')
+# $arg aggregation: The [aggregation model](model.html#var.vName='DataAggregation')
 # $return: The aggregated data array
 function dataAggregate(data, aggregation):
     # Validate the aggregation model
-    aggregation = schemaValidate(dataAggregateTypes, 'Aggregation', aggregation)
+    aggregation = schemaValidate(dataAggregationTypes, 'DataAggregation', aggregation)
     if aggregation == null:
         systemLogDebug('data: dataAggregate - invalid aggregation model')
         return null
     endif
-
     categories = objectGet(aggregation, 'categories')
     measures = objectGet(aggregation, 'measures')
 
     # Create the aggregate rows
     categoryRows = {}
-    categoryOrder = []
     for row in data:
         # Compute the category key
         if categories != null:
@@ -389,53 +372,52 @@ function dataAggregate(data, aggregation):
             endfor
             rowKey = jsonStringify(categoryValues)
         else:
+            categoryValues = null
             rowKey = ''
         endif
 
+
         # Get or create the aggregate row
-        if !objectHas(categoryRows, rowKey):
+        aggregateRow = objectGet(categoryRows, rowKey)
+        if aggregateRow == null:
             aggregateRow = {}
             objectSet(categoryRows, rowKey, aggregateRow)
-            arrayPush(categoryOrder, rowKey)
-
-            # Set category field values
             if categories != null:
                 for categoryField, ixCat in categories:
                     objectSet(aggregateRow, categoryField, arrayGet(categoryValues, ixCat))
                 endfor
             endif
         endif
-        aggregateRow = objectGet(categoryRows, rowKey)
 
         # Accumulate measure values
         for measure in measures:
             measureField = objectGet(measure, 'name', objectGet(measure, 'field'))
-            value = objectGet(row, objectGet(measure, 'field'))
-            if !objectHas(aggregateRow, measureField):
-                objectSet(aggregateRow, measureField, [])
+            measureValue = objectGet(row, objectGet(measure, 'field'))
+            measureValues = objectGet(aggregateRow, measureField)
+            if measureValues == null:
+                measureValues = []
+                objectSet(aggregateRow, measureField, measureValues)
             endif
-            if value != null:
-                arrayPush(objectGet(aggregateRow, measureField), value)
+            if measureValue != null:
+                arrayPush(measureValues, measureValue)
             endif
         endfor
     endfor
 
     # Compute the measure aggregate values
     aggregateRows = []
-    for rowKey in categoryOrder:
-        aggregateRow = objectGet(categoryRows, rowKey)
+    for categoryRowsKey in objectKeys(categoryRows):
+        aggregateRow = objectGet(categoryRows, categoryRowsKey)
         arrayPush(aggregateRows, aggregateRow)
-
         for measure in measures:
             measureField = objectGet(measure, 'name', objectGet(measure, 'field'))
-            func = objectGet(measure, 'function')
+            measureFunc = objectGet(measure, 'function')
             measureValues = objectGet(aggregateRow, measureField)
-
             if !arrayLength(measureValues):
                 objectSet(aggregateRow, measureField, null)
-            elif func == 'count':
+            elif measureFunc == 'count':
                 objectSet(aggregateRow, measureField, arrayLength(measureValues))
-            elif func == 'max':
+            elif measureFunc == 'max':
                 maxVal = arrayGet(measureValues, 0)
                 for val in measureValues:
                     if val > maxVal:
@@ -443,7 +425,7 @@ function dataAggregate(data, aggregation):
                     endif
                 endfor
                 objectSet(aggregateRow, measureField, maxVal)
-            elif func == 'min':
+            elif measureFunc == 'min':
                 minVal = arrayGet(measureValues, 0)
                 for val in measureValues:
                     if val < minVal:
@@ -451,13 +433,13 @@ function dataAggregate(data, aggregation):
                     endif
                 endfor
                 objectSet(aggregateRow, measureField, minVal)
-            elif func == 'sum':
+            elif measureFunc == 'sum':
                 sumVal = 0
                 for val in measureValues:
                     sumVal = sumVal + val
                 endfor
                 objectSet(aggregateRow, measureField, sumVal)
-            elif func == 'stddev':
+            elif measureFunc == 'stddev':
                 sumVal = 0
                 for val in measureValues:
                     sumVal = sumVal + val
@@ -469,7 +451,7 @@ function dataAggregate(data, aggregation):
                 endfor
                 objectSet(aggregateRow, measureField, mathSqrt(sumSqDiff / arrayLength(measureValues)))
             else:
-                # func == 'average'
+                # measureFunc == 'average'
                 sumVal = 0
                 for val in measureValues:
                     sumVal = sumVal + val
@@ -484,35 +466,35 @@ endfunction
 
 
 # The data aggregation model
-dataAggregateTypes = schemaParse( \
-    'group "data"', \
+dataAggregationTypes = schemaParse( \
+    'group "data.bare"', \
     '', \
     '', \
-    '# A data aggregation specification', \
-    'struct Aggregation', \
+    '# The data aggregation model', \
+    'struct DataAggregation', \
     '', \
     '    # The aggregation category fields', \
     '    optional string[len > 0] categories', \
     '', \
     '    # The aggregation measures', \
-    '    AggregationMeasure[len > 0] measures', \
+    '    DataAggregationMeasure[len > 0] measures', \
     '', \
     '', \
-    '# An aggregation measure specification', \
-    'struct AggregationMeasure', \
+    '# The aggregation measure model', \
+    'struct DataAggregationMeasure', \
     '', \
     '    # The aggregation measure field', \
     '    string field', \
     '', \
     '    # The aggregation function', \
-    '    AggregationFunction function', \
+    '    DataAggregationFunction function', \
     '', \
     '    # The aggregated-measure field name', \
     '    optional string name', \
     '', \
     '', \
-    '# An aggregation function', \
-    'enum AggregationFunction', \
+    '# The aggregation function enumeration', \
+    'enum DataAggregationFunction', \
     '', \
     '    # The average of the measure values', \
     '    average', \
@@ -535,7 +517,7 @@ dataAggregateTypes = schemaParse( \
 
 
 # $function: dataSort
-# $group: data
+# $group: data.bare
 # $doc: Sort a data array
 # $arg data: The data array
 # $arg sorts: The sort field-name/descending-sort tuples
@@ -544,25 +526,27 @@ function dataSort(data, sorts):
     return arraySort(data, systemPartial(dataSortCompare, sorts))
 endfunction
 
+
+# Helper function for dataSort
 function dataSortCompare(sorts, row1, row2):
     result = 0
     for sort in sorts:
-        if result != 0:
-            break
-        endif
         field = arrayGet(sort, 0)
         desc = arrayGet(sort, 1)
         value1 = objectGet(row1, field)
         value2 = objectGet(row2, field)
         cmp = systemCompare(value1, value2)
         result = if(desc, -cmp, cmp)
+        if result != 0:
+            break
+        endif
     endfor
     return result
 endfunction
 
 
 # $function: dataTop
-# $group: data
+# $group: data.bare
 # $doc: Keep the top rows for each category
 # $arg data: The data array
 # $arg count: The number of rows to keep (default is 1)
@@ -575,21 +559,23 @@ function dataTop(data, count, categoryFields):
     categoryRows = {}
     categoryOrder = []
     for row in data:
-        if categoryFields == null:
-            categoryKey = ''
-        else:
+        if categoryFields != null:
             categoryValues = []
             for field in categoryFields:
                 arrayPush(categoryValues, if(objectHas(row, field), objectGet(row, field), null))
             endfor
             categoryKey = jsonStringify(categoryValues)
+        else:
+            categoryKey = ''
         endif
 
-        if !objectHas(categoryRows, categoryKey):
-            objectSet(categoryRows, categoryKey, [])
+        categoryRow = objectGet(categoryRows, categoryKey)
+        if categoryRow == null:
+            categoryRow = []
+            objectSet(categoryRows, categoryKey, categoryRow)
             arrayPush(categoryOrder, categoryKey)
         endif
-        arrayPush(objectGet(categoryRows, categoryKey), row)
+        arrayPush(categoryRow, row)
     endfor
 
     # Take only the top rows per category

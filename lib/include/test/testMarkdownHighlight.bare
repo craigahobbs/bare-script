@@ -1,0 +1,939 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../markdownHighlight.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testCodeBlockElements_nullLanguage():
+    unittestDeepEqual( \
+        markdownHighlightCodeBlockElements({'lines': ['foo\nbar']}, null), \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': {'text': 'foo\nbar\n'} \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_nullLanguage')
+
+
+function testCodeBlockElements_unknownLanguage():
+    unittestDeepEqual( \
+        markdownHighlightCodeBlockElements({'language': 'unknown', 'lines': ['foo\nbar']}, null), \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': {'text': 'foo\nbar\n'} \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_unknownLanguage')
+
+
+# Copy callback helper for tests
+function testCodeBlockElements_copyCallback(text):
+    copies = systemGlobalGet('testCodeBlockElements_copies')
+    arrayPush(copies, text)
+endfunction
+
+
+async function testCodeBlockElements_copyUnknownLanguage():
+    systemGlobalSet('testCodeBlockElements_copies', [])
+    options = { \
+        'copyFn': testCodeBlockElements_copyCallback \
+    }
+    elements = markdownHighlightCodeBlockElements({'language': 'unknown', 'lines': ['foo', 'bar']}, options)
+
+    # Verify the copy link element exists
+    copyElem = arrayGet(elements, 0)
+    unittestEqual(objectGet(copyElem, 'html'), 'p')
+    unittestEqual(objectGet(objectGet(copyElem, 'attr'), 'style'), 'cursor: pointer; font-size: 0.85em; text-align: right; user-select: none;')
+    innerA = objectGet(copyElem, 'elem')
+    unittestEqual(objectGet(innerA, 'html'), 'a')
+    unittestDeepEqual(objectGet(innerA, 'elem'), {'text': 'Copy'})
+
+    # Verify the pre element
+    preElem = arrayGet(elements, 1)
+    unittestDeepEqual(preElem, { \
+        'html': 'pre', \
+        'attr': {'style': 'margin-top: 0.25em'}, \
+        'elem': { \
+            'html': 'code', \
+            'elem': {'text': 'foo\nbar\n'} \
+        } \
+    })
+
+    # Test the copy callback
+    copyCallback = objectGet(objectGet(innerA, 'callback'), 'click')
+    copyCallback()
+    unittestDeepEqual(systemGlobalGet('testCodeBlockElements_copies'), ['foo\nbar\n'])
+endfunction
+unittestRunTest('testCodeBlockElements_copyUnknownLanguage')
+
+
+async function testCodeBlockElements_copyKnownLanguage():
+    systemGlobalSet('testCodeBlockElements_copies', [])
+    options = { \
+        'copyFn': testCodeBlockElements_copyCallback \
+    }
+    elements = markdownHighlightCodeBlockElements({'language': 'barescript', 'lines': ["markdownPrint('Hello!')"]}, options)
+
+    # Verify the copy link element exists
+    copyElem = arrayGet(elements, 0)
+    unittestEqual(objectGet(copyElem, 'html'), 'p')
+    innerA = objectGet(copyElem, 'elem')
+    unittestEqual(objectGet(innerA, 'html'), 'a')
+
+    # Verify the pre element has highlighted spans
+    preElem = arrayGet(elements, 1)
+    unittestDeepEqual(preElem, { \
+        'html': 'pre', \
+        'attr': {'style': 'margin-top: 0.25em'}, \
+        'elem': { \
+            'html': 'code', \
+            'elem': [ \
+                { \
+                    'html': 'span', \
+                    'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                    'elem': {'text': 'markdownPrint'} \
+                }, \
+                {'text': '('}, \
+                { \
+                    'html': 'span', \
+                    'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                    'elem': {'text': "'Hello!'"} \
+                }, \
+                {'text': ')\n'} \
+            ] \
+        } \
+    })
+
+    # Test the copy callback
+    copyCallback = objectGet(objectGet(innerA, 'callback'), 'click')
+    copyCallback()
+    unittestDeepEqual(systemGlobalGet('testCodeBlockElements_copies'), ["markdownPrint('Hello!')\n"])
+endfunction
+unittestRunTest('testCodeBlockElements_copyKnownLanguage')
+
+
+function testCodeBlockElements_keywordWithinMultilineString():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'javascript', \
+            'lines': [ \
+                '~~~javascript', \
+                'a = `', \
+                'if x', \
+                '`', \
+                '~~~' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        {'text': '~~~javascript\na = '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '`\nif x\n`'} \
+                        }, \
+                        {'text': '\n~~~\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_keywordWithinMultilineString')
+
+
+function testCodeBlockElements_assembly():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'assembly', \
+            'lines': [ \
+                '; Simple function to add two numbers\n' + \
+                'section .text\n' + \
+                'global add_nums    ; export function\n' + \
+                '\n' + \
+                'add_nums:          ; function label\n' + \
+                '    push ebp       ; save old base pointer\n' + \
+                '    mov ebp, esp   ; set up stack frame\n' + \
+                '\n' + \
+                '    mov eax, 0x2A  ; hex number with 0x prefix\n' + \
+                '    add eax, 42    ; decimal number\n' + \
+                '    add al, 10h    ; hex with h suffix\n' + \
+                '    add eax, 01b   ; binary with b suffix\n' + \
+                '\n' + \
+                '    pop ebp        ; restore base pointer\n' + \
+                '    ret           ; return' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; Simple function to add two numbers'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-preprocessor);'}, \
+                            'elem': {'text': 'section'} \
+                        }, \
+                        {'text': ' .text\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-preprocessor);'}, \
+                            'elem': {'text': 'global'} \
+                        }, \
+                        {'text': ' add_nums    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; export function'} \
+                        }, \
+                        {'text': '\n\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-tag);'}, \
+                            'elem': {'text': 'add_nums:'} \
+                        }, \
+                        {'text': '          '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; function label'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'push'} \
+                        }, \
+                        {'text': ' ebp       '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; save old base pointer'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'mov'} \
+                        }, \
+                        {'text': ' ebp, esp   '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; set up stack frame'} \
+                        }, \
+                        {'text': '\n\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'mov'} \
+                        }, \
+                        {'text': ' eax, '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '0x2A'} \
+                        }, \
+                        {'text': '  '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; hex number with 0x prefix'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'add'} \
+                        }, \
+                        {'text': ' eax, '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '42'} \
+                        }, \
+                        {'text': '    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; decimal number'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'add'} \
+                        }, \
+                        {'text': ' al, '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '10h'} \
+                        }, \
+                        {'text': '    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; hex with h suffix'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'add'} \
+                        }, \
+                        {'text': ' eax, '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '01b'} \
+                        }, \
+                        {'text': '   '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; binary with b suffix'} \
+                        }, \
+                        {'text': '\n\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'pop'} \
+                        }, \
+                        {'text': ' ebp        '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; restore base pointer'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'ret'} \
+                        }, \
+                        {'text': '           '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '; return'} \
+                        }, \
+                        {'text': '\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_assembly')
+
+
+function testCodeBlockElements_barescript():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'barescript', \
+            'lines': [ \
+                '# Iterate over an array\n', \
+                "number5 = 'alive'\n" + \
+                'for number in [1, 2, 3]:\n' + \
+                "    markfownPrint('Number ' + number);\n" + \
+                'endfor\n' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '# Iterate over an array'} \
+                        }, \
+                        {'text': '\nnumber5 = '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'alive'"} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'for'} \
+                        }, \
+                        {'text': ' number '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'in'} \
+                        }, \
+                        {'text': ' ['}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '1'} \
+                        }, \
+                        {'text': ', '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '2'} \
+                        }, \
+                        {'text': ', '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '3'} \
+                        }, \
+                        {'text': "]:\n    markfownPrint("}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'Number '"} \
+                        }, \
+                        {'text': ' + number);\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'endfor'} \
+                        }, \
+                        {'text': '\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_barescript')
+
+
+function testCodeBlockElements_c():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'c', \
+            'lines': [ \
+                '#include <stdio.h>\n' + \
+                '\n' + \
+                'int main() {\n' + \
+                '    // Variable declarations\n' + \
+                '    int number = 42;\n' + \
+                "    char letter = 'A';\n" + \
+                '    float pi = 3.14159;\n' + \
+                '\n' + \
+                '    // Function call\n' + \
+                '    printf("Hello, World! The result is %d\n", number);\n' + \
+                '\n' + \
+                '    return 0;\n' + \
+                '}\n' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-preprocessor);'}, \
+                            'elem': {'text': '#include'} \
+                        }, \
+                        {'text': ' <stdio.h>\n\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'int'} \
+                        }, \
+                        {'text': ' main() {\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '// Variable declarations'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'int'} \
+                        }, \
+                        {'text': ' number = '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '42'} \
+                        }, \
+                        {'text': ';\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'char'} \
+                        }, \
+                        {'text': ' letter = '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'A'"} \
+                        }, \
+                        {'text': ';\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'float'} \
+                        }, \
+                        {'text': ' pi = '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '3.14159'} \
+                        }, \
+                        {'text': ';\n\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '// Function call'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'printf'} \
+                        }, \
+                        {'text': '('}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"Hello, World! The result is %d\n"'} \
+                        }, \
+                        {'text': ', number);\n\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'return'} \
+                        }, \
+                        {'text': ' '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '0'} \
+                        }, \
+                        {'text': ';\n}\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_c')
+
+
+function testCodeBlockElements_json():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'json', \
+            'lines': [ \
+                '{"key": "value", "num": 42, "flag": true, "empty": null}\n' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        {'text': '{'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"key"'} \
+                        }, \
+                        {'text': ': '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"value"'} \
+                        }, \
+                        {'text': ', '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"num"'} \
+                        }, \
+                        {'text': ': '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': '42'} \
+                        }, \
+                        {'text': ', '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"flag"'} \
+                        }, \
+                        {'text': ': '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': 'true'} \
+                        }, \
+                        {'text': ', '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"empty"'} \
+                        }, \
+                        {'text': ': '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-literal);'}, \
+                            'elem': {'text': 'null'} \
+                        }, \
+                        {'text': '}\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_json')
+
+
+function testCodeBlockElements_python():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'python', \
+            'lines': [ \
+                '# A simple function\n' + \
+                'def hello(name):\n' + \
+                "    print('Hello, ' + name)\n" + \
+                '\n' + \
+                "hello('World')\n" \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '# A simple function'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'def'} \
+                        }, \
+                        {'text': ' hello(name):\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'print'} \
+                        }, \
+                        {'text': '('}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'Hello, '"} \
+                        }, \
+                        {'text': ' + name)\n\nhello('}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'World'"} \
+                        }, \
+                        {'text': ')\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_python')
+
+
+function testCodeBlockElements_shell():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'shell', \
+            'lines': [ \
+                '# Run tests\n' + \
+                'echo "Hello, World!"\n' + \
+                "export MY_VAR='value'\n" + \
+                'if [ -f test.txt ]; then\n' + \
+                '    echo "found"\n' + \
+                'fi\n' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '# Run tests'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'echo'} \
+                        }, \
+                        {'text': ' '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"Hello, World!"'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'export'} \
+                        }, \
+                        {'text': ' MY_VAR='}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'value'"} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'if'} \
+                        }, \
+                        {'text': ' [ -f test.txt ]; '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'then'} \
+                        }, \
+                        {'text': '\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'echo'} \
+                        }, \
+                        {'text': ' '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': '"found"'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'fi'} \
+                        }, \
+                        {'text': '\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_shell')
+
+
+function testCodeBlockElements_schemaMarkdown():
+    elements = markdownHighlightCodeBlockElements( \
+        { \
+            'language': 'schema-markdown', \
+            'lines': [ \
+                '# A person struct\n' + \
+                'struct Person\n' + \
+                '    string name\n' + \
+                '    optional int age\n' \
+            ] \
+        }, \
+        null \
+    )
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-comment);'}, \
+                            'elem': {'text': '# A person struct'} \
+                        }, \
+                        {'text': '\n'}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'struct'} \
+                        }, \
+                        {'text': ' Person\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'string'} \
+                        }, \
+                        {'text': ' name\n    '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'optional'} \
+                        }, \
+                        {'text': ' '}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-builtin);'}, \
+                            'elem': {'text': 'int'} \
+                        }, \
+                        {'text': ' age\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_schemaMarkdown')
+
+
+function customRender():
+    return {'html': 'div', 'elem': {'text': 'custom'}}
+endfunction
+
+
+function testCodeBlockElements_optionsCodeBlocks():
+    # Test that options-provided code block render functions are used
+    options = { \
+        'codeBlocks': { \
+            'mycustom': customRender \
+        } \
+    }
+    elements = markdownHighlightCodeBlockElements({'language': 'mycustom', 'lines': ['hello']}, options)
+    unittestDeepEqual(elements, {'html': 'div', 'elem': {'text': 'custom'}})
+endfunction
+unittestRunTest('testCodeBlockElements_optionsCodeBlocks')
+
+
+function testCodeBlockElements_compileHighlightModels():
+    # Test compiling custom highlight models
+    highlights = [{ \
+        'names': ['testlang'], \
+        'keyword': ['\\b(?:if|else|while)\\b'], \
+        'string': ["'(?:[^'\\\\\\\\]|\\\\\\\\.)*'"] \
+    }]
+    highlightMap = markdownHighlightCompileHighlightModels(highlights)
+
+    # Use the compiled model via the highlight map
+    renderFn = objectGet(highlightMap, 'testlang')
+    elements = renderFn({'lines': ["if x == 'hello':"]}, null)
+    unittestDeepEqual( \
+        elements, \
+        [ \
+            null, \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-keyword);'}, \
+                            'elem': {'text': 'if'} \
+                        }, \
+                        {'text': " x == "}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--markdown-model-color-highlight-string);'}, \
+                            'elem': {'text': "'hello'"} \
+                        }, \
+                        {'text': ':\n'} \
+                    ] \
+                } \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testCodeBlockElements_compileHighlightModels')

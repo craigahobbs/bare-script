@@ -1,0 +1,276 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <markdownHighlight.bare>
+include <markdownParser.bare>
+
+
+# $function: markdownElementsElements
+# $group: markdownElements.bare
+# $doc: Generate an element model from a Markdown model
+# $arg markdown: The Markdown model
+# $arg options: Optional (default is null). The options object.
+# $return: The Markdown's element model
+function markdownElementsElements(markdown, options):
+    usedHeaderIds = if(options != null && objectHas(options, 'usedHeaderIds'), objectGet(options, 'usedHeaderIds'), {})
+    return markdownElementsPartsElements(objectGet(markdown, 'parts'), options, usedHeaderIds)
+endfunction
+
+
+# Helper function to generate element models from markdown parts
+function markdownElementsPartsElements(parts, options, usedHeaderIds):
+    elements = []
+    for part in parts:
+        arrayPush(elements, markdownElementsPartElements(part, options, usedHeaderIds))
+    endfor
+    return elements
+endfunction
+
+
+# Helper function to generate an element model from a markdown part
+function markdownElementsPartElements(part, options, usedHeaderIds):
+    partKey = arrayGet(objectKeys(part), 0)
+
+    # List?
+    if partKey == 'list':
+        items = objectGet(objectGet(part, 'list'), 'items')
+        listItemElements = []
+        for item in items:
+            itemElements = markdownElementsPartsElements(objectGet(item, 'parts'), options, usedHeaderIds)
+            arrayPush(listItemElements, {'html': 'li', 'elem': itemElements})
+        endfor
+        return markdownElementsListPartElements(part, listItemElements)
+
+    # Block quote?
+    elif partKey == 'quote':
+        return { \
+            'html': 'blockquote', \
+            'elem': markdownElementsPartsElements(objectGet(objectGet(part, 'quote'), 'parts'), options, usedHeaderIds) \
+        }
+
+    # Code block?
+    elif partKey == 'codeBlock':
+        return markdownHighlightCodeBlockElements(objectGet(part, 'codeBlock'), options)
+    endif
+
+    return markdownElementsPartElementsBase(part, options, usedHeaderIds)
+endfunction
+
+
+# Helper function to generate an element model from a list part
+function markdownElementsListPartElements(part, listItemElements):
+    list = objectGet(part, 'list')
+    hasStart = objectHas(list, 'start')
+    startValue = if(hasStart, objectGet(list, 'start'))
+    return { \
+        'html': if(hasStart, 'ol', 'ul'), \
+        'attr': if(hasStart && startValue > 1, {'start': stringNew(startValue)}, null), \
+        'elem': listItemElements \
+    }
+endfunction
+
+
+# Helper function to generate an element model from a non-list/quote/codeBlock part
+function markdownElementsPartElementsBase(part, options, usedHeaderIds):
+    partKey = arrayGet(objectKeys(part), 0)
+
+    # Paragraph?
+    if partKey == 'paragraph':
+        paragraph = objectGet(part, 'paragraph')
+
+        if objectHas(paragraph, 'style'):
+            # Determine the header ID, if requested
+            headerId = null
+            if options != null && objectHas(options, 'headerIds') && objectGet(options, 'headerIds'):
+                headerId = markdownElementsHeaderId(markdownParserGetMarkdownParagraphText(paragraph))
+
+                # Duplicate header ID?
+                if objectHas(usedHeaderIds, headerId):
+                    ix = 1
+                    headerIdNew = null
+                    while true:
+                        ix = ix + 1
+                        headerIdNew = headerId + ix
+                        if !objectHas(usedHeaderIds, headerIdNew):
+                            break
+                        endif
+                    endwhile
+                    headerId = headerIdNew
+                endif
+                objectSet(usedHeaderIds, headerId, true)
+
+                # Header ID hash URL fixup?
+                if options != null && objectHas(options, 'urlFn'):
+                    urlFn = objectGet(options, 'urlFn')
+                    headerId = stringSlice(urlFn('#' + headerId), 1)
+                endif
+            endif
+
+            return { \
+                'html': objectGet(paragraph, 'style'), \
+                'attr': if(headerId != null, {'id': headerId}, null), \
+                'elem': markdownElementsParagraphSpanElements(objectGet(paragraph, 'spans'), options) \
+            }
+        endif
+
+        return { \
+            'html': 'p', \
+            'elem': markdownElementsParagraphSpanElements(objectGet(paragraph, 'spans'), options) \
+        }
+
+    # Table?
+    elif partKey == 'table':
+        table = objectGet(part, 'table')
+        headers = objectGet(table, 'headers')
+        aligns = objectGet(table, 'aligns')
+        alignsLength = arrayLength(aligns)
+
+        # Header elements
+        headerElements = []
+        for header, ixHeader in headers:
+            headerAlign = if(ixHeader < alignsLength, arrayGet(aligns, ixHeader), 'left')
+            arrayPush(headerElements, { \
+                'html': 'th', \
+                'attr': {'style': 'text-align: ' + headerAlign}, \
+                'elem': markdownElementsParagraphSpanElements(header, options) \
+            })
+        endfor
+
+        # Row elements
+        rowsElement = null
+        if objectHas(table, 'rows'):
+            rows = objectGet(table, 'rows')
+            rowElements = []
+            for row in rows:
+                cellElements = []
+                for cell, ixCell in row:
+                    cellAlign = if(ixCell < alignsLength, arrayGet(aligns, ixCell), 'left')
+                    arrayPush(cellElements, { \
+                        'html': 'td', \
+                        'attr': {'style': 'text-align: ' + cellAlign}, \
+                        'elem': markdownElementsParagraphSpanElements(cell, options) \
+                    })
+                endfor
+                arrayPush(rowElements, {'html': 'tr', 'elem': cellElements})
+            endfor
+            rowsElement = {'html': 'tbody', 'elem': rowElements}
+        endif
+
+        return { \
+            'html': 'table', \
+            'elem': [ \
+                { \
+                    'html': 'thead', \
+                    'elem': { \
+                        'html': 'tr', \
+                        'elem': headerElements \
+                    } \
+                }, \
+                rowsElement \
+            ] \
+        }
+    endif
+
+    # Horizontal rule
+    return {'html': 'hr'}
+endfunction
+
+
+# Helper function to generate element models from markdown span models
+function markdownElementsParagraphSpanElements(spans, options):
+    spanElements = []
+
+    for span in spans:
+        spanKey = arrayGet(objectKeys(span), 0)
+
+        # Text span?
+        if spanKey == 'text':
+            arrayPush(spanElements, {'text': objectGet(span, 'text')})
+
+        # Line break?
+        elif spanKey == 'br':
+            arrayPush(spanElements, {'html': 'br'})
+
+        # Style span?
+        elif spanKey == 'style':
+            style = objectGet(span, 'style')
+            styleStyle = objectGet(style, 'style')
+            htmlTag = if(styleStyle == 'strikethrough', 'del', if(styleStyle == 'italic', 'em', 'strong'))
+            arrayPush(spanElements, { \
+                'html': htmlTag, \
+                'elem': markdownElementsParagraphSpanElements(objectGet(style, 'spans'), options) \
+            })
+
+        # Link span?
+        elif spanKey == 'link':
+            link = objectGet(span, 'link')
+            href = objectGet(link, 'href')
+
+            # URL fixup?
+            if options != null && objectHas(options, 'urlFn'):
+                urlFn = objectGet(options, 'urlFn')
+                href = urlFn(href)
+            endif
+
+            linkAttr = {'href': href}
+            if objectHas(link, 'title'):
+                objectSet(linkAttr, 'title', objectGet(link, 'title'))
+            endif
+            arrayPush(spanElements, { \
+                'html': 'a', \
+                'attr': linkAttr, \
+                'elem': markdownElementsParagraphSpanElements(objectGet(link, 'spans'), options) \
+            })
+
+        # Image span?
+        elif spanKey == 'image':
+            image = objectGet(span, 'image')
+            src = objectGet(image, 'src')
+
+            # URL fixup?
+            if options != null && objectHas(options, 'urlFn'):
+                urlFn = objectGet(options, 'urlFn')
+                src = urlFn(src)
+            endif
+
+            imageAttr = {'src': src, 'alt': objectGet(image, 'alt'), 'style': 'max-width: 100%;'}
+            if objectHas(image, 'title'):
+                objectSet(imageAttr, 'title', objectGet(image, 'title'))
+            endif
+            arrayPush(spanElements, { \
+                'html': 'img', \
+                'attr': imageAttr \
+            })
+
+        # Link reference span?
+        elif spanKey == 'linkRef':
+            linkRef = objectGet(span, 'linkRef')
+            arrayExtend(spanElements, markdownElementsParagraphSpanElements(objectGet(linkRef, 'spans'), options))
+
+        # Code span?
+        elif spanKey == 'code':
+            arrayPush(spanElements, {'html': 'code', 'elem': {'text': objectGet(span, 'code')}})
+        endif
+    endfor
+
+    return spanElements
+endfunction
+
+
+# $function: markdownElementsHeaderId
+# $group: markdownElements.bare
+# $doc: Generate a Markdown header ID from text
+# $arg text: The text
+# $return: The header element ID
+function markdownElementsHeaderId(text):
+    result = stringLower(text)
+    result = regexReplace(markdownElementsHeaderIdStart, result, '')
+    result = regexReplace(markdownElementsHeaderIdEnd, result, '')
+    result = regexReplace(markdownElementsHeaderIdRemove, result, '')
+    return regexReplace(markdownElementsHeaderIdDash, result, '-')
+endfunction
+
+markdownElementsHeaderIdStart = regexNew('^[^a-z0-9]+')
+markdownElementsHeaderIdEnd = regexNew('[^a-z0-9]+$')
+markdownElementsHeaderIdRemove = regexNew('[\'"]')
+markdownElementsHeaderIdDash = regexNew('[^a-z0-9]+')
