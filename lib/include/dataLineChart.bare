@@ -153,6 +153,19 @@ dataLineChartAnnotationLineWidth = 2
 dataLineChartChartLineWidth = 3
 
 
+# $function: dataLineChart
+# $group: dataLineChart.bare
+# $doc: Render a line chart
+# $arg data: The data array
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg options: - **fontSize** - The font size, in points
+function dataLineChart(data, lineChart, options):
+    elementModelRender = systemGlobalGet('elementModelRender')
+    elementModelRender({'html': 'p', 'elem': dataLineChartElements(data, lineChart, options)})
+endfunction
+
+
 # $function: dataLineChartElements
 # $group: dataLineChart.bare
 # $doc: Render a line chart as an element model

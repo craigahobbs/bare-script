@@ -10,6 +10,7 @@ include <baredoc.bare>
 #include <dataLineChart.bare>
 include <dataTable.bare>
 include <diff.bare>
+#include <draw.bare>
 include <elementModel.bare>
 include <forms.bare>
 #include <markdownHighlight.bare>
@@ -31,6 +32,7 @@ include '../data.bare'
 include '../dataLineChart.bare'
 include '../dataTable.bare'
 include '../diff.bare'
+include '../draw.bare'
 include '../elementModel.bare'
 include '../forms.bare'
 include '../markdownHighlight.bare'
@@ -49,6 +51,7 @@ include 'testData.bare'
 include 'testDataLineChart.bare'
 include 'testDataTable.bare'
 include 'testDiff.bare'
+include 'testDraw.bare'
 include 'testElementModel.bare'
 include 'testForms.bare'
 include 'testMarkdownHighlight.bare'

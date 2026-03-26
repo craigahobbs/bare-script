@@ -1,0 +1,443 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# Constants
+drawDefaultDrawingWidth = 300
+drawDefaultDrawingHeight = 200
+drawDefaultFontFamily = 'Arial, Helvetica, sans-serif'
+drawDefaultFontSize = 12
+drawFontWidthRatio = 0.6
+drawPixelsPerPoint = 4 / 3
+drawSVGPrecision = 8
+
+
+# The global drawing state
+drawCurrentDrawing = null
+
+
+# Helper to get or create the global drawing state
+function drawGetCurrentDrawing():
+    drawing = systemGlobalGet('drawCurrentDrawing')
+    if drawing == null:
+        drawing = drawNew()
+        systemGlobalSet('drawCurrentDrawing', drawing)
+    endif
+    return drawing
+endfunction
+
+
+# Helper method to start an SVG drawing path
+function drawSetDrawingPath(drawing):
+    drawingPath = objectGet(drawing, 'path')
+    if drawingPath == null:
+        svg = objectGet(drawing, 'svg')
+        svgElem = objectGet(svg, 'elem')
+        arrayPush(svgElem, { \
+            'svg': 'path', \
+            'attr': { \
+                'fill': objectGet(drawing, 'fill'), \
+                'stroke': objectGet(drawing, 'stroke'), \
+                'stroke-width': objectGet(drawing, 'strokeWidth'), \
+                'stroke-dasharray': objectGet(drawing, 'strokeDashArray'), \
+                'd': '' \
+            } \
+        })
+        drawingPath = []
+        objectSet(drawing, 'path', drawingPath)
+    endif
+    return drawingPath
+endfunction
+
+
+# Helper method to finish the current SVG drawing path
+function drawFinishDrawingPath(drawing):
+    drawingPath = objectGet(drawing, 'path')
+    svg = objectGet(drawing, 'svg')
+    svgElem = objectGet(svg, 'elem')
+    if drawingPath:
+        path = arrayGet(svgElem, arrayLength(svgElem) - 1)
+        pathAttr = objectGet(path, 'attr')
+        objectSet(pathAttr, 'd', arrayJoin(drawingPath, ' '))
+        objectSet(drawing, 'path', null)
+    endif
+    return svgElem
+endfunction
+
+
+# $function: drawRender
+# $group: draw.bare
+# $doc: Render the current drawing
+function drawRender():
+    drawing = drawGetCurrentDrawing()
+    drawFinishDrawingPath(drawing)
+    elementModelRender = systemGlobalGet('elementModelRender')
+    elementModelRender({'html': 'p', 'elem': objectGet(drawing, 'svg')})
+endfunction
+
+
+# $function: drawElements
+# $group: draw.bare
+# $doc: Get the current drawing's SVG element model
+# $return: The current drawing's SVG element model
+function drawElements():
+    drawing = drawGetCurrentDrawing()
+    drawFinishDrawingPath(drawing)
+    return objectGet(drawing, 'svg')
+endfunction
+
+
+# $function: drawArc
+# $group: draw.bare
+# $doc: Draw an arc curve from the current point to the end point
+# $arg rx: The arc ellipse's x-radius
+# $arg ry: The arc ellipse's y-radius
+# $arg angle: The rotation (in degrees) of the ellipse relative to the x-axis
+# $arg largeArcFlag: Either large arc (1) or small arc (0)
+# $arg sweepFlag: Either clockwise turning arc (1) or counterclockwise turning arc (0)
+# $arg x: The x-coordinate of the end point
+# $arg y: The y-coordinate of the end point
+function drawArc(rx, ry, angle, largeArcFlag, sweepFlag, x, y):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush( \
+        drawingPath, \
+        'A ' + numberToFixed(rx, drawSVGPrecision) + ' ' + numberToFixed(ry, drawSVGPrecision) + ' ' +  \
+            numberToFixed(angle, drawSVGPrecision) + if(largeArcFlag, ' 1', ' 0') +  if(sweepFlag, ' 1 ', ' 0 ') + \
+            numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision) \
+    )
+endfunction
+
+
+# $function: drawCircle
+# $group: draw.bare
+# $doc: Draw a circle
+# $arg cx: The x-coordinate of the center of the circle
+# $arg cy: The y-coordinate of the center of the circle
+# $arg r: The radius of the circle
+function drawCircle(cx, cy, r):
+    drawing = drawGetCurrentDrawing()
+    svgElem = drawFinishDrawingPath(drawing)
+    arrayPush(svgElem, { \
+        'svg': 'circle', \
+        'attr': { \
+            'fill': objectGet(drawing, 'fill'), \
+            'stroke': objectGet(drawing, 'stroke'), \
+            'stroke-width': numberToFixed(objectGet(drawing, 'strokeWidth'), drawSVGPrecision), \
+            'stroke-dasharray': objectGet(drawing, 'strokeDashArray'), \
+            'cx': cx, \
+            'cy': cy, \
+            'r': r \
+        } \
+    })
+endfunction
+
+
+# $function: drawClose
+# $group: draw.bare
+# $doc: Close the current drawing path
+function drawClose():
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'Z')
+endfunction
+
+
+# $function: drawEllipse
+# $group: draw.bare
+# $doc: Draw an ellipse
+# $arg cx: The x-coordinate of the center of the ellipse
+# $arg cy: The y-coordinate of the center of the ellipse
+# $arg rx: The x-radius of the ellipse
+# $arg ry: The y-radius of the ellipse
+function drawEllipse(cx, cy, rx, ry):
+    drawing = drawGetCurrentDrawing()
+    svgElem = drawFinishDrawingPath(drawing)
+    arrayPush(svgElem, { \
+        'svg': 'ellipse', \
+        'attr': { \
+            'fill': objectGet(drawing, 'fill'), \
+            'stroke': objectGet(drawing, 'stroke'), \
+            'stroke-width': numberToFixed(objectGet(drawing, 'strokeWidth'), drawSVGPrecision), \
+            'stroke-dasharray': objectGet(drawing, 'strokeDashArray'), \
+            'cx': cx, \
+            'cy': cy, \
+            'rx': rx, \
+            'ry': ry \
+        } \
+    })
+endfunction
+
+
+# $function: drawHLine
+# $group: draw.bare
+# $doc: Draw a horizontal line from the current point to the end point
+# $arg x: The x-coordinate of the end point
+function drawHLine(x):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'H ' + numberToFixed(x, drawSVGPrecision))
+endfunction
+
+
+# $function: drawHeight
+# $group: draw.bare
+# $doc: Get the current drawing's height
+# $return: The current drawing's height
+function drawHeight():
+    drawing = drawGetCurrentDrawing()
+    return objectGet(drawing, 'height')
+endfunction
+
+
+# $function: drawImage
+# $group: draw.bare
+# $doc: Draw an image
+# $arg x: The x-coordinate of the center of the image
+# $arg y: The y-coordinate of the center of the image
+# $arg width: The width of the image
+# $arg height: The height of the image
+# $arg href: The image resource URL
+function drawImage(x, y, width, height, href):
+    drawing = drawGetCurrentDrawing()
+    svgElem = drawFinishDrawingPath(drawing)
+    arrayPush(svgElem, { \
+        'svg': 'image', \
+        'attr': { \
+            'x': x, \
+            'y': y, \
+            'width': width, \
+            'height': height, \
+            'href': documentURL(href) \
+        } \
+    })
+endfunction
+
+
+# $function: drawLine
+# $group: draw.bare
+# $doc: Draw a line from the current point to the end point
+# $arg x: The x-coordinate of the end point
+# $arg y: The y-coordinate of the end point
+function drawLine(x, y):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'L ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
+endfunction
+
+
+# $function: drawMove
+# $group: draw.bare
+# $doc: Move the path's drawing point
+# $arg x: The x-coordinate of the new drawing point
+# $arg y: The y-coordinate of the new drawing point
+function drawMove(x, y):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'M ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
+endfunction
+
+
+# $function: drawNew
+# $group: draw.bare
+# $doc: Create a new drawing
+# $arg width: The width of the drawing
+# $arg height: The height of the drawing
+function drawNew(width, height):
+    width = if(width > 0, width, drawDefaultDrawingWidth)
+    height = if(height > 0, height, drawDefaultDrawingHeight)
+    drawing = { \
+        'width': width, \
+        'height': height, \
+        'stroke': 'black', \
+        'strokeWidth': 1, \
+        'strokeDashArray': 'none', \
+        'fill': 'none', \
+        'fontFamily': drawDefaultFontFamily, \
+        'fontSizePx': drawDefaultFontSize * drawPixelsPerPoint, \
+        'fontFill': 'black', \
+        'fontBold': false, \
+        'fontItalic': false, \
+        'svg': {'svg': 'svg', 'attr': {'width': width, 'height': height}, 'elem': []}, \
+        'path': null \
+    }
+    systemGlobalSet('drawCurrentDrawing', drawing)
+endfunction
+
+
+# $function: drawOnClick
+# $group: draw.bare
+# $doc: Set the most recent drawing object's on-click event handler
+# $arg callback: The on-click event callback function (x, y)
+function drawOnClick(callback):
+    drawing = drawGetCurrentDrawing()
+    svg = objectGet(drawing, 'svg')
+    svgElem = objectGet(svg, 'elem')
+    clickElement = if(svgElem, arrayGet(svgElem, arrayLength(svgElem) - 1), svg)
+    clickElementAttr = objectGet(clickElement, 'attr')
+    objectSet(clickElementAttr, 'style', 'cursor: pointer;')
+    objectSet(clickElement, 'callback', {'click': callback})
+endfunction
+
+
+# $function: drawPathRect
+# $group: draw.bare
+# $doc: Draw a rectangle as a path
+# $arg x: The x-coordinate of the top-left of the rectangle
+# $arg y: The y-coordinate of the top-left of the rectangle
+# $arg width: The width of the rectangle
+# $arg height: The height of the rectangle
+function drawPathRect(x, y, width, height):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'M ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
+    arrayPush(drawingPath, 'H ' + numberToFixed(x + width, drawSVGPrecision))
+    arrayPush(drawingPath, 'V ' + numberToFixed(y + height, drawSVGPrecision))
+    arrayPush(drawingPath, 'H ' + numberToFixed(x, drawSVGPrecision))
+    arrayPush(drawingPath, 'Z')
+endfunction
+
+
+# $function: drawRect
+# $group: draw.bare
+# $doc: Draw a rectangle
+# $arg x: The x-coordinate of the top-left of the rectangle
+# $arg y: The y-coordinate of the top-left of the rectangle
+# $arg width: The width of the rectangle
+# $arg height: The height of the rectangle
+# $arg rx: Optional (default is null). The horizontal corner radius of the rectangle.
+# $arg ry: Optional (default is null). The vertical corner radius of the rectangle.
+function drawRect(x, y, width, height, rx, ry):
+    drawing = drawGetCurrentDrawing()
+    svgElem = drawFinishDrawingPath(drawing)
+    arrayPush(svgElem, { \
+        'svg': 'rect', \
+        'attr': { \
+            'fill': objectGet(drawing, 'fill'), \
+            'rx': rx, \
+            'ry': ry, \
+            'stroke': objectGet(drawing, 'stroke'), \
+            'stroke-width': numberToFixed(objectGet(drawing, 'strokeWidth'), drawSVGPrecision), \
+            'stroke-dasharray': objectGet(drawing, 'strokeDashArray'), \
+            'x': x, \
+            'y': y, \
+            'width': width, \
+            'height': height \
+        } \
+    })
+endfunction
+
+
+# $function: drawStyle
+# $group: draw.bare
+# $doc: Set the current drawing styles
+# $arg stroke: Optional (default is 'black'). The stroke color.
+# $arg strokeWidth: Optional (default is 1). The stroke width.
+# $arg fill: Optional (default is 'none'). The fill color.
+# $arg strokeDashArray: Optional (default is 'none'). The stroke
+# $arg strokeDashArray: [dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
+function drawStyle(stroke, strokeWidth, fill, strokeDashArray):
+    drawing = drawGetCurrentDrawing()
+    if stroke != objectGet(drawing, 'stroke') || strokeWidth != objectGet(drawing, 'strokeWidth') || \
+       strokeDashArray != objectGet(drawing, 'strokeDashArray') || fill != objectGet(drawing, 'fill'):
+        drawFinishDrawingPath(drawing)
+        objectSet(drawing, 'stroke', if(stroke != null, stroke, 'black'))
+        objectSet(drawing, 'strokeWidth', if(strokeWidth != null, strokeWidth, 1))
+        objectSet(drawing, 'strokeDashArray', if(strokeDashArray != null, strokeDashArray, 'none'))
+        objectSet(drawing, 'fill', if(fill != null, fill, 'none'))
+    endif
+endfunction
+
+
+# $function: drawText
+# $group: draw.bare
+# $doc: Draw text
+# $arg text: The text to draw
+# $arg x: The x-coordinate of the text
+# $arg y: The y-coordinate of the text
+# $arg textAnchor: Optional (default is 'middle'). The
+# $arg textAnchor: [text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
+# $arg dominantBaseline: Optional (default is 'middle'). The
+# $arg dominantBaseline: [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
+# $arg dominantBaseline: style.
+function drawText(text, x, y, textAnchor, dominantBaseline):
+    drawing = drawGetCurrentDrawing()
+    svgElem = drawFinishDrawingPath(drawing)
+    arrayPush(svgElem, { \
+        'svg': 'text', \
+        'attr': { \
+            'fill': objectGet(drawing, 'fontFill'), \
+            'font-family': objectGet(drawing, 'fontFamily'), \
+            'font-size': numberToFixed(objectGet(drawing, 'fontSizePx'), drawSVGPrecision), \
+            'text-anchor': if(textAnchor != null, textAnchor, 'middle'), \
+            'dominant-baseline': if(dominantBaseline != null, dominantBaseline, 'middle'), \
+            'font-weight': if(objectGet(drawing, 'fontBold'), 'bold', 'normal'), \
+            'font-style': if(objectGet(drawing, 'fontItalic'), 'italic', 'normal'), \
+            'x': x, \
+            'y': y \
+        }, \
+        'elem': {'text': text} \
+    })
+endfunction
+
+
+# $function: drawTextHeight
+# $group: draw.bare
+# $doc: Compute the text's height to fit the width
+# $arg text: The text
+# $arg width: The width of the text. If 0, the current font size (in pixels) is returned.
+# $return: The text's height, in pixels
+function drawTextHeight(text, width):
+    drawing = drawGetCurrentDrawing()
+    return if(width > 0, width / (drawFontWidthRatio * stringLength(text)), objectGet(drawing, 'fontSizePx'))
+endfunction
+
+
+# $function: drawTextStyle
+# $group: draw.bare
+# $doc: Set the current text drawing styles
+# $arg fontSizePx: Optional (default is null, the default font size). The text font size, in pixels.
+# $arg textFill: Optional (default is 'black'). The text fill color.
+# $arg bold: Optional (default is false). If true, text is bold.
+# $arg italic: Optional (default is false). If true, text is italic.
+# $arg fontFamily: Optional (default is null, the default font family). The text font family.
+function drawTextStyle(fontSizePx, textFill, bold, italic, fontFamily):
+    drawing = drawGetCurrentDrawing()
+    objectSet(drawing, 'fontSizePx', if(fontSizePx != null, fontSizePx, drawDefaultFontSize * drawPixelsPerPoint))
+    objectSet(drawing, 'fontFill', if(textFill != null, textFill, 'black'))
+    objectSet(drawing, 'fontBold', if(bold != null, bold, false))
+    objectSet(drawing, 'fontItalic', if(italic != null, italic, false))
+    objectSet(drawing, 'fontFamily', if(fontFamily != null, fontFamily, drawDefaultFontFamily))
+endfunction
+
+
+# $function: drawTextWidth
+# $group: draw.bare
+# $doc: Compute the text's width
+# $arg text: The text
+# $arg fontSizePx: The text font size, in pixels
+# $return: The text's width, in pixels
+function drawTextWidth(text, fontSizePx):
+    return drawFontWidthRatio * fontSizePx * stringLength(text)
+endfunction
+
+
+# $function: drawVLine
+# $group: draw.bare
+# $doc: Draw a vertical line from the current point to the end point
+# $arg y: The y-coordinate of the end point
+function drawVLine(y):
+    drawing = drawGetCurrentDrawing()
+    drawingPath = drawSetDrawingPath(drawing)
+    arrayPush(drawingPath, 'V ' + numberToFixed(y, drawSVGPrecision))
+endfunction
+
+
+# $function: drawWidth
+# $group: draw.bare
+# $doc: Get the current drawing's width
+# $return: The current drawing's width
+function drawWidth():
+    drawing = drawGetCurrentDrawing()
+    return objectGet(drawing, 'width')
+endfunction

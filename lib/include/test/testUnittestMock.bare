@@ -15,10 +15,6 @@ async function testUnittestMockAll():
         'systemFetch': {'test.json': '{"key": "value"}'} \
     })
 
-    # Data
-    dataLineChart([{'A': 1}], {'title': 'Title'})
-    dataTable([{'A': 1}], {'fields': ['A']})
-
     # Document
     unittestEqual(documentFontSize(), 16)
     unittestEqual(documentInputValue('id1'), 'value1')
@@ -27,40 +23,6 @@ async function testUnittestMockAll():
     documentSetReset('id1')
     documentSetTitle('Hello')
     unittestEqual(documentURL('test.json'), 'test.json')
-
-    # Drawing (before)
-    unittestEqual(drawHeight(), 480)
-    unittestEqual(drawWidth(), 640)
-    unittestEqual(drawTextHeight(''), 16)
-    unittestEqual(drawTextHeight('Hello', 72), 24)
-    unittestEqual(drawTextWidth('Hello', 20), 60)
-    drawNew(800, 600)
-    drawStyle('red')
-    drawTextStyle(20)
-
-    # Drawing (path)
-    drawMove(10, 10)
-    drawArc(10, 10, 0, 0, 0, 20, 20)
-    drawHLine(25)
-    drawLine(30, 30)
-    drawPathRect(35, 35)
-    drawVLine(40)
-    drawClose()
-
-    # Drawing (non-path)
-    drawCircle(20, 20, 10)
-    drawEllipse(20, 20, 10, 15)
-    drawImage(10, 10, 20, 20, 'test.jpg')
-    drawOnClick(null)
-    drawRect(10, 10, 20, 20)
-    drawText('Hello', 10, 10)
-
-    # Drawing (after)
-    unittestEqual(drawHeight(), 600)
-    unittestEqual(drawWidth(), 800)
-    unittestEqual(drawTextHeight(''), 20)
-    unittestEqual(drawTextHeight('Hello', 72), 24)
-    unittestEqual(drawTextWidth('Hello', 20), 60)
 
     # Element Model
     elementModelRender({'html': 'h1', 'elem': {'text': 'Hello'}})
@@ -125,29 +87,11 @@ async function testUnittestMockAll():
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['dataLineChart', [[{'A': 1}], {'title': 'Title'}]], \
-        ['dataTable', [[{'A': 1}], {'fields': ['A']}]], \
         ['documentInputValue', ['id1']], \
         ['documentSetFocus', ['id1']], \
         ['documentSetKeyDown', [null]], \
         ['documentSetReset', ['id1']], \
         ['documentSetTitle', ['Hello']], \
-        ['drawNew', [800, 600]], \
-        ['drawStyle', ['red']], \
-        ['drawTextStyle', [20]], \
-        ['drawMove', [10, 10]], \
-        ['drawArc', [10, 10, 0, 0, 0, 20, 20]], \
-        ['drawHLine', [25]], \
-        ['drawLine', [30, 30]], \
-        ['drawPathRect', [35, 35]], \
-        ['drawVLine', [40]], \
-        ['drawClose', []], \
-        ['drawCircle', [20, 20, 10]], \
-        ['drawEllipse', [20, 20, 10, 15]], \
-        ['drawImage', [10, 10, 20, 20, 'test.jpg']], \
-        ['drawOnClick', [null]], \
-        ['drawRect', [10, 10, 20, 20]], \
-        ['drawText', ['Hello', 10, 10]], \
         ['elementModelRender', [{'html': 'h1', 'elem': {'text': 'Hello'}}]], \
         ['localStorageSet', ['key1', 'value1']], \
         ['localStorageSet', ['key2', 'value2']], \

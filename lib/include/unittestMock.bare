@@ -14,9 +14,6 @@ unittestMockWindowWidth = 1024
 unittestMockCalls = []
 unittestMockFunctions = {}
 unittestMockStateDefault = { \
-    'drawingFontSizePx': unittestMockDefaultFontSizePx, \
-    'drawingHeight': 480, \
-    'drawingWidth': 640, \
     'localStorage': {}, \
     'sessionStorage': {}, \
     'windowClipboard': '' \
@@ -36,10 +33,6 @@ unittestMockState = objectCopy(unittestMockStateDefault)
 # $arg data: - **markdownTitle** - array of return values
 # $arg data: - **systemFetch** - map of URL to response text
 function unittestMockAll(data):
-    # Data
-    unittestMockOneGeneric('dataLineChart')
-    unittestMockOneGeneric('dataTable')
-
     # Document
     unittestMockOne('documentFontSize', unittestMock_documentFontSize)
     unittestMockOne('documentInputValue', systemPartial(unittestMock_documentInputValue, if(data != null, objectGet(data, 'documentInputValue'))))
@@ -48,28 +41,6 @@ function unittestMockAll(data):
     unittestMockOneGeneric('documentSetReset')
     unittestMockOneGeneric('documentSetTitle')
     unittestMockOne('documentURL', unittestMock_documentURL)
-
-    # Drawing
-    unittestMockOneGeneric('drawArc')
-    unittestMockOneGeneric('drawCircle')
-    unittestMockOneGeneric('drawClose')
-    unittestMockOneGeneric('drawEllipse')
-    unittestMockOneGeneric('drawHLine')
-    unittestMockOne('drawHeight', unittestMock_drawHeight)
-    unittestMockOneGeneric('drawImage')
-    unittestMockOneGeneric('drawLine')
-    unittestMockOneGeneric('drawMove')
-    unittestMockOne('drawNew', unittestMock_drawNew)
-    unittestMockOneGeneric('drawOnClick')
-    unittestMockOneGeneric('drawPathRect')
-    unittestMockOneGeneric('drawRect')
-    unittestMockOneGeneric('drawStyle')
-    unittestMockOneGeneric('drawText')
-    unittestMockOne('drawTextHeight', unittestMock_drawTextHeight)
-    unittestMockOne('drawTextStyle', unittestMock_drawTextStyle)
-    unittestMockOne('drawTextWidth', unittestMock_drawTextWidth)
-    unittestMockOneGeneric('drawVLine')
-    unittestMockOne('drawWidth', unittestMock_drawWidth)
 
     # Element Model
     unittestMockOneGeneric('elementModelRender')
@@ -184,58 +155,6 @@ endfunction
 
 function unittestMock_documentURL(url):
     return url
-endfunction
-
-
-#
-# Drawing functions
-#
-
-
-function unittestMock_drawHeight():
-    return objectGet(unittestMockState, 'drawingHeight')
-endfunction
-
-
-function unittestMock_drawNew(args...):
-    width = arrayGet(args, 0)
-    height = arrayGet(args, 1)
-
-    # Record the mocked function call
-    arrayPush(unittestMockCalls, ['drawNew', args])
-
-    # Update the mock state
-    objectSet(unittestMockState, 'drawingWidth', width)
-    objectSet(unittestMockState, 'drawingHeight', height)
-endfunction
-
-
-function unittestMock_drawTextHeight(text, width):
-    if width > 0:
-        return width / (unittestMockFontWidthRatio * stringLength(text))
-    endif
-    return objectGet(unittestMockState, 'drawingFontSizePx')
-endfunction
-
-
-function unittestMock_drawTextStyle(args...):
-    fontSizePx = arrayGet(args, 0)
-
-    # Record the mocked function call
-    arrayPush(unittestMockCalls, ['drawTextStyle', args])
-
-    # Update the mock state
-    objectSet(unittestMockState, 'drawingFontSizePx', if(fontSizePx != null, fontSizePx, unittestMockDefaultFontSizePx))
-endfunction
-
-
-function unittestMock_drawTextWidth(text, fontSizePx):
-    return unittestMockFontWidthRatio * fontSizePx * stringLength(text)
-endfunction
-
-
-function unittestMock_drawWidth():
-    return objectGet(unittestMockState, 'drawingWidth')
 endfunction
 
 

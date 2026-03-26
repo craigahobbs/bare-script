@@ -218,6 +218,17 @@ function dataTableMarkdownField(value, width, align, fill):
 endfunction
 
 
+# $function: dataTable
+# $group: dataTable.bare
+# $doc: Render a data table
+# $arg data - The data array
+# $arg dataTable - Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+function dataTable(data, dataTable):
+    elementModelRender = systemGlobalGet('elementModelRender')
+    elementModelRender({'html': 'p', 'elem': dataTableElements(data, dataTable)})
+endfunction
+
+
 # $function: dataTableElements
 # $group: dataTable.bare
 # $doc: Render a data table
