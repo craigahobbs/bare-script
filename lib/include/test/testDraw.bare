@@ -6,6 +6,31 @@ include '../unittest.bare'
 include '../unittestMock.bare'
 
 
+function testDrawAuto():
+    systemGlobalSet('drawCurrentDrawing', null)
+    drawCircle(25, 25, 25)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 300, 'height': 200}, \
+        'elem': [ \
+            { \
+                'svg': 'circle', \
+                'attr': { \
+                    'cx': 25, \
+                    'cy': 25, \
+                    'r': 25, \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawAuto')
+
+
 function testDrawArc():
     drawNew(100, 50)
     drawMove(0, 25)

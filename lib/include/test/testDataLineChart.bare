@@ -27,6 +27,99 @@ unittestRunTest('testDataLineChartValidate_error')
 
 
 #
+# dataLineChart tests
+#
+
+
+function testDataLineChart():
+    unittestMockAll()
+    data = [ \
+        {'A': 1, 'B': 5}, \
+        {'A': 5, 'B': 1} \
+    ]
+    lineChart = dataLineChartValidate({ \
+        'x': 'A', \
+        'y': ['B'], \
+        'xTicks': {'count': 0}, \
+        'yTicks': {'count': 0} \
+    })
+    unittestEqual(dataLineChart(data, lineChart), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['elementModelRender', [ \
+            { \
+                'html': 'p', \
+                'elem': { \
+                    'svg': 'svg', \
+                    'attr': {'height': 320, 'width': 640}, \
+                    'elem': [ \
+                        {'svg': 'rect', 'attr': {'fill': 'white', 'height': 320, 'width': 640}}, \
+                        null, \
+                        { \
+                            'svg': 'text', \
+                            'attr': { \
+                                'dominant-baseline': 'hanging', \
+                                'fill': 'black', \
+                                'font-family': 'Arial, Helvetica, sans-serif', \
+                                'font-size': '16.000px', \
+                                'style': 'font-weight: bold', \
+                                'text-anchor': 'middle', \
+                                'transform': 'rotate(-90 16.000, 145.350)', \
+                                'x': '16.000', \
+                                'y': '145.350' \
+                            }, \
+                            'elem': {'text': 'B'} \
+                        }, \
+                        [], \
+                        [], \
+                        { \
+                            'svg': 'text', \
+                            'attr': { \
+                                'dominant-baseline': 'auto', \
+                                'fill': 'black', \
+                                'font-family': 'Arial, Helvetica, sans-serif', \
+                                'font-size': '16.000px', \
+                                'style': 'font-weight: bold', \
+                                'text-anchor': 'middle', \
+                                'x': '335.400', \
+                                'y': '304.000' \
+                            }, \
+                            'elem': {'text': 'A'} \
+                        }, \
+                        [], \
+                        [], \
+                        { \
+                            'svg': 'path', \
+                            'attr': { \
+                                'd': 'M 44.800 17.000 V 275.200 H 624.500', \
+                                'fill': 'none', \
+                                'stroke': 'black', \
+                                'stroke-width': '1.000' \
+                            } \
+                        }, \
+                        [ \
+                            { \
+                                'svg': 'path', \
+                                'attr': { \
+                                    'd': 'M 46.800 17.500 L 624.000 273.200', \
+                                    'fill': 'none', \
+                                    'stroke': '#1f77b4', \
+                                    'stroke-width': '3.000' \
+                                } \
+                            } \
+                        ], \
+                        [], \
+                        [], \
+                        null \
+                    ] \
+                } \
+            } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testDataLineChart')
+
+
+#
 # dataLineChartElements tests
 #
 

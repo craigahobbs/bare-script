@@ -139,6 +139,53 @@ endfunction
 unittestRunTest('testDataTableMarkdown_noFields')
 
 
+function testDataTable():
+    unittestMockAll()
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': datetimeNew(2022, 8, 30)}, \
+        {'A': 2, 'B': 'def', 'C': datetimeNew(2022, 8, 31)} \
+    ]
+    unittestEqual(dataTable(data), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['elementModelRender', [ \
+            { \
+                'html': 'p', \
+                'elem': { \
+                    'html': 'table', \
+                    'elem': [ \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                            ] \
+                        }, \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '1'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-30'}} \
+                            ] \
+                        }, \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': 'def'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-31'}} \
+                            ] \
+                        } \
+                    ] \
+                } \
+             } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testDataTable')
+
+
 function testDataTableElements():
     data = [ \
         {'A': 1, 'B': 'abc', 'C': datetimeNew(2022, 8, 30)}, \

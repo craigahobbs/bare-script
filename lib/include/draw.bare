@@ -20,8 +20,8 @@ drawCurrentDrawing = null
 function drawGetCurrentDrawing():
     drawing = systemGlobalGet('drawCurrentDrawing')
     if drawing == null:
-        drawing = drawNew()
-        systemGlobalSet('drawCurrentDrawing', drawing)
+        drawNew()
+        drawing = systemGlobalGet('drawCurrentDrawing')
     endif
     return drawing
 endfunction
@@ -244,8 +244,8 @@ endfunction
 # $arg width: The width of the drawing
 # $arg height: The height of the drawing
 function drawNew(width, height):
-    width = if(width > 0, width, drawDefaultDrawingWidth)
-    height = if(height > 0, height, drawDefaultDrawingHeight)
+    width = if(width != null && width > 0, width, drawDefaultDrawingWidth)
+    height = if(height != null && height > 0, height, drawDefaultDrawingHeight)
     drawing = { \
         'width': width, \
         'height': height, \
