@@ -2,72 +2,6 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 
-# $function: markdownParserEscapeMarkdownText
-# $group: markdownParser.bare
-# $doc: Escape a string for inclusion in Markdown text
-# $arg text: The text to escape
-# $return: The escaped text
-function markdownParserEscapeMarkdownText(text):
-    return regexReplace(markdownParserRegexEscape, text, '\\$1')
-endfunction
-
-markdownParserRegexEscape = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
-
-
-# $function: markdownParserGetMarkdownTitle
-# $group: markdownParser.bare
-# $doc: Get a Markdown model's title
-# $arg markdown: The Markdown model
-# $return: The title string or null
-function markdownParserGetMarkdownTitle(markdown):
-    parts = objectGet(markdown, 'parts')
-    for part in parts:
-        if objectHas(part, 'paragraph') && objectHas(objectGet(part, 'paragraph'), 'style'):
-            return markdownParserGetMarkdownParagraphText(objectGet(part, 'paragraph'))
-        endif
-    endfor
-    return null
-endfunction
-
-
-# $function: markdownParserGetMarkdownParagraphText
-# $group: markdownParser.bare
-# $doc: Get a Markdown paragraph model's text
-# $arg paragraph: The Markdown paragraph model
-# $return: The paragraph text string
-function markdownParserGetMarkdownParagraphText(paragraph):
-    spans = objectGet(paragraph, 'spans')
-    parts = []
-    for span in spans:
-        arrayPush(parts, markdownParserGetSpanText(span))
-    endfor
-    return arrayJoin(parts, '')
-endfunction
-
-
-# Helper function to get a Markdown span model's text
-function markdownParserGetSpanText(span):
-    if objectHas(span, 'image'):
-        return objectGet(objectGet(span, 'image'), 'alt')
-    elif objectHas(span, 'link'):
-        linkSpans = objectGet(objectGet(span, 'link'), 'spans')
-        parts = []
-        for linkSpan in linkSpans:
-            arrayPush(parts, markdownParserGetSpanText(linkSpan))
-        endfor
-        return arrayJoin(parts, '')
-    elif objectHas(span, 'style'):
-        styleSpans = objectGet(objectGet(span, 'style'), 'spans')
-        parts = []
-        for styleSpan in styleSpans:
-            arrayPush(parts, markdownParserGetSpanText(styleSpan))
-        endfor
-        return arrayJoin(parts, '')
-    endif
-    return objectGet(span, 'text')
-endfunction
-
-
 # Markdown block-level regex
 markdownParserRegexLineSplit = regexNew('\\r?\\n')
 markdownParserRegexParagraphEmpty = regexNew('^\\s*$')
@@ -85,13 +19,13 @@ markdownParserRegexTableCell = regexNew('^\\s*(?<cell>(?:\\\\\\||[^|])*?)\\s*\\|
 markdownParserRegexTableEscape = regexNew('\\\\(\\\\|\\|)')
 
 
-# $function: markdownParserParseMarkdown
+# $function: markdownParse
 # $group: markdownParser.bare
 # $doc: Parse Markdown text into a Markdown model
 # $arg markdown: Markdown text string or array of text lines
 # $arg startLineNumber: Optional (default is 1). The starting line number.
 # $return: The Markdown model
-function markdownParserParseMarkdown(markdown, startLineNumber):
+function markdownParse(markdown, startLineNumber):
     startLineNumber = if(startLineNumber != null, startLineNumber, 1)
     return markdownParserParseInternal(markdown, startLineNumber, null)
 endfunction

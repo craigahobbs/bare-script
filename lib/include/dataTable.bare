@@ -303,7 +303,7 @@ function dataTableElements(data, dataTable):
 
                 fieldFormat = if(fieldFormats != null, objectGet(fieldFormats, field))
                 fieldElements = if(fieldFormat != null && objectGet(fieldFormat, 'markdown'), \
-                    markdownElementsElements(markdownParserParseMarkdown(stringNew(value))), \
+                    markdownElements(markdownParse(stringNew(value))), \
                     {'text': dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim)} \
                 )
                 arrayPush(fieldRowElements, { \

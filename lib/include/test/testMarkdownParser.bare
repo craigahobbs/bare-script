@@ -5,75 +5,8 @@ include '../markdownParser.bare'
 include '../unittest.bare'
 
 
-function testEscapeMarkdownText():
-    unittestEqual( \
-        markdownParserEscapeMarkdownText('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
-        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
-    )
-endfunction
-unittestRunTest('testEscapeMarkdownText')
-
-
-function testGetMarkdownTitle():
-    markdownModel = markdownParserParseMarkdown( \
-        'This is some text\n' + \
-        '\n' + \
-        '## This is the *title*\n' + \
-        '\n' + \
-        '# This is NOT the *title*\n' + \
-        '\n' + \
-        'This is more text\n' \
-    )
-    unittestEqual(markdownParserGetMarkdownTitle(markdownModel), 'This is the title')
-endfunction
-unittestRunTest('testGetMarkdownTitle')
-
-
-function testGetMarkdownTitle_link():
-    markdownModel = markdownParserParseMarkdown( \
-        '# This is the [title](about.html)\n' \
-    )
-    unittestEqual(markdownParserGetMarkdownTitle(markdownModel), 'This is the title')
-endfunction
-unittestRunTest('testGetMarkdownTitle_link')
-
-
-function testGetMarkdownTitle_image():
-    markdownModel = markdownParserParseMarkdown( \
-        '# This is the ![title](title.jpg)\n' \
-    )
-    unittestEqual(markdownParserGetMarkdownTitle(markdownModel), 'This is the title')
-endfunction
-unittestRunTest('testGetMarkdownTitle_image')
-
-
-function testGetMarkdownTitle_noTitle():
-    markdownModel = markdownParserParseMarkdown( \
-        'This is some text\n' + \
-        '\n' + \
-        'This is more text\n' \
-    )
-    unittestEqual(markdownParserGetMarkdownTitle(markdownModel), null)
-endfunction
-unittestRunTest('testGetMarkdownTitle_noTitle')
-
-
-function testGetMarkdownParagraphText():
-    markdownModel = markdownParserParseMarkdown( \
-        'This is a [link](link.html)\n' + \
-        'and some more text\n' + \
-        '\n' + \
-        'Some other text\n' \
-    )
-    parts = objectGet(markdownModel, 'parts')
-    paragraph = objectGet(arrayGet(parts, 0), 'paragraph')
-    unittestEqual(markdownParserGetMarkdownParagraphText(paragraph), 'This is a link\nand some more text')
-endfunction
-unittestRunTest('testGetMarkdownParagraphText')
-
-
 function testParseMarkdown():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# Title\n' + \
         '\n' + \
         'This is a sentence.\n' + \
@@ -97,7 +30,7 @@ unittestRunTest('testParseMarkdown')
 
 
 function testParseMarkdown_lines():
-    markdown = markdownParserParseMarkdown([ \
+    markdown = markdownParse([ \
         '# Title', \
         '', \
         'This is a sentence.', \
@@ -122,7 +55,7 @@ unittestRunTest('testParseMarkdown_lines')
 
 
 function testParseMarkdown_tabs():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is a tab "\t".\n' + \
         '\n' + \
         ' * List 1 - 1\n' + \
@@ -155,7 +88,7 @@ unittestRunTest('testParseMarkdown_tabs')
 
 
 function testParseMarkdown_empty():
-    markdown = markdownParserParseMarkdown('')
+    markdown = markdownParse('')
     unittestDeepEqual( \
         markdown, \
         {'parts': []} \
@@ -165,7 +98,7 @@ unittestRunTest('testParseMarkdown_empty')
 
 
 function testParseMarkdown_horizontalRule():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Some text\n' + \
         '***\n' + \
         '******\n' + \
@@ -187,7 +120,7 @@ unittestRunTest('testParseMarkdown_horizontalRule')
 
 
 function testParseMarkdown_horizontalRuleVariety():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '***\n' + \
         '---\n' + \
         '___\n' \
@@ -207,7 +140,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleVariety')
 
 
 function testParseMarkdown_horizontalRuleNotEnoughCharacters():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '--\n' + \
         '**\n' + \
         '__\n' \
@@ -225,7 +158,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleNotEnoughCharacters')
 
 
 function testParseMarkdown_horizontalRuleInitialSpace():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         ' ***\n' + \
         '  ***\n' + \
         '   ***\n' + \
@@ -250,7 +183,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleInitialSpace')
 
 
 function testParseMarkdown_horizontalRuleMoreThanThreeCharacters():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '-------------------------------------\n' + \
         '*************************************\n' + \
         '_____________________________________\n' \
@@ -270,7 +203,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleMoreThanThreeCharacters')
 
 
 function testParseMarkdown_horizontalRuleSpaces():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Some text\n' + \
         ' -  -    --\n' + \
         ' *  *    **\n' + \
@@ -292,7 +225,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleSpaces')
 
 
 function testParseMarkdown_horizontalRuleBeyondCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    *****\n' \
     )
     unittestDeepEqual( \
@@ -308,7 +241,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleBeyondCodeBlock')
 
 
 function testParseMarkdown_horizontalRuleFollowingCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is a horizontal fule immediately following a code block:\n' + \
         '\n' + \
         '    code\n' + \
@@ -330,7 +263,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleFollowingCodeBlock')
 
 
 function testParseMarkdown_horizontalRuleSeparatingLists():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- foo\n' + \
         '***\n' + \
         '- bar\n' \
@@ -358,7 +291,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleSeparatingLists')
 
 
 function testParseMarkdown_horizontalRuleSeparatingLists2():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '* foo\n' + \
         '* * *\n' + \
         '* bar\n' \
@@ -386,7 +319,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleSeparatingLists2')
 
 
 function testParseMarkdown_horizontalRuleWithinList():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- foo\n' + \
         '- * * *\n' \
     )
@@ -410,7 +343,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleWithinList')
 
 
 function testParseMarkdown_horizontalRuleSeparatingParagraphs():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'foo\n' + \
         '***\n' + \
         'bar\n' \
@@ -430,7 +363,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleSeparatingParagraphs')
 
 
 function testParseMarkdown_horizontalRuleHeaderActually():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'foo\n' + \
         '---\n' + \
         'bar\n' \
@@ -449,7 +382,7 @@ unittestRunTest('testParseMarkdown_horizontalRuleHeaderActually')
 
 
 function testParseMarkdown_heading():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# foo\n' + \
         '## foo\n' + \
         '### foo\n' + \
@@ -477,7 +410,7 @@ unittestRunTest('testParseMarkdown_heading')
 
 
 function testParseMarkdown_headingNot():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '#5 bolt\n' + \
         '\n' + \
         '#hashtag\n' \
@@ -496,7 +429,7 @@ unittestRunTest('testParseMarkdown_headingNot')
 
 
 function testParseMarkdown_headingEscape():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '\\## foo\n' \
     )
     unittestDeepEqual( \
@@ -512,7 +445,7 @@ unittestRunTest('testParseMarkdown_headingEscape')
 
 
 function testParseMarkdown_headingSpans():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# foo *bar* \\*baz\\*\n' \
     )
     unittestDeepEqual( \
@@ -532,7 +465,7 @@ unittestRunTest('testParseMarkdown_headingSpans')
 
 
 function testParseMarkdown_headingLeadingTrailingWhitespace():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '#                  foo                     \n' \
     )
     unittestDeepEqual( \
@@ -548,7 +481,7 @@ unittestRunTest('testParseMarkdown_headingLeadingTrailingWhitespace')
 
 
 function testParseMarkdown_headingIndent():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         ' ### foo\n' + \
         '  ## foo\n' + \
         '   # foo\n' + \
@@ -570,7 +503,7 @@ unittestRunTest('testParseMarkdown_headingIndent')
 
 
 function testParseMarkdown_headingClosingCharacters():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '## foo ##\n' + \
         '  ###   bar    ###\n' + \
         '### foo ###     \n' \
@@ -590,7 +523,7 @@ unittestRunTest('testParseMarkdown_headingClosingCharacters')
 
 
 function testParseMarkdown_headingClosingCharactersLength():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# foo ##################################\n' + \
         '##### foo ##\n' \
     )
@@ -608,7 +541,7 @@ unittestRunTest('testParseMarkdown_headingClosingCharactersLength')
 
 
 function testParseMarkdown_headingClosingCharactersNot():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '### foo ### b\n' \
     )
     unittestDeepEqual( \
@@ -624,7 +557,7 @@ unittestRunTest('testParseMarkdown_headingClosingCharactersNot')
 
 
 function testParseMarkdown_headingClosingCharactersNoLeadingSpace():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# foo#\n' \
     )
     unittestDeepEqual( \
@@ -640,7 +573,7 @@ unittestRunTest('testParseMarkdown_headingClosingCharactersNoLeadingSpace')
 
 
 function testParseMarkdown_headingClosingCharactersEscaped():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '### foo \\###\n' + \
         '## foo #\\##\n' + \
         '# foo \\#\n' \
@@ -660,7 +593,7 @@ unittestRunTest('testParseMarkdown_headingClosingCharactersEscaped')
 
 
 function testParseMarkdown_headingSeparatesHorizontalRules():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '****\n' + \
         '## foo\n' + \
         '****\n' \
@@ -680,7 +613,7 @@ unittestRunTest('testParseMarkdown_headingSeparatesHorizontalRules')
 
 
 function testParseMarkdown_headingSeparatesParagraphs():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo bar\n' + \
         '# baz\n' + \
         'Bar foo\n' \
@@ -700,7 +633,7 @@ unittestRunTest('testParseMarkdown_headingSeparatesParagraphs')
 
 
 function testParseMarkdown_headingEmpty():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '## \n' + \
         '#\n' + \
         '### ###\n' \
@@ -720,7 +653,7 @@ unittestRunTest('testParseMarkdown_headingEmpty')
 
 
 function testParseMarkdown_headingAlternate():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Title *Emphasis*\n' + \
         '================\n' + \
         '\n' + \
@@ -753,7 +686,7 @@ unittestRunTest('testParseMarkdown_headingAlternate')
 
 
 function testParseMarkdown_headingAlternateMultiline():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Title\n' + \
         '*and* More\n' + \
         '  ===\n' \
@@ -775,7 +708,7 @@ unittestRunTest('testParseMarkdown_headingAlternateMultiline')
 
 
 function testParseMarkdown_headingAlternateLength():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '-------------------------\n' + \
         '\n' + \
@@ -796,7 +729,7 @@ unittestRunTest('testParseMarkdown_headingAlternateLength')
 
 
 function testParseMarkdown_headingAlternateIndented():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '   Foo\n' + \
         '---\n' + \
         '\n' + \
@@ -821,7 +754,7 @@ unittestRunTest('testParseMarkdown_headingAlternateIndented')
 
 
 function testParseMarkdown_headingAlternateIndentedTooMuch():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    Foo\n' + \
         '    ---\n' + \
         '\n' + \
@@ -842,7 +775,7 @@ unittestRunTest('testParseMarkdown_headingAlternateIndentedTooMuch')
 
 
 function testParseMarkdown_headingAlternateIndentedTooMuch2():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '    ---\n' \
     )
@@ -859,7 +792,7 @@ unittestRunTest('testParseMarkdown_headingAlternateIndentedTooMuch2')
 
 
 function testParseMarkdown_headingAlternateNoInternalSpaces():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '= =\n' + \
         '\n' + \
@@ -881,7 +814,7 @@ unittestRunTest('testParseMarkdown_headingAlternateNoInternalSpaces')
 
 
 function testParseMarkdown_headingAlternateBreak():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo  \n' + \
         '-----\n' \
     )
@@ -898,7 +831,7 @@ unittestRunTest('testParseMarkdown_headingAlternateBreak')
 
 
 function testParseMarkdown_headingAlternateFollowingBlockQuote():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> Foo\n' + \
         '---\n' \
     )
@@ -916,7 +849,7 @@ unittestRunTest('testParseMarkdown_headingAlternateFollowingBlockQuote')
 
 
 function testParseMarkdown_headingAlternateBlockQuoteContinuation():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> foo\n' + \
         'bar\n' + \
         '===\n' \
@@ -937,7 +870,7 @@ unittestRunTest('testParseMarkdown_headingAlternateBlockQuoteContinuation')
 
 
 function testParseMarkdown_headingAlternateFollowingList():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- Foo\n' + \
         '---\n' \
     )
@@ -959,7 +892,7 @@ unittestRunTest('testParseMarkdown_headingAlternateFollowingList')
 
 
 function testParseMarkdown_headingAlternateFollowingListMultiline():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- Title\n' + \
         'and more\n' + \
         '=====\n' \
@@ -984,7 +917,7 @@ unittestRunTest('testParseMarkdown_headingAlternateFollowingListMultiline')
 
 
 function testParseMarkdown_headingAlternateFollowingCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Title\n' + \
         '    =====\n' \
     )
@@ -1001,7 +934,7 @@ unittestRunTest('testParseMarkdown_headingAlternateFollowingCodeBlock')
 
 
 function testParseMarkdown_headingAlternateNoBlanks():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '---\n' + \
         'Foo\n' + \
         '---\n' + \
@@ -1023,7 +956,7 @@ unittestRunTest('testParseMarkdown_headingAlternateNoBlanks')
 
 
 function testParseMarkdown_list():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- item 1\n' + \
         '\n' + \
         '  item 1.2\n' + \
@@ -1060,7 +993,7 @@ unittestRunTest('testParseMarkdown_list')
 
 
 function testParseMarkdown_listNumbered():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '1. foo\n' + \
         '2. bar\n' + \
         '3) baz\n' \
@@ -1093,7 +1026,7 @@ unittestRunTest('testParseMarkdown_listNumbered')
 
 
 function testParseMarkdown_listMixed():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '1. item 1\n' + \
         '\n' + \
         '   item 1.2\n' + \
@@ -1137,7 +1070,7 @@ unittestRunTest('testParseMarkdown_listMixed')
 
 
 function testParseMarkdown_listParagraphAdjacent():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '- bar\n' + \
         '- baz\n' \
@@ -1167,7 +1100,7 @@ unittestRunTest('testParseMarkdown_listParagraphAdjacent')
 
 
 function testParseMarkdown_listNumberedParagraphAdjacent():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '1. bar\n' + \
         '2. baz\n' \
@@ -1198,7 +1131,7 @@ unittestRunTest('testParseMarkdown_listNumberedParagraphAdjacent')
 
 
 function testParseMarkdown_listNested():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- 1\n' + \
         ' - 2\n' + \
         '  - 3\n' + \
@@ -1260,7 +1193,7 @@ unittestRunTest('testParseMarkdown_listNested')
 
 
 function testParseMarkdown_listItemParagraph():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- foo\n' + \
         '  - bar\n' + \
         '    - baz\n' + \
@@ -1302,7 +1235,7 @@ unittestRunTest('testParseMarkdown_listItemParagraph')
 
 
 function testParseMarkdown_listTerminatedWithFencedCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- Item 1\n' + \
         '\n' + \
         '~~~\n' + \
@@ -1327,7 +1260,7 @@ unittestRunTest('testParseMarkdown_listTerminatedWithFencedCodeBlock')
 
 
 function testParseMarkdown_blockQuote():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is a quote:\n' + \
         '\n' + \
         '> Four score and\n' + \
@@ -1353,7 +1286,7 @@ unittestRunTest('testParseMarkdown_blockQuote')
 
 
 function testParseMarkdown_blockQuoteNested():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> Quote text\n' + \
         '>\n' + \
         '> > Inner text\n' + \
@@ -1379,7 +1312,7 @@ unittestRunTest('testParseMarkdown_blockQuoteNested')
 
 
 function testParseMarkdown_blockQuoteIsCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    > really\n' + \
         '    > a code block\n' \
     )
@@ -1396,7 +1329,7 @@ unittestRunTest('testParseMarkdown_blockQuoteIsCodeBlock')
 
 
 function testParseMarkdown_blockQuoteLazy():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> # Foo\n' + \
         '> bar\n' + \
         'baz\n' \
@@ -1417,7 +1350,7 @@ unittestRunTest('testParseMarkdown_blockQuoteLazy')
 
 
 function testParseMarkdown_blockQuoteLazyMixed():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> bar\n' + \
         'baz\n' + \
         '> foo\n' \
@@ -1437,7 +1370,7 @@ unittestRunTest('testParseMarkdown_blockQuoteLazyMixed')
 
 
 function testParseMarkdown_blockQuoteTerminateWithHr():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> foo\n' + \
         '---\n' \
     )
@@ -1457,7 +1390,7 @@ unittestRunTest('testParseMarkdown_blockQuoteTerminateWithHr')
 
 
 function testParseMarkdown_blockQuoteTerminateWithList():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '> - foo\n' + \
         '- bar\n' \
     )
@@ -1485,7 +1418,7 @@ unittestRunTest('testParseMarkdown_blockQuoteTerminateWithList')
 
 
 function testParseMarkdown_blockQuoteNotTerminatedWithCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '>     foo\n' + \
         '    bar\n' \
     )
@@ -1504,7 +1437,7 @@ unittestRunTest('testParseMarkdown_blockQuoteNotTerminatedWithCodeBlock')
 
 
 function testParseMarkdown_blockQuoteTerminatesCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    foo\n' + \
         '> bar\n' \
     )
@@ -1522,7 +1455,7 @@ unittestRunTest('testParseMarkdown_blockQuoteTerminatesCodeBlock')
 
 
 function testParseMarkdown_blockQuoteTerminatesList():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '- item 1\n' + \
         '\n' + \
         '> quote\n' \
@@ -1547,7 +1480,7 @@ unittestRunTest('testParseMarkdown_blockQuoteTerminatesList')
 
 
 function testParseMarkdown_blockQuoteEmpty():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '>\n' \
     )
     unittestDeepEqual( \
@@ -1563,7 +1496,7 @@ unittestRunTest('testParseMarkdown_blockQuoteEmpty')
 
 
 function testParseMarkdown_codeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is some code:\n' + \
         '\n' + \
         '    code 1\n' + \
@@ -1588,7 +1521,7 @@ unittestRunTest('testParseMarkdown_codeBlock')
 
 
 function testParseMarkdown_codeBlockNoParagraphInterrupt():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'Foo\n' + \
         '    bar\n' \
     )
@@ -1605,7 +1538,7 @@ unittestRunTest('testParseMarkdown_codeBlockNoParagraphInterrupt')
 
 
 function testParseMarkdown_codeBlockParagraphTerminates():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    foo\n' + \
         'bar\n' \
     )
@@ -1623,7 +1556,7 @@ unittestRunTest('testParseMarkdown_codeBlockParagraphTerminates')
 
 
 function testParseMarkdown_codeBlockFollowsHeader():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '# Heading\n' + \
         '    foo\n' + \
         'Heading\n' + \
@@ -1648,7 +1581,7 @@ unittestRunTest('testParseMarkdown_codeBlockFollowsHeader')
 
 
 function testParseMarkdown_codeBlockTrailingSpaces():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    foo  \n' \
     )
     unittestDeepEqual( \
@@ -1664,7 +1597,7 @@ unittestRunTest('testParseMarkdown_codeBlockTrailingSpaces')
 
 
 function testParseMarkdown_fencedCodeBlock():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is some code:\n' + \
         '\n' + \
         '~~~\n' + \
@@ -1686,7 +1619,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlock')
 
 
 function testParseMarkdown_fencedCodeBlockLength():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '~~~~\n' + \
         'aaa\n' + \
         '~~~\n' + \
@@ -1705,7 +1638,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockLength')
 
 
 function testParseMarkdown_fencedCodeBlockNot():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '``\n' + \
         'foo\n' + \
         '``\n' \
@@ -1723,7 +1656,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockNot')
 
 
 function testParseMarkdown_fencedCodeBlockEmpty():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is some code:\n' + \
         '\n' + \
         '~~~\n' + \
@@ -1743,7 +1676,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockEmpty')
 
 
 function testParseMarkdown_fencedCodeBlockEndOfFile():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is some code:\n' + \
         '\n' + \
         '~~~' \
@@ -1762,7 +1695,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockEndOfFile')
 
 
 function testParseMarkdown_fencedCodeBlockLanguage():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is some code:\n' + \
         '\n' + \
         '~~~ javascript\n' + \
@@ -1784,7 +1717,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockLanguage')
 
 
 function testParseMarkdown_fencedCodeBlockLanguageNoSpace():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '~~~javascript\n' + \
         'foo();\n' + \
         '~~~\n' \
@@ -1802,7 +1735,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockLanguageNoSpace')
 
 
 function testParseMarkdown_fencedCodeBlockSeparatesParagraphs():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'foo\n' + \
         '~~~\n' + \
         'bar\n' + \
@@ -1824,7 +1757,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockSeparatesParagraphs')
 
 
 function testParseMarkdown_fencedCodeBlockSeparatesHeaders():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'foo\n' + \
         '---\n' + \
         '~~~\n' + \
@@ -1847,7 +1780,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockSeparatesHeaders')
 
 
 function testParseMarkdown_fencedCodeBlockCloseNoLanguage():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '~~~\n' + \
         '~~~ aaa\n' + \
         '~~~\n' \
@@ -1865,7 +1798,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockCloseNoLanguage')
 
 
 function testParseMarkdown_fencedCodeBlockIndentedFence():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         ' ~~~\n' + \
         ' aaa\n' + \
         'aaa\n' + \
@@ -1884,7 +1817,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence')
 
 
 function testParseMarkdown_fencedCodeBlockIndentedFence2():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '  ~~~\n' + \
         'aaa\n' + \
         '  aaa\n' + \
@@ -1904,7 +1837,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence2')
 
 
 function testParseMarkdown_fencedCodeBlockIndentedFence3():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '   ~~~\n' + \
         '   aaa\n' + \
         '    aaa\n' + \
@@ -1924,7 +1857,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence3')
 
 
 function testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '    ~~~\n' + \
         '    aaa\n' + \
         '    ~~~\n' \
@@ -1942,7 +1875,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch')
 
 
 function testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch2():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '~~~\n' + \
         'aaa\n' + \
         '    ~~~\n' \
@@ -1960,7 +1893,7 @@ unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch2')
 
 
 function testParseMarkdown_table():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is a table:\n' + \
         '\n' + \
         '| Column A | Column B | Column C | Column D |\n' + \
@@ -2012,7 +1945,7 @@ unittestRunTest('testParseMarkdown_table')
 
 
 function testParseMarkdown_tableCrowded():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'This is a table:\n' + \
         '|Column A|\n' + \
         '|--------|\n' + \
@@ -2040,7 +1973,7 @@ unittestRunTest('testParseMarkdown_tableCrowded')
 
 
 function testParseMarkdown_tableNaked():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '| abc | defghi |\n' + \
         ':-: | -----------:\n' + \
         'bar | baz\n' \
@@ -2064,7 +1997,7 @@ unittestRunTest('testParseMarkdown_tableNaked')
 
 
 function testParseMarkdown_tableEscapes():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '| f\\|oo  |\n' + \
         '| ------ |\n' + \
         '| b `\\|` az |\n' + \
@@ -2090,7 +2023,7 @@ unittestRunTest('testParseMarkdown_tableEscapes')
 
 
 function testParseMarkdown_tableMismatchedDelimiter():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '| abc | def |\n' + \
         '| --- |\n' + \
         '| bar |\n' \
@@ -2110,7 +2043,7 @@ unittestRunTest('testParseMarkdown_tableMismatchedDelimiter')
 
 
 function testParseMarkdown_tableShortAndLong():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '| abc | def |\n' + \
         '| --- | --- |\n' + \
         '| bar |\n' + \
@@ -2136,7 +2069,7 @@ unittestRunTest('testParseMarkdown_tableShortAndLong')
 
 
 function testParseMarkdown_tableEmpty():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         '| abc | def |\n' + \
         '| --- | --- |\n' \
     )
@@ -2156,7 +2089,7 @@ unittestRunTest('testParseMarkdown_tableEmpty')
 
 
 function testParseMarkdown_tableListActually():
-    markdown = markdownParserParseMarkdown( \
+    markdown = markdownParse( \
         'A | B\n' + \
         '- | -\n' + \
         '0 | 1\n' \

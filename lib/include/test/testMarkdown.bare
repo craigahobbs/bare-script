@@ -1,0 +1,72 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../markdownParser.bare'
+include '../unittest.bare'
+
+
+function testMarkdownEscape():
+    unittestEqual( \
+        markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
+        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
+    )
+endfunction
+unittestRunTest('testMarkdownEscape')
+
+
+function testGetMarkdownTitle():
+    markdownModel = markdownParse( \
+        'This is some text\n' + \
+        '\n' + \
+        '## This is the *title*\n' + \
+        '\n' + \
+        '# This is NOT the *title*\n' + \
+        '\n' + \
+        'This is more text\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), 'This is the title')
+endfunction
+unittestRunTest('testGetMarkdownTitle')
+
+
+function testGetMarkdownTitle_link():
+    markdownModel = markdownParse( \
+        '# This is the [title](about.html)\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), 'This is the title')
+endfunction
+unittestRunTest('testGetMarkdownTitle_link')
+
+
+function testGetMarkdownTitle_image():
+    markdownModel = markdownParse( \
+        '# This is the ![title](title.jpg)\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), 'This is the title')
+endfunction
+unittestRunTest('testGetMarkdownTitle_image')
+
+
+function testGetMarkdownTitle_noTitle():
+    markdownModel = markdownParse( \
+        'This is some text\n' + \
+        '\n' + \
+        'This is more text\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), null)
+endfunction
+unittestRunTest('testGetMarkdownTitle_noTitle')
+
+
+function testMarkdownParagraphText():
+    markdownModel = markdownParse( \
+        'This is a [link](link.html)\n' + \
+        'and some more text\n' + \
+        '\n' + \
+        'Some other text\n' \
+    )
+    parts = objectGet(markdownModel, 'parts')
+    paragraph = objectGet(arrayGet(parts, 0), 'paragraph')
+    unittestEqual(markdownParagraphText(paragraph), 'This is a link\nand some more text')
+endfunction
+unittestRunTest('testMarkdownParagraphText')

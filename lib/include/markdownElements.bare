@@ -2,16 +2,16 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <markdownHighlight.bare>
-include <markdownParser.bare>
+include <markdown.bare>
 
 
-# $function: markdownElementsElements
+# $function: markdownElements
 # $group: markdownElements.bare
 # $doc: Generate an element model from a Markdown model
 # $arg markdown: The Markdown model
 # $arg options: Optional (default is null). The options object.
 # $return: The Markdown's element model
-function markdownElementsElements(markdown, options):
+function markdownElements(markdown, options):
     usedHeaderIds = if(options != null && objectHas(options, 'usedHeaderIds'), objectGet(options, 'usedHeaderIds'), {})
     return markdownElementsPartsElements(objectGet(markdown, 'parts'), options, usedHeaderIds)
 endfunction
@@ -82,7 +82,7 @@ function markdownElementsPartElementsBase(part, options, usedHeaderIds):
             # Determine the header ID, if requested
             headerId = null
             if options != null && objectHas(options, 'headerIds') && objectGet(options, 'headerIds'):
-                headerId = markdownElementsHeaderId(markdownParserGetMarkdownParagraphText(paragraph))
+                headerId = markdownHeaderId(markdownParagraphText(paragraph))
 
                 # Duplicate header ID?
                 if objectHas(usedHeaderIds, headerId):
@@ -255,22 +255,3 @@ function markdownElementsParagraphSpanElements(spans, options):
 
     return spanElements
 endfunction
-
-
-# $function: markdownElementsHeaderId
-# $group: markdownElements.bare
-# $doc: Generate a Markdown header ID from text
-# $arg text: The text
-# $return: The header element ID
-function markdownElementsHeaderId(text):
-    result = stringLower(text)
-    result = regexReplace(markdownElementsHeaderIdStart, result, '')
-    result = regexReplace(markdownElementsHeaderIdEnd, result, '')
-    result = regexReplace(markdownElementsHeaderIdRemove, result, '')
-    return regexReplace(markdownElementsHeaderIdDash, result, '-')
-endfunction
-
-markdownElementsHeaderIdStart = regexNew('^[^a-z0-9]+')
-markdownElementsHeaderIdEnd = regexNew('[^a-z0-9]+$')
-markdownElementsHeaderIdRemove = regexNew('[\'"]')
-markdownElementsHeaderIdDash = regexNew('[^a-z0-9]+')

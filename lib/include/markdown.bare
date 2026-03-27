@@ -1,0 +1,87 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: markdownEscape
+# $group: markdown.bare
+# $doc: Escape a string for inclusion in Markdown text
+# $arg text: The text to escape
+# $return: The escaped text
+function markdownEscape(text):
+    return regexReplace(markdownParserRegexEscape, text, '\\$1')
+endfunction
+
+markdownParserRegexEscape = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
+
+
+# $function: markdownHeaderId
+# $group: markdown.bare
+# $doc: Generate a Markdown header ID from text
+# $arg text: The text
+# $return: The header element ID
+function markdownHeaderId(text):
+    result = stringLower(text)
+    result = regexReplace(markdownElementsHeaderIdStart, result, '')
+    result = regexReplace(markdownElementsHeaderIdEnd, result, '')
+    result = regexReplace(markdownElementsHeaderIdRemove, result, '')
+    return regexReplace(markdownElementsHeaderIdDash, result, '-')
+endfunction
+
+markdownElementsHeaderIdStart = regexNew('^[^a-z0-9]+')
+markdownElementsHeaderIdEnd = regexNew('[^a-z0-9]+$')
+markdownElementsHeaderIdRemove = regexNew('[\'"]')
+markdownElementsHeaderIdDash = regexNew('[^a-z0-9]+')
+
+
+# $function: markdownTitle
+# $group: markdown.bare
+# $doc: Get a Markdown model's title
+# $arg markdown: The Markdown model
+# $return: The title string or null
+function markdownTitle(markdown):
+    parts = objectGet(markdown, 'parts')
+    for part in parts:
+        if objectHas(part, 'paragraph') && objectHas(objectGet(part, 'paragraph'), 'style'):
+            return markdownParagraphText(objectGet(part, 'paragraph'))
+        endif
+    endfor
+    return null
+endfunction
+
+
+# $function: markdownParagraphText
+# $group: markdown.bare
+# $doc: Get a Markdown paragraph model's text
+# $arg paragraph: The Markdown paragraph model
+# $return: The paragraph text string
+function markdownParagraphText(paragraph):
+    spans = objectGet(paragraph, 'spans')
+    parts = []
+    for span in spans:
+        arrayPush(parts, markdownParserGetSpanText(span))
+    endfor
+    return arrayJoin(parts, '')
+endfunction
+
+
+# Helper function to get a Markdown span model's text
+function markdownParserGetSpanText(span):
+    if objectHas(span, 'image'):
+        return objectGet(objectGet(span, 'image'), 'alt')
+    elif objectHas(span, 'link'):
+        linkSpans = objectGet(objectGet(span, 'link'), 'spans')
+        parts = []
+        for linkSpan in linkSpans:
+            arrayPush(parts, markdownParserGetSpanText(linkSpan))
+        endfor
+        return arrayJoin(parts, '')
+    elif objectHas(span, 'style'):
+        styleSpans = objectGet(objectGet(span, 'style'), 'spans')
+        parts = []
+        for styleSpan in styleSpans:
+            arrayPush(parts, markdownParserGetSpanText(styleSpan))
+        endfor
+        return arrayJoin(parts, '')
+    endif
+    return objectGet(span, 'text')
+endfunction

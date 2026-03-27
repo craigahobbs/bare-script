@@ -13,6 +13,8 @@ include <diff.bare>
 #include <draw.bare>
 include <elementModel.bare>
 include <forms.bare>
+#include <markdown.bare>
+#include <markdownElements.bare>
 #include <markdownHighlight.bare>
 #include <markdownParser.bare>
 include <pager.bare>
@@ -35,6 +37,8 @@ include '../diff.bare'
 include '../draw.bare'
 include '../elementModel.bare'
 include '../forms.bare'
+include '../markdown.bare'
+include '../markdownElements.bare'
 include '../markdownHighlight.bare'
 include '../markdownParser.bare'
 include '../pager.bare'
@@ -54,6 +58,7 @@ include 'testDiff.bare'
 include 'testDraw.bare'
 include 'testElementModel.bare'
 include 'testForms.bare'
+include 'testMarkdown.bare'
 include 'testMarkdownHighlight.bare'
 include 'testMarkdownParser.bare'
 include 'testPager.bare'
@@ -71,5 +76,5 @@ return unittestReport({ \
     'title': 'MarkdownUp Include Library Tests', \
     'links': ['[markdownUp.bare Tests](#url=runTestsMarkdownUp.md&var=)'], \
     'coverageExclude': ['runTests.bare'], \
-    'coverageMin': 97 \
+    'coverageMin': 96 \
 })

@@ -5,6 +5,7 @@
 include <args.bare>
 include <dataTable.bare>
 include <diff.bare>
+include <markdown.bare>
 
 
 # $function: unittestRunTest

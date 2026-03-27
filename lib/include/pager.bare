@@ -1,8 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-
 include <args.bare>
+include <markdown.bare>
 
 
 # The pager model

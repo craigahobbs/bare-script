@@ -182,56 +182,6 @@ endfunction
 #
 
 
-# $function: markdownElements
-# $group: markdownUp.bare: markdown
-# $doc: Generate an element model from a Markdown model
-# $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-# $arg generic: Optional (default is false). If true, render markdown elements in a generic context.
-# $return: The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
-function markdownElements():
-endfunction
-
-
-# $function: markdownEscape
-# $group: markdownUp.bare: markdown
-# $doc: Escape text for inclusion in Markdown text
-# $arg text: The text
-# $return: The escaped text
-function markdownEscape(text):
-    return regexReplace(markdownUp_markdownEscapeRegex, text, '\\$1')
-endfunction
-
-markdownUp_markdownEscapeRegex = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
-
-
-# $function: markdownHeaderId
-# $group: markdownUp.bare: markdown
-# $doc: Compute the Markdown header element ID for some text
-# $arg text: The text
-# $return: The header element ID
-function markdownHeaderId(text):
-    result = stringLower(text)
-    result = regexReplace(markdownUp_markdownHeaderId_start, result, '')
-    result = regexReplace(markdownUp_markdownHeaderId_end, result, '')
-    result = regexReplace(markdownUp_markdownHeaderId_remove, result, '')
-    return regexReplace(markdownUp_markdownHeaderId_dash, result, '-')
-endfunction
-
-markdownUp_markdownHeaderId_start = regexNew('^[^a-z0-9]+')
-markdownUp_markdownHeaderId_end = regexNew('[^a-z0-9]+$')
-markdownUp_markdownHeaderId_remove = regexNew('[\'"]')
-markdownUp_markdownHeaderId_dash = regexNew('[^a-z0-9]+')
-
-
-# $function: markdownParse
-# $group: markdownUp.bare: markdown
-# $doc: Parse Markdown text
-# $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
-# $return: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-function markdownParse():
-endfunction
-
-
 # $function: markdownPrint
 # $group: markdownUp.bare: markdown
 # $doc: Render Markdown text
@@ -248,15 +198,6 @@ function markdownUp_markdownPrintHelper(lines):
             systemLog(line)
         endif
     endfor
-endfunction
-
-
-# $function: markdownTitle
-# $group: markdownUp.bare: markdown
-# $doc: Compute the title of a [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-# $arg markdownModel: The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-# $return: The Markdown title or null if there is no title
-function markdownTitle():
 endfunction
 
 
