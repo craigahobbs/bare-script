@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <dataTable.bare>
+include <elementModel.bare>
 
 
 # Constants
@@ -131,7 +132,11 @@ endfunction
 # $doc: - **keypress** - keyCode
 # $doc: - **keyup** - keyCode
 # $arg element: The [element model](https://github.com/craigahobbs/element-model#readme)
-function elementModelRender():
+function elementModelRender(element):
+    if systemGlobalGet('vMarkdownUpHeadless'):
+        markdownUpHeadlessMarkdown()
+        systemLog(elementModelToString(element, 4))
+    endif
 endfunction
 
 
@@ -187,17 +192,49 @@ endfunction
 # $doc: Render Markdown text
 # $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
 function markdownPrint(lines...):
-    markdownUp_markdownPrintHelper(lines)
+    if systemGlobalGet('vMarkdownUpHeadless'):
+        markdownLines = systemGlobalGet('markdownUpMarkdownLines')
+        if markdownLines == null:
+            markdownLines = []
+            systemGlobalSet('markdownUpMarkdownLines', markdownLines)
+        endif
+        arrayExtend(markdownLines, lines)
+    else:
+        for line in arrayFlat(lines):
+            if line != null:
+                systemLog(line)
+            endif
+        endfor
+    endif
 endfunction
 
-function markdownUp_markdownPrintHelper(lines):
-    for line in lines:
-        if systemType(line) == 'array':
-            markdownUp_markdownPrintHelper(line)
-        elif line != null:
-            systemLog(line)
-        endif
-    endfor
+
+# Headless rendering header function
+function markdownUpHeadlessBegin():
+    systemGlobalSet('vMarkdownUpHeadless', true)
+    systemLog('<!DOCTYPE html>')
+    systemLog('<html lang="en">')
+    systemLog('<head>')
+    systemLog('<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">')
+    systemLog('</head>')
+endfunction
+
+
+# Headless rendering footer function
+function markdownUpHeadlessEnd():
+    markdownUpHeadlessMarkdown()
+    systemLog('</html>')
+    systemGlobalSet('vMarkdownUpHeadless', null)
+endfunction
+
+
+# Headless markdown rendering helper function
+function markdownUpHeadlessMarkdown():
+    markdownLines = systemGlobalGet('markdownUpMarkdownLines')
+    if markdownLines != null:
+        systemLog(elementModelToString(markdownElements(markdownParse(markdownLines)), 4))
+        systemGlobalSet('markdownUpMarkdownLines', null)
+    endif
 endfunction
 
 

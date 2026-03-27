@@ -84,6 +84,27 @@ endfunction
 unittestRunTest('testMarkdownUp_markdownPrint')
 
 
+function testMarkdownUp_headless():
+    markdownPrintStub = systemGlobalGet('markdownPrintStub')
+    unittestMockOneGeneric('systemLog')
+    markdownUpHeadlessBegin()
+    unittestEqual(markdownPrintStub('Hello'), null)
+    unittestEqual(elementModelRender({'html': 'p', 'elem': {'text': 'Goodbye'}}))
+    markdownUpHeadlessEnd()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['<!DOCTYPE html>']], \
+        ['systemLog', ['<html lang="en">']], \
+        ['systemLog', ['<head>']], \
+        ['systemLog', ['<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">']], \
+        ['systemLog', ['</head>']], \
+        ['systemLog', ['<p>\n    Hello\n</p>\n']], \
+        ['systemLog', ['<p>\n    Goodbye\n</p>\n']], \
+        ['systemLog', ['</html>']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_headless')
+
+
 function testMarkdownUp_sessionStorage():
     unittestEqual(sessionStorageGet('key1'), null)
     unittestEqual(sessionStorageGet('key2'), null)

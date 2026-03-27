@@ -90,6 +90,25 @@ test('bare.main, markdownUp', async () => {
 });
 
 
+test('bare.main, headless', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-l', '-c', "markdownPrint('Hello **World**')"],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        '<!DOCTYPE html>',
+        '<html lang="en">',
+        '<head>',
+        '<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">',
+        '</head>',
+        '<p>\n    Hello \n    <strong>\n        World\n    </strong>\n</p>\n',
+        '</html>'
+    ]);
+});
+
+
 test('bare.main, file', async () => {
     const output = [];
     const exitCode = await main({

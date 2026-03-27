@@ -106,7 +106,7 @@ function elementModelToString(elements, indent):
     # Render the element model as an HTML/SVG string
     elementStr = elementModelToStringHelper(elements, indentStr, 0)
     if stringStartsWith(elementStr, '<html'):
-        elementStr = '<!DOCTYPE html>' + stringFromCharCode(10) + elementStr
+        elementStr = '<!DOCTYPE html>\n' + elementStr
     endif
     return elementStr
 endfunction
@@ -130,7 +130,7 @@ function elementModelToStringHelper(elements, indentStr, level):
 
     # Text node
     indentPrefix = stringRepeat(indentStr, level)
-    newline = if(indentStr, stringFromCharCode(10), '')
+    newline = if(indentStr, '\n', '')
     if objectHas(elements, 'text'):
         text = stringNew(objectGet(elements, 'text'))
         text = stringReplace(text, '&', '&amp;')

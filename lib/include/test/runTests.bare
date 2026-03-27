@@ -9,6 +9,7 @@ include <baredoc.bare>
 #include <data.bare>
 #include <dataLineChart.bare>
 include <dataTable.bare>
+include <dataUtil.bare>
 include <diff.bare>
 #include <draw.bare>
 include <elementModel.bare>
@@ -33,6 +34,7 @@ include '../baredocCLI.bare'
 include '../data.bare'
 include '../dataLineChart.bare'
 include '../dataTable.bare'
+include '../dataUtil.bare'
 include '../diff.bare'
 include '../draw.bare'
 include '../elementModel.bare'
