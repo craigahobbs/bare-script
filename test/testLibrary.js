@@ -971,7 +971,7 @@ test('library, coverageGlobalGet', () => {
 
 
 test('library, coverageGlobalName', () => {
-    assert.equal(scriptFunctions.coverageGlobalName([], null), '__bareScriptCoverage');
+    assert.equal(scriptFunctions.coverageGlobalName([], null), '__barescriptCoverage');
 });
 
 

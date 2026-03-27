@@ -174,7 +174,7 @@ export DOC_LIBRARY_MODEL_JS
 # JavaScript to generate the runtime model documentation
 define DOC_RUNTIME_MODEL_JS
 import {argv} from 'node:process';
-import {bareScriptTypes} from './lib/model.js';
+import {barescriptTypes} from './lib/model.js';
 import {valueJSON} from './lib/value.js';
 import {writeFileSync} from 'node:fs';
 
@@ -182,7 +182,7 @@ import {writeFileSync} from 'node:fs';
 const [, typeModelPath] = argv;
 
 // Write the runtime type model
-writeFileSync(typeModelPath, valueJSON(bareScriptTypes));
+writeFileSync(typeModelPath, valueJSON(barescriptTypes));
 endef
 export DOC_RUNTIME_MODEL_JS
 

@@ -309,56 +309,56 @@ return  # Bye!
             {'label': {'name': 'label', 'lineNumber': 12}},
             {
                 'jump': {
-                    'label': '__bareScriptIf0',
+                    'label': '__barescriptIf0',
                     'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}},
                     'lineNumber': 14
                 }
             },
             {'expr': {'name': 'ix', 'expr': {'number': 0.0}, 'lineNumber': 15}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 16}},
-            {'label':{'name':  '__bareScriptIf0', 'lineNumber': 16}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 16}},
+            {'label':{'name':  '__barescriptIf0', 'lineNumber': 16}},
             {
                 'jump': {
-                    'label': '__bareScriptIf1',
+                    'label': '__barescriptIf1',
                     'expr': {'unary': {'op': '!', 'expr': {'variable': 'false'}}},
                     'lineNumber': 16
                 }
             },
             {'expr': {'name': 'ix', 'expr': {'number': 1.0}, 'lineNumber': 17}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 18}},
-            {'label':{'name':  '__bareScriptIf1', 'lineNumber': 18}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 18}},
+            {'label':{'name':  '__barescriptIf1', 'lineNumber': 18}},
             {'expr': {'name': 'ix', 'expr': {'number': 2.0}, 'lineNumber': 19}},
-            {'label':{'name':  '__bareScriptDone0', 'lineNumber': 20}},
+            {'label':{'name':  '__barescriptDone0', 'lineNumber': 20}},
             {
                 'expr': {
-                    'name': '__bareScriptValues2',
+                    'name': '__barescriptValues2',
                     'expr': {'function': {'name': 'arrayNew', 'args': [{'number': 1.0},{'number': 2.0},{'number': 3.0}]}},
                     'lineNumber': 22
                 }
             },
             {
                 'expr': {
-                    'name': '__bareScriptLength2',
-                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues2'}]}},
+                    'name': '__barescriptLength2',
+                    'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__barescriptValues2'}]}},
                     'lineNumber': 22
                 }
             },
             {
                 'jump': {
-                    'label': '__bareScriptDone2',
-                    'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength2'}}},
+                    'label': '__barescriptDone2',
+                    'expr': {'unary': {'op': '!', 'expr': {'variable': '__barescriptLength2'}}},
                     'lineNumber': 22
                 }
             },
-            {'expr': {'name': '__bareScriptIndex2', 'expr': {'number': 0.0}, 'lineNumber': 22}},
-            {'label':{'name':  '__bareScriptLoop2', 'lineNumber': 22}},
+            {'expr': {'name': '__barescriptIndex2', 'expr': {'number': 0.0}, 'lineNumber': 22}},
+            {'label':{'name':  '__barescriptLoop2', 'lineNumber': 22}},
             {
                 'expr': {
                     'name': 'num',
                     'expr': {
                         'function': {
                             'name': 'arrayGet',
-                            'args': [{'variable': '__bareScriptValues2'}, {'variable': '__bareScriptIndex2'}]
+                            'args': [{'variable': '__barescriptValues2'}, {'variable': '__barescriptIndex2'}]
                         }
                     },
                     'lineNumber': 22
@@ -367,41 +367,41 @@ return  # Bye!
             {'expr': {'expr': {'function': {'name': 'systemLog', 'args': [{'variable': 'num'}]}}, 'lineNumber': 23}},
             {
                 'expr': {
-                    'name': '__bareScriptIndex2',
-                    'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex2'},'right': {'number': 1.0}}},
+                    'name': '__barescriptIndex2',
+                    'expr': {'binary': {'op': '+', 'left': {'variable': '__barescriptIndex2'},'right': {'number': 1.0}}},
                     'lineNumber': 24
                 }
             },
             {
                 'jump': {
-                    'label': '__bareScriptLoop2',
+                    'label': '__barescriptLoop2',
                     'expr': {
-                        'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex2'},'right': {'variable': '__bareScriptLength2'}}
+                        'binary': {'op': '<', 'left': {'variable': '__barescriptIndex2'},'right': {'variable': '__barescriptLength2'}}
                     },
                     'lineNumber': 24
                 }
             },
-            {'label':{'name':  '__bareScriptDone2', 'lineNumber': 24}},
+            {'label':{'name':  '__barescriptDone2', 'lineNumber': 24}},
             {'expr': {'name': 'ix', 'expr': {'number': 0.0}, 'lineNumber': 26}},
             {
                 'jump': {
-                    'label': '__bareScriptDone3',
+                    'label': '__barescriptDone3',
                     'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}},
                     'lineNumber': 27
                 }
             },
-            {'label':{'name':  '__bareScriptLoop3', 'lineNumber': 27}},
+            {'label':{'name':  '__barescriptLoop3', 'lineNumber': 27}},
             {
                 'jump': {
-                    'label': '__bareScriptDone4',
+                    'label': '__barescriptDone4',
                     'expr': {
                         'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 5.0}}}}
                     },
                     'lineNumber': 28
                 }
             },
-            {'jump': {'label': '__bareScriptDone3', 'lineNumber': 29}},
-            {'label':{'name':  '__bareScriptDone4', 'lineNumber': 30}},
+            {'jump': {'label': '__barescriptDone3', 'lineNumber': 29}},
+            {'label':{'name':  '__barescriptDone4', 'lineNumber': 30}},
             {
                 'expr': {
                     'name': 'ix',
@@ -411,17 +411,17 @@ return  # Bye!
             },
             {
                 'jump': {
-                    'label': '__bareScriptDone5',
+                    'label': '__barescriptDone5',
                     'expr': {
                         'unary': {'op': '!', 'expr': {'binary': {'op': '==', 'left': {'variable': 'ix'},'right': {'number': 3.0}}}}
                     },
                     'lineNumber': 32
                 }
             },
-            {'jump': {'label': '__bareScriptLoop3', 'lineNumber': 33}},
-            {'label':{'name':  '__bareScriptDone5', 'lineNumber': 34}},
-            {'jump': {'label': '__bareScriptLoop3', 'expr': {'variable': 'true'}, 'lineNumber': 35}},
-            {'label':{'name':  '__bareScriptDone3', 'lineNumber': 35}},
+            {'jump': {'label': '__barescriptLoop3', 'lineNumber': 33}},
+            {'label':{'name':  '__barescriptDone5', 'lineNumber': 34}},
+            {'jump': {'label': '__barescriptLoop3', 'expr': {'variable': 'true'}, 'lineNumber': 35}},
+            {'label':{'name':  '__barescriptDone3', 'lineNumber': 35}},
             {'return': {'lineNumber': 37}}
         ]
     });
@@ -841,23 +841,23 @@ endif
         'scriptLines': ['if i > 0:', '    a = 1', 'elif i < 0:', '    a = 2', 'else:', '    a = 3', 'endif', ''],
         'statements': [
             {'jump': {
-                'label': '__bareScriptIf0',
+                'label': '__barescriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 1
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__barescriptIf0', 'lineNumber': 3}},
             {'jump': {
-                'label': '__bareScriptIf1',
+                'label': '__barescriptIf1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 3
             }},
             {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 5}},
-            {'label': {'name': '__bareScriptIf1', 'lineNumber': 5}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 5}},
+            {'label': {'name': '__barescriptIf1', 'lineNumber': 5}},
             {'expr': {'name': 'a', 'expr': {'number': 3}, 'lineNumber': 6}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 7}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 7}}
         ]
     });
 });
@@ -873,12 +873,12 @@ endif
         'scriptLines': ['if i > 0:', '    a = 1', 'endif', ''],
         'statements': [
             {'jump': {
-                'label': '__bareScriptDone0',
+                'label': '__barescriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 1
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -896,20 +896,20 @@ endif
         'scriptLines': ['if i > 0:', '    a = 1', 'elif i < 0:', '    a = 2', 'endif', ''],
         'statements': [
             {'jump': {
-                'label': '__bareScriptIf0',
+                'label': '__barescriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 1
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__barescriptIf0', 'lineNumber': 3}},
             {'jump': {
-                'label': '__bareScriptDone0',
+                'label': '__barescriptDone0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 3
             }},
             {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -927,15 +927,15 @@ endif
         'scriptLines': ['if i > 0:', '    a = 1', 'else:', '    a = 2', 'endif', ''],
         'statements': [
             {'jump': {
-                'label': '__bareScriptIf0',
+                'label': '__barescriptIf0',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 1
             }},
             {'expr': {'name': 'a', 'expr': {'number': 1}, 'lineNumber': 2}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptIf0', 'lineNumber': 3}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__barescriptIf0', 'lineNumber': 3}},
             {'expr': {'name': 'a', 'expr': {'number': 2}, 'lineNumber': 4}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1281,7 +1281,7 @@ endwhile
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}, 'lineNumber': 1}},
             {'jump': {
-                'label': '__bareScriptDone0',
+                'label': '__barescriptDone0',
                 'expr': {'unary': {
                     'op': '!',
                     'expr': {'binary': {
@@ -1292,10 +1292,10 @@ endwhile
                 }},
                 'lineNumber': 2
             }},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 2}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 2}},
             {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}, 'lineNumber': 3}},
             {'jump': {
-                'label': '__bareScriptLoop0',
+                'label': '__barescriptLoop0',
                 'expr': {'binary': {
                     'op': '<',
                     'left': {'variable': 'i'},
@@ -1303,7 +1303,7 @@ endwhile
                 }},
                 'lineNumber': 4
             }},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 4}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 4}}
         ]
     });
 });
@@ -1318,11 +1318,11 @@ endwhile
     assert.deepEqual(script, {
         'scriptLines': ['while true:', '    break', 'endwhile', ''],
         'statements': [
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 2}},
-            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
+            {'jump': {'label': '__barescriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 2}},
+            {'jump': {'label': '__barescriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -1337,11 +1337,11 @@ endwhile
     assert.deepEqual(script, {
         'scriptLines': ['while true:', '    continue', 'endwhile', ''],
         'statements': [
-            {'jump': {'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
-            {'jump': {'label': '__bareScriptLoop0', 'lineNumber': 2}},
-            {'jump': {'label': '__bareScriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 3}}
+            {'jump': {'label': '__barescriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
+            {'jump': {'label': '__barescriptLoop0', 'lineNumber': 2}},
+            {'jump': {'label': '__barescriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 3}}
         ]
     });
 });
@@ -1532,23 +1532,23 @@ endfor
                 'lineNumber': 1
             }},
             {'expr': {'name': 'sum', 'expr': {'number': 0}, 'lineNumber': 2}},
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 3}},
+            {'expr': {'name': '__barescriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 3}},
             {'expr': {
-                'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'name': '__barescriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__barescriptValues0'}]}},
                 'lineNumber': 3
             }},
             {'jump': {
-                'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 3
             }},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 3}},
+            {'expr': {'name': '__barescriptIndex0', 'expr': {'number': 0}, 'lineNumber': 3}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 3}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
+                    'args': [{'variable': '__barescriptValues0'}, {'variable': '__barescriptIndex0'}]
                 }},
                 'lineNumber': 3
             }},
@@ -1558,16 +1558,16 @@ endfor
                 'lineNumber': 4
             }},
             {'expr': {
-                'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'name': '__barescriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__barescriptIndex0'}, 'right': {'number': 1}}},
                 'lineNumber': 5
             }},
             {'jump': {
-                'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__barescriptIndex0'}, 'right': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 5
             }},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1581,24 +1581,24 @@ endfor
     assert.deepEqual(script, {
         'scriptLines': ['for value, ixValue in values:', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
+            {'expr': {'name': '__barescriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
-                'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'name': '__barescriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__barescriptValues0'}]}},
                 'lineNumber': 1
             }},
             {'jump': {
-                'label': '__bareScriptDone0',
-                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptDone0',
+                'expr': {'unary': {'op': '!', 'expr': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 1
             }},
             {'expr': {'name': 'ixValue', 'expr': {'number': 0}, 'lineNumber': 1}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__bareScriptValues0'}, {'variable': 'ixValue'}]
+                    'args': [{'variable': '__barescriptValues0'}, {'variable': 'ixValue'}]
                 }},
                 'lineNumber': 1
             }},
@@ -1608,11 +1608,11 @@ endfor
                 'lineNumber': 2
             }},
             {'jump': {
-                'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': 'ixValue'}, 'right': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 2
             }},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 2}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 2}}
         ]
     });
 });
@@ -1629,44 +1629,44 @@ endfor
     assert.deepEqual(script, {
         'scriptLines': ['for value in values:', '    if i > 0:', '        break', '    endif', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
+            {'expr': {'name': '__barescriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
-                'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'name': '__barescriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__barescriptValues0'}]}},
                 'lineNumber': 1
             }},
             {'jump': {
-                'label': '__bareScriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 1
             }},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
+            {'expr': {'name': '__barescriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
+                    'args': [{'variable': '__barescriptValues0'}, {'variable': '__barescriptIndex0'}]
                 }},
                 'lineNumber': 1
             }},
             {'jump': {
-                'label': '__bareScriptDone1',
+                'label': '__barescriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 2
             }},
-            {'jump': {'label': '__bareScriptDone0', 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptDone1', 'lineNumber': 4}},
+            {'jump': {'label': '__barescriptDone0', 'lineNumber': 3}},
+            {'label': {'name': '__barescriptDone1', 'lineNumber': 4}},
             {'expr': {
-                'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'name': '__barescriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__barescriptIndex0'}, 'right': {'number': 1}}},
                 'lineNumber': 5
             }},
             {'jump': {
-                'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__barescriptIndex0'}, 'right': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 5
             }},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 5}}
         ]
     });
 });
@@ -1683,46 +1683,46 @@ endfor
     assert.deepEqual(script, {
         'scriptLines': ['for value in values:', '    if i > 0:', '        continue', '    endif', 'endfor', ''],
         'statements': [
-            {'expr': {'name': '__bareScriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
+            {'expr': {'name': '__barescriptValues0', 'expr': {'variable': 'values'}, 'lineNumber': 1}},
             {'expr': {
-                'name': '__bareScriptLength0',
-                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__bareScriptValues0'}]}},
+                'name': '__barescriptLength0',
+                'expr': {'function': {'name': 'arrayLength', 'args': [{'variable': '__barescriptValues0'}]}},
                 'lineNumber': 1
             }},
             {'jump': {
-                'label': '__bareScriptDone0',
-                'expr': {'unary': {'op': '!', 'expr': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptDone0',
+                'expr': {'unary': {'op': '!', 'expr': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 1
             }},
-            {'expr': {'name': '__bareScriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
-            {'label': {'name': '__bareScriptLoop0', 'lineNumber': 1}},
+            {'expr': {'name': '__barescriptIndex0', 'expr': {'number': 0}, 'lineNumber': 1}},
+            {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
             {'expr': {
                 'name': 'value',
                 'expr': {'function': {
                     'name': 'arrayGet',
-                    'args': [{'variable': '__bareScriptValues0'}, {'variable': '__bareScriptIndex0'}]
+                    'args': [{'variable': '__barescriptValues0'}, {'variable': '__barescriptIndex0'}]
                 }},
                 'lineNumber': 1
             }},
             {'jump': {
-                'label': '__bareScriptDone1',
+                'label': '__barescriptDone1',
                 'expr': {'unary': {'op': '!', 'expr': {'binary': {'op': '>', 'left': {'variable': 'i'}, 'right': {'number': 0}}}}},
                 'lineNumber': 2
             }},
-            {'jump': {'label': '__bareScriptContinue0', 'lineNumber': 3}},
-            {'label': {'name': '__bareScriptDone1', 'lineNumber': 4}},
-            {'label': {'name': '__bareScriptContinue0', 'lineNumber': 5}},
+            {'jump': {'label': '__barescriptContinue0', 'lineNumber': 3}},
+            {'label': {'name': '__barescriptDone1', 'lineNumber': 4}},
+            {'label': {'name': '__barescriptContinue0', 'lineNumber': 5}},
             {'expr': {
-                'name': '__bareScriptIndex0',
-                'expr': {'binary': {'op': '+', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'number': 1}}},
+                'name': '__barescriptIndex0',
+                'expr': {'binary': {'op': '+', 'left': {'variable': '__barescriptIndex0'}, 'right': {'number': 1}}},
                 'lineNumber': 5
             }},
             {'jump': {
-                'label': '__bareScriptLoop0',
-                'expr': {'binary': {'op': '<', 'left': {'variable': '__bareScriptIndex0'}, 'right': {'variable': '__bareScriptLength0'}}},
+                'label': '__barescriptLoop0',
+                'expr': {'binary': {'op': '<', 'left': {'variable': '__barescriptIndex0'}, 'right': {'variable': '__barescriptLength0'}}},
                 'lineNumber': 5
             }},
-            {'label': {'name': '__bareScriptDone0', 'lineNumber': 5}}
+            {'label': {'name': '__barescriptDone0', 'lineNumber': 5}}
         ]
     });
 });

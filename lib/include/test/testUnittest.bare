@@ -72,12 +72,12 @@ function testUnittestCoverageGlobalGet():
                                     { \
                                         'jump': { \
                                             'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                            'label': '__bareScriptDone0', \
+                                            'label': '__barescriptDone0', \
                                             'lineNumber': 2 \
                                         } \
                                     }, \
                                     {'return': {'expr': {'string': 'Test'}, 'lineNumber': 3}}, \
-                                    {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}}, \
+                                    {'label': {'lineNumber': 4, 'name': '__barescriptDone0'}}, \
                                     {'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2}} \
                                 ] \
                             } \
@@ -88,14 +88,14 @@ function testUnittestCoverageGlobalGet():
                         'statement': { \
                             'jump': { \
                                 'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                'label': '__bareScriptDone0', \
+                                'label': '__barescriptDone0', \
                                 'lineNumber': 2 \
                             } \
                         } \
                     }, \
                     '4': { \
                         'count': 1, \
-                        'statement': {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}} \
+                        'statement': {'label': {'lineNumber': 4, 'name': '__barescriptDone0'}} \
                     }, \
                     '6': { \
                         'count': 1, \
@@ -125,7 +125,7 @@ function testUnittestCoverageGlobalGet():
                                     { \
                                         'jump': { \
                                             'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                            'label': '__bareScriptDone0', \
+                                            'label': '__barescriptDone0', \
                                             'lineNumber': 2 \
                                         } \
                                     }, \
@@ -133,7 +133,7 @@ function testUnittestCoverageGlobalGet():
                                         'return': {'expr': {'string': 'Test'}, 'lineNumber': 3} \
                                     }, \
                                     { \
-                                        'label': {'lineNumber': 4, 'name': '__bareScriptDone0'} \
+                                        'label': {'lineNumber': 4, 'name': '__barescriptDone0'} \
                                     }, \
                                     { \
                                         'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2} \
