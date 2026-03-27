@@ -25,7 +25,7 @@ markdownUpState = { \
 
 
 # $function: documentFontSize
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Get the document font size
 # $return: The document font size, in pixels
 function documentFontSize():
@@ -34,7 +34,7 @@ endfunction
 
 
 # $function: documentInputValue
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Get an input element's value
 # $arg id: The input element ID
 # $return: The input element value or null if the element does not exist
@@ -43,7 +43,7 @@ endfunction
 
 
 # $function: documentSetFocus
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Set focus to an element
 # $arg id: The element ID
 function documentSetFocus():
@@ -51,7 +51,7 @@ endfunction
 
 
 # $function: documentSetKeyDown
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Set the document keydown event handler. For example:
 # $doc:
 # $doc: ```barescript
@@ -91,7 +91,7 @@ endfunction
 
 
 # $function: documentSetReset
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Set the document reset element
 # $arg id: The element ID
 function documentSetReset():
@@ -99,7 +99,7 @@ endfunction
 
 
 # $function: documentSetTitle
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Set the document title
 # $arg title: The document title string
 function documentSetTitle():
@@ -107,7 +107,7 @@ endfunction
 
 
 # $function: documentURL
-# $group: markdownUp.bare: document
+# $group: markdownUp.bare
 # $doc: Fix-up relative URLs
 # $arg url: The URL
 # $return: The fixed-up URL
@@ -122,7 +122,7 @@ endfunction
 
 
 # $function: elementModelRender
-# $group: markdownUp.bare: elementModel
+# $group: markdownUp.bare
 # $doc: Render an [element model](https://github.com/craigahobbs/element-model#readme)
 # $doc:
 # $doc: **Note:** Element model "callback" members are a map of event name (e.g., "click") to
@@ -141,7 +141,7 @@ endfunction
 
 
 # $function: localStorageClear
-# $group: markdownUp.bare: localStorage
+# $group: markdownUp.bare
 # $doc: Clear all keys from the browser's local storage
 function localStorageClear():
     objectSet(markdownUpState, 'localStorage', {})
@@ -149,7 +149,7 @@ endfunction
 
 
 # $function: localStorageGet
-# $group: markdownUp.bare: localStorage
+# $group: markdownUp.bare
 # $doc: Get a browser local storage key's value
 # $arg key: The key string
 # $return: The local storage value string or null if the key does not exist
@@ -159,7 +159,7 @@ endfunction
 
 
 # $function: localStorageRemove
-# $group: markdownUp.bare: localStorage
+# $group: markdownUp.bare
 # $doc: Remove a browser local storage key
 # $arg key: The key string
 function localStorageRemove(key):
@@ -168,7 +168,7 @@ endfunction
 
 
 # $function: localStorageSet
-# $group: markdownUp.bare: localStorage
+# $group: markdownUp.bare
 # $doc: Set a browser local storage key's value
 # $arg key: The key string
 # $arg value: The value string
@@ -183,7 +183,7 @@ endfunction
 
 
 # $function: markdownPrint
-# $group: markdownUp.bare: markdown
+# $group: markdownUp.bare
 # $doc: Render Markdown text
 # $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
 function markdownPrint(lines...):
@@ -207,7 +207,7 @@ endfunction
 
 
 # $function: sessionStorageClear
-# $group: markdownUp.bare: sessionStorage
+# $group: markdownUp.bare
 # $doc: Clear all keys from the browser's session storage
 function sessionStorageClear():
     objectSet(markdownUpState, 'sessionStorage', {})
@@ -215,7 +215,7 @@ endfunction
 
 
 # $function: sessionStorageGet
-# $group: markdownUp.bare: sessionStorage
+# $group: markdownUp.bare
 # $doc: Get a browser session storage key's value
 # $arg key: The key string
 # $return: The session storage value string or null if the key does not exist
@@ -225,7 +225,7 @@ endfunction
 
 
 # $function: sessionStorageRemove
-# $group: markdownUp.bare: sessionStorage
+# $group: markdownUp.bare
 # $doc: Remove a browser session storage key
 # $arg key: The key string
 function sessionStorageRemove(key):
@@ -234,7 +234,7 @@ endfunction
 
 
 # $function: sessionStorageSet
-# $group: markdownUp.bare: sessionStorage
+# $group: markdownUp.bare
 # $doc: Set a browser session storage key's value
 # $arg key: The key string
 # $arg value: The value string
@@ -249,7 +249,7 @@ endfunction
 
 
 # $function: urlObjectCreate
-# $group: markdownUp.bare: url
+# $group: markdownUp.bare
 # $doc: Create an object URL (i.e. a file download URL)
 # $arg data: The object data string
 # $arg contentType: Optional (default is "text/plain"). The object content type.
@@ -265,7 +265,7 @@ endfunction
 
 
 # $function: windowClipboardRead
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Read text from the clipboard
 # $return: The clipboard text
 function windowClipboardRead():
@@ -274,7 +274,7 @@ endfunction
 
 
 # $function: windowClipboardWrite
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Write text to the clipboard
 # $arg text: The text to write
 # $arg type: The clipboard content type (default is "text/plain")
@@ -284,7 +284,7 @@ endfunction
 
 
 # $function: windowHeight
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Get the browser window's height
 # $return: The browser window's height
 function windowHeight():
@@ -293,7 +293,7 @@ endfunction
 
 
 # $function: windowSetLocation
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Navigate the browser window to a location URL
 # $arg url: The new location URL
 function windowSetLocation():
@@ -301,7 +301,7 @@ endfunction
 
 
 # $function: windowSetResize
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Set the browser window resize event handler
 # $arg callback: The window resize callback function
 function windowSetResize():
@@ -309,7 +309,7 @@ endfunction
 
 
 # $function: windowSetTimeout
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Set the browser window timeout event handler
 # $arg callback: The window timeout callback function
 # $arg delay: The delay, in milliseconds, to ellapse before calling the timeout
@@ -318,7 +318,7 @@ endfunction
 
 
 # $function: windowWidth
-# $group: markdownUp.bare: window
+# $group: markdownUp.bare
 # $doc: Get the browser window's width
 # $return: The browser window's width
 function windowWidth():
