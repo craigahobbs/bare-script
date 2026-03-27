@@ -12,7 +12,7 @@ include <markdownUp.bare>
 include <unittest.bare>
 
 # Start coverage
-coverageStart()
+unittestCoverageStart()
 
 # Include the local markdownUp.bare
 include '../markdownUp.bare'
@@ -27,7 +27,7 @@ endif
 include 'testMarkdownUp.bare'
 
 # Stop coverage
-coverageStop()
+unittestCoverageStop()
 
 # Test report
 return unittestReport({ \

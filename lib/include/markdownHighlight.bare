@@ -300,37 +300,20 @@ function markdownHighlightCreateBuiltin():
         'names': ['barescript', 'bare-script', 'markdown-script'], \
         'builtin': [ \
             markdownHighlightCreateWordListRegex([ \
-                'arrayCopy', 'arrayDelete', 'arrayExtend', 'arrayFlat', 'arrayGet', 'arrayIndexOf', 'arrayJoin', \
-                'arrayLastIndexOf', 'arrayLength', 'arrayNew', 'arrayNewSize', 'arrayPop', 'arrayPush', 'arraySet', \
-                'arrayShift', 'arraySlice', 'arraySort', 'baredocMain', 'coverageGlobalGet', 'coverageGlobalName', \
-                'coverageStart', 'coverageStop', 'dataAggregate', 'dataCalculatedField', 'dataFilter', 'dataJoin', \
-                'dataLineChart', 'dataParseCSV', 'dataSort', 'dataTable', 'dataTop', 'dataValidate', 'dataTableMarkdown', \
-                'datetimeDay', 'datetimeHour', 'datetimeISOFormat', 'datetimeISOParse', 'datetimeMillisecond', \
-                'datetimeMinute', 'datetimeMonth', 'datetimeNew', 'datetimeNow', 'datetimeSecond', 'datetimeToday', \
-                'datetimeYear', 'diffLines', 'documentFontSize', 'documentInputValue', 'documentSetFocus', \
-                'documentSetKeyDown', 'documentSetReset', 'documentSetTitle', 'documentURL', 'drawArc', 'drawCircle', \
-                'drawClose', 'drawEllipse', 'drawHLine', 'drawHeight', 'drawImage', 'drawLine', 'drawMove', 'drawNew', \
-                'drawOnClick', 'drawPathRect', 'drawRect', 'drawStyle', 'drawText', 'drawTextHeight', 'drawTextStyle', \
-                'drawTextWidth', 'drawVLine', 'drawWidth', 'elementModelRender', 'formsLinkButtonElements', \
-                'formsLinkElements', 'formsTextElements', 'jsonParse', 'jsonStringify', 'localStorageClear', \
-                'localStorageGet', 'localStorageRemove', 'localStorageSet', 'markdownElements', 'markdownEscape', \
-                'markdownHeaderId', 'markdownParse', 'markdownPrint', 'markdownTitle', 'mathAbs', 'mathAcos', 'mathAsin', \
-                'mathAtan', 'mathAtan2', 'mathCeil', 'mathCos', 'mathFloor', 'mathLn', 'mathLog', 'mathMax', 'mathMin', \
-                'mathPi', 'mathRandom', 'mathRound', 'mathSign', 'mathSin', 'mathSqrt', 'mathTan', 'numberParseFloat', \
-                'numberParseInt', 'numberToFixed', 'objectAssign', 'objectCopy', 'objectDelete', 'objectGet', 'objectHas', \
-                'objectKeys', 'objectNew', 'objectSet', 'pagerMain', 'pagerValidate', 'regexEscape', 'regexMatch', \
-                'regexMatchAll', 'regexNew', 'regexReplace', 'regexSplit', 'schemaDocMain', 'schemaDocMarkdown', \
-                'schemaParse', 'schemaParseEx', 'schemaTypeModel', 'schemaValidate', 'schemaValidateTypeModel', \
-                'sessionStorageClear', 'sessionStorageGet', 'sessionStorageRemove', 'sessionStorageSet', \
-                'stringCharCodeAt', 'stringEndsWith', 'stringFromCharCode', 'stringIndexOf', 'stringLastIndexOf', \
-                'stringLength', 'stringLower', 'stringNew', 'stringRepeat', 'stringReplace', 'stringSlice', 'stringSplit', \
-                'stringStartsWith', 'stringTrim', 'stringUpper', 'systemBoolean', 'systemCompare', 'systemFetch', \
-                'systemGlobalGet', 'systemGlobalIncludesGet', 'systemGlobalIncludesName', 'systemGlobalSet', \
-                'systemIs', 'systemLog', 'systemLogDebug', 'systemPartial', 'systemType', 'unittestDeepEqual', \
-                'unittestEqual', 'unittestReport', 'unittestRunTest', 'unittestMockAll', 'unittestMockEnd', \
-                'unittestMockOne', 'unittestMockOneGeneric', 'urlEncode', 'urlEncodeComponent', 'urlObjectCreate', \
-                'windowClipboardRead', 'windowClipboardWrite', 'windowHeight', 'windowSetLocation', 'windowSetResize', \
-                'windowSetTimeout', 'windowWidth', 'argsHelp', 'argsLink', 'argsParse', 'argsURL', 'argsValidate' \
+                'arrayCopy', 'arrayDelete', 'arrayExtend', 'arrayFlat', 'arrayGet', 'arrayIndexOf', 'arrayJoin', 'arrayLastIndexOf', \
+                'arrayLength', 'arrayNew', 'arrayNewSize', 'arrayPop', 'arrayPush', 'arrayReverse', 'arraySet', 'arrayShift', \
+                'arraySlice', 'arraySort', 'barescriptEvaluateExpression', 'barescriptParseExpression', 'datetimeDay', 'datetimeHour', \
+                'datetimeISOFormat', 'datetimeISOParse', 'datetimeMillisecond', 'datetimeMinute', 'datetimeMonth', 'datetimeNew', \
+                'datetimeNow', 'datetimeSecond', 'datetimeToday', 'datetimeYear', 'jsonParse', 'jsonStringify', 'mathAbs', 'mathAcos', \
+                'mathAsin', 'mathAtan', 'mathAtan2', 'mathCeil', 'mathCos', 'mathE', 'mathFloor', 'mathLn', 'mathLog', 'mathMax', \
+                'mathMin', 'mathPi', 'mathRandom', 'mathRound', 'mathSign', 'mathSin', 'mathSqrt', 'mathTan', 'numberParseInt', \
+                'numberParseFloat', 'numberToFixed', 'numberToString', 'objectAssign', 'objectCopy', 'objectDelete', 'objectGet', \
+                'objectHas', 'objectKeys', 'objectNew', 'objectSet', 'regexEscape', 'regexMatch', 'regexMatchAll', 'regexNew', \
+                'regexReplace', 'regexSplit', 'stringCharAt', 'stringCharCodeAt', 'stringDecode', 'stringEncode', 'stringEndsWith', \
+                'stringFromCharCode', 'stringIndexOf', 'stringLastIndexOf', 'stringLength', 'stringLower', 'stringNew', 'stringRepeat', \
+                'stringReplace', 'stringSlice', 'stringSplit', 'stringSplitLines', 'stringStartsWith', 'stringTrim', 'stringUpper', \
+                'systemBoolean', 'systemCompare', 'systemFetch', 'systemGlobalGet', 'systemGlobalSet', 'systemIs', 'systemLog', \
+                'systemLogDebug', 'systemPartial', 'systemType' \
             ]) \
         ], \
         'comment': [markdownHighlightCommentHash], \

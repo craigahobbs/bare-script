@@ -25,7 +25,7 @@ include <unittest.bare>
 include <unittestMock.bare>
 
 # Start coverage
-coverageStart()
+unittestCoverageStart()
 
 # Override all system includes
 include '../args.bare'
@@ -71,7 +71,7 @@ include 'testUnittest.bare'
 include 'testUnittestMock.bare'
 
 # Stop coverage
-coverageStop()
+unittestCoverageStop()
 
 # Test report
 return unittestReport({ \

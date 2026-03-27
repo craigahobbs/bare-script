@@ -3,7 +3,7 @@
 
 /* eslint-disable id-length */
 
-import {coverageGlobalName, expressionFunctions, scriptFunctions, systemGlobalIncludesName} from '../lib/library.js';
+import {expressionFunctions, scriptFunctions} from '../lib/library.js';
 import {valueJSON, valueParseDatetime, valueString} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -948,62 +948,6 @@ foo bar
 `
         }
     );
-});
-
-
-//
-// Coverage functions
-//
-
-
-test('library, coverageGlobalGet', () => {
-    assert.equal(scriptFunctions.coverageGlobalGet([], null), null);
-
-    const options = {};
-    assert.equal(scriptFunctions.coverageGlobalGet([], options), null);
-
-    options.globals = {};
-    assert.equal(scriptFunctions.coverageGlobalGet([], options), null);
-
-    options.globals[coverageGlobalName] = {'enabled': true};
-    assert.equal(scriptFunctions.coverageGlobalGet([], options), options.globals[coverageGlobalName]);
-});
-
-
-test('library, coverageGlobalName', () => {
-    assert.equal(scriptFunctions.coverageGlobalName([], null), '__barescriptCoverage');
-});
-
-
-test('library, coverageStart', () => {
-    assert.equal(scriptFunctions.coverageStart([], null), undefined);
-
-    const options = {};
-    assert.equal(scriptFunctions.coverageStart([], options), undefined);
-
-    options.globals = {};
-    assert.equal(scriptFunctions.coverageStart([], options), undefined);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
-
-    options.globals = {[coverageGlobalName]: {'enabled': false}};
-    assert.equal(scriptFunctions.coverageStart([], options), undefined);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
-});
-
-
-test('library, coverageStop', () => {
-    assert.equal(scriptFunctions.coverageStop([], null), undefined);
-
-    const options = {};
-    assert.equal(scriptFunctions.coverageStop([], options), undefined);
-
-    options.globals = {};
-    assert.equal(scriptFunctions.coverageStop([], options), undefined);
-    assert.deepEqual(options.globals[coverageGlobalName], undefined);
-
-    options.globals[coverageGlobalName] = {'enabled': true};
-    assert.equal(scriptFunctions.coverageStop([], options), undefined);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': false});
 });
 
 
@@ -4203,25 +4147,6 @@ test('library, systemGlobalGet', () => {
             'returnValue': null
         }
     );
-});
-
-
-test('library, systemGlobalIncludesGet', () => {
-    let options = {'globals': {}};
-    assert.equal(scriptFunctions.systemGlobalIncludesGet([], options), null);
-
-    options = {'globals': {[systemGlobalIncludesName]: {'test.bare': true}}};
-    assert.deepEqual(scriptFunctions.systemGlobalIncludesGet([], options), {'test.bare': true});
-
-    options = {};
-    assert.equal(scriptFunctions.systemGlobalIncludesGet([], options), null);
-
-    assert.equal(scriptFunctions.systemGlobalIncludesGet([], null), null);
-});
-
-
-test('library, systemGlobalIncludesName', () => {
-    assert.equal(scriptFunctions.systemGlobalIncludesName([], null), systemGlobalIncludesName);
 });
 
 

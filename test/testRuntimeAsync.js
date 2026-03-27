@@ -3,10 +3,9 @@
 
 /* eslint-disable require-await */
 
-import {coverageGlobalName, systemGlobalIncludesName} from '../lib/library.js';
+import {BareScriptRuntimeError, systemGlobalCoverageName, systemGlobalIncludesName} from '../lib/runtime.js';
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
 import {validateExpression, validateScript} from '../lib/model.js';
-import {BareScriptRuntimeError} from '../lib/runtime.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -192,10 +191,10 @@ test('executeScriptAsync, coverage', async () => {
             {'return': {'expr': {'function': {'args': [], 'name': 'main'}}, 'lineNumber': 31}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(await executeScriptAsync(script, options), true);
     const [mainStatement] = script.statements;
-    assert.deepEqual(options.globals[coverageGlobalName], {
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {
         'enabled': true,
         'scripts': {
             'test.bare': {
@@ -294,14 +293,14 @@ test('executeScript, coverage include', async () => {
         ]
     });
     const options = {
-        'globals': {[coverageGlobalName]: {'enabled': true}},
+        'globals': {[systemGlobalCoverageName]: {'enabled': true}},
         fetchFn,
         'systemPrefix': 'system/'
     };
     assert.equal(await executeScriptAsync(script, options), null);
     assert.equal(options.globals.a, 1);
     assert.equal(options.globals.b, 2);
-    assert.deepEqual(options.globals[coverageGlobalName], {
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {
         'enabled': true,
         'scripts': {
             'test.bare': {
@@ -360,12 +359,12 @@ test('executeScriptAsync, coverage disabled', async () => {
         ]
     });
     const options = {
-        'globals': {[coverageGlobalName]: {'enabled': false}},
+        'globals': {[systemGlobalCoverageName]: {'enabled': false}},
         fetchFn,
         'systemPrefix': 'system/'
     };
     assert.equal(await executeScriptAsync(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': false});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': false});
 });
 
 
@@ -383,9 +382,9 @@ test('executeScriptAsync, coverage non-object', async () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: 42}};
+    const options = {'globals': {[systemGlobalCoverageName]: 42}};
     assert.equal(await executeScriptAsync(script, options), 12);
-    assert.equal(options.globals[coverageGlobalName], 42);
+    assert.equal(options.globals[systemGlobalCoverageName], 42);
 });
 
 
@@ -402,9 +401,9 @@ test('executeScriptAsync, coverage no name', async () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(await executeScriptAsync(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 
@@ -422,9 +421,9 @@ test('executeScriptAsync, coverage no linenos', async () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(await executeScriptAsync(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 

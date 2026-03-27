@@ -1,11 +1,10 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import {BareScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
+import {BareScriptRuntimeError, evaluateExpression, executeScript, systemGlobalCoverageName} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
-import {coverageGlobalName} from '../lib/library.js';
 import test from 'node:test';
 
 
@@ -188,10 +187,10 @@ test('executeScript, coverage', () => {
             {'return': {'expr': {'function': {'args': [], 'name': 'main'}}, 'lineNumber': 31}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), true);
     const [mainStatement] = script.statements;
-    assert.deepEqual(options.globals[coverageGlobalName], {
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {
         'enabled': true,
         'scripts': {
             'test.bare': {
@@ -283,10 +282,10 @@ test('executeScript, coverage disabled', () => {
         ]
     });
     const options = {
-        'globals': {[coverageGlobalName]: {'enabled': false}}
+        'globals': {[systemGlobalCoverageName]: {'enabled': false}}
     };
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': false});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': false});
 });
 
 
@@ -304,9 +303,9 @@ test('executeScript, coverage non-object', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: 42}};
+    const options = {'globals': {[systemGlobalCoverageName]: 42}};
     assert.equal(executeScript(script, options), 12);
-    assert.equal(options.globals[coverageGlobalName], 42);
+    assert.equal(options.globals[systemGlobalCoverageName], 42);
 });
 
 
@@ -323,9 +322,9 @@ test('executeScript, coverage no name', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 
@@ -343,9 +342,9 @@ test('executeScript, coverage no linenos', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 
