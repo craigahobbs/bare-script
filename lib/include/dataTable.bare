@@ -73,8 +73,8 @@ dataTableTypes = schemaParse( \
 # $function: dataTableValidate
 # $group: dataTable.bare
 # $doc: Validate a data table model
-# $arg dataTable: - The [data table model]{@link https://craigahobbs.github.io/bare-script/library/model.html#var.vName='DataTable'}
-# $return: The validated [data table model]{@link https://craigahobbs.github.io/bare-script/library/model.html#var.vName='DataTable'}
+# $arg dataTable: The [data table model](model.html#var.vName='DataTable'}
+# $return: The validated [data table model](model.html#var.vName='DataTable'}
 function dataTableValidate(dataTable):
     return schemaValidate(dataTableTypes, 'DataTable', dataTable)
 endfunction
@@ -221,8 +221,8 @@ endfunction
 # $function: dataTable
 # $group: dataTable.bare
 # $doc: Render a data table
-# $arg data - The data array
-# $arg dataTable - Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+# $arg data: The data array
+# $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
 function dataTable(data, dataTable):
     elementModelRender = systemGlobalGet('elementModelRender')
     elementModelRender({'html': 'p', 'elem': dataTableElements(data, dataTable)})
@@ -232,8 +232,8 @@ endfunction
 # $function: dataTableElements
 # $group: dataTable.bare
 # $doc: Render a data table
-# $arg data - The data array
-# $arg dataTable - Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+# $arg data: The data array
+# $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
 # $return: The data table [element model](https://github.com/craigahobbs/element-model#readme)
 function dataTableElements(data, dataTable):
     # Compute the table's field names

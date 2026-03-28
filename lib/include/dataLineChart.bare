@@ -95,8 +95,8 @@ dataLineChartTypes = schemaParse( \
 # $function: dataLineChartValidate
 # $group: dataLineChart.bare
 # $doc: Validate a line chart model
-# $arg lineChart: - The [line chart model]{@link https://craigahobbs.github.io/bare-script/library/model.html#var.vName='DataLineChart'}
-# $return: The validated [line chart model]{@link https://craigahobbs.github.io/bare-script/library/model.html#var.vName='DataLineChart'}
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $return: The validated [line chart model](model.html#var.vName='DataLineChart')
 function dataLineChartValidate(lineChart):
     return schemaValidate(dataLineChartTypes, 'DataLineChart', lineChart)
 endfunction
