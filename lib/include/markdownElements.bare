@@ -57,6 +57,58 @@ function markdownElementsPartElements(part, options, usedHeaderIds):
 endfunction
 
 
+# $function: markdownElementsAsync
+# $group: markdownElements.bare
+# $doc: Generate an element model from a Markdown model
+# $arg markdown: The Markdown model
+# $arg options: Optional (default is null). The options object.
+# $return: The Markdown's element model
+async function markdownElementsAsync(markdown, options):
+    usedHeaderIds = if(options != null && objectHas(options, 'usedHeaderIds'), objectGet(options, 'usedHeaderIds'), {})
+    return markdownElementsPartsElementsAsync(objectGet(markdown, 'parts'), options, usedHeaderIds)
+endfunction
+
+
+# Helper function to generate element models from markdown parts
+async function markdownElementsPartsElementsAsync(parts, options, usedHeaderIds):
+    elements = []
+    for part in parts:
+        arrayPush(elements, markdownElementsPartElementsAsync(part, options, usedHeaderIds))
+    endfor
+    return elements
+endfunction
+
+
+# Helper function to generate an element model from a markdown part
+async function markdownElementsPartElementsAsync(part, options, usedHeaderIds):
+    partKey = arrayGet(objectKeys(part), 0)
+
+    # List?
+    if partKey == 'list':
+        items = objectGet(objectGet(part, 'list'), 'items')
+        listItemElements = []
+        for item in items:
+            itemElements = markdownElementsPartsElementsAsync(objectGet(item, 'parts'), options, usedHeaderIds)
+            arrayPush(listItemElements, {'html': 'li', 'elem': itemElements})
+        endfor
+        return markdownElementsListPartElements(part, listItemElements)
+
+    # Block quote?
+    elif partKey == 'quote':
+        return { \
+            'html': 'blockquote', \
+            'elem': markdownElementsPartsElementsAsync(objectGet(objectGet(part, 'quote'), 'parts'), options, usedHeaderIds) \
+        }
+
+    # Code block?
+    elif partKey == 'codeBlock':
+        return markdownHighlightCodeBlockElementsAsync(objectGet(part, 'codeBlock'), options)
+    endif
+
+    return markdownElementsPartElementsBase(part, options, usedHeaderIds)
+endfunction
+
+
 # Helper function to generate an element model from a list part
 function markdownElementsListPartElements(part, listItemElements):
     list = objectGet(part, 'list')

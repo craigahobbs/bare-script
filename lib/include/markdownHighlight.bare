@@ -71,6 +71,37 @@ function markdownHighlightCodeBlockElements(codeBlock, options):
 endfunction
 
 
+# $function: markdownHighlightCodeBlockElementsAsync
+# $group: markdownHighlight.bare
+# $doc: Render a code block
+# $arg codeBlock: The code block model
+# $arg options: Optional (default is null). The options object.
+# $return: The code block's [element model](https://github.com/craigahobbs/element-model#readme)
+async function markdownHighlightCodeBlockElementsAsync(codeBlock, options):
+    if objectHas(codeBlock, 'language'):
+        language = stringLower(objectGet(codeBlock, 'language'))
+
+        # Options-provided code block render function?
+        if options != null && objectHas(options, 'codeBlocks'):
+            codeBlocks = objectGet(options, 'codeBlocks')
+            if objectHas(codeBlocks, language):
+                renderFn = objectGet(codeBlocks, language)
+                return if(renderFn, renderFn(codeBlock, options))
+            endif
+        endif
+
+        # Built-in code block render function?
+        if objectHas(markdownHighlightBuiltin, language):
+            renderFn = objectGet(markdownHighlightBuiltin, language)
+            return renderFn(codeBlock, options)
+        endif
+    endif
+
+    # No-syntax-highlighting code block render
+    return markdownHighlightElements(null, objectGet(codeBlock, 'lines'), options)
+endfunction
+
+
 # $function: markdownHighlightCompileHighlightModels
 # $group: markdownHighlight.bare
 # $doc: Compile an array of highlight models
