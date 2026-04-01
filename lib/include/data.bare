@@ -159,13 +159,15 @@ function dataValidate(data, csv):
                     else:
                         numberValue = numberParseFloat(value)
                         if numberValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType)
                             return null
                         endif
                     endif
                     objectSet(row, field, numberValue)
                 elif value != null && valueType != 'number':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType)
                     return null
                 endif
 
@@ -177,13 +179,15 @@ function dataValidate(data, csv):
                     else:
                         datetimeValue = datetimeISOParse(value)
                         if datetimeValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType)
                             return null
                         endif
                     endif
                     objectSet(row, field, datetimeValue)
                 elif value != null && valueType != 'datetime':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType)
                     return null
                 endif
 
@@ -195,20 +199,23 @@ function dataValidate(data, csv):
                     else:
                         booleanValue = if(value == 'true', true, if(value == 'false', false, null))
                         if booleanValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType)
                             return null
                         endif
                     endif
                     objectSet(row, field, booleanValue)
                 elif value != null && valueType != 'boolean':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType)
                     return null
                 endif
 
             # String field
             else:
                 if value != null && valueType != 'string':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType)
                     return null
                 endif
             endif
@@ -377,7 +384,6 @@ function dataAggregate(data, aggregation):
             categoryValues = null
             rowKey = ''
         endif
-
 
         # Get or create the aggregate row
         aggregateRow = objectGet(categoryRows, rowKey)
