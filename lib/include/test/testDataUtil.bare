@@ -1,0 +1,97 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+
+include '../dataUtil.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testDataUtilFormatValue_date():
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30)), '2022-08-30')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12)), '2022-08-30T12:00')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15)), '2022-08-30T12:15')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15, 30)), '2022-08-30T12:15:30')
+endfunction
+unittestRunTest('testDataUtilFormatValue_date')
+
+
+function testDataUtilFormatValue_dateYear():
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 6, 30, 12), null, 'year'), '2022')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12), null, 'year'), '2023')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 1, 1, 12), null, 'year'), '2022')
+endfunction
+unittestRunTest('testDataUtilFormatValue_dateYear')
+
+
+function testDataUtilFormatValue_dateMonth():
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 1), null, 'month'), '2022-08')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30), null, 'month'), '2022-09')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 1, 1), null, 'month'), '2022-01')
+endfunction
+unittestRunTest('testDataUtilFormatValue_dateMonth')
+
+
+function testDataUtilFormatValue_dateDay():
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12), null, 'day'), '2022-08-30')
+endfunction
+unittestRunTest('testDataUtilFormatValue_dateDay')
+
+
+function testDataUtilFormatValue_number():
+    unittestEqual(dataUtilFormatValue(12.5), '12.50')
+endfunction
+unittestRunTest('testDataUtilFormatValue_number')
+
+
+function testDataUtilFormatValue_numberPrecision():
+    unittestEqual(dataUtilFormatValue(12.5, 1), '12.5')
+endfunction
+unittestRunTest('testDataUtilFormatValue_numberPrecision')
+
+
+function testDataUtilFormatValue_other():
+    unittestEqual(dataUtilFormatValue(null), 'null')
+    unittestEqual(dataUtilFormatValue('abc'), 'abc')
+endfunction
+unittestRunTest('testDataUtilFormatValue_other')
+
+
+function testDataUtilValueParameter():
+    unittestEqual(dataUtilValueParameter(-5, 0, 10), -0.5)
+    unittestEqual(dataUtilValueParameter(0, 0, 10), 0)
+    unittestEqual(dataUtilValueParameter(5, 0, 10), 0.5)
+    unittestEqual(dataUtilValueParameter(10, 0, 10), 1)
+    unittestEqual(dataUtilValueParameter(15, 0, 10), 1.5)
+
+    # Min/max same
+    unittestEqual(dataUtilValueParameter(5, 5, 5), 0)
+
+    # Date
+    minDate = datetimeNew(2022, 9, 1)
+    maxDate = datetimeNew(2022, 10, 1)
+    unittestEqual(dataUtilValueParameter(datetimeNew(2022, 8, 14), minDate, maxDate), -0.6)
+    unittestEqual(dataUtilValueParameter(minDate, minDate, maxDate), 0)
+    unittestEqual(dataUtilValueParameter(datetimeNew(2022, 9, 13), minDate, maxDate), 0.4)
+    unittestEqual(dataUtilValueParameter(maxDate, minDate, maxDate), 1)
+    unittestEqual(dataUtilValueParameter(datetimeNew(2022, 10, 13), minDate, maxDate), 1.4)
+endfunction
+unittestRunTest('testDataUtilValueParameter')
+
+
+function testDataUtilParameterValue():
+    unittestEqual(dataUtilParameterValue(-0.5, 0, 10), -5)
+    unittestEqual(dataUtilParameterValue(0, 0, 10), 0)
+    unittestEqual(dataUtilParameterValue(0.5, 0, 10), 5)
+    unittestEqual(dataUtilParameterValue(1, 0, 10), 10)
+    unittestEqual(dataUtilParameterValue(1.5, 0, 10), 15)
+
+    # Date
+    minDate = datetimeNew(2022, 9, 1)
+    maxDate = datetimeNew(2022, 10, 1)
+    unittestDeepEqual(dataUtilParameterValue(-0.6, minDate, maxDate), datetimeNew(2022, 8, 14))
+    unittestDeepEqual(dataUtilParameterValue(0, minDate, maxDate), minDate)
+    unittestDeepEqual(dataUtilParameterValue(0.4, minDate, maxDate), datetimeNew(2022, 9, 13))
+    unittestDeepEqual(dataUtilParameterValue(1, minDate, maxDate), maxDate)
+    unittestDeepEqual(dataUtilParameterValue(1.4, minDate, maxDate), datetimeNew(2022, 10, 13))
+endfunction
+unittestRunTest('testDataUtilParameterValue')

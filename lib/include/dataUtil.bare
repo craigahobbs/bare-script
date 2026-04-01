@@ -10,7 +10,7 @@ function dataUtilFormatValue(value, precision, datetime, trim):
     if type == 'datetime':
         if datetime == 'year':
             # Round to nearest year
-            valueRounded = if(datetimeMonth(value) < 6, value, datetimeNew(datetimeYear(value), 1, 1))
+            valueRounded = if(datetimeMonth(value) < 7, value, datetimeNew(datetimeYear(value) + 1, 1, 1))
             isoFormat = stringNew(valueRounded)
             return stringSlice(isoFormat, 0, stringIndexOf(isoFormat, 'T') - 6)
         elif datetime == 'month':
