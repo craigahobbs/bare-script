@@ -124,81 +124,118 @@ unittestRunTest('testDataParseCSV_emptyFile')
 #
 
 
-function testDataValidate():
+function testValidateData():
     data = [ \
         {'A': 1, 'B': '5', 'C': 10}, \
         {'A': 2, 'B': '6', 'C': null}, \
         {'A': 3, 'B': '7', 'C': null} \
     ]
-    result = dataValidate(data)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data), { \
+        'A': 'number', \
+        'B': 'string', \
+        'C': 'number' \
+    })
+    unittestDeepEqual(data, [ \
         {'A': 1, 'B': '5', 'C': 10}, \
         {'A': 2, 'B': '6', 'C': null}, \
         {'A': 3, 'B': '7', 'C': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate')
+unittestRunTest('testValidateData')
 
 
-function testDataValidate_csv():
+function testValidateData_csv():
     data = [ \
         {'A': 1, 'B': '5', 'C': 10}, \
         {'A': 2, 'B': 6, 'C': null}, \
         {'A': 3, 'B': '7', 'C': 'null'}, \
         {'A': 4, 'B': 8, 'C': ''} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'A': 'number', \
+        'B': 'number', \
+        'C': 'number' \
+    })
+    unittestDeepEqual(data, [ \
         {'A': 1, 'B': 5, 'C': 10}, \
         {'A': 2, 'B': 6, 'C': null}, \
         {'A': 3, 'B': 7, 'C': null}, \
         {'A': 4, 'B': 8, 'C': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate_csv')
+unittestRunTest('testValidateData_csv')
 
 
-function testDataValidate_datetime():
+function testValidateData_string():
     data = [ \
-        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
-        {'date': '2022-08-30'}, \
-        {'date': '2022-08-30T11:04:00Z'}, \
+        {'str': 'asdf'}, \
+        {'str': '5'}, \
         {'date': null} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
-        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
-        {'date': datetimeISOParse('2022-08-30')}, \
-        {'date': datetimeISOParse('2022-08-30T11:04:00Z')}, \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'str': 'string' \
+    })
+
+    unittestDeepEqual(data, [ \
+        {'str': 'asdf'}, \
+        {'str': '5'}, \
         {'date': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate_datetime')
+unittestRunTest('testValidateData_string')
 
 
-function testDataValidate_datetimeString():
+function testValidateData_datetime():
+    data = [ \
+        {'date': datetimeISOParse('2022-08-30T00:00:00+00:00')}, \
+        {'date': '2022-08-30'}, \
+        {'date': '2022-08-30T11:04:00Z'}, \
+        {'date': '2022-08-30T11:04:00-07:00'}, \
+        {'date': null} \
+    ]
+    unittestDeepEqual(dataValidate(data, true), { \
+        'date': 'datetime' \
+    })
+
+    unittestDeepEqual(data, [ \
+        {'date': datetimeISOParse('2022-08-30T00:00:00+00:00')}, \
+        {'date': datetimeISOParse('2022-08-30')}, \
+        {'date': datetimeISOParse('2022-08-30T11:04:00+00:00')}, \
+        {'date': datetimeISOParse('2022-08-30T18:04:00+00:00')}, \
+        {'date': null} \
+    ])
+endfunction
+unittestRunTest('testValidateData_datetime')
+
+
+function testValidateData_datetimeString():
     data = [ \
         {'date': '2022-08-30'}, \
-        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
+        {'date': datetimeISOParse('2022-08-30T00:00:00+00:00')}, \
         {'date': '2022-08-30T11:04:00Z'}, \
+        {'date': '2022-08-30T11:04:00-07:00'}, \
         {'date': null}, \
         {'date': 'null'}, \
         {'date': ''} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'date': 'datetime' \
+    })
+
+    unittestDeepEqual(data, [ \
         {'date': datetimeISOParse('2022-08-30')}, \
-        {'date': datetimeISOParse('2022-08-30T00:00:00Z')}, \
-        {'date': datetimeISOParse('2022-08-30T11:04:00Z')}, \
+        {'date': datetimeISOParse('2022-08-30T00:00:00+00:00')}, \
+        {'date': datetimeISOParse('2022-08-30T11:04:00+00:00')}, \
+        {'date': datetimeISOParse('2022-08-30T18:04:00+00:00')}, \
         {'date': null}, \
         {'date': null}, \
         {'date': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate_datetimeString')
+unittestRunTest('testValidateData_datetimeString')
 
 
-function testDataValidate_bool():
+function testValidateData_bool():
     data = [ \
         {'A': 1, 'B': true}, \
         {'A': 2, 'B': false}, \
@@ -206,8 +243,11 @@ function testDataValidate_bool():
         {'A': 4, 'B': 'false'}, \
         {'A': 5, 'B': null} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'A': 'number', \
+        'B': 'boolean' \
+    })
+    unittestDeepEqual(data, [ \
         {'A': 1, 'B': true}, \
         {'A': 2, 'B': false}, \
         {'A': 3, 'B': true}, \
@@ -215,10 +255,10 @@ function testDataValidate_bool():
         {'A': 5, 'B': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate_bool')
+unittestRunTest('testValidateData_bool')
 
 
-function testDataValidate_boolString():
+function testValidateData_boolString():
     data = [ \
         {'A': 1, 'B': 'true'}, \
         {'A': 2, 'B': 'false'}, \
@@ -228,8 +268,11 @@ function testDataValidate_boolString():
         {'A': 5, 'B': 'null'}, \
         {'A': 5, 'B': ''} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'A': 'number', \
+        'B': 'boolean' \
+    })
+    unittestDeepEqual(data, [ \
         {'A': 1, 'B': true}, \
         {'A': 2, 'B': false}, \
         {'A': 3, 'B': true}, \
@@ -239,152 +282,152 @@ function testDataValidate_boolString():
         {'A': 5, 'B': null} \
     ])
 endfunction
-unittestRunTest('testDataValidate_boolString')
+unittestRunTest('testValidateData_boolString')
 
 
-function testDataValidate_undetermined():
+function testValidateData_unknown():
+    data = [ \
+        {'A': 1, 'B': regexNew('^foo')}, \
+        {'A': 2, 'B': regexNew('^bar')} \
+    ]
+    unittestDeepEqual(dataValidate(data, true), { \
+        'A': 'number' \
+    })
+    unittestDeepEqual(data, [ \
+        {'A': 1, 'B': regexNew('^foo')}, \
+        {'A': 2, 'B': regexNew('^bar')} \
+    ])
+endfunction
+unittestRunTest('testValidateData_unknown')
+
+
+function testValidateData_undetermined():
     data = [ \
         {'A': '', 'B': 'null'}, \
         {'A': 2, 'B': ''} \
     ]
-    result = dataValidate(data, true)
-    unittestDeepEqual(result, [ \
+    unittestDeepEqual(dataValidate(data, true), { \
+        'A': 'number', \
+        'B': 'string' \
+    })
+    unittestDeepEqual(data, [ \
         {'A': null, 'B': null}, \
         {'A': 2, 'B': ''} \
     ])
 endfunction
-unittestRunTest('testDataValidate_undetermined')
+unittestRunTest('testValidateData_undetermined')
 
 
-function testDataValidate_numberError():
+function testValidateData_numberError():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
         {'A': '2'} \
     ]
-    result = dataValidate(data)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value "2", expected type number']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_numberError')
+unittestRunTest('testValidateData_numberError')
 
 
-function testDataValidate_numberErrorBool():
+function testValidateData_numberErrorBool():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
         {'A': true} \
     ]
-    result = dataValidate(data)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type number']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value true, expected type number']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_numberErrorBool')
+unittestRunTest('testValidateData_numberErrorBool')
 
 
-function testDataValidate_numberErrorCSV():
+function testValidateData_numberErrorCSV():
     unittestMockAll()
     data = [ \
         {'A': 1}, \
         {'A': 'abc'} \
     ]
-    result = dataValidate(data, true)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data, true), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type number']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value "abc", expected type number']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_numberErrorCSV')
+unittestRunTest('testValidateData_numberErrorCSV')
 
 
-function testDataValidate_datetimeError():
+function testValidateData_datetimeError():
     unittestMockAll()
     data = [ \
-        {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
+        {'A': datetimeISOParse('2022-07-30T00:00:00+00:00')}, \
         {'A': 2} \
     ]
-    result = dataValidate(data)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type datetime']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value 2, expected type datetime']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_datetimeError')
+unittestRunTest('testValidateData_datetimeError')
 
 
-function testDataValidate_datetimeErrorCSV():
+function testValidateData_datetimeErrorCSV():
     unittestMockAll()
     data = [ \
-        {'A': datetimeISOParse('2022-07-30T00:00:00Z')}, \
+        {'A': datetimeISOParse('2022-07-30T00:00:00+00:00')}, \
         {'A': 'abc'} \
     ]
-    result = dataValidate(data, true)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data, true), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type datetime']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value "abc", expected type datetime']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_datetimeErrorCSV')
+unittestRunTest('testValidateData_datetimeErrorCSV')
 
 
-function testDataValidate_booleanError():
+function testValidateData_booleanError():
     unittestMockAll()
     data = [ \
         {'A': false}, \
         {'A': 2} \
     ]
-    result = dataValidate(data)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type boolean']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value 2, expected type boolean']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_booleanError')
+unittestRunTest('testValidateData_booleanError')
 
 
-function testDataValidate_booleanErrorCSV():
+function testValidateData_booleanErrorCSV():
     unittestMockAll()
     data = [ \
         {'A': true}, \
         {'A': 'abc'} \
     ]
-    result = dataValidate(data, true)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data, true), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value "abc", expected type boolean']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value "abc", expected type boolean']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_booleanErrorCSV')
+unittestRunTest('testValidateData_booleanErrorCSV')
 
 
-function testDataValidate_stringError():
+function testValidateData_stringError():
     unittestMockAll()
     data = [ \
         {'A': 'a1'}, \
         {'A': 2} \
     ]
-    result = dataValidate(data, true)
-    unittestEqual(result, null)
+    unittestEqual(dataValidate(data), null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid "A" field value, expected type string']] \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value 2, expected type string']] \
     ])
 endfunction
-unittestRunTest('testDataValidate_stringError')
-
-
-function testDataValidate_invalidDataArray():
-    unittestMockAll()
-    result = dataValidate('not an array')
-    unittestEqual(result, null)
-    unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataValidate - invalid data array']] \
-    ])
-endfunction
-unittestRunTest('testDataValidate_invalidDataArray')
+unittestRunTest('testValidateData_stringError')
 
 
 #
@@ -751,7 +794,7 @@ function testDataAggregate_invalidModel():
     result = dataAggregate([], {})
     unittestEqual(result, null)
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemLogDebug', ['data: dataAggregate - invalid aggregation model']] \
+        ['systemLogDebug', ['data.bare: dataAggregate - invalid aggregation model']] \
     ])
 endfunction
 unittestRunTest('testDataAggregate_invalidModel')

@@ -880,10 +880,10 @@ test('library, arraySort', () => {
 
 
 test('library, barescriptEvaluateExpression', () => {
-    let expr = {'function': {'args': [{'number': 5.0}, {'variable': 'true'}], 'name': 'arrayNew'}};
+    let expr = {'binary': {'left': {'number': 2.0}, 'op': '*', 'right': {'number': 3}}};
     assert.deepEqual(
         scriptFunctions.barescriptEvaluateExpression([expr], null),
-        [5, true]
+        6
     );
 
     // Locals
@@ -895,13 +895,9 @@ test('library, barescriptEvaluateExpression', () => {
 
     // Builtins
     expr = {'function': {'args': [{'function': {'args': [], 'name': 'pi'}}], 'name': 'cos'}};
-    assert.deepEqual(
-        scriptFunctions.barescriptEvaluateExpression([expr, null, true], null),
-        -1
-    );
     assert.throws(
         () => {
-            scriptFunctions.barescriptEvaluateExpression([expr, null, false], null);
+            scriptFunctions.barescriptEvaluateExpression([expr], null);
         },
         {
             'name': 'BareScriptRuntimeError',

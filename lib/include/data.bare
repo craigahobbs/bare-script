@@ -11,7 +11,7 @@ function dataParseCSV(text):
     # Collect all lines from variadic text arguments
     if systemType(text) == 'array':
         lines = []
-        for textPart in text:
+        for textPart in arrayFlat(text):
             if textPart != null:
                 arrayExtend(lines, stringSplitLines(textPart))
             endif
@@ -77,7 +77,8 @@ function dataParseCSV(text):
     endif
 
     # Validate the data (as CSV)
-    return dataValidate(result, true)
+    dataValidate(result, true)
+    return result
 endfunction
 
 dataParseCSVBlankLine = regexNew('^\s*$')
@@ -89,20 +90,14 @@ dataParseCSVQuotedField = regexNew('^"((?:""|[^"])*)"(,|\s*$)')
 # $doc: Validate a data array
 # $arg data: The data array
 # $arg csv: Optional (default is false). If true, parse value strings.
-# $return: The validated data array
+# $return: The map of field name to field type, or null if the data is invalid
 function dataValidate(data, csv):
-    # Validate the data argument
-    if systemType(data) != 'array':
-        systemLogDebug('data: dataValidate - invalid data array')
-        return null
-    endif
-
     # Determine field types
     types = {}
     for row in data:
         for field in objectKeys(row):
-            if objectGet(types, field) == null:
-                value = objectGet(row, field)
+            value = objectGet(row, field)
+            if !objectGet(types, field):
                 valueType = systemType(value)
                 if valueType == 'boolean':
                     objectSet(types, field, 'boolean')
@@ -111,11 +106,15 @@ function dataValidate(data, csv):
                 elif valueType == 'datetime':
                     objectSet(types, field, 'datetime')
                 elif valueType == 'string':
+                    # If we aren't parsing CSV strings, its just a string
                     if !csv:
                         objectSet(types, field, 'string')
+
+                    # If its the null string we can't determine the type yet
                     elif value == '' || value == 'null':
-                        # Can't determine type yet
                         objectSet(types, field, null)
+
+                    # Can the string be parsed into another type?
                     elif value == 'true' || value == 'false':
                         objectSet(types, field, 'boolean')
                     elif numberParseFloat(value) != null:
@@ -130,86 +129,93 @@ function dataValidate(data, csv):
         endfor
     endfor
 
-    # Set undetermined field types to 'string'
+    # Set the type for fields with undetermined type
     for field in objectKeys(types):
-        if objectGet(types, field) == null:
+        fieldType = objectGet(types, field)
+        if fieldType == null:
             objectSet(types, field, 'string')
         endif
     endfor
 
-    # Validate and coerce field values
+    # Validate field values
     for row in data:
         for field in objectKeys(row):
-            fieldType = objectGet(types, field)
             value = objectGet(row, field)
+            fieldType = objectGet(types, field)
+            if fieldType == null:
+                continue
+            endif
             valueType = systemType(value)
 
-            # Null string in csv mode
+            # Null string?
             if csv && value == 'null':
                 objectSet(row, field, null)
 
+            # Number field?
             elif fieldType == 'number':
                 if csv && valueType == 'string':
                     if value == '':
-                        objectSet(row, field, null)
+                        numberValue = null
                     else:
                         numberValue = numberParseFloat(value)
                         if numberValue == null:
-                            systemLogDebug('data: dataValidate - invalid "' + field + '" field value "' + value + '", expected type number')
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                             return null
                         endif
-                        objectSet(row, field, numberValue)
                     endif
+                    objectSet(row, field, numberValue)
                 elif value != null && valueType != 'number':
-                    systemLogDebug('data: dataValidate - invalid "' + field + '" field value, expected type number')
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                     return null
                 endif
 
+            # Datetime field?
             elif fieldType == 'datetime':
                 if csv && valueType == 'string':
                     if value == '':
-                        objectSet(row, field, null)
+                        datetimeValue = null
                     else:
                         datetimeValue = datetimeISOParse(value)
                         if datetimeValue == null:
-                            systemLogDebug('data: dataValidate - invalid "' + field + '" field value "' + value + '", expected type datetime')
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                             return null
                         endif
-                        objectSet(row, field, datetimeValue)
                     endif
+                    objectSet(row, field, datetimeValue)
                 elif value != null && valueType != 'datetime':
-                    systemLogDebug('data: dataValidate - invalid "' + field + '" field value, expected type datetime')
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                     return null
                 endif
 
+            # Boolean field?
             elif fieldType == 'boolean':
                 if csv && valueType == 'string':
                     if value == '':
-                        objectSet(row, field, null)
-                    elif value == 'true':
-                        objectSet(row, field, true)
-                    elif value == 'false':
-                        objectSet(row, field, false)
+                        booleanValue = null
                     else:
-                        systemLogDebug('data: dataValidate - invalid "' + field + '" field value "' + value + '", expected type boolean')
-                        return null
+                        booleanValue = if(value == 'true', true, if(value == 'false', false, null))
+                        if booleanValue == null:
+                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
+                            return null
+                        endif
                     endif
+                    objectSet(row, field, booleanValue)
                 elif value != null && valueType != 'boolean':
-                    systemLogDebug('data: dataValidate - invalid "' + field + '" field value, expected type boolean')
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                     return null
                 endif
 
+            # String field
             else:
-                # string
                 if value != null && valueType != 'string':
-                    systemLogDebug('data: dataValidate - invalid "' + field + '" field value, expected type string')
+                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType)
                     return null
                 endif
             endif
         endfor
     endfor
 
-    return data
+    return types
 endfunction
 
 
@@ -266,8 +272,7 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     # Bucket the right rows by their expression value
     rightCategoryRows = {}
     for rightRow in rightData:
-        rightRowVars = if(variables != null, objectAssign(objectCopy(rightRow), variables), rightRow)
-        categoryKey = jsonStringify(barescriptEvaluateExpression(rightExprParsed, rightRowVars))
+        categoryKey = jsonStringify(barescriptEvaluateExpression(rightExprParsed, rightRow, variables))
         rightCategoryKeys = objectGet(rightCategoryRows, categoryKey)
         if rightCategoryKeys == null:
             rightCategoryKeys = []
@@ -279,8 +284,7 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     # Join the left with the right
     resultData = []
     for leftRow in leftData:
-        leftRowVars = if(variables != null, objectAssign(objectCopy(leftRow), variables), leftRow)
-        categoryKey = jsonStringify(barescriptEvaluateExpression(leftExprParsed, leftRowVars))
+        categoryKey = jsonStringify(barescriptEvaluateExpression(leftExprParsed, leftRow, variables))
         if objectHas(rightCategoryRows, categoryKey):
             for rightRow in objectGet(rightCategoryRows, categoryKey):
                 joinRow = objectCopy(leftRow)
@@ -312,8 +316,7 @@ function dataCalculatedField(data, fieldName, expr, variables):
 
     # Compute the calculated field for each row
     for row in data:
-        rowVars = if(variables != null, objectAssign(objectCopy(row), variables), row)
-        objectSet(row, fieldName, barescriptEvaluateExpression(calcExpr, rowVars))
+        objectSet(row, fieldName, barescriptEvaluateExpression(calcExpr, row, variables))
     endfor
 
     return data
@@ -335,8 +338,7 @@ function dataFilter(data, expr, variables):
 
     # Filter the data
     for row in data:
-        rowVars = if(variables != null, objectAssign(objectCopy(row), variables), row)
-        if systemBoolean(barescriptEvaluateExpression(filterExpr, rowVars)):
+        if systemBoolean(barescriptEvaluateExpression(filterExpr, row, variables)):
             arrayPush(result, row)
         endif
     endfor
@@ -355,7 +357,7 @@ function dataAggregate(data, aggregation):
     # Validate the aggregation model
     aggregation = schemaValidate(dataAggregationTypes, 'DataAggregation', aggregation)
     if aggregation == null:
-        systemLogDebug('data: dataAggregate - invalid aggregation model')
+        systemLogDebug('data.bare: dataAggregate - invalid aggregation model')
         return null
     endif
     categories = objectGet(aggregation, 'categories')
@@ -420,17 +422,13 @@ function dataAggregate(data, aggregation):
             elif measureFunc == 'max':
                 maxVal = arrayGet(measureValues, 0)
                 for val in measureValues:
-                    if val > maxVal:
-                        maxVal = val
-                    endif
+                    maxVal = if(val > maxVal, val, maxVal)
                 endfor
                 objectSet(aggregateRow, measureField, maxVal)
             elif measureFunc == 'min':
                 minVal = arrayGet(measureValues, 0)
                 for val in measureValues:
-                    if val < minVal:
-                        minVal = val
-                    endif
+                    minVal = if(val < minVal, val, minVal)
                 endfor
                 objectSet(aggregateRow, measureField, minVal)
             elif measureFunc == 'sum':
@@ -532,11 +530,9 @@ function dataSortCompare(sorts, row1, row2):
     result = 0
     for sort in sorts:
         field = arrayGet(sort, 0)
-        desc = arrayGet(sort, 1)
-        value1 = objectGet(row1, field)
-        value2 = objectGet(row2, field)
-        cmp = systemCompare(value1, value2)
-        result = if(desc, -cmp, cmp)
+        result = if(arrayGet(sort, 1), \
+            systemCompare(objectGet(row2, field), objectGet(row1, field)), \
+            systemCompare(objectGet(row1, field), objectGet(row2, field)))
         if result != 0:
             break
         endif
