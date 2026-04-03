@@ -722,8 +722,8 @@ The [BareScript expression model](../model/#var.vName='Expression')
 **locals -**
 Optional (default is null). The local variables object.
 
-**builtins -**
-Optional (default is true). If true, include the [built-in expression functions](expression.html).
+**globals -**
+Optional (default is null). The global variables object.
 
 #### Returns
 
