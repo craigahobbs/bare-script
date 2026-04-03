@@ -6,6 +6,11 @@ include '../unittest.bare'
 include '../unittestMock.bare'
 
 
+#
+# dataTableValidate tests
+#
+
+
 function testDataTableValidate():
     dataTable = {'fields': ['A', 'B']}
     unittestDeepEqual(dataTableValidate(dataTable), dataTable)
@@ -19,6 +24,11 @@ function testDataTableValidate_error():
     unittestEqual(dataTableValidate(dataTable), null)
 endfunction
 unittestRunTest('testDataTableValidate_error')
+
+
+#
+# dataTableMarkdown tests
+#
 
 
 function testDataTableMarkdown():
@@ -139,6 +149,11 @@ endfunction
 unittestRunTest('testDataTableMarkdown_noFields')
 
 
+#
+# dataTable tests
+#
+
+
 function testDataTable():
     unittestMockAll()
     data = [ \
@@ -184,6 +199,11 @@ function testDataTable():
     ])
 endfunction
 unittestRunTest('testDataTable')
+
+
+#
+# dataTableElements tests
+#
 
 
 function testDataTableElements():

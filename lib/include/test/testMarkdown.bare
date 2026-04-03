@@ -5,6 +5,45 @@ include '../markdownParser.bare'
 include '../unittest.bare'
 
 
+#
+# markdownValidate tests
+#
+
+
+function testMarkdownValidate():
+    markdownModel = { \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'style': 'h1', \
+                    'spans': [ \
+                        {'text': 'This is the '}, \
+                        { \
+                            'style': { \
+                                'style': 'italic', \
+                                'spans': [{'text': 'title'}] \
+                            } \
+                        } \
+                    ] \
+                } \
+            }, \
+            { \
+                'paragraph': { \
+                    'spans': [{'text': 'This is some text'}] \
+                } \
+            } \
+        ] \
+    }
+    unittestDeepEqual(markdownValidate(markdownModel), markdownModel)
+endfunction
+unittestRunTest('testMarkdownValidate')
+
+
+#
+# markdownEscape tests
+#
+
+
 function testMarkdownEscape():
     unittestEqual( \
         markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
@@ -14,7 +53,12 @@ endfunction
 unittestRunTest('testMarkdownEscape')
 
 
-function testGetMarkdownTitle():
+#
+# markdownTitle tests
+#
+
+
+function testMarkdownTitle():
     markdownModel = markdownParse( \
         'This is some text\n' + \
         '\n' + \
@@ -26,28 +70,28 @@ function testGetMarkdownTitle():
     )
     unittestEqual(markdownTitle(markdownModel), 'This is the title')
 endfunction
-unittestRunTest('testGetMarkdownTitle')
+unittestRunTest('testMarkdownTitle')
 
 
-function testGetMarkdownTitle_link():
+function testMarkdownTitle_link():
     markdownModel = markdownParse( \
         '# This is the [title](about.html)\n' \
     )
     unittestEqual(markdownTitle(markdownModel), 'This is the title')
 endfunction
-unittestRunTest('testGetMarkdownTitle_link')
+unittestRunTest('testMarkdownTitle_link')
 
 
-function testGetMarkdownTitle_image():
+function testMarkdownTitle_image():
     markdownModel = markdownParse( \
         '# This is the ![title](title.jpg)\n' \
     )
     unittestEqual(markdownTitle(markdownModel), 'This is the title')
 endfunction
-unittestRunTest('testGetMarkdownTitle_image')
+unittestRunTest('testMarkdownTitle_image')
 
 
-function testGetMarkdownTitle_noTitle():
+function testMarkdownTitle_noTitle():
     markdownModel = markdownParse( \
         'This is some text\n' + \
         '\n' + \
@@ -55,7 +99,12 @@ function testGetMarkdownTitle_noTitle():
     )
     unittestEqual(markdownTitle(markdownModel), null)
 endfunction
-unittestRunTest('testGetMarkdownTitle_noTitle')
+unittestRunTest('testMarkdownTitle_noTitle')
+
+
+#
+# markdownParagraphText tests
+#
 
 
 function testMarkdownParagraphText():

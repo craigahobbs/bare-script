@@ -1,0 +1,5270 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../markdownParser.bare'
+include '../unittest.bare'
+
+
+function testMarkdownParse_spans():
+    markdown = markdownParse([ \
+        'These are some basic styles: **bold**, *italic*, ***bold-italic***.', \
+        '', \
+        'This is a [link](https://foo.com) and so is [this](https://bar.com "Bar").', \
+        '', \
+        'This is another link: <https://foo.com>', \
+        '', \
+        'This is an ![image](https://foo.com/foo.jpg) and so is ![this](https://bar.com/bar.jpg "Bar").', \
+        '', \
+        'This is code `foo = 2 * bar`.' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'These are some basic styles: '}, \
+                        {'style': {'style': 'bold', 'spans': [{'text': 'bold'}]}}, \
+                        {'text': ', '}, \
+                        {'style': {'style': 'italic', 'spans': [{'text': 'italic'}]}}, \
+                        {'text': ', '}, \
+                        {'style': {'spans': [{'style': {'spans': [{'text': 'bold-italic'}], 'style': 'italic'}}], 'style': 'bold'}}, \
+                        {'text': '.'} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a '}, \
+                        {'link': {'href': 'https://foo.com', 'spans': [{'text': 'link'}]}}, \
+                        {'text': ' and so is '}, \
+                        {'link': {'href': 'https://bar.com', 'spans': [{'text': 'this'}], 'title': 'Bar'}}, \
+                        {'text': '.'} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is another link: '}, \
+                        {'link': {'href': 'https://foo.com', 'spans': [{'text': 'https://foo.com'}]}} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is an '}, \
+                        {'image': {'alt': 'image', 'src': 'https://foo.com/foo.jpg'}}, \
+                        {'text': ' and so is '}, \
+                        {'image': {'alt': 'this', 'src': 'https://bar.com/bar.jpg', 'title': 'Bar'}}, \
+                        {'text': '.'} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code '}, \
+                        {'code': 'foo = 2 * bar'}, \
+                        {'text': '.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_spans')
+
+
+function testMarkdownParse_nestedSpans():
+    markdown = markdownParse([ \
+        'This is a [link **with *formatting***](https://foo.com)' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a '}, \
+                        { \
+                            'link': { \
+                                'href': 'https://foo.com', \
+                                'spans': [ \
+                                    {'text': 'link '}, \
+                                    {'style': {'style': 'bold', 'spans': [ \
+                                        {'text': 'with '}, \
+                                        {'style': {'style': 'italic', 'spans': [{'text': 'formatting'}]}} \
+                                    ]}} \
+                                ] \
+                            } \
+                        } \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_nestedSpans')
+
+
+function testMarkdownParse_spansSpaces():
+    markdown = markdownParse([ \
+        '***no *** *** no*** **no ** ** no** *no * * no*' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '***no *** *** no*** **no ** ** no** *no * * no*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_spansSpaces')
+
+
+function testMarkdownParse_spansSpacesHangFix():
+    markdown = markdownParse([ \
+        '**a                               b', \
+        '*a                                b', \
+        '__a                               b', \
+        '_a                                b', \
+        '~a                                b' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        { \
+                            'text': '**a                               b\n' + \
+                                    '*a                                b\n' + \
+                                    '__a                               b\n' + \
+                                    '_a                                b\n' + \
+                                    '~a                                b' \
+                        } \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_spansSpacesHangFix')
+
+
+function testMarkdownParse_entityReferences():
+    markdown = markdownParse([ \
+        '&nbsp; &amp; &copy; &AElig; &Dcaron;', \
+        '&frac34; &HilbertSpace; &DifferentialD;', \
+        '&ClockwiseContourIntegral; &ngE;' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\xa0 & \xa9 &AElig; &Dcaron;\n' + \
+                                 '\xbe &HilbertSpace; &DifferentialD;\n' + \
+                                 '&ClockwiseContourIntegral; &ngE;'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_entityReferences')
+
+
+function testMarkdownParse_entityDecimalNumericCharacterReferences():
+    markdown = markdownParse('&#35; &#1234; &#992; &#0;')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\x23 \u04d2 \u03e0 \0'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_entityDecimalNumericCharacterReferences')
+
+
+function testMarkdownParse_entityHexNumericCharacterReferences():
+    markdown = markdownParse('&#X22; &#XD06; &#xcab;')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\x22 \u0d06 \u0cab'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_entityHexNumericCharacterReferences')
+
+
+function testMarkdownParse_entityNonEntities():
+    markdown = markdownParse([ \
+        '&nbsp &x; &#; &#x;', \
+        '&#87654321;', \
+        '&#abcdef0;', \
+        '&ThisIsNotDefined; &hi?;' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '&nbsp &x; &#; &#x;\n' + \
+                                 '&#87654321;\n' + \
+                                 '&#abcdef0;\n' + \
+                                 '&ThisIsNotDefined; &hi?;'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_entityNonEntities')
+
+
+function testMarkdownParse_italic():
+   markdown = markdownParse('*foo bar*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo bar'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italic')
+
+
+function testMarkdownParse_italicMultiline():
+    markdown = markdownParse('*text\ntext*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicMultiline')
+
+
+function testMarkdownParse_italicEscapeStart():
+    markdown = markdownParse('\\*foo bar*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '*foo bar*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicEscapeStart')
+
+
+function testMarkdownParse_italicEscapeEnd():
+    markdown = markdownParse('*foo bar\\*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '*foo bar*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicEscapeEnd')
+
+
+function testMarkdownParse_italicMismatched():
+   markdown = markdownParse('*foo_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '*foo_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicMismatched')
+
+
+function testMarkdownParse_italicInternal():
+    markdown = markdownParse('foo*bar*baz')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'italic'}}, \
+                        {'text': 'baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicInternal')
+
+
+function testMarkdownParse_italicInternalStart():
+    markdown = markdownParse('*foo*bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo'}], 'style': 'italic'}}, \
+                        {'text': 'bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicInternalStart')
+
+
+function testMarkdownParse_italicInternalEnd():
+    markdown = markdownParse('foo*bar*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicInternalEnd')
+
+
+function testMarkdownParse_italicSentenceEnd():
+    markdown = markdownParse('*bar*.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'italic'}}, \
+                        {'text': '.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicSentenceEnd')
+
+
+function testMarkdownParse_italicCharacter():
+    markdown = markdownParse('*\\**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': '*'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicCharacter')
+
+
+function testMarkdownParse_italicWhitespace():
+    markdown = markdownParse('a * foo bar*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a * foo bar*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicWhitespace')
+
+
+function testMarkdownParse_italicWhitespace2():
+    markdown = markdownParse('a *foo bar *')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a *foo bar *'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicWhitespace2')
+
+
+function testMarkdownParse_italicWhitespace3():
+    markdown = markdownParse('a *foo bar\n*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a *foo bar\n*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicWhitespace3')
+
+
+function testMarkdownParse_italicNonBreakingSpace():
+    markdown = markdownParse('foo *' + stringFromCharCode(160) + 'a' + stringFromCharCode(160) + '*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo *' + stringFromCharCode(160) + 'a' + stringFromCharCode(160) + '*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicNonBreakingSpace')
+
+
+function testMarkdownParse_underscoreItalic():
+    markdown = markdownParse('_foo bar_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo bar'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalic')
+
+
+function testMarkdownParse_underscoreItalicMultiline():
+    markdown = markdownParse('_text\ntext_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicMultiline')
+
+
+function testMarkdownParse_underscoreItalicEscapeStart():
+    markdown = markdownParse('\\_foo bar_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '_foo bar_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicEscapeStart')
+
+
+function testMarkdownParse_underscoreItalicEscapeEnd():
+    markdown = markdownParse('_foo bar\\_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '_foo bar_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicEscapeEnd')
+
+
+function testMarkdownParse_underscoreItalicMismatched():
+   markdown = markdownParse('_foo*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '_foo*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicMismatched')
+
+
+function testMarkdownParse_underscoreItalicInternal():
+    markdown = markdownParse('foo_bar_baz')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo_bar_baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicInternal')
+
+
+function testMarkdownParse_underscoreItalicInternalStart():
+    markdown = markdownParse('_foo_bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '_foo_bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicInternalStart')
+
+
+function testMarkdownParse_underscoreItalicInternalEnd():
+    markdown = markdownParse('foo_bar_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo_bar_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicInternalEnd')
+
+
+function testMarkdownParse_underscoreItalicSentenceEnd():
+    markdown = markdownParse('_bar_.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'italic'}}, \
+                        {'text': '.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicSentenceEnd')
+
+
+function testMarkdownParse_underscoreItalicCharacter():
+    markdown = markdownParse('_\\__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': '_'}], 'style': 'italic'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicCharacter')
+
+
+function testMarkdownParse_uderscoreItalicWhitespace():
+    markdown = markdownParse('a _ foo bar_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a _ foo bar_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace')
+
+
+function testMarkdownParse_uderscoreItalicWhitespace2():
+    markdown = markdownParse('a _foo bar _')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a _foo bar _'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace2')
+
+
+function testMarkdownParse_uderscoreItalicWhitespace3():
+    markdown = markdownParse('a _foo bar\n_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'a _foo bar\n_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace3')
+
+
+function testMarkdownParse_underscoreItalicNonBreakingSpace():
+    markdown = markdownParse('foo _' + stringFromCharCode(160) + 'a' + stringFromCharCode(160) + '_')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo _' + stringFromCharCode(160) + 'a' + stringFromCharCode(160) + '_'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreItalicNonBreakingSpace')
+
+
+function testMarkdownParse_bold():
+   markdown = markdownParse('**foo bar**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo bar'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_bold')
+
+
+function testMarkdownParse_boldMultiline():
+    markdown = markdownParse('**text\ntext**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldMultiline')
+
+
+function testMarkdownParse_boldEscapeStart():
+    markdown = markdownParse('\\**foo bar**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '**foo bar**'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldEscapeStart')
+
+
+function testMarkdownParse_boldEscapeEnd():
+    markdown = markdownParse('**foo bar\\**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '**foo bar**'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldEscapeEnd')
+
+
+function testMarkdownParse_boldMismatched():
+   markdown = markdownParse('**foo bar__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '**foo bar__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldMismatched')
+
+
+function testMarkdownParse_boldInternal():
+    markdown = markdownParse('foo**bar**baz')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'bold'}}, \
+                        {'text': 'baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldInternal')
+
+
+function testMarkdownParse_boldInternalStart():
+    markdown = markdownParse('**foo**bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo'}], 'style': 'bold'}}, \
+                        {'text': 'bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldInternalStart')
+
+
+function testMarkdownParse_boldInternalEnd():
+    markdown = markdownParse('foo**bar**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldInternalEnd')
+
+
+function testMarkdownParse_boldSentenceEnd():
+    markdown = markdownParse('**bar**.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'bold'}}, \
+                        {'text': '.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldSentenceEnd')
+
+
+function testMarkdownParse_boldCharacter():
+    markdown = markdownParse('**\\***')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': '*'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldCharacter')
+
+
+function testMarkdownParse_boldNested():
+    markdown = markdownParse('****foo****')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'style': {'spans': [{'text': 'foo'}], 'style': 'bold'}} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldNested')
+
+
+function testMarkdownParse_boldWhitespace():
+    markdown = markdownParse('** foo bar**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '** foo bar**'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldWhitespace')
+
+
+function testMarkdownParse_boldWhitespace2():
+    markdown = markdownParse('**foo bar **')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '**foo bar **'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldWhitespace2')
+
+
+function testMarkdownParse_boldWhitespace3():
+    markdown = markdownParse('**foo bar\n**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '**foo bar\n**'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldWhitespace3')
+
+
+function testMarkdownParse_underscoreBold():
+    markdown = markdownParse('__foo bar__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'foo bar'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBold')
+
+
+function testMarkdownParse_underscoreBoldMultiline():
+    markdown = markdownParse('__text\ntext__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldMultiline')
+
+
+function testMarkdownParse_underscoreBoldEscapeStart():
+    markdown = markdownParse('\\__foo bar__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo bar__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldEscapeStart')
+
+
+function testMarkdownParse_underscoreBoldEscapeEnd():
+    markdown = markdownParse('__foo bar\\__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo bar__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldEscapeEnd')
+
+
+function testMarkdownParse_underscoreBoldMismatched():
+    markdown = markdownParse('__foo bar**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo bar**'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldMismatched')
+
+
+function testMarkdownParse_underscoreBoldInternal():
+    markdown = markdownParse('foo__bar__baz')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo__bar__baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldInternal')
+
+
+function testMarkdownParse_underscoreBoldInternal2():
+    markdown = markdownParse('foo__bar___baz')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo__bar___baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldInternal2')
+
+
+function testMarkdownParse_underscoreBoldInternalStart():
+    markdown = markdownParse('__foo__bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo__bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldInternalStart')
+
+
+function testMarkdownParse_underscoreBoldInternalEnd():
+   markdown = markdownParse('foo__bar__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo__bar__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldInternalEnd')
+
+
+function testMarkdownParse_underscoreBoldSentenceEnd():
+    markdown = markdownParse('__bar__.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': 'bar'}], 'style': 'bold'}}, \
+                        {'text': '.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldSentenceEnd')
+
+
+function testMarkdownParse_underscoreBoldCharacter():
+    markdown = markdownParse('__\\___')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': '_'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldCharacter')
+
+
+function testMarkdownParse_underscoreBoldNested():
+    markdown = markdownParse('____foo____')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'style': {'spans': [{'text': 'foo'}], 'style': 'bold'}} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldNested')
+
+
+function testMarkdownParse_underscoreBoldWhitespace():
+    markdown = markdownParse('__ foo bar__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__ foo bar__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldWhitespace')
+
+
+function testMarkdownParse_underscoreBoldWhitespace2():
+    markdown = markdownParse('__foo bar __')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo bar __'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldWhitespace2')
+
+
+function testMarkdownParse_underscoreBoldWhitespace3():
+    markdown = markdownParse('__foo bar\n__')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '__foo bar\n__'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldWhitespace3')
+
+
+function testMarkdownParse_boldItalic():
+   markdown = markdownParse('***foo***')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [ \
+                    {'style': { \
+                        'spans': [ \
+                            {'style': {'spans': [{'text': 'foo'}], 'style': 'italic'}} \
+                        ], \
+                        'style': 'bold' \
+                    }} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldItalic')
+
+
+function testMarkdownParse_boldItalicMultiline():
+    markdown = markdownParse('***text\ntext***')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldItalicMultiline')
+
+
+function testMarkdownParse_underscoreBoldItalic():
+    markdown = markdownParse('___foo___')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [ \
+                    {'style': { \
+                        'spans': [ \
+                            {'style': {'spans': [{'text': 'foo'}], 'style': 'italic'}} \
+                        ], \
+                        'style': 'bold' \
+                    }} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldItalic')
+
+
+function testMarkdownParse_underscoreBoldItalicMultiline():
+    markdown = markdownParse('___text\ntext___')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'style': {'spans': [{'text': 'text\ntext'}], 'style': 'italic'}} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_underscoreBoldItalicMultiline')
+
+
+function testMarkdownParse_boldInItalic():
+   markdown = markdownParse('***strong** in emph*')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'spans': [{'text': '*strong'}], 'style': 'bold'}}, \
+                        {'text': ' in emph*'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldInItalic')
+
+
+function testMarkdownParse_boldInItalic2():
+    markdown = markdownParse('*in emph **strong***')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '*in emph '}, \
+                        {'style': {'spans': [{'text': 'strong*'}], 'style': 'bold'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_boldInItalic2')
+
+
+function testMarkdownParse_italicInBold():
+    markdown = markdownParse('***emph* in strong**')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'style': {'spans': [{'text': 'emph'}], 'style': 'italic'}}, \
+                                {'text': ' in strong'} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicInBold')
+
+
+function testMarkdownParse_italicInBold2():
+    markdown = markdownParse('**in strong *emph***')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'spans': [ \
+                                {'text': 'in strong '}, \
+                                {'style': {'spans': [{'text': 'emph'}], 'style': 'italic'}} \
+                            ], \
+                            'style': 'bold' \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_italicInBold2')
+
+
+function testMarkdownParse_strikethrough():
+    markdown = markdownParse('~~Hi~~ Hello, ~there~ world!')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'style': 'strikethrough', 'spans': [{'text': 'Hi'}]}}, \
+                        {'text': ' Hello, '}, \
+                        {'style': {'style': 'strikethrough', 'spans': [{'text': 'there'}]}}, \
+                        {'text': ' world!'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethrough')
+
+
+function testMarkdownParse_strikethroughMultiline():
+    markdown = markdownParse('~~foo\nbar~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': {'style': 'strikethrough', 'spans': [{'text': 'foo\nbar'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughMultiline')
+
+
+function testMarkdownParse_strikethroughEscapeStart():
+    markdown = markdownParse('\\~~foo bar~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~~foo bar~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughEscapeStart')
+
+
+function testMarkdownParse_strikethroughSingleEscapeStart():
+    markdown = markdownParse('\\~foo bar~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~foo bar~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleEscapeStart')
+
+
+function testMarkdownParse_strikethroughEscapeEnd():
+    markdown = markdownParse('~foo bar\\~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~foo bar~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughEscapeEnd')
+
+
+function testMarkdownParse_strikethroughNot():
+    markdown = markdownParse('This will ~~~not~~~ strike.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This will ~~~not~~~ strike.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughNot')
+
+
+function testMarkdownParse_strikethroughNot2():
+    markdown = markdownParse('This will ~~~not~~ strike.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This will ~~~not~~ strike.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughNot2')
+
+
+function testMarkdownParse_strikethroughNot3():
+    markdown = markdownParse('This will ~~not~~~ strike.')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This will ~~not~~~ strike.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughNot3')
+
+
+function testMarkdownParse_strikethroughWhitespace():
+   markdown = markdownParse('~~ foo bar~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~~ foo bar~~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughWhitespace')
+
+
+function testMarkdownParse_strikethroughWhitespace2():
+    markdown = markdownParse('~~foo bar ~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~~foo bar ~~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughWhitespace2')
+
+
+function testMarkdownParse_strikethroughWhitespace3():
+    markdown = markdownParse('~~foo bar\n~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~~foo bar\n~~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughWhitespace3')
+
+
+function testMarkdownParse_strikethroughSingleWhitespace():
+    markdown = markdownParse('~ foo bar~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~ foo bar~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleWhitespace')
+
+
+function testMarkdownParse_strikethroughSingleWhitespace2():
+    markdown = markdownParse('~foo bar ~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~foo bar ~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleWhitespace2')
+
+
+function testMarkdownParse_strikethroughSingleWhitespace3():
+    markdown = markdownParse('~foo bar\n~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~foo bar\n~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleWhitespace3')
+
+
+function testMarkdownParse_strikethroughInternal():
+   markdown = markdownParse('~~foo~bar~~~baz~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'style': 'strikethrough', \
+                            'spans': [ \
+                                {'text': 'foo~bar~~~baz'} \
+                            ] \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughInternal')
+
+
+function testMarkdownParse_strikethroughInternalSpaces():
+    markdown = markdownParse('~~foo ~ bar ~~~ baz~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'style': 'strikethrough', \
+                            'spans': [ \
+                                {'text': 'foo ~ bar ~~~ baz'} \
+                            ] \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughInternalSpaces')
+
+
+function testMarkdownParse_strikethroughSingleInternal():
+    markdown = markdownParse('~foo~~bar~~~baz~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'style': 'strikethrough', \
+                            'spans': [ \
+                                {'text': 'foo~~bar~~~baz'} \
+                            ] \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleInternal')
+
+
+function testMarkdownParse_strikethroughSingleInternalSpaces():
+    markdown = markdownParse('~foo ~~ bar ~~~ baz~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'style': 'strikethrough', \
+                            'spans': [ \
+                                {'text': 'foo ~~ bar ~~~ baz'} \
+                            ] \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleInternalSpaces')
+
+
+function testMarkdownParse_strikethroughSingleTriple():
+    markdown = markdownParse('~foo~~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~foo~~~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughSingleTriple')
+
+
+function testMarkdownParse_strikethroughDoubleQuadruple():
+    markdown = markdownParse('~~foo~~~~')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '~~foo~~~~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_strikethroughDoubleQuadruple')
+
+
+function testMarkdownParse_codeSpan():
+    markdown = markdownParse('This is code: `foo`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: '}, \
+                        {'code': 'foo'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpan')
+
+
+function testMarkdownParse_codeSpanEscapeStart():
+    markdown = markdownParse('\\``foo``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '``foo``'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanEscapeStart')
+
+
+function testMarkdownParse_codeSpanEscapeEnd():
+    markdown = markdownParse('``foo\\``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo\\'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanEscapeEnd')
+
+
+function testMarkdownParse_codeSpanEscapeEnd2():
+    markdown = markdownParse('``foo`\\`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '``foo'}, \
+                        {'code': '\\'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanEscapeEnd2')
+
+
+function testMarkdownParse_codeSpanMultiple():
+   markdown = markdownParse('This is code: ``foo ` bar``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: '}, \
+                        {'code': 'foo ` bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMultiple')
+
+
+function testMarkdownParse_codeSpanStripSpacePad():
+    markdown = markdownParse('` `` `')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': '``'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanStripSpacePad')
+
+
+function testMarkdownParse_codeSpanStripSpacePadWithExtraSpaces():
+    markdown = markdownParse('`  ``  `')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': ' `` '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanStripSpacePadWithExtraSpaces')
+
+
+function testMarkdownParse_codeSpanBeginSpace():
+    markdown = markdownParse('` a`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': ' a'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanBeginSpace')
+
+
+function testMarkdownParse_codeSpanEndSpace():
+    markdown = markdownParse('`a `')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'a '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanEndSpace')
+
+
+function testMarkdownParse_codeSpanTabPadding():
+    markdown = markdownParse('`\ta\t`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': '   a   '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanTabPadding')
+
+
+function testMarkdownParse_codeSpanOnlySpaces():
+   markdown = markdownParse('` `\n`  `')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': ' '}, \
+                        {'text': '\n'}, \
+                        {'code': '  '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanOnlySpaces')
+
+
+function testMarkdownParse_codeSpanMultilineText():
+   markdown = markdownParse('`foo\nbar  \nbaz\n`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo bar   baz '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMultilineText')
+
+
+function testMarkdownParse_codeSpanMultilineText2():
+    markdown = markdownParse('`\nfoo\n`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMultilineText2')
+
+
+function testMarkdownParse_codeSpanMultilineText3():
+    markdown = markdownParse('`\nfoo \n`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMultilineText3')
+
+
+function testMarkdownParse_codeSpanMultilineTextLastLineEndSpace():
+    markdown = markdownParse('`foo \n`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo  '} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMultilineTextLastLineEndSpace')
+
+
+function testMarkdownParse_codeSpanBackslash():
+    markdown = markdownParse('`foo\\`bar`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo\\'}, \
+                        {'text': 'bar`'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanBackslash')
+
+
+function testMarkdownParse_codeSpanLargeDelimeter():
+    markdown = markdownParse('``foo`bar``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo`bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanLargeDelimeter')
+
+
+function testMarkdownParse_codeSpanSmallDelimeter():
+    markdown = markdownParse('`foo``bar`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'foo``bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanSmallDelimeter')
+
+
+function testMarkdownParse_codeSpanOrder():
+    markdown = markdownParse('*foo`*`')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        { \
+                            'style': { \
+                                'style': 'italic', \
+                                'spans': [ \
+                                    {'text': 'foo`'} \
+                                ] \
+                            } \
+                        }, \
+                        {'text': '`'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanOrder')
+
+
+function testMarkdownParse_codeSpanMismatched():
+    markdown = markdownParse('This is code: ```foo``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: ```foo``'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMismatched')
+
+
+function testMarkdownParse_codeSpanMismatched2():
+    markdown = markdownParse('This is code: ``foo```')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: ``foo```'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMismatched2')
+
+
+function testMarkdownParse_codeSpanMismatched3():
+    markdown = markdownParse('This is code: ``foo ```')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: ``foo ```'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMismatched3')
+
+
+function testMarkdownParse_codeSpanMismatched4():
+    markdown = markdownParse('`foo``bar``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '`foo'}, \
+                        {'code': 'bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeSpanMismatched4')
+
+
+function testMarkdownParse_lineBreak():
+   markdown = markdownParse([ \
+        'This is a line break  ', \
+        '  this is not', \
+        'and this is not  ', \
+        '', \
+        'This is another paragraph.' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a line break'}, \
+                        {'br': 1}, \
+                        {'text': '  this is not\nand this is not  '} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is another paragraph.'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreak')
+
+
+function testMarkdownParse_lineBreakEscape():
+    markdown = markdownParse([ \
+        'foo\\  ', \
+        'bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo\\'}, \
+                        {'br': 1}, \
+                        {'text': 'bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakEscape')
+
+
+function testMarkdownParse_lineBreakBackslash():
+    markdown = markdownParse([ \
+        'foo\\', \
+        'baz' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': 'baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakBackslash')
+
+
+function testMarkdownParse_lineBreakBackslashEscape():
+    markdown = markdownParse([ \
+        'foo\\\\', \
+        'baz' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo\\\nbaz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakBackslashEscape')
+
+
+function testMarkdownParse_lineBreakSeveralSpaces():
+    markdown = markdownParse([ \
+        'foo$       ', \
+        'baz' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': 'baz'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakSeveralSpaces')
+
+
+function testMarkdownParse_lineBreakNextLineSpace():
+    markdown = markdownParse([ \
+        'foo  ', \
+        '     bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': '     bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakNextLineSpace')
+
+
+function testMarkdownParse_lineBreakBackslashNextLineSpace():
+    markdown = markdownParse([ \
+        'foo\\', \
+        '     bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': '     bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakBackslashNextLineSpace')
+
+
+function testMarkdownParse_lineBreakInline():
+    markdown = markdownParse([ \
+        '*foo  ', \
+        'bar*' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'style': { \
+                            'style': 'italic', \
+                            'spans': [ \
+                                {'text': 'foo'}, \
+                                {'br': 1}, \
+                                {'text': 'bar'} \
+                            ] \
+                        }} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakInline')
+
+
+function testMarkdownParse_lineBreakNotInlineCode():
+    markdown = markdownParse([ \
+        '`code  ', \
+        'span`' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': 'code   span'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakNotInlineCode')
+
+
+function testMarkdownParse_lineBreakNotParagraphEnd():
+    markdown = markdownParse([ \
+        'foo\\', \
+        '', \
+        'foo  ', \
+        '', \
+        '### foo\\', \
+        '', \
+        '### foo  ' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo\\'} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo  '} \
+                    ] \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo\\'} \
+                    ], \
+                    'style': 'h3' \
+                }}, \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'} \
+                    ], \
+                    'style': 'h3' \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakNotParagraphEnd')
+
+
+function testMarkdownParse_lineBreakHTML():
+    markdown = markdownParse([ \
+        'foo<br>bar<br/>', \
+        'thud' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': 'bar'}, \
+                        {'br': 1}, \
+                        {'text': '\nthud'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakHTML')
+
+
+function testMarkdownParse_lineBreakHTMLWhitespace():
+    markdown = markdownParse([ \
+        'foo<br >bar<br  />', \
+        'thud' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo'}, \
+                        {'br': 1}, \
+                        {'text': 'bar'}, \
+                        {'br': 1}, \
+                        {'text': '\nthud'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakHTMLWhitespace')
+
+
+function testMarkdownParse_lineBreakHTMLIllegalWhitespace():
+    markdown = markdownParse([ \
+        'foo< br>bar<br/ >', \
+        'thud' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo< br>bar<br/ >\nthud'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakHTMLIllegalWhitespace')
+
+
+function testMarkdownParse_lineBreakHTMLEscape():
+    markdown = markdownParse('foo\\<br>bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo<br>bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakHTMLEscape')
+
+
+function testMarkdownParse_lineBreakHTMLEntityEscape():
+    markdown = markdownParse('foo&lt;br>bar')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'foo<br>bar'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_lineBreakHTMLEntityEscape')
+
+
+function testMarkdownParse_escapes():
+   markdown = markdownParse([ \
+        '\\!\\"\\#\\$\\%\\&\\\'\\(\\)\\*\\+\\,\\-\\.\\/\\:\\;\\<\\=\\>\\?\\@\\[\\\\\\]\\^\\_\\\`\\{\\|\\}\\~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapes')
+
+
+function testMarkdownParse_escapes2():
+    markdown = markdownParse('\\\\ \\* \\_ \\{ \\} \\[ \\] **bol\\.d** \\( \\) \\# \\+ \\- \\. \\! \\a')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\\ * _ { } [ ] '}, \
+                        {'style': {'style': 'bold', 'spans': [{'text': 'bol.d'}]}}, \
+                        {'text': ' ( ) # + - . ! a'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapes2')
+
+
+function testMarkdownParse_escapesNotInCodeSpans():
+    markdown = markdownParse('`` \\[\\` ``')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'code': '\\[\\`'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapesNotInCodeSpans')
+
+
+function testMarkdownParse_escapesNotInCodeBlocks():
+    markdown = markdownParse('    \\[\\]')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': { \
+                    'lines': ['\\[\\]'], \
+                    'startLineNumber': 1 \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapesNotInCodeBlocks')
+
+
+function testMarkdownParse_escapesNotInFencedCodeBlocks():
+    markdown = markdownParse([ \
+        '~~~', \
+        '\\[\\]', \
+        '~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': { \
+                    'lines': ['\\[\\]'], \
+                    'startLineNumber': 1 \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapesNotInFencedCodeBlocks')
+
+
+function testMarkdownParse_escapesNotInAutolinks():
+    markdown = markdownParse('<http://example.com?find=\\*>')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [ \
+                    {'link': { \
+                        'href': 'http://example.com?find=\\*', \
+                        'spans': [{'text': 'http://example.com?find=\\*'}] \
+                    }} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapesNotInAutolinks')
+
+
+function testMarkdownParse_link():
+   markdown = markdownParse('[link](/uri "title")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/uri', 'spans': [{'text': 'link'}], 'title': 'title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_link')
+
+
+function testMarkdownParse_linkEscapeStart():
+    markdown = markdownParse('\\[link](/uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\\'}, \
+                        {'link': {'href': '/uri', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkEscapeStart')
+
+
+function testMarkdownParse_linkNoTitle():
+    markdown = markdownParse('[link](/uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/uri', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkNoTitle')
+
+
+function testMarkdownParse_linkEmpty():
+   markdown = markdownParse('[link]()')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkEmpty')
+
+
+function testMarkdownParse_linkHrefSpace():
+    markdown = markdownParse('[link](/my uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(/my uri)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefSpace')
+
+
+function testMarkdownParse_linkHrefNoNewlines():
+    markdown = markdownParse('[link](foo\nbar)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(foo\nbar)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefNoNewlines')
+
+
+function testMarkdownParse_linkHrefEscape():
+    markdown = markdownParse('[link](\\(foo\\))')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '(foo)', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefEscape')
+
+
+function testMarkdownParse_linkHrefParentheses():
+    markdown = markdownParse('[link](foo(and(bar)))')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo(and(bar', 'spans': [{'text': 'link'}]}}, \
+                        {'text': '))'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefParentheses')
+
+
+function testMarkdownParse_linkHrefParenthesesEscaped():
+    markdown = markdownParse('[link](foo\\(and\\(bar\\))')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo(and(bar)', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefParenthesesEscaped')
+
+
+function testMarkdownParse_linkHrefParenthesesEscaped2():
+    markdown = markdownParse('[link](foo\\)\\:)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo):', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefParenthesesEscaped2')
+
+
+function testMarkdownParse_linkHrefParenthesesNotEscaped():
+    markdown = markdownParse('[link](foo\\bar)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo\\bar', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefParenthesesNotEscaped')
+
+
+function testMarkdownParse_linkHrefEntity():
+    markdown = markdownParse('[link](foo%20b&#228;)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo%20b' + stringFromCharCode(228), 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefEntity')
+
+
+function testMarkdownParse_linkAngleHrefEmpty():
+    markdown = markdownParse('[link](<>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefEmpty')
+
+
+function testMarkdownParse_linkAngleHrefSpace():
+    markdown = markdownParse('[link](</my uri>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/my uri', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefSpace')
+
+
+function testMarkdownParse_linkAngleHrefNoNewlines():
+    markdown = markdownParse('[link](<foo\nbar>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(<foo\nbar>)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefNoNewlines')
+
+
+function testMarkdownParse_linkAngleHrefParenthesis():
+    markdown = markdownParse('[a](<b)c>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'b)c', 'spans': [{'text': 'a'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefParenthesis')
+
+
+function testMarkdownParse_linkAngleHrefParentheses2():
+    markdown = markdownParse('[link](<foo(and(bar)>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'foo(and(bar)', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefParentheses2')
+
+
+function testMarkdownParse_linkAngleHrefEscape():
+    markdown = markdownParse('[link](<foo\\>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(<foo>)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefEscape')
+
+
+function testMarkdownParse_linkAngleHrefNotMatched():
+    markdown = markdownParse([ \
+        '[a](<b)c', \
+        '[a](<b)c>', \
+        '[a](<b>c)' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[a]'}]}}, \
+                        {'text': '(<b)c\n'}, \
+                        {'linkRef': {'spans': [{'text': '[a]'}]}}, \
+                        {'text': '(<b)c>\n'}, \
+                        {'linkRef': {'spans': [{'text': '[a]'}]}}, \
+                        {'text': '(<b>c)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkAngleHrefNotMatched')
+
+
+function testMarkdownParse_linkTitleWithNoHref():
+    markdown = markdownParse('[link]("title")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '"title"', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTitleWithNoHref')
+
+
+function testMarkdownParse_linkTitleVariations():
+   markdown = markdownParse([ \
+        '[link](/url "title")', \
+        "[link](/url 'title')", \
+        '[link](/url (title))' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/url', 'spans': [{'text': 'link'}], 'title': 'title'}}, \
+                        {'text': '\n'}, \
+                        {'link': {'href': '/url', 'spans': [{'text': 'link'}], 'title': 'title'}}, \
+                        {'text': '\n'}, \
+                        {'link': {'href': '/url', 'spans': [{'text': 'link'}], 'title': 'title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTitleVariations')
+
+
+function testMarkdownParse_linkTitleEscape():
+    markdown = markdownParse('[link](/url "title \\"&quot;")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/url', 'spans': [{'text': 'link'}], 'title': 'title ""'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTitleEscape')
+
+
+function testMarkdownParse_linkHrefTitleNonBreakingSpace():
+    markdown = markdownParse('[link](/url' + stringFromCharCode(160) + '"title")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/url' + stringFromCharCode(160) + '"title"', 'spans': [{'text': 'link'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefTitleNonBreakingSpace')
+
+
+function testMarkdownParse_linkTitleNotEscaped():
+    markdown = markdownParse([ \
+        '[link](/url "title "and" title")', \
+        '[link](/url (title )and) title))', \
+        "[link](/url 'title 'and' title')" \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(/url "title "and" title")\n'}, \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': '(/url (title )and) title))\n'}, \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': "(/url 'title 'and' title')"} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTitleNotEscaped')
+
+
+function testMarkdownParse_linkTitleNotEscapedWorkAround():
+    markdown = markdownParse('[link](/url \'title "and" title\')')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/url', 'spans': [{'text': 'link'}], 'title': 'title "and" title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTitleNotEscapedWorkAround')
+
+
+function testMarkdownParse_linkHrefTitleSpacePadding():
+    markdown = markdownParse([ \
+        '[', \
+        '  link', \
+        '  ](', \
+        '  /uri', \
+        '  "title"', \
+        '  )' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/uri', 'spans': [{'text': '\n  link\n  '}], 'title': 'title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkHrefTitleSpacePadding')
+
+
+function testMarkdownParse_linkNoTextHrefSpace():
+    markdown = markdownParse('[link] (/uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': ' (/uri)'} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkNoTextHrefSpace')
+
+
+function testMarkdownParse_linkTextBrackets():
+    markdown = markdownParse([ \
+        '[link [foo [bar]]](/uri)', \
+        '[link] bar](/uri)', \
+        '[link [bar](/uri)', \
+        '[link \\[bar](/uri)' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': {'spans': [{'text': '[link [foo [bar]'}]}}, \
+                        {'text': ']](/uri)\n'}, \
+                        {'linkRef': {'spans': [{'text': '[link]'}]}}, \
+                        {'text': ' bar](/uri)\n'}, \
+                        {'link': {'href': '/uri', 'spans': [{'text': 'link [bar'}]}}, \
+                        {'text': '\n'}, \
+                        {'link': {'href': '/uri', 'spans': [{'text': 'link [bar'}]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTextBrackets')
+
+
+function testMarkdownParse_linkTextSpans():
+    markdown = markdownParse('[link _foo **bar** `#`_](/uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/uri', 'spans': [ \
+                            {'text': 'link '}, \
+                            {'style': { \
+                                'style': 'italic', \
+                                'spans': [ \
+                                    {'text': 'foo '}, \
+                                    {'style': {'style': 'bold', 'spans': [{'text': 'bar'}]}}, \
+                                    {'text': ' '}, \
+                                    {'code': '#'} \
+                                ] \
+                            }} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTextSpans')
+
+
+function testMarkdownParse_linkTextSpansEmpty():
+    markdown = markdownParse('[](/uri)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': '/uri', 'spans': []}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkTextSpansEmpty')
+
+
+function testMarkdownParse_image():
+   markdown = markdownParse('![foo](/url "title")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'image': {'alt': 'foo', 'src': '/url', 'title': 'title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_image')
+
+
+function testMarkdownParse_imageNoTitle():
+    markdown = markdownParse('![foo](/url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'image': {'alt': 'foo', 'src': '/url'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_imageNoTitle')
+
+
+function testMarkdownParse_imageSpaces():
+    markdown = markdownParse('My ![foo bar](/path/to/train.jpg  "title"   )')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': 'My '}, \
+                        {'image': {'alt': 'foo bar', 'src': '/path/to/train.jpg', 'title': 'title'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_imageSpaces')
+
+
+function testMarkdownParse_imageAngleSrc():
+    markdown = markdownParse('![foo](<url>)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'image': {'alt': 'foo', 'src': 'url'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_imageAngleSrc')
+
+
+function testMarkdownParse_imageAltEmpty():
+    markdown = markdownParse('![](/url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'image': {'alt': '', 'src': '/url'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_imageAltEmpty')
+
+
+function testMarkdownParse_imageEscapes():
+    markdown = markdownParse('![a\\l\\]t](s\\r\\.c "tit\\l\\.e")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'image': {'alt': 'a\\l]t', 'src': 's\\r.c', 'title': 'tit\\l.e'}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_imageEscapes')
+
+
+function testMarkdownParse_linkImage():
+    markdown = markdownParse('[![alt](src)](url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'url', 'spans': [ \
+                            {'image': {'alt': 'alt', 'src': 'src'}} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkImage')
+
+
+function testMarkdownParse_linkImageEscapeStart():
+    markdown = markdownParse('\\[![alt](src)](url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'text': '\\'}, \
+                        {'link': {'href': 'url', 'spans': [ \
+                            {'image': {'alt': 'alt', 'src': 'src'}} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkImageEscapeStart')
+
+
+function testMarkdownParse_linkImageTitles():
+    markdown = markdownParse('[![alt](src "imageTitle")](url "linkTitle")')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'url', 'title': 'linkTitle', 'spans': [ \
+                            {'image': {'alt': 'alt', 'src': 'src', 'title': 'imageTitle'}} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkImageTitles')
+
+
+function testMarkdownParse_linkImageSpaces():
+    markdown = markdownParse('[  ![alt](src)  ](url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'url', 'spans': [ \
+                            {'image': {'alt': 'alt', 'src': 'src'}} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkImageSpaces')
+
+
+function testMarkdownParse_linkImageSpacesMultiline():
+    markdown = markdownParse('[  ![alt](src)  ](url)')
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': { \
+                    'spans': [ \
+                        {'link': {'href': 'url', 'spans': [ \
+                            {'image': {'alt': 'alt', 'src': 'src'}} \
+                        ]}} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_linkImageSpacesMultiline')
+
+
+function testMarkdownParse_linkAlternate():
+    markdown = markdownParse('<http://foo.bar.baz>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'http://foo.bar.baz', 'spans': [{'text': 'http://foo.bar.baz'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternate')
+
+
+function testMarkdownParse_linkAlternateQuery():
+    markdown = markdownParse('<http://foo.bar.baz/test?q=hello&id=22&boolean>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': { \
+                        'href': 'http://foo.bar.baz/test?q=hello&id=22&boolean', \
+                        'spans': [{'text': 'http://foo.bar.baz/test?q=hello&id=22&boolean'}] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateQuery')
+
+
+function testMarkdownParse_linkAlternateNonHttp():
+    markdown = markdownParse('<irc://foo.bar:2233/baz>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'irc://foo.bar:2233/baz', 'spans': [{'text': 'irc://foo.bar:2233/baz'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateNonHttp')
+
+
+function testMarkdownParse_linkAlternateUppercase():
+    markdown = markdownParse('<MAILTO:FOO@BAR.BAZ>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'MAILTO:FOO@BAR.BAZ', 'spans': [{'text': 'MAILTO:FOO@BAR.BAZ'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateUppercase')
+
+
+function testMarkdownParse_linkAlternateRelative():
+    markdown = markdownParse('<http://../>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'http://../', 'spans': [{'text': 'http://../'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateRelative')
+
+
+function testMarkdownParse_linkAlternatePort():
+    markdown = markdownParse('<localhost:5001/foo>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'localhost:5001/foo', 'spans': [{'text': 'localhost:5001/foo'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternatePort')
+
+
+function testMarkdownParse_linkAlternateSpace():
+    markdown = markdownParse('<http://foo.bar/baz bim>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '<http://foo.bar/baz bim>'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateSpace')
+
+
+function testMarkdownParse_linkAlternateSpace2():
+    markdown = markdownParse('< http://foo.bar >')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '< http://foo.bar >'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateSpace2')
+
+
+function testMarkdownParse_linkAlternateNoEscapes():
+    markdown = markdownParse('<http://example.com/\\[\\>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'http://example.com/\\[\\', 'spans': [{'text': 'http://example.com/\\[\\'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateNoEscapes')
+
+
+function testMarkdownParse_linkAlternateInvalidScheme():
+    markdown = markdownParse('<m:abc>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '<m:abc>'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateInvalidScheme')
+
+
+function testMarkdownParse_linkAlternateEmail():
+    markdown = markdownParse('<foo@bar.example.com>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'mailto:foo@bar.example.com', 'spans': [{'text': 'mailto:foo@bar.example.com'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateEmail')
+
+
+function testMarkdownParse_linkAlternateEmail2():
+    markdown = markdownParse('<foo+special@Bar.baz-bar0.com>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': 'mailto:foo+special@Bar.baz-bar0.com', 'spans': [{'text': 'mailto:foo+special@Bar.baz-bar0.com'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateEmail2')
+
+
+function testMarkdownParse_linkAlternateEmailNoEscapes():
+    markdown = markdownParse('<foo\\+@bar.example.com>')
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '<foo+@bar.example.com>'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAlternateEmailNoEscapes')
+
+
+function testMarkdownParse_linkDefinition():
+    markdown = markdownParse([ \
+        '[foo]: /url "title"', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}], 'title': 'title'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinition')
+
+
+function testMarkdownParse_linkDefinitionMultiline():
+    markdown = markdownParse([ \
+        '   [foo]: ', \
+        '      /url  ', \
+        "'           'the title'  ", \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}], 'title': 'the title'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionMultiline')
+
+
+function testMarkdownParse_linkDefinitionTrailingNonSpace():
+    markdown = markdownParse([ \
+        '[foo]: /url "title" ok' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }}, \
+                    {'text': ': /url "title" ok'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTrailingNonSpace')
+
+
+function testMarkdownParse_linkDefinitionTrailingNonSpace2():
+    markdown = markdownParse([ \
+        '[foo]: /url', \
+        '"title" ok' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '"title" ok'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTrailingNonSpace2')
+
+
+function testMarkdownParse_linkDefinitionCodeBlock():
+    markdown = markdownParse([ \
+        '    [foo]: /url "title"', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'codeBlock': { \
+                'lines': ['[foo]: /url "title"'], \
+                'startLineNumber': 1 \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionCodeBlock')
+
+
+function testMarkdownParse_linkDefinitionCodeBlock2():
+    markdown = markdownParse([ \
+        '~~~', \
+        '[foo]: /url', \
+        '~~~', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'codeBlock': { \
+                'lines': ['[foo]: /url'], \
+                'startLineNumber': 1 \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionCodeBlock2')
+
+
+function testMarkdownParse_linkDefinitionCaseInsensitive():
+    markdown = markdownParse([ \
+        '[FOO]: /url', \
+        '', \
+        '[Foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'Foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionCaseInsensitive')
+
+
+function testMarkdownParse_linkDefinitionDefinedAfter():
+    markdown = markdownParse([ \
+        '[foo]', \
+        '', \
+        '[foo]: /url "title"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}], 'title': 'title'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionDefinedAfter')
+
+
+function testMarkdownParse_linkDefinitionContainer():
+    markdown = markdownParse([ \
+        '[foo]', \
+        '', \
+        '> [foo]: /url' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }}, \
+            {'quote': { \
+                'parts': [] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionContainer')
+
+
+function testMarkdownParse_linkDefinitionMultiple():
+    markdown = markdownParse([ \
+        '[foo]', \
+        '', \
+        '[foo]: first', \
+        '[foo]: second' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': 'first', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionMultiple')
+
+
+function testMarkdownParse_linkDefinitionMultiple2():
+    markdown = markdownParse([ \
+        '[', \
+        'foo', \
+        ']: /url', \
+        'bar' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': 'bar'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionMultiple2')
+
+
+function testMarkdownParse_linkDefinitionMultiple3():
+    markdown = markdownParse([ \
+        'Foo', \
+        '[bar]: /baz', \
+        '', \
+        '[bar]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': 'Foo\n'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[bar]'} \
+                        ] \
+                    }}, \
+                    {'text': ': /baz'} \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[bar]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionMultiple3')
+
+
+function testMarkdownParse_linkDefinitionTerminate():
+    markdown = markdownParse([ \
+        '# [Foo]', \
+        '[foo]: /url', \
+        '> bar' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'Foo'}]}} \
+                        ] \
+                    }} \
+                ], \
+                'style': 'h1' \
+            }}, \
+            {'quote': { \
+                'parts': [ \
+                    {'paragraph': { \
+                        'spans': [ \
+                            {'text': 'bar'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTerminate')
+
+
+function testMarkdownParse_linkDefinitionTerminate2():
+    markdown = markdownParse([ \
+        '[foo]: /url', \
+        'bar', \
+        '===', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': 'bar'} \
+                ], \
+                'style': 'h1' \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTerminate2')
+
+
+function testMarkdownParse_linkDefinitionTerminate3():
+    markdown = markdownParse([ \
+        '[foo]: /url', \
+        '===', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [], \
+                'style': 'h1' \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTerminate3')
+
+
+function testMarkdownParse_linkDefinitionTerminate4():
+    markdown = markdownParse([ \
+        '[foo]: /foo-url "foo"', \
+        '[bar]: /bar-url', \
+        '  "bar"', \
+        '[baz]: /baz-url', \
+        '', \
+        '[foo],', \
+        '[bar],', \
+        '[baz]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/foo-url', 'spans': [{'text': 'foo'}], 'title': 'foo'}} \
+                        ] \
+                    }}, \
+                    {'text': ',\n'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/bar-url', 'spans': [{'text': 'bar'}], 'title': 'bar'}} \
+                        ] \
+                    }}, \
+                    {'text': ',\n'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/baz-url', 'spans': [{'text': 'baz'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTerminate4')
+
+
+function testMarkdownParse_linkDefinitionTextEscapes():
+    markdown = markdownParse([ \
+        "[Foo*bar\\]]:my_(url) 'title (with parens)'", \
+        '', \
+        '[Foo*bar\\]]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': 'my_(url)', 'spans': [{'text': 'Foo*bar]'}], 'title': 'title (with parens)'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTextEscapes')
+
+
+function testMarkdownParse_linkDefinitionHrefAngle():
+    markdown = markdownParse([ \
+        '[Foo bar]:', \
+        '<my url>', \
+        "'title'", \
+        '', \
+        '[Foo bar]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': 'my url', 'spans': [{'text': 'Foo bar'}], 'title': 'title'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionHrefAngle')
+
+
+function testMarkdownParse_linkDefinitionTitleMultiline():
+    markdown = markdownParse([ \
+        "[foo]: /url '", \
+        'title', \
+        'line1', \
+        'line2', \
+        "'", \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}], 'title': '\ntitle\nline1\nline2\n'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTitleMultiline')
+
+
+function testMarkdownParse_linkDefinitionTitleNoBlanks():
+    markdown = markdownParse([ \
+        "[foo]: /url 'title", \
+        '', \
+        "with blank line'", \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }}, \
+                    {'text': ": /url 'title"} \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': "with blank line'"} \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTitleNoBlanks')
+
+
+function testMarkdownParse_linkDefinitionTitleNone():
+    markdown = markdownParse([ \
+        '[foo]:', \
+        '/url', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTitleNone')
+
+
+function testMarkdownParse_linkDefinitionHrefNone():
+    markdown = markdownParse([ \
+        '[foo]:', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }}, \
+                    {'text': ':'} \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionHrefNone')
+
+
+function testMarkdownParse_linkDefinitionHrefAngleNone():
+    markdown = markdownParse([ \
+        '[foo]: <>', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionHrefAngleNone')
+
+
+function testMarkdownParse_linkDefinitionTitleNoSpace():
+    markdown = markdownParse([ \
+        '[foo]: <bar>(baz)', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }}, \
+                    {'text': ': <bar>(baz)'} \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[foo]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTitleNoSpace')
+
+
+function testMarkdownParse_linkDefinitionTitleEscapes():
+    markdown = markdownParse([ \
+        '[foo]: /url\\bar\\*baz "foo\\"bar\\baz"', \
+        '', \
+        '[foo]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url\\bar*baz', 'spans': [{'text': 'foo'}], 'title': 'foo"bar\\baz'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkDefinitionTitleEscapes')
+
+
+function testMarkdownParse_linkReference():
+   markdown = markdownParse([ \
+        '[foo][bar]', \
+        '', \
+        '[bar]: /url "title"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': [{'text': 'foo'}], 'title': 'title'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReference')
+
+
+function testMarkdownParse_linkReferenceEscapeStart():
+    markdown = markdownParse([ \
+        '\\[ref]', \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '[ref]'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceEscapeStart')
+
+
+function testMarkdownParse_linkReferenceEscapes():
+    markdown = markdownParse([ \
+        '[link \\[bar][ref]', \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/uri', 'spans': [{'text': 'link [bar'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceEscapes')
+
+
+function testMarkdownParse_linkReferenceTextSpans():
+    markdown = markdownParse([ \
+        "[link _foo **bar** \`#\`_][ref]", \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'text': 'link '}, \
+                                    {'style': { \
+                                        'spans': [ \
+                                            {'text': 'foo '}, \
+                                            {'style': {'spans': [{'text': 'bar'}], 'style': 'bold'}}, \
+                                            {'text': ' '}, \
+                                            {'code': '#'} \
+                                        ], \
+                                        'style': 'italic' \
+                                    }} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceTextSpans')
+
+
+function testMarkdownParse_linkAndImageReference():
+    markdown = markdownParse([ \
+        '[![moon][img]](/url "moon-link")', \
+        '', \
+        '[img]: moon.jpg "moon-image"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': { \
+                        'href': '/url', \
+                        'title': 'moon-link', \
+                        'spans': [ \
+                            {'linkRef': { \
+                                'spans': [ \
+                                    {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAndImageReference')
+
+
+function testMarkdownParse_linkAndImageReferenceEscapeStart():
+    markdown = markdownParse([ \
+        '\\[![img]](/url)', \
+        '', \
+        '[img]: moon.jpg' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '\\'}, \
+                    {'link': { \
+                        'href': '/url', \
+                        'spans': [ \
+                            {'linkRef': { \
+                                'spans': [ \
+                                    {'image': {'alt': 'img', 'src': 'moon.jpg'}} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAndImageReferenceEscapeStart')
+
+
+function testMarkdownParse_linkAndImageReferenceMinimal():
+    markdown = markdownParse([ \
+        '[![img]](/url)', \
+        '', \
+        '[img]: moon.jpg' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': { \
+                        'href': '/url', \
+                        'spans': [ \
+                            {'linkRef': { \
+                                'spans': [ \
+                                    {'image': {'alt': 'img', 'src': 'moon.jpg'}} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAndImageReferenceMinimal')
+
+
+function testMarkdownParse_linkAndImageReferenceMultiline():
+   markdown = markdownParse([ \
+        '[', \
+        ' ![', \
+        '  moon', \
+        '  ][', \
+        '  img', \
+        '  ]', \
+        '](', \
+        ' /url', \
+        ' "moon-link"', \
+        ')', \
+        '', \
+        '[img]: moon.jpg "moon-image"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': { \
+                        'href': '/url', \
+                        'title': 'moon-link', \
+                        'spans': [ \
+                            {'linkRef': { \
+                                'spans': [ \
+                                    {'image': {'alt': ' moon ', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAndImageReferenceMultiline')
+
+
+function testMarkdownParse_linkAndImageReferenceMissingImageReference():
+    markdown = markdownParse([ \
+        '[![moon][img]](/url "moon-link")' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': { \
+                        'href': '/url', \
+                        'title': 'moon-link', \
+                        'spans': [ \
+                            {'linkRef': { \
+                                'spans': [ \
+                                    {'text': '![moon][img]'} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkAndImageReferenceMissingImageReference')
+
+
+function testMarkdownParse_linkReferenceAndImage():
+    markdown = markdownParse([ \
+        '[![moon](moon.jpg "moon-image")][ref]', \
+        '', \
+        '[ref]: /uri "moon-link"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImage')
+
+
+function testMarkdownParse_linkReferenceAndImageEscapeStart():
+    markdown = markdownParse([ \
+        '\\[![moon](moon.jpg "moon-image")][ref]', \
+        '', \
+        '[ref]: /uri "moon-link"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '\\'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageEscapeStart')
+
+
+function testMarkdownParse_linkReferenceAndImageMinimal():
+    markdown = markdownParse([ \
+        '[![moon](moon.jpg)][ref]', \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'image': {'alt': 'moon', 'src': 'moon.jpg'}} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageMinimal')
+
+
+function testMarkdownParse_linkReferenceAndImageMultiline():
+    markdown = markdownParse([ \
+        '[', \
+        ' ![', \
+        '  moon', \
+        '  ](', \
+        '  moon.jpg', \
+        '  "moon-image")', \
+        '  ][', \
+        '  ref', \
+        ']', \
+        '', \
+        '[ref]: /uri "moon-link"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'image': {'alt': ' moon ', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageMultiline')
+
+
+function testMarkdownParse_linkReferenceAndImageMissingLinkReference():
+    markdown = markdownParse([ \
+        '[![moon](moon.jpg "moon-image")][ref]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[![moon](moon.jpg "moon-image")][ref]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageMissingLinkReference')
+
+
+function testMarkdownParse_linkReferenceAndImageReference():
+    markdown = markdownParse([ \
+        '[![moon][img]][ref]', \
+        '', \
+        '[ref]: /uri "moon-link"', \
+        '[img]: moon.jpg "moon-image"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'linkRef': { \
+                                        'spans': [ \
+                                            {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                        ] \
+                                    }} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReference')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceEscapeStart():
+    markdown = markdownParse([ \
+        '\\[![moon][img]][ref]', \
+        '', \
+        '[ref]: /uri "moon-link"', \
+        '[img]: moon.jpg "moon-image"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'text': '\\'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'linkRef': { \
+                                        'spans': [ \
+                                            {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                        ] \
+                                    }} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceEscapeStart')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceMinimal():
+    markdown = markdownParse([ \
+        '[![img]][ref]', \
+        '', \
+        '[ref]: /uri', \
+        '[img]: moon.jpg' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'linkRef': { \
+                                        'spans': [ \
+                                            {'image': {'alt': 'img', 'src': 'moon.jpg'}} \
+                                        ] \
+                                    }} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceMinimal')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceMultiline():
+    markdown = markdownParse([ \
+        '[', \
+        ' ![', \
+        '  moon', \
+        '  ][', \
+        '  img', \
+        '  ]', \
+        '][', \
+        ' ref', \
+        ']', \
+        '', \
+        '[ref]: /uri "moon-link"', \
+        '[img]: moon.jpg "moon-image"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'linkRef': { \
+                                        'spans': [ \
+                                            {'image': {'alt': ' moon ', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                                        ] \
+                                    }} \
+                                ], \
+                                'title': 'moon-link' \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceMultiline')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceMissingBothReferences():
+    markdown = markdownParse([ \
+        '[![img]][ref]' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[![img]][ref]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceMissingBothReferences')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceMissingLinkReference():
+    markdown = markdownParse([ \
+        '[![img]][ref]', \
+        '', \
+        '[img]: moon.jpg' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'text': '[![img]][ref]'} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceMissingLinkReference')
+
+
+function testMarkdownParse_linkReferenceAndImageReferenceMissingImageReference():
+    markdown = markdownParse([ \
+        '[![img]][ref]', \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': { \
+                                'href': '/uri', \
+                                'spans': [ \
+                                    {'linkRef': { \
+                                        'spans': [ \
+                                            {'text': '![img]'} \
+                                        ] \
+                                    }} \
+                                ] \
+                            }} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceAndImageReferenceMissingImageReference')
+
+
+function testMarkdownParse_linkReferenceCannotContainLinks():
+    markdown = markdownParse([ \
+        '[foo [bar](/uri)][ref]', \
+        '', \
+        '[ref]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': '/uri', 'spans': [{'text': 'foo [bar'}]}}, \
+                    {'text': ']'}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/uri', 'spans': [{'text': 'ref'}]}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceCannotContainLinks')
+
+
+function testMarkdownParse_linkReferencePrecedence():
+    markdown = markdownParse([ \
+        '[foo]()', \
+        '', \
+        '[foo]: /url1' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'link': {'href': '', 'spans': [{'text': 'foo'}]}} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferencePrecedence')
+
+
+function testMarkdownParse_linkReferencePrecedence2():
+    markdown = markdownParse([ \
+        '[foo](not a link)', \
+        '', \
+        '[foo]: /url1' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url1', 'spans': [{'text': 'foo'}]}} \
+                        ] \
+                    }}, \
+                    {'text': '(not a link)'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferencePrecedence2')
+
+
+function testMarkdownParse_linkReferenceConsecutive():
+    markdown = markdownParse([ \
+        '[foo][bar][baz]', \
+        '', \
+        '[baz]: /url' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'linkRef': {'spans': [{'text': '[foo]'}]}}, \
+                                {'text': '[bar]'} \
+                            ] \
+                        } \
+                    }, \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'link': {'href': '/url', 'spans': [{'text': 'baz'}]}} \
+                            ] \
+                        } \
+                    } \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceConsecutive')
+
+
+function testMarkdownParse_linkReferenceEmptyRef():
+    markdown = markdownParse([ \
+        '[]', \
+        '', \
+        '[]: /uri' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'text': '[]'} \
+                            ] \
+                        } \
+                    } \
+                ] \
+            }}, \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'text': '[]'} \
+                            ] \
+                        } \
+                    }, \
+                    {'text': ': /uri'} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceEmptyRef')
+
+
+function testMarkdownParse_imageReference():
+   markdown = markdownParse([ \
+        '![foo *bar*]', \
+        '', \
+        '[foo *bar*]: train.jpg "train & tracks"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'image': {'alt': 'foo *bar*', 'src': 'train.jpg', 'title': 'train & tracks'}} \
+                            ] \
+                        } \
+                    } \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_imageReference')
+
+
+function testMarkdownParse_imageReferenceAltText():
+    markdown = markdownParse([ \
+        '![foo *bar*][foobar]', \
+        '', \
+        '[FOOBAR]: train.jpg "train & tracks"' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'image': {'alt': 'foo *bar*', 'src': 'train.jpg', 'title': 'train & tracks'}} \
+                            ] \
+                        } \
+                    } \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_imageReferenceAltText')
+
+
+function testMarkdownParse_imageReferenceMinimal():
+    markdown = markdownParse([ \
+        '![bar]', \
+        '', \
+        '[bar]: /url' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    { \
+                        'linkRef': { \
+                            'spans': [ \
+                                {'image': {'alt': 'bar', 'src': '/url'}} \
+                            ] \
+                        } \
+                    } \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_imageReferenceMinimal')

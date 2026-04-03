@@ -1,9 +1,14 @@
 # Licensed under the MIT License
-# https://github.com/craigahobbs/markdown-up/blob/main/LICENSE
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include '../dataUtil.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
+
+
+#
+# dataUtilFormatValue tests
+#
 
 
 function testDataUtilFormatValue_date():
@@ -56,6 +61,11 @@ endfunction
 unittestRunTest('testDataUtilFormatValue_other')
 
 
+#
+# dataUtilValueParameter tests
+#
+
+
 function testDataUtilValueParameter():
     unittestEqual(dataUtilValueParameter(-5, 0, 10), -0.5)
     unittestEqual(dataUtilValueParameter(0, 0, 10), 0)
@@ -76,6 +86,11 @@ function testDataUtilValueParameter():
     unittestEqual(dataUtilValueParameter(datetimeNew(2022, 10, 13), minDate, maxDate), 1.4)
 endfunction
 unittestRunTest('testDataUtilValueParameter')
+
+
+#
+# dataUtilParameterValue tests
+#
 
 
 function testDataUtilParameterValue():

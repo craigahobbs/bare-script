@@ -6,6 +6,11 @@ include '../unittest.bare'
 include '../unittestMock.bare'
 
 
+#
+# baredocCLIParse tests
+#
+
+
 function testBaredocCLIParse():
     source = arrayJoin([ \
         '# $function: myFunction', \
@@ -41,6 +46,11 @@ function testBaredocCLIParse():
     })
 endfunction
 unittestRunTest('testBaredocCLIParse')
+
+
+#
+# baredocCLIMain tests
+#
 
 
 async function testBaredocCLIMain():

@@ -426,7 +426,7 @@ function markdownHighlightCreateBuiltin():
         'preprocessor': [ \
             '^[ \\t]*#(?:define|include|ifdef|ifndef|endif|if|else|elif|undef|pragma|error|warning|line)\\b' \
         ], \
-        'string': [markdownHighlightStringSingle, markdownHighlightStringDouble] \
+        'string': [markdownHighlightStringSingle, markdownHighlightStringDouble, 'R"(?<cppRaw>[^\\s]*)\\((?:[\\s\\S]*?)\\)\\k<cppRaw>"'] \
     })
 
     # C#

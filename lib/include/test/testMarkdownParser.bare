@@ -5,18 +5,18 @@ include '../markdownParser.bare'
 include '../unittest.bare'
 
 
-function testParseMarkdown():
-    markdown = markdownParse( \
-        '# Title\n' + \
-        '\n' + \
-        'This is a sentence.\n' + \
-        'This is another sentence.\n' + \
-        '\n' + \
-        '\n' + \
+function testMarkdownParse():
+    markdown = markdownParse([ \
+        '# Title', \
+        '', \
+        'This is a sentence.', \
+        'This is another sentence.', \
+        '', \
+        '', \
         'This is another paragraph.' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Title'}], 'style': 'h1'}}, \
@@ -26,10 +26,10 @@ function testParseMarkdown():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown')
+unittestRunTest('testMarkdownParse')
 
 
-function testParseMarkdown_lines():
+function testMarkdownParse_lines():
     markdown = markdownParse([ \
         '# Title', \
         '', \
@@ -40,7 +40,7 @@ function testParseMarkdown_lines():
         'This is another paragraph.\n\nAnd another.' \
     ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Title'}], 'style': 'h1'}}, \
@@ -51,19 +51,19 @@ function testParseMarkdown_lines():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_lines')
+unittestRunTest('testMarkdownParse_lines')
 
 
-function testParseMarkdown_tabs():
-    markdown = markdownParse( \
-        'This is a tab "\t".\n' + \
-        '\n' + \
-        ' * List 1 - 1\n' + \
-        '\t* List 2 - 1\n' + \
-        '\t* List 2 - 2\n' \
-    )
+function testMarkdownParse_tabs():
+    markdown = markdownParse([ \
+        'This is a tab "\t".', \
+        '', \
+        ' * List 1 - 1', \
+        '\t* List 2 - 1', \
+        '\t* List 2 - 2' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is a tab "    ".'}]}}, \
@@ -84,28 +84,30 @@ function testParseMarkdown_tabs():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tabs')
+unittestRunTest('testMarkdownParse_tabs')
 
 
-function testParseMarkdown_empty():
+function testMarkdownParse_empty():
     markdown = markdownParse('')
     unittestDeepEqual( \
-        markdown, \
-        {'parts': []} \
+        markdownValidate(markdown), \
+        { \
+            'parts': [] \
+        } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_empty')
+unittestRunTest('testMarkdownParse_empty')
 
 
-function testParseMarkdown_horizontalRule():
-    markdown = markdownParse( \
-        'Some text\n' + \
-        '***\n' + \
-        '******\n' + \
-        'More text\n' \
-    )
+function testMarkdownParse_horizontalRule():
+    markdown = markdownParse([ \
+        'Some text', \
+        '***', \
+        '******', \
+        'More text' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Some text'}]}}, \
@@ -116,17 +118,17 @@ function testParseMarkdown_horizontalRule():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRule')
+unittestRunTest('testMarkdownParse_horizontalRule')
 
 
-function testParseMarkdown_horizontalRuleVariety():
-    markdown = markdownParse( \
-        '***\n' + \
-        '---\n' + \
-        '___\n' \
-    )
+function testMarkdownParse_horizontalRuleVariety():
+    markdown = markdownParse([ \
+        '***', \
+        '---', \
+        '___' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'hr': 1}, \
@@ -136,17 +138,17 @@ function testParseMarkdown_horizontalRuleVariety():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleVariety')
+unittestRunTest('testMarkdownParse_horizontalRuleVariety')
 
 
-function testParseMarkdown_horizontalRuleNotEnoughCharacters():
-    markdown = markdownParse( \
-        '--\n' + \
-        '**\n' + \
-        '__\n' \
-    )
+function testMarkdownParse_horizontalRuleNotEnoughCharacters():
+    markdown = markdownParse([ \
+        '--', \
+        '**', \
+        '__' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': '--\n**\n__'}]}} \
@@ -154,18 +156,18 @@ function testParseMarkdown_horizontalRuleNotEnoughCharacters():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleNotEnoughCharacters')
+unittestRunTest('testMarkdownParse_horizontalRuleNotEnoughCharacters')
 
 
-function testParseMarkdown_horizontalRuleInitialSpace():
-    markdown = markdownParse( \
-        ' ***\n' + \
-        '  ***\n' + \
-        '   ***\n' + \
-        '    ***\n' \
-    )
+function testMarkdownParse_horizontalRuleInitialSpace():
+    markdown = markdownParse([ \
+        ' ***', \
+        '  ***', \
+        '   ***', \
+        '    ***' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'hr': 1}, \
@@ -179,17 +181,17 @@ function testParseMarkdown_horizontalRuleInitialSpace():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleInitialSpace')
+unittestRunTest('testMarkdownParse_horizontalRuleInitialSpace')
 
 
-function testParseMarkdown_horizontalRuleMoreThanThreeCharacters():
-    markdown = markdownParse( \
-        '-------------------------------------\n' + \
-        '*************************************\n' + \
-        '_____________________________________\n' \
-    )
+function testMarkdownParse_horizontalRuleMoreThanThreeCharacters():
+    markdown = markdownParse([ \
+        '-------------------------------------', \
+        '*************************************', \
+        '_____________________________________' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'hr': 1}, \
@@ -199,18 +201,18 @@ function testParseMarkdown_horizontalRuleMoreThanThreeCharacters():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleMoreThanThreeCharacters')
+unittestRunTest('testMarkdownParse_horizontalRuleMoreThanThreeCharacters')
 
 
-function testParseMarkdown_horizontalRuleSpaces():
-    markdown = markdownParse( \
-        'Some text\n' + \
-        ' -  -    --\n' + \
-        ' *  *    **\n' + \
-        ' _  _    __\n' \
-    )
+function testMarkdownParse_horizontalRuleSpaces():
+    markdown = markdownParse([ \
+        'Some text', \
+        ' -  -    --', \
+        ' *  *    **', \
+        ' _  _    __' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Some text'}]}}, \
@@ -221,15 +223,15 @@ function testParseMarkdown_horizontalRuleSpaces():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleSpaces')
+unittestRunTest('testMarkdownParse_horizontalRuleSpaces')
 
 
-function testParseMarkdown_horizontalRuleBeyondCodeBlock():
-    markdown = markdownParse( \
-        '    *****\n' \
-    )
+function testMarkdownParse_horizontalRuleBeyondCodeBlock():
+    markdown = markdownParse([ \
+        '    *****' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['*****'], 'startLineNumber': 1}} \
@@ -237,19 +239,19 @@ function testParseMarkdown_horizontalRuleBeyondCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleBeyondCodeBlock')
+unittestRunTest('testMarkdownParse_horizontalRuleBeyondCodeBlock')
 
 
-function testParseMarkdown_horizontalRuleFollowingCodeBlock():
-    markdown = markdownParse( \
-        'This is a horizontal fule immediately following a code block:\n' + \
-        '\n' + \
-        '    code\n' + \
-        '\n' + \
-        '---\n' \
-    )
+function testMarkdownParse_horizontalRuleFollowingCodeBlock():
+    markdown = markdownParse([ \
+        'This is a horizontal fule immediately following a code block:', \
+        '', \
+        '    code', \
+        '', \
+        '---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is a horizontal fule immediately following a code block:'}]}}, \
@@ -259,17 +261,17 @@ function testParseMarkdown_horizontalRuleFollowingCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleFollowingCodeBlock')
+unittestRunTest('testMarkdownParse_horizontalRuleFollowingCodeBlock')
 
 
-function testParseMarkdown_horizontalRuleSeparatingLists():
-    markdown = markdownParse( \
-        '- foo\n' + \
-        '***\n' + \
-        '- bar\n' \
-    )
+function testMarkdownParse_horizontalRuleSeparatingLists():
+    markdown = markdownParse([ \
+        '- foo', \
+        '***', \
+        '- bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -287,17 +289,17 @@ function testParseMarkdown_horizontalRuleSeparatingLists():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleSeparatingLists')
+unittestRunTest('testMarkdownParse_horizontalRuleSeparatingLists')
 
 
-function testParseMarkdown_horizontalRuleSeparatingLists2():
-    markdown = markdownParse( \
-        '* foo\n' + \
-        '* * *\n' + \
-        '* bar\n' \
-    )
+function testMarkdownParse_horizontalRuleSeparatingLists2():
+    markdown = markdownParse([ \
+        '* foo', \
+        '* * *', \
+        '* bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -315,16 +317,16 @@ function testParseMarkdown_horizontalRuleSeparatingLists2():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleSeparatingLists2')
+unittestRunTest('testMarkdownParse_horizontalRuleSeparatingLists2')
 
 
-function testParseMarkdown_horizontalRuleWithinList():
-    markdown = markdownParse( \
-        '- foo\n' + \
-        '- * * *\n' \
-    )
+function testMarkdownParse_horizontalRuleWithinList():
+    markdown = markdownParse([ \
+        '- foo', \
+        '- * * *' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -339,17 +341,17 @@ function testParseMarkdown_horizontalRuleWithinList():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleWithinList')
+unittestRunTest('testMarkdownParse_horizontalRuleWithinList')
 
 
-function testParseMarkdown_horizontalRuleSeparatingParagraphs():
-    markdown = markdownParse( \
-        'foo\n' + \
-        '***\n' + \
-        'bar\n' \
-    )
+function testMarkdownParse_horizontalRuleSeparatingParagraphs():
+    markdown = markdownParse([ \
+        'foo', \
+        '***', \
+        'bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'foo'}]}}, \
@@ -359,17 +361,17 @@ function testParseMarkdown_horizontalRuleSeparatingParagraphs():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleSeparatingParagraphs')
+unittestRunTest('testMarkdownParse_horizontalRuleSeparatingParagraphs')
 
 
-function testParseMarkdown_horizontalRuleHeaderActually():
-    markdown = markdownParse( \
-        'foo\n' + \
-        '---\n' + \
-        'bar\n' \
-    )
+function testMarkdownParse_horizontalRuleHeaderActually():
+    markdown = markdownParse([ \
+        'foo', \
+        '---', \
+        'bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'foo'}], 'style': 'h2'}}, \
@@ -378,21 +380,21 @@ function testParseMarkdown_horizontalRuleHeaderActually():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_horizontalRuleHeaderActually')
+unittestRunTest('testMarkdownParse_horizontalRuleHeaderActually')
 
 
-function testParseMarkdown_heading():
-    markdown = markdownParse( \
-        '# foo\n' + \
-        '## foo\n' + \
-        '### foo\n' + \
-        '#### foo\n' + \
-        '##### foo\n' + \
-        '###### foo\n' + \
-        '####### foo\n' \
-    )
+function testMarkdownParse_heading():
+    markdown = markdownParse([ \
+        '# foo', \
+        '## foo', \
+        '### foo', \
+        '#### foo', \
+        '##### foo', \
+        '###### foo', \
+        '####### foo' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [{'text': 'foo'}]}}, \
@@ -406,17 +408,17 @@ function testParseMarkdown_heading():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_heading')
+unittestRunTest('testMarkdownParse_heading')
 
 
-function testParseMarkdown_headingNot():
-    markdown = markdownParse( \
-        '#5 bolt\n' + \
-        '\n' + \
-        '#hashtag\n' \
-    )
+function testMarkdownParse_headingNot():
+    markdown = markdownParse([ \
+        '#5 bolt', \
+        '', \
+        '#hashtag' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': '#5 bolt'}]}}, \
@@ -425,15 +427,15 @@ function testParseMarkdown_headingNot():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingNot')
+unittestRunTest('testMarkdownParse_headingNot')
 
 
-function testParseMarkdown_headingEscape():
-    markdown = markdownParse( \
-        '\\## foo\n' \
-    )
+function testMarkdownParse_headingEscape():
+    markdown = markdownParse([ \
+        '\\## foo' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': '## foo'}]}} \
@@ -441,15 +443,15 @@ function testParseMarkdown_headingEscape():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingEscape')
+unittestRunTest('testMarkdownParse_headingEscape')
 
 
-function testParseMarkdown_headingSpans():
-    markdown = markdownParse( \
-        '# foo *bar* \\*baz\\*\n' \
-    )
+function testMarkdownParse_headingSpans():
+    markdown = markdownParse([ \
+        '# foo *bar* \\*baz\\*' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [ \
@@ -461,15 +463,15 @@ function testParseMarkdown_headingSpans():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingSpans')
+unittestRunTest('testMarkdownParse_headingSpans')
 
 
-function testParseMarkdown_headingLeadingTrailingWhitespace():
-    markdown = markdownParse( \
-        '#                  foo                     \n' \
-    )
+function testMarkdownParse_headingLeadingTrailingWhitespace():
+    markdown = markdownParse([ \
+        '#                  foo                     ' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [{'text': 'foo'}]}} \
@@ -477,18 +479,18 @@ function testParseMarkdown_headingLeadingTrailingWhitespace():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingLeadingTrailingWhitespace')
+unittestRunTest('testMarkdownParse_headingLeadingTrailingWhitespace')
 
 
-function testParseMarkdown_headingIndent():
-    markdown = markdownParse( \
-        ' ### foo\n' + \
-        '  ## foo\n' + \
-        '   # foo\n' + \
-        '    # foo\n' \
-    )
+function testMarkdownParse_headingIndent():
+    markdown = markdownParse([ \
+        ' ### foo', \
+        '  ## foo', \
+        '   # foo', \
+        '    # foo' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h3', 'spans': [{'text': 'foo'}]}}, \
@@ -499,17 +501,17 @@ function testParseMarkdown_headingIndent():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingIndent')
+unittestRunTest('testMarkdownParse_headingIndent')
 
 
-function testParseMarkdown_headingClosingCharacters():
-    markdown = markdownParse( \
-        '## foo ##\n' + \
-        '  ###   bar    ###\n' + \
-        '### foo ###     \n' \
-    )
+function testMarkdownParse_headingClosingCharacters():
+    markdown = markdownParse([ \
+        '## foo ##', \
+        '  ###   bar    ###', \
+        '### foo ###     ' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': [{'text': 'foo'}]}}, \
@@ -519,16 +521,16 @@ function testParseMarkdown_headingClosingCharacters():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingClosingCharacters')
+unittestRunTest('testMarkdownParse_headingClosingCharacters')
 
 
-function testParseMarkdown_headingClosingCharactersLength():
-    markdown = markdownParse( \
-        '# foo ##################################\n' + \
-        '##### foo ##\n' \
-    )
+function testMarkdownParse_headingClosingCharactersLength():
+    markdown = markdownParse([ \
+        '# foo ##################################', \
+        '##### foo ##' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [{'text': 'foo'}]}}, \
@@ -537,15 +539,15 @@ function testParseMarkdown_headingClosingCharactersLength():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingClosingCharactersLength')
+unittestRunTest('testMarkdownParse_headingClosingCharactersLength')
 
 
-function testParseMarkdown_headingClosingCharactersNot():
-    markdown = markdownParse( \
-        '### foo ### b\n' \
-    )
+function testMarkdownParse_headingClosingCharactersNot():
+    markdown = markdownParse([ \
+        '### foo ### b' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h3', 'spans': [{'text': 'foo ### b'}]}} \
@@ -553,15 +555,15 @@ function testParseMarkdown_headingClosingCharactersNot():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingClosingCharactersNot')
+unittestRunTest('testMarkdownParse_headingClosingCharactersNot')
 
 
-function testParseMarkdown_headingClosingCharactersNoLeadingSpace():
-    markdown = markdownParse( \
-        '# foo#\n' \
-    )
+function testMarkdownParse_headingClosingCharactersNoLeadingSpace():
+    markdown = markdownParse([ \
+        '# foo#' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [{'text': 'foo#'}]}} \
@@ -569,17 +571,17 @@ function testParseMarkdown_headingClosingCharactersNoLeadingSpace():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingClosingCharactersNoLeadingSpace')
+unittestRunTest('testMarkdownParse_headingClosingCharactersNoLeadingSpace')
 
 
-function testParseMarkdown_headingClosingCharactersEscaped():
-    markdown = markdownParse( \
-        '### foo \\###\n' + \
-        '## foo #\\##\n' + \
-        '# foo \\#\n' \
-    )
+function testMarkdownParse_headingClosingCharactersEscaped():
+    markdown = markdownParse([ \
+        '### foo \\###', \
+        '## foo #\\##', \
+        '# foo \\#' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h3', 'spans': [{'text': 'foo ###'}]}}, \
@@ -589,17 +591,17 @@ function testParseMarkdown_headingClosingCharactersEscaped():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingClosingCharactersEscaped')
+unittestRunTest('testMarkdownParse_headingClosingCharactersEscaped')
 
 
-function testParseMarkdown_headingSeparatesHorizontalRules():
-    markdown = markdownParse( \
-        '****\n' + \
-        '## foo\n' + \
-        '****\n' \
-    )
+function testMarkdownParse_headingSeparatesHorizontalRules():
+    markdown = markdownParse([ \
+        '****', \
+        '## foo', \
+        '****' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'hr': 1}, \
@@ -609,17 +611,17 @@ function testParseMarkdown_headingSeparatesHorizontalRules():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingSeparatesHorizontalRules')
+unittestRunTest('testMarkdownParse_headingSeparatesHorizontalRules')
 
 
-function testParseMarkdown_headingSeparatesParagraphs():
-    markdown = markdownParse( \
-        'Foo bar\n' + \
-        '# baz\n' + \
-        'Bar foo\n' \
-    )
+function testMarkdownParse_headingSeparatesParagraphs():
+    markdown = markdownParse([ \
+        'Foo bar', \
+        '# baz', \
+        'Bar foo' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo bar'}]}}, \
@@ -629,17 +631,17 @@ function testParseMarkdown_headingSeparatesParagraphs():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingSeparatesParagraphs')
+unittestRunTest('testMarkdownParse_headingSeparatesParagraphs')
 
 
-function testParseMarkdown_headingEmpty():
-    markdown = markdownParse( \
-        '## \n' + \
-        '#\n' + \
-        '### ###\n' \
-    )
+function testMarkdownParse_headingEmpty():
+    markdown = markdownParse([ \
+        '## ', \
+        '#', \
+        '### ###' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': []}}, \
@@ -649,23 +651,23 @@ function testParseMarkdown_headingEmpty():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingEmpty')
+unittestRunTest('testMarkdownParse_headingEmpty')
 
 
-function testParseMarkdown_headingAlternate():
-    markdown = markdownParse( \
-        'Title *Emphasis*\n' + \
-        '================\n' + \
-        '\n' + \
-        'This is a sentence.\n' + \
-        '\n' + \
-        'Subtitle *Emphasis*\n' + \
-        '-------------------\n' + \
-        '\n' + \
-        'Some words.\n' \
-    )
+function testMarkdownParse_headingAlternate():
+    markdown = markdownParse([ \
+        'Title *Emphasis*', \
+        '================', \
+        '', \
+        'This is a sentence.', \
+        '', \
+        'Subtitle *Emphasis*', \
+        '-------------------', \
+        '', \
+        'Some words.' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [ \
@@ -682,17 +684,17 @@ function testParseMarkdown_headingAlternate():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternate')
+unittestRunTest('testMarkdownParse_headingAlternate')
 
 
-function testParseMarkdown_headingAlternateMultiline():
-    markdown = markdownParse( \
-        'Title\n' + \
-        '*and* More\n' + \
-        '  ===\n' \
-    )
+function testMarkdownParse_headingAlternateMultiline():
+    markdown = markdownParse([ \
+        'Title', \
+        '*and* More', \
+        '  ===' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [ \
@@ -704,19 +706,19 @@ function testParseMarkdown_headingAlternateMultiline():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateMultiline')
+unittestRunTest('testMarkdownParse_headingAlternateMultiline')
 
 
-function testParseMarkdown_headingAlternateLength():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '-------------------------\n' + \
-        '\n' + \
-        'Foo\n' + \
-        '=\n' \
-    )
+function testMarkdownParse_headingAlternateLength():
+    markdown = markdownParse([ \
+        'Foo', \
+        '-------------------------', \
+        '', \
+        'Foo', \
+        '=' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': [{'text': 'Foo'}]}}, \
@@ -725,22 +727,22 @@ function testParseMarkdown_headingAlternateLength():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateLength')
+unittestRunTest('testMarkdownParse_headingAlternateLength')
 
 
-function testParseMarkdown_headingAlternateIndented():
-    markdown = markdownParse( \
-        '   Foo\n' + \
-        '---\n' + \
-        '\n' + \
-        '  Foo\n' + \
-        '-----\n' + \
-        '\n' + \
-        '  Foo\n' + \
-        '  ===\n' \
-    )
+function testMarkdownParse_headingAlternateIndented():
+    markdown = markdownParse([ \
+        '   Foo', \
+        '---', \
+        '', \
+        '  Foo', \
+        '-----', \
+        '', \
+        '  Foo', \
+        '  ===' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': [{'text': '   Foo'}]}}, \
@@ -750,19 +752,19 @@ function testParseMarkdown_headingAlternateIndented():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateIndented')
+unittestRunTest('testMarkdownParse_headingAlternateIndented')
 
 
-function testParseMarkdown_headingAlternateIndentedTooMuch():
-    markdown = markdownParse( \
-        '    Foo\n' + \
-        '    ---\n' + \
-        '\n' + \
-        '    Foo\n' + \
-        '---\n' \
-    )
+function testMarkdownParse_headingAlternateIndentedTooMuch():
+    markdown = markdownParse([ \
+        '    Foo', \
+        '    ---', \
+        '', \
+        '    Foo', \
+        '---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['Foo', '---', '', 'Foo'], 'startLineNumber': 1}}, \
@@ -771,16 +773,16 @@ function testParseMarkdown_headingAlternateIndentedTooMuch():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateIndentedTooMuch')
+unittestRunTest('testMarkdownParse_headingAlternateIndentedTooMuch')
 
 
-function testParseMarkdown_headingAlternateIndentedTooMuch2():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '    ---\n' \
-    )
+function testMarkdownParse_headingAlternateIndentedTooMuch2():
+    markdown = markdownParse([ \
+        'Foo', \
+        '    ---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo\n    ---'}]}} \
@@ -788,19 +790,19 @@ function testParseMarkdown_headingAlternateIndentedTooMuch2():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateIndentedTooMuch2')
+unittestRunTest('testMarkdownParse_headingAlternateIndentedTooMuch2')
 
 
-function testParseMarkdown_headingAlternateNoInternalSpaces():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '= =\n' + \
-        '\n' + \
-        'Foo\n' + \
-        '--- -\n' \
-    )
+function testMarkdownParse_headingAlternateNoInternalSpaces():
+    markdown = markdownParse([ \
+        'Foo', \
+        '= =', \
+        '', \
+        'Foo', \
+        '--- -' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo\n= ='}]}}, \
@@ -810,16 +812,16 @@ function testParseMarkdown_headingAlternateNoInternalSpaces():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateNoInternalSpaces')
+unittestRunTest('testMarkdownParse_headingAlternateNoInternalSpaces')
 
 
-function testParseMarkdown_headingAlternateBreak():
-    markdown = markdownParse( \
-        'Foo  \n' + \
-        '-----\n' \
-    )
+function testMarkdownParse_headingAlternateBreak():
+    markdown = markdownParse([ \
+        'Foo  ', \
+        '-----' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': [{'text': 'Foo  '}]}} \
@@ -827,16 +829,16 @@ function testParseMarkdown_headingAlternateBreak():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateBreak')
+unittestRunTest('testMarkdownParse_headingAlternateBreak')
 
 
-function testParseMarkdown_headingAlternateFollowingBlockQuote():
-    markdown = markdownParse( \
-        '> Foo\n' + \
-        '---\n' \
-    )
+function testMarkdownParse_headingAlternateFollowingBlockQuote():
+    markdown = markdownParse([ \
+        '> Foo', \
+        '---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [{'paragraph': {'spans': [{'text': 'Foo'}]}}]}}, \
@@ -845,17 +847,17 @@ function testParseMarkdown_headingAlternateFollowingBlockQuote():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateFollowingBlockQuote')
+unittestRunTest('testMarkdownParse_headingAlternateFollowingBlockQuote')
 
 
-function testParseMarkdown_headingAlternateBlockQuoteContinuation():
-    markdown = markdownParse( \
-        '> foo\n' + \
-        'bar\n' + \
-        '===\n' \
-    )
+function testMarkdownParse_headingAlternateBlockQuoteContinuation():
+    markdown = markdownParse([ \
+        '> foo', \
+        'bar', \
+        '===' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [{'paragraph': { \
@@ -866,16 +868,16 @@ function testParseMarkdown_headingAlternateBlockQuoteContinuation():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateBlockQuoteContinuation')
+unittestRunTest('testMarkdownParse_headingAlternateBlockQuoteContinuation')
 
 
-function testParseMarkdown_headingAlternateFollowingList():
-    markdown = markdownParse( \
-        '- Foo\n' + \
-        '---\n' \
-    )
+function testMarkdownParse_headingAlternateFollowingList():
+    markdown = markdownParse([ \
+        '- Foo', \
+        '---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         {'parts': [ \
             {'list': { \
                 'items': [ \
@@ -888,17 +890,17 @@ function testParseMarkdown_headingAlternateFollowingList():
         ]} \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateFollowingList')
+unittestRunTest('testMarkdownParse_headingAlternateFollowingList')
 
 
-function testParseMarkdown_headingAlternateFollowingListMultiline():
-    markdown = markdownParse( \
-        '- Title\n' + \
-        'and more\n' + \
-        '=====\n' \
-    )
+function testMarkdownParse_headingAlternateFollowingListMultiline():
+    markdown = markdownParse([ \
+        '- Title', \
+        'and more', \
+        '=====' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         {'parts': [ \
             {'list': { \
                 'items': [ \
@@ -913,16 +915,16 @@ function testParseMarkdown_headingAlternateFollowingListMultiline():
         ]} \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateFollowingListMultiline')
+unittestRunTest('testMarkdownParse_headingAlternateFollowingListMultiline')
 
 
-function testParseMarkdown_headingAlternateFollowingCodeBlock():
-    markdown = markdownParse( \
-        'Title\n' + \
-        '    =====\n' \
-    )
+function testMarkdownParse_headingAlternateFollowingCodeBlock():
+    markdown = markdownParse([ \
+        'Title', \
+        '    =====' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         {'parts': [ \
             {'paragraph': { \
                 'spans': [{'text': 'Title\n    ====='}] \
@@ -930,20 +932,20 @@ function testParseMarkdown_headingAlternateFollowingCodeBlock():
         ]} \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateFollowingCodeBlock')
+unittestRunTest('testMarkdownParse_headingAlternateFollowingCodeBlock')
 
 
-function testParseMarkdown_headingAlternateNoBlanks():
-    markdown = markdownParse( \
-        '---\n' + \
-        'Foo\n' + \
-        '---\n' + \
-        'Bar\n' + \
-        '---\n' + \
-        'Baz\n' \
-    )
+function testMarkdownParse_headingAlternateNoBlanks():
+    markdown = markdownParse([ \
+        '---', \
+        'Foo', \
+        '---', \
+        'Bar', \
+        '---', \
+        'Baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         {'parts': [ \
             {'hr': 1}, \
             {'paragraph': {'style': 'h2', 'spans': [{'text': 'Foo'}]}}, \
@@ -952,21 +954,21 @@ function testParseMarkdown_headingAlternateNoBlanks():
         ]} \
     )
 endfunction
-unittestRunTest('testParseMarkdown_headingAlternateNoBlanks')
+unittestRunTest('testMarkdownParse_headingAlternateNoBlanks')
 
 
-function testParseMarkdown_list():
-    markdown = markdownParse( \
-        '- item 1\n' + \
-        '\n' + \
-        '  item 1.2\n' + \
-        '\n' + \
-        '* item 2\n' + \
-        'another\n' + \
+function testMarkdownParse_list():
+    markdown = markdownParse([ \
+        '- item 1', \
+        '', \
+        '  item 1.2', \
+        '', \
+        '* item 2', \
+        'another', \
         '+ item 3' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 { \
@@ -989,17 +991,17 @@ function testParseMarkdown_list():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_list')
+unittestRunTest('testMarkdownParse_list')
 
 
-function testParseMarkdown_listNumbered():
-    markdown = markdownParse( \
-        '1. foo\n' + \
-        '2. bar\n' + \
-        '3) baz\n' \
-    )
+function testMarkdownParse_listNumbered():
+    markdown = markdownParse([ \
+        '1. foo', \
+        '2. bar', \
+        '3) baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 { \
@@ -1022,21 +1024,21 @@ function testParseMarkdown_listNumbered():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listNumbered')
+unittestRunTest('testMarkdownParse_listNumbered')
 
 
-function testParseMarkdown_listMixed():
-    markdown = markdownParse( \
-        '1. item 1\n' + \
-        '\n' + \
-        '   item 1.2\n' + \
-        '\n' + \
-        '* item 2\n' + \
-        'another\n' + \
+function testMarkdownParse_listMixed():
+    markdown = markdownParse([ \
+        '1. item 1', \
+        '', \
+        '   item 1.2', \
+        '', \
+        '* item 2', \
+        'another', \
         '+ item 3' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 { \
@@ -1066,17 +1068,17 @@ function testParseMarkdown_listMixed():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listMixed')
+unittestRunTest('testMarkdownParse_listMixed')
 
 
-function testParseMarkdown_listParagraphAdjacent():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '- bar\n' + \
-        '- baz\n' \
-    )
+function testMarkdownParse_listParagraphAdjascent():
+   markdown = markdownParse([ \
+        'Foo', \
+        '- bar', \
+        '- baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo'}]}}, \
@@ -1096,17 +1098,17 @@ function testParseMarkdown_listParagraphAdjacent():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listParagraphAdjacent')
+unittestRunTest('testMarkdownParse_listParagraphAdjascent')
 
 
-function testParseMarkdown_listNumberedParagraphAdjacent():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '1. bar\n' + \
-        '2. baz\n' \
-    )
+function testMarkdownParse_listNumberedParagraphAdjascent():
+    markdown = markdownParse([ \
+        'Foo', \
+        '1. bar', \
+        '2. baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo'}]}}, \
@@ -1127,26 +1129,26 @@ function testParseMarkdown_listNumberedParagraphAdjacent():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listNumberedParagraphAdjacent')
+unittestRunTest('testMarkdownParse_listNumberedParagraphAdjascent')
 
 
-function testParseMarkdown_listNested():
-    markdown = markdownParse( \
-        '- 1\n' + \
-        ' - 2\n' + \
-        '  - 3\n' + \
-        '   - 4\n' + \
-        '    - 5\n' + \
-        '     - 6\n' + \
-        '  - 7\n' + \
-        '    - 8\n' + \
-        '      - 9\n' + \
-        '   - 10\n' + \
-        '\n' + \
-        'asdf\n' \
-    )
+function testMarkdownParse_listNested():
+    markdown = markdownParse([ \
+        '- 1', \
+        ' - 2', \
+        '  - 3', \
+        '   - 4', \
+        '    - 5', \
+        '     - 6', \
+        '  - 7', \
+        '    - 8', \
+        '      - 9', \
+        '   - 10', \
+        '', \
+        'asdf' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -1189,20 +1191,20 @@ function testParseMarkdown_listNested():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listNested')
+unittestRunTest('testMarkdownParse_listNested')
 
 
-function testParseMarkdown_listItemParagraph():
-    markdown = markdownParse( \
-        '- foo\n' + \
-        '  - bar\n' + \
-        '    - baz\n' + \
-        '\n' + \
-        '\n' + \
-        '      bim\n' \
-    )
+function testMarkdownParse_listItemParagraph():
+    markdown = markdownParse([ \
+        '- foo', \
+        '  - bar', \
+        '    - baz', \
+        '', \
+        '', \
+        '      bim' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': { \
@@ -1231,19 +1233,321 @@ function testParseMarkdown_listItemParagraph():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listItemParagraph')
+unittestRunTest('testMarkdownParse_listItemParagraph')
 
 
-function testParseMarkdown_listTerminatedWithFencedCodeBlock():
-    markdown = markdownParse( \
-        '- Item 1\n' + \
-        '\n' + \
-        '~~~\n' + \
-        'foo\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_listNudge():
+    markdown = markdownParse([ \
+        '- a', \
+        ' - b', \
+        '  - c', \
+        '   - d', \
+        '  - e', \
+        ' - f', \
+        '- g' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': { \
+                    'items': [ \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'a'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'b'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'c'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'd'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'e'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'f'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'g'}]}} \
+                        ]} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listNudge')
+
+
+function testMarkdownParse_listNumberedNudge():
+    markdown = markdownParse([ \
+        '1. a', \
+        '', \
+        '  2. b', \
+        '', \
+        '   3. c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': { \
+                    'start': 1, \
+                    'items': [ \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'a'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'b'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'c'}]}} \
+                        ]} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listNumberedNudge')
+
+
+function testMarkdownParse_listNudgeMaxIndent():
+    markdown = markdownParse([ \
+        '- a', \
+        ' - b', \
+        '  - c', \
+        '   - d', \
+        '    - e' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'b'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'c'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'd\n    - e'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listNudgeMaxIndent')
+
+
+function testMarkdownParse_listNumberedNudgeMaxIndent():
+    markdown = markdownParse([ \
+        '1. a', \
+        '', \
+        '  2. b', \
+        '', \
+        '    3. c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': { \
+                    'start': 1, \
+                    'items': [ \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'a'}]}} \
+                        ]}, \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'b'}]}} \
+                        ]} \
+                    ] \
+                }}, \
+                {'codeBlock': { \
+                    'lines': ['3. c'], \
+                    'startLineNumber': 5 \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listNumberedNudgeMaxIndent')
+
+
+function testMarkdownParse_listEmptyItem():
+    markdown = markdownParse([ \
+        '* a', \
+        '*', \
+        '', \
+        '* c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a\n*'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'c'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listEmptyItem')
+
+
+function testMarkdownParse_listEmptyItem2():
+    markdown = markdownParse([ \
+        '* a', \
+        '* ', \
+        '', \
+        '* c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a'}]}} \
+                    ]}, \
+                    {'parts': []}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'c'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listEmptyItem2')
+
+
+function testMarkdownParse_listItemCodeBlock():
+    markdown = markdownParse([ \
+        '- a', \
+        '- ~~~', \
+        '  b', \
+        '', \
+        '', \
+        '  ~~~', \
+        '- c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'codeBlock': { \
+                            'startLineNumber': 2, \
+                            'lines': ['b', '', ''] \
+                        }} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'c'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listItemCodeBlock')
+
+
+function testMarkdownParse_listItemLines():
+    markdown = markdownParse([ \
+        '- a', \
+        '  - b', \
+        '', \
+        '    c', \
+        '- d' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a'}]}}, \
+                        {'list': {'items': [ \
+                            {'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'b'}]}}, \
+                                {'paragraph': {'spans': [{'text': 'c'}]}} \
+                            ]} \
+                        ]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'd'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listItemLines')
+
+
+function testMarkdownParse_listItemBlockQuote():
+    markdown = markdownParse([ \
+        '- a', \
+        '- > abc', \
+        '  >', \
+        '  > def', \
+        '- c' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'a'}]}} \
+                    ]}, \
+                    {'parts': [ \
+                        {'quote': { \
+                            'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'abc'}]}}, \
+                                {'paragraph': {'spans': [{'text': 'def'}]}} \
+                            ] \
+                        }} \
+                    ]}, \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'c'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_listItemBlockQuote')
+
+
+function testMarkdownParse_listTerminatedWithFencedCodeBlock():
+    markdown = markdownParse([ \
+        '- Item 1', \
+        '', \
+        '~~~', \
+        'foo', \
+        '~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -1256,21 +1560,21 @@ function testParseMarkdown_listTerminatedWithFencedCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_listTerminatedWithFencedCodeBlock')
+unittestRunTest('testMarkdownParse_listTerminatedWithFencedCodeBlock')
 
 
-function testParseMarkdown_blockQuote():
-    markdown = markdownParse( \
-        'This is a quote:\n' + \
-        '\n' + \
-        '> Four score and\n' + \
-        '> twenty years ago\n' + \
-        '> ...\n' + \
-        '\n' + \
+function testMarkdownParse_blockQuote():
+    markdown = markdownParse([ \
+        'This is a quote:', \
+        '', \
+        '> Four score and', \
+        '> twenty years ago', \
+        '> ...', \
+        '', \
         'Cool, huh?' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is a quote:'}]}}, \
@@ -1282,19 +1586,19 @@ function testParseMarkdown_blockQuote():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuote')
+unittestRunTest('testMarkdownParse_blockQuote')
 
 
-function testParseMarkdown_blockQuoteNested():
-    markdown = markdownParse( \
-        '> Quote text\n' + \
-        '>\n' + \
-        '> > Inner text\n' + \
-        '> >\n' + \
-        '>    > Inner text 2\n' \
-    )
+function testMarkdownParse_blockQuoteNested():
+   markdown = markdownParse([ \
+        '> Quote text', \
+        '>', \
+        '> > Inner text', \
+        '> >', \
+        '>    > Inner text 2' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1308,16 +1612,75 @@ function testParseMarkdown_blockQuoteNested():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteNested')
+unittestRunTest('testMarkdownParse_blockQuoteNested')
 
 
-function testParseMarkdown_blockQuoteIsCodeBlock():
-    markdown = markdownParse( \
-        '    > really\n' + \
-        '    > a code block\n' \
-    )
+function testMarkdownParse_blockQuoteNestedComplex():
+    markdown = markdownParse([ \
+        '> L1-1', \
+        '>', \
+        '> > > > L4-1', \
+        '> > L2-1', \
+        'Hello?' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'quote': {'parts': [ \
+                    {'paragraph': {'spans': [{'text': 'L1-1'}]}}, \
+                    {'quote': {'parts': [ \
+                        {'quote': {'parts': [ \
+                            {'quote': {'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'L4-1\nL2-1\nHello?'}]}} \
+                            ]}} \
+                        ]}} \
+                    ]}} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_blockQuoteNestedComplex')
+
+
+function testMarkdownParse_blockQuoteNestedList():
+    markdown = markdownParse([ \
+        '>- List 1', \
+        '>', \
+        '  >> A sub-quote', \
+        '>', \
+        '   >   and more' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'quote': {'parts': [ \
+                    {'list': {'items': [ \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': 'List 1'}]}} \
+                        ]} \
+                    ]}}, \
+                    {'quote': {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'A sub-quote'}]}} \
+                    ]}}, \
+                    {'paragraph': {'spans': [{'text': 'and more'}]}} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_blockQuoteNestedList')
+
+
+function testMarkdownParse_blockQuoteIsACodeBlock():
+    markdown = markdownParse([ \
+        '    > really', \
+        '    > a code block' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['> really', '> a code block'], 'startLineNumber': 1}} \
@@ -1325,17 +1688,17 @@ function testParseMarkdown_blockQuoteIsCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteIsCodeBlock')
+unittestRunTest('testMarkdownParse_blockQuoteIsACodeBlock')
 
 
-function testParseMarkdown_blockQuoteLazy():
-    markdown = markdownParse( \
-        '> # Foo\n' + \
-        '> bar\n' + \
-        'baz\n' \
-    )
+function testMarkdownParse_blockQuoteLazy():
+    markdown = markdownParse([ \
+        '> # Foo', \
+        '> bar', \
+        'baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1346,17 +1709,17 @@ function testParseMarkdown_blockQuoteLazy():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteLazy')
+unittestRunTest('testMarkdownParse_blockQuoteLazy')
 
 
-function testParseMarkdown_blockQuoteLazyMixed():
-    markdown = markdownParse( \
-        '> bar\n' + \
-        'baz\n' + \
-        '> foo\n' \
-    )
+function testMarkdownParse_blockQuoteLazyMixed():
+    markdown = markdownParse([ \
+        '> bar', \
+        'baz', \
+        '> foo' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1366,16 +1729,16 @@ function testParseMarkdown_blockQuoteLazyMixed():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteLazyMixed')
+unittestRunTest('testMarkdownParse_blockQuoteLazyMixed')
 
 
-function testParseMarkdown_blockQuoteTerminateWithHr():
-    markdown = markdownParse( \
-        '> foo\n' + \
-        '---\n' \
-    )
+function testMarkdownParse_blockQuoteTerminateWithHr():
+    markdown = markdownParse([ \
+        '> foo', \
+        '---' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1386,16 +1749,16 @@ function testParseMarkdown_blockQuoteTerminateWithHr():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteTerminateWithHr')
+unittestRunTest('testMarkdownParse_blockQuoteTerminateWithHr')
 
 
-function testParseMarkdown_blockQuoteTerminateWithList():
-    markdown = markdownParse( \
-        '> - foo\n' + \
-        '- bar\n' \
-    )
+function testMarkdownParse_blockQuoteTerminateWithList():
+    markdown = markdownParse([ \
+        '> - foo', \
+        '- bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1414,16 +1777,16 @@ function testParseMarkdown_blockQuoteTerminateWithList():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteTerminateWithList')
+unittestRunTest('testMarkdownParse_blockQuoteTerminateWithList')
 
 
-function testParseMarkdown_blockQuoteNotTerminatedWithCodeBlock():
-    markdown = markdownParse( \
-        '>     foo\n' + \
-        '    bar\n' \
-    )
+function testMarkdownParse_blockQuoteNotTerminatedWithCodeBlock():
+    markdown = markdownParse([ \
+        '>     foo', \
+        '    bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': [ \
@@ -1433,16 +1796,16 @@ function testParseMarkdown_blockQuoteNotTerminatedWithCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteNotTerminatedWithCodeBlock')
+unittestRunTest('testMarkdownParse_blockQuoteNotTerminatedWithCodeBlock')
 
 
-function testParseMarkdown_blockQuoteTerminatesCodeBlock():
-    markdown = markdownParse( \
-        '    foo\n' + \
-        '> bar\n' \
-    )
+function testMarkdownParse_blockQuoteTerminatesCodeBlock():
+    markdown = markdownParse([ \
+        '    foo', \
+        '> bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'startLineNumber': 1, 'lines': ['foo']}}, \
@@ -1451,17 +1814,17 @@ function testParseMarkdown_blockQuoteTerminatesCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteTerminatesCodeBlock')
+unittestRunTest('testMarkdownParse_blockQuoteTerminatesCodeBlock')
 
 
-function testParseMarkdown_blockQuoteTerminatesList():
-    markdown = markdownParse( \
-        '- item 1\n' + \
-        '\n' + \
-        '> quote\n' \
-    )
+function testMarkdownParse_blockQuoteTerminatesList():
+   markdown = markdownParse([ \
+        '- item 1', \
+        '', \
+        '> quote' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'list': {'items': [ \
@@ -1476,15 +1839,15 @@ function testParseMarkdown_blockQuoteTerminatesList():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteTerminatesList')
+unittestRunTest('testMarkdownParse_blockQuoteTerminatesList')
 
 
-function testParseMarkdown_blockQuoteEmpty():
-    markdown = markdownParse( \
-        '>\n' \
-    )
+function testMarkdownParse_blockQuoteEmpty():
+    markdown = markdownParse([ \
+        '>' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'quote': {'parts': []}} \
@@ -1492,22 +1855,22 @@ function testParseMarkdown_blockQuoteEmpty():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_blockQuoteEmpty')
+unittestRunTest('testMarkdownParse_blockQuoteEmpty')
 
 
-function testParseMarkdown_codeBlock():
-    markdown = markdownParse( \
-        'This is some code:\n' + \
-        '\n' + \
-        '    code 1\n' + \
-        '    code 2\n' + \
-        '\n' + \
-        '    code 3\n' + \
-        '\n' + \
+function testMarkdownParse_codeBlock():
+   markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '    code 1', \
+        '    code 2', \
+        '', \
+        '    code 3', \
+        '', \
         'Cool, huh?' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
@@ -1517,16 +1880,139 @@ function testParseMarkdown_codeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_codeBlock')
+unittestRunTest('testMarkdownParse_codeBlock')
 
 
-function testParseMarkdown_codeBlockNoParagraphInterrupt():
-    markdown = markdownParse( \
-        'Foo\n' + \
-        '    bar\n' \
-    )
+function testMarkdownParse_codeBlockWithFencedCodeBlockText():
+    markdown = markdownParse([ \
+        'This is a fenced code block:', \
+        '', \
+        '    ~~~ javascript', \
+        '    code 1', \
+        '    code 2', \
+        '', \
+        '    code 3', \
+        '    ~~~', \
+        '', \
+        'Cool, huh?' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [{'text': 'This is a fenced code block:'}]}}, \
+                {'codeBlock': { \
+                    'lines': [ \
+                        '~~~ javascript', \
+                        'code 1', \
+                        'code 2', \
+                        '', \
+                        'code 3', \
+                        '~~~' \
+                    ], \
+                    'startLineNumber': 3 \
+                }}, \
+                {'paragraph': {'spans': [{'text': 'Cool, huh?'}]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeBlockWithFencedCodeBlockText')
+
+
+function testMarkdownParse_codeBlockActuallyListItemText():
+    markdown = markdownParse([ \
+        '  - foo', \
+        '', \
+        '    bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': {'items': [ \
+                    {'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'foo'}]}}, \
+                        {'paragraph': {'spans': [{'text': 'bar'}]}} \
+                    ]} \
+                ]}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeBlockActuallyListItemText')
+
+
+function testMarkdownParse_codeBlockActuallyListItemText2():
+    markdown = markdownParse([ \
+        '1.  foo', \
+        '', \
+        '    - bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'list': { \
+                    'start': 1, \
+                    'items': [ \
+                        {'parts': [ \
+                            {'paragraph': {'spans': [{'text': ' foo'}]}}, \
+                            {'list': {'items': [ \
+                                {'parts': [ \
+                                    {'paragraph': {'spans': [{'text': 'bar'}]}} \
+                                ]} \
+                            ]}} \
+                        ]} \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeBlockActuallyListItemText2')
+
+
+function testMarkdownParse_codeBlockBlanks():
+   markdown = markdownParse([ \
+        '    chunk1', \
+        '', \
+        '    chunk2', \
+        '  ', \
+        ' ', \
+        ' ', \
+        '    chunk3' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': { \
+                    'lines': [ \
+                        'chunk1', \
+                        '', \
+                        'chunk2', \
+                        '  ', \
+                        ' ', \
+                        ' ', \
+                        'chunk3' \
+                    ], \
+                    'startLineNumber': 1 \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_codeBlockBlanks')
+
+
+function testMarkdownParse_codeBlockNoParagraphInterrupt():
+    markdown = markdownParse([ \
+        'Foo', \
+        '    bar' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'Foo\n    bar'}]}} \
@@ -1534,16 +2020,16 @@ function testParseMarkdown_codeBlockNoParagraphInterrupt():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_codeBlockNoParagraphInterrupt')
+unittestRunTest('testMarkdownParse_codeBlockNoParagraphInterrupt')
 
 
-function testParseMarkdown_codeBlockParagraphTerminates():
-    markdown = markdownParse( \
-        '    foo\n' + \
-        'bar\n' \
-    )
+function testMarkdownParse_codeBlockParagraphTerminates():
+    markdown = markdownParse([ \
+        '    foo', \
+        'bar' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['foo'], 'startLineNumber': 1}}, \
@@ -1552,20 +2038,20 @@ function testParseMarkdown_codeBlockParagraphTerminates():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_codeBlockParagraphTerminates')
+unittestRunTest('testMarkdownParse_codeBlockParagraphTerminates')
 
 
-function testParseMarkdown_codeBlockFollowsHeader():
-    markdown = markdownParse( \
-        '# Heading\n' + \
-        '    foo\n' + \
-        'Heading\n' + \
-        '------\n' + \
-        '    foo\n' + \
-        '----\n' \
-    )
+function testMarkdownParse_codeBlockFollowsHeader():
+    markdown = markdownParse([ \
+        '# Heading', \
+        '    foo', \
+        'Heading', \
+        '------', \
+        '    foo', \
+        '----' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h1', 'spans': [{'text': 'Heading'}]}}, \
@@ -1577,15 +2063,15 @@ function testParseMarkdown_codeBlockFollowsHeader():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_codeBlockFollowsHeader')
+unittestRunTest('testMarkdownParse_codeBlockFollowsHeader')
 
 
-function testParseMarkdown_codeBlockTrailingSpaces():
-    markdown = markdownParse( \
-        '    foo  \n' \
-    )
+function testMarkdownParse_codeBlockTrailingSpaces():
+    markdown = markdownParse([ \
+        '    foo  ' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['foo  '], 'startLineNumber': 1}} \
@@ -1593,20 +2079,20 @@ function testParseMarkdown_codeBlockTrailingSpaces():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_codeBlockTrailingSpaces')
+unittestRunTest('testMarkdownParse_codeBlockTrailingSpaces')
 
 
-function testParseMarkdown_fencedCodeBlock():
-    markdown = markdownParse( \
-        'This is some code:\n' + \
-        '\n' + \
-        '~~~\n' + \
-        'foo();\n' + \
-        'bar();\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_fencedCodeBlock():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '~~~', \
+        'foo();', \
+        'bar();', \
+        '~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
@@ -1615,18 +2101,18 @@ function testParseMarkdown_fencedCodeBlock():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlock')
+unittestRunTest('testMarkdownParse_fencedCodeBlock')
 
 
-function testParseMarkdown_fencedCodeBlockLength():
-    markdown = markdownParse( \
-        '~~~~\n' + \
-        'aaa\n' + \
-        '~~~\n' + \
-        '~~~~~~\n' \
-    )
+function testMarkdownParse_fencedCodeBlockLength():
+    markdown = markdownParse([ \
+        '~~~~', \
+        'aaa', \
+        '~~~', \
+        '~~~~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['aaa', '~~~'], 'startLineNumber': 1}} \
@@ -1634,17 +2120,17 @@ function testParseMarkdown_fencedCodeBlockLength():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockLength')
+unittestRunTest('testMarkdownParse_fencedCodeBlockLength')
 
 
-function testParseMarkdown_fencedCodeBlockNot():
-    markdown = markdownParse( \
-        '``\n' + \
-        'foo\n' + \
-        '``\n' \
-    )
+function testMarkdownParse_fencedCodeBlockNot():
+    markdown = markdownParse([ \
+        '``', \
+        'foo', \
+        '``' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'code': 'foo'}]}} \
@@ -1652,37 +2138,42 @@ function testParseMarkdown_fencedCodeBlockNot():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockNot')
+unittestRunTest('testMarkdownParse_fencedCodeBlockNot')
 
 
-function testParseMarkdown_fencedCodeBlockEmpty():
-    markdown = markdownParse( \
-        'This is some code:\n' + \
-        '\n' + \
-        '~~~\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_fencedCodeBlockWithFencedCodeBlockText():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '```', \
+        '~~~', \
+        'foo();', \
+        'bar();', \
+        '~~~', \
+        '```' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
-                {'codeBlock': {'lines': [], 'startLineNumber': 3}} \
+                {'codeBlock': {'lines': ['~~~', 'foo();', 'bar();', '~~~'], 'startLineNumber': 3}} \
             ] \
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockEmpty')
+unittestRunTest('testMarkdownParse_fencedCodeBlockWithFencedCodeBlockText')
 
 
-function testParseMarkdown_fencedCodeBlockEndOfFile():
-    markdown = markdownParse( \
-        'This is some code:\n' + \
-        '\n' + \
+function testMarkdownParse_fencedCodeBlockEmpty():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '~~~', \
         '~~~' \
-    )
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
@@ -1691,20 +2182,39 @@ function testParseMarkdown_fencedCodeBlockEndOfFile():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockEndOfFile')
+unittestRunTest('testMarkdownParse_fencedCodeBlockEmpty')
 
 
-function testParseMarkdown_fencedCodeBlockLanguage():
-    markdown = markdownParse( \
-        'This is some code:\n' + \
-        '\n' + \
-        '~~~ javascript\n' + \
-        'foo();\n' + \
-        'bar();\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_empty_fencedCodeBlockEndOfFile():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
+                {'codeBlock': {'lines': [], 'startLineNumber': 3}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_empty_fencedCodeBlockEndOfFile')
+
+
+function testMarkdownParse_fencedCodeBlockLanguage():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '~~~ javascript', \
+        'foo();', \
+        'bar();', \
+        '~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
@@ -1713,17 +2223,17 @@ function testParseMarkdown_fencedCodeBlockLanguage():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockLanguage')
+unittestRunTest('testMarkdownParse_fencedCodeBlockLanguage')
 
 
-function testParseMarkdown_fencedCodeBlockLanguageNoSpace():
-    markdown = markdownParse( \
-        '~~~javascript\n' + \
-        'foo();\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_fencedCodeBlockLanguageNoSpace():
+    markdown = markdownParse([ \
+        '~~~javascript', \
+        'foo();', \
+        '~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'language': 'javascript', 'lines': ['foo();'], 'startLineNumber': 1}} \
@@ -1731,19 +2241,169 @@ function testParseMarkdown_fencedCodeBlockLanguageNoSpace():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockLanguageNoSpace')
+unittestRunTest('testMarkdownParse_fencedCodeBlockLanguageNoSpace')
 
 
-function testParseMarkdown_fencedCodeBlockSeparatesParagraphs():
-    markdown = markdownParse( \
-        'foo\n' + \
-        '~~~\n' + \
-        'bar\n' + \
-        '~~~\n' + \
-        'baz\n' \
-    )
+function testMarkdownParse_fencedCodeBlockNested():
+    markdown = markdownParse([ \
+        '- This is some code:', \
+        '', \
+        '  ~~~', \
+        '  foo();', \
+        '  bar();', \
+        '  ~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                { \
+                    'list': { \
+                        'items': [ \
+                            { \
+                                'parts': [ \
+                                    {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
+                                    {'codeBlock': {'lines': ['foo();', 'bar();'], 'startLineNumber': 3}} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                } \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockNested')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFirstLine():
+    markdown = markdownParse([ \
+        'This is some code:', \
+        '', \
+        '~~~', \
+        '    foo();', \
+        '    bar();', \
+        '~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'paragraph': {'spans': [{'text': 'This is some code:'}]}}, \
+                {'codeBlock': {'lines': ['    foo();', '    bar();'], 'startLineNumber': 3}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFirstLine')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFence():
+   markdown = markdownParse([ \
+        ' ~~~', \
+        ' aaa', \
+        'aaa', \
+        '~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': {'lines': ['aaa', 'aaa'], 'startLineNumber': 1}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFence')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFence2():
+    markdown = markdownParse([ \
+        '  ~~~', \
+        'aaa', \
+        '  aaa', \
+        'aaa', \
+        '  ~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': {'lines': ['aaa', 'aaa', 'aaa'], 'startLineNumber': 1}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFence2')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFence3():
+    markdown = markdownParse([ \
+        '   ~~~', \
+        '   aaa', \
+        '    aaa', \
+        '  aaa', \
+        '   ~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': {'lines': ['aaa', ' aaa', 'aaa'], 'startLineNumber': 1}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFence3')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFenceTooMuch():
+    markdown = markdownParse([ \
+        '    ~~~', \
+        '    aaa', \
+        '    ~~~' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': {'lines': ['~~~', 'aaa', '~~~'], 'startLineNumber': 1}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFenceTooMuch')
+
+
+function testMarkdownParse_fencedCodeBlockIndentedFenceTooMuch2():
+    markdown = markdownParse([ \
+        '~~~', \
+        'aaa', \
+        '    ~~~', \
+        '' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'codeBlock': {'lines': ['aaa', '    ~~~', ''], 'startLineNumber': 1}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFenceTooMuch2')
+
+
+function testMarkdownParse_fencedCodeBlockSeparatesParagraphs():
+   markdown = markdownParse([ \
+        'foo', \
+        '~~~', \
+        'bar', \
+        '~~~', \
+        'baz' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'foo'}]}}, \
@@ -1753,20 +2413,20 @@ function testParseMarkdown_fencedCodeBlockSeparatesParagraphs():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockSeparatesParagraphs')
+unittestRunTest('testMarkdownParse_fencedCodeBlockSeparatesParagraphs')
 
 
-function testParseMarkdown_fencedCodeBlockSeparatesHeaders():
-    markdown = markdownParse( \
-        'foo\n' + \
-        '---\n' + \
-        '~~~\n' + \
-        'bar\n' + \
-        '~~~\n' + \
-        '# baz\n' \
-    )
+function testMarkdownParse_fencedCodeBlockSeparatesHeaders():
+   markdown = markdownParse([ \
+        'foo', \
+        '---', \
+        '~~~', \
+        'bar', \
+        '~~~', \
+        '# baz' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'style': 'h2', 'spans': [{'text': 'foo'}]}}, \
@@ -1776,17 +2436,17 @@ function testParseMarkdown_fencedCodeBlockSeparatesHeaders():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockSeparatesHeaders')
+unittestRunTest('testMarkdownParse_fencedCodeBlockSeparatesHeaders')
 
 
-function testParseMarkdown_fencedCodeBlockCloseNoLanguage():
-    markdown = markdownParse( \
-        '~~~\n' + \
-        '~~~ aaa\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_fencedCodeBlockCloseNoLanguage():
+    markdown = markdownParse([ \
+        '~~~', \
+        '~~~ aaa', \
+        '~~~' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'codeBlock': {'lines': ['~~~ aaa'], 'startLineNumber': 1}} \
@@ -1794,117 +2454,22 @@ function testParseMarkdown_fencedCodeBlockCloseNoLanguage():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockCloseNoLanguage')
+unittestRunTest('testMarkdownParse_fencedCodeBlockCloseNoLanguage')
 
 
-function testParseMarkdown_fencedCodeBlockIndentedFence():
-    markdown = markdownParse( \
-        ' ~~~\n' + \
-        ' aaa\n' + \
-        'aaa\n' + \
-        '~~~\n' \
-    )
+function testMarkdownParse_table():
+   markdown = markdownParse([ \
+        'This is a table:', \
+        '', \
+        '| Column A | Column B | Column C | Column D |', \
+        '| -------- | -------: | :------: | :------- |', \
+        '| A0       | B0       | C0       | D0       |', \
+        '| A1       | B1       | C1       | D1       |', \
+        '', \
+        'Neat!' \
+    ])
     unittestDeepEqual( \
-        markdown, \
-        { \
-            'parts': [ \
-                {'codeBlock': {'lines': ['aaa', 'aaa'], 'startLineNumber': 1}} \
-            ] \
-        } \
-    )
-endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence')
-
-
-function testParseMarkdown_fencedCodeBlockIndentedFence2():
-    markdown = markdownParse( \
-        '  ~~~\n' + \
-        'aaa\n' + \
-        '  aaa\n' + \
-        'aaa\n' + \
-        '  ~~~\n' \
-    )
-    unittestDeepEqual( \
-        markdown, \
-        { \
-            'parts': [ \
-                {'codeBlock': {'lines': ['aaa', 'aaa', 'aaa'], 'startLineNumber': 1}} \
-            ] \
-        } \
-    )
-endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence2')
-
-
-function testParseMarkdown_fencedCodeBlockIndentedFence3():
-    markdown = markdownParse( \
-        '   ~~~\n' + \
-        '   aaa\n' + \
-        '    aaa\n' + \
-        '  aaa\n' + \
-        '   ~~~\n' \
-    )
-    unittestDeepEqual( \
-        markdown, \
-        { \
-            'parts': [ \
-                {'codeBlock': {'lines': ['aaa', ' aaa', 'aaa'], 'startLineNumber': 1}} \
-            ] \
-        } \
-    )
-endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFence3')
-
-
-function testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch():
-    markdown = markdownParse( \
-        '    ~~~\n' + \
-        '    aaa\n' + \
-        '    ~~~\n' \
-    )
-    unittestDeepEqual( \
-        markdown, \
-        { \
-            'parts': [ \
-                {'codeBlock': {'lines': ['~~~', 'aaa', '~~~'], 'startLineNumber': 1}} \
-            ] \
-        } \
-    )
-endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch')
-
-
-function testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch2():
-    markdown = markdownParse( \
-        '~~~\n' + \
-        'aaa\n' + \
-        '    ~~~\n' \
-    )
-    unittestDeepEqual( \
-        markdown, \
-        { \
-            'parts': [ \
-                {'codeBlock': {'lines': ['aaa', '    ~~~', ''], 'startLineNumber': 1}} \
-            ] \
-        } \
-    )
-endfunction
-unittestRunTest('testParseMarkdown_fencedCodeBlockIndentedFenceTooMuch2')
-
-
-function testParseMarkdown_table():
-    markdown = markdownParse( \
-        'This is a table:\n' + \
-        '\n' + \
-        '| Column A | Column B | Column C | Column D |\n' + \
-        '| -------- | -------: | :------: | :------- |\n' + \
-        '| A0       | B0       | C0       | D0       |\n' + \
-        '| A1       | B1       | C1       | D1       |\n' + \
-        '\n' + \
-        'Neat!\n' \
-    )
-    unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is a table:'}]}}, \
@@ -1941,19 +2506,19 @@ function testParseMarkdown_table():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_table')
+unittestRunTest('testMarkdownParse_table')
 
 
-function testParseMarkdown_tableCrowded():
-    markdown = markdownParse( \
-        'This is a table:\n' + \
-        '|Column A|\n' + \
-        '|--------|\n' + \
-        '|A0      |\n' + \
-        'Neat!\n' \
-    )
+function testMarkdownParse_tableCrowded():
+    markdown = markdownParse([ \
+        'This is a table:', \
+        '|Column A|', \
+        '|--------|', \
+        '|A0      |', \
+        'Neat!' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'This is a table:'}]}}, \
@@ -1969,17 +2534,43 @@ function testParseMarkdown_tableCrowded():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableCrowded')
+unittestRunTest('testMarkdownParse_tableCrowded')
 
 
-function testParseMarkdown_tableNaked():
-    markdown = markdownParse( \
-        '| abc | defghi |\n' + \
-        ':-: | -----------:\n' + \
-        'bar | baz\n' \
-    )
+function testMarkdownParse_tableIndentedRow():
+    markdown = markdownParse([ \
+        '| Column A |', \
+        '| -------- |', \
+        '| A0       |', \
+        '    | A1       |' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'table': { \
+                    'headers': [[{'text': 'Column A'}]], \
+                    'aligns': ['left'], \
+                    'rows': [ \
+                        [[{'text': 'A0'}]] \
+                    ] \
+                }}, \
+                {'codeBlock': {'lines': ['| A1       |'], 'startLineNumber': 4}} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_tableIndentedRow')
+
+
+function testMarkdownParse_tableNaked():
+   markdown = markdownParse([ \
+        '| abc | defghi |', \
+        ':-: | -----------:', \
+        'bar | baz' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'table': { \
@@ -1993,18 +2584,18 @@ function testParseMarkdown_tableNaked():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableNaked')
+unittestRunTest('testMarkdownParse_tableNaked')
 
 
-function testParseMarkdown_tableEscapes():
-    markdown = markdownParse( \
-        '| f\\|oo  |\n' + \
-        '| ------ |\n' + \
-        '| b `\\|` az |\n' + \
-        '| b **\\|** im |\n' \
-    )
+function testMarkdownParse_tableEscapes():
+    markdown = markdownParse([ \
+        '| f\\|oo  |', \
+        '| ------ |', \
+        '| b `\\|` az |', \
+        '| b **\\|** im |' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'table': { \
@@ -2019,38 +2610,40 @@ function testParseMarkdown_tableEscapes():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableEscapes')
+unittestRunTest('testMarkdownParse_tableEscapes')
 
 
-function testParseMarkdown_tableMismatchedDelimiter():
-    markdown = markdownParse( \
-        '| abc | def |\n' + \
-        '| --- |\n' + \
-        '| bar |\n' \
-    )
+function testMarkdownParse_tableMismatchedDelimiter():
+    markdown = markdownParse([ \
+        '| abc | def |', \
+        '| --- |', \
+        '| bar |' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [ \
-                    {'text': '| abc | def |\n| --- |\n| bar |'} \
+                    { \
+                        'text': '| abc | def |\n| --- |\n| bar |' \
+                    } \
                 ]}} \
             ] \
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableMismatchedDelimiter')
+unittestRunTest('testMarkdownParse_tableMismatchedDelimiter')
 
 
-function testParseMarkdown_tableShortAndLong():
-    markdown = markdownParse( \
-        '| abc | def |\n' + \
-        '| --- | --- |\n' + \
-        '| bar |\n' + \
-        '| bar | baz | boo |\n' \
-    )
+function testMarkdownParse_tableShortAndLong():
+    markdown = markdownParse([ \
+        '| abc | def |', \
+        '| --- | --- |', \
+        '| bar |', \
+        '| bar | baz | boo |' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'table': { \
@@ -2065,16 +2658,16 @@ function testParseMarkdown_tableShortAndLong():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableShortAndLong')
+unittestRunTest('testMarkdownParse_tableShortAndLong')
 
 
-function testParseMarkdown_tableEmpty():
-    markdown = markdownParse( \
-        '| abc | def |\n' + \
-        '| --- | --- |\n' \
-    )
+function testMarkdownParse_tableEmpty():
+    markdown = markdownParse([ \
+        '| abc | def |', \
+        '| --- | --- |' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'table': { \
@@ -2085,17 +2678,17 @@ function testParseMarkdown_tableEmpty():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableEmpty')
+unittestRunTest('testMarkdownParse_tableEmpty')
 
 
-function testParseMarkdown_tableListActually():
-    markdown = markdownParse( \
-        'A | B\n' + \
-        '- | -\n' + \
-        '0 | 1\n' \
-    )
+function testMarkdownParse_tableListActually():
+    markdown = markdownParse([ \
+        'A | B', \
+        '- | -', \
+        '0 | 1' \
+    ])
     unittestDeepEqual( \
-        markdown, \
+        markdownValidate(markdown), \
         { \
             'parts': [ \
                 {'paragraph': {'spans': [{'text': 'A | B'}]}}, \
@@ -2112,4 +2705,4 @@ function testParseMarkdown_tableListActually():
         } \
     )
 endfunction
-unittestRunTest('testParseMarkdown_tableListActually')
+unittestRunTest('testMarkdownParse_tableListActually')
