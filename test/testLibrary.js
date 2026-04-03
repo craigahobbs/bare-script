@@ -880,16 +880,23 @@ test('library, arraySort', () => {
 
 
 test('library, barescriptEvaluateExpression', () => {
-    let expr = {'binary': {'left': {'number': 2.0}, 'op': '*', 'right': {'number': 3}}};
-    assert.deepEqual(
+    let expr = {'binary': {'left': {'number': 2.0}, 'op': '*', 'right': {'number': 5}}};
+    assert.equal(
         scriptFunctions.barescriptEvaluateExpression([expr], null),
-        6
+        10
     );
 
     // Locals
     expr = {'binary': {'left': {'number': 2.0}, 'op': '*', 'right': {'variable': 'A'}}};
     assert.equal(
         scriptFunctions.barescriptEvaluateExpression([expr, {'A': 5}], null),
+        10
+    );
+
+    // Globals
+    expr = {'binary': {'left': {'variable': 'B'}, 'op': '*', 'right': {'variable': 'A'}}};
+    assert.equal(
+        scriptFunctions.barescriptEvaluateExpression([expr, {'A': 5}, {'B': 2}], {}),
         10
     );
 

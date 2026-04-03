@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.21 (2026-04-03)
+
+- [e66e0a7](https://github.com/craigahobbs/bare-script/commit/e66e0a7) - improve barescriptEvaluateExpression
+
 ## 3.8.20 (2026-03-18)
 
 - [125dfa8](https://github.com/craigahobbs/bare-script/commit/125dfa8) - add the barescriptParseExpression and barescriptEvaluateExpression functions
