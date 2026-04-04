@@ -22,8 +22,7 @@
     },
     "files": [
         "lib/*.js",
-        "lib/include/*.bare",
-        "static/markdown-model.css"
+        "lib/include/*.bare"
     ],
     "scripts": {
         "test": "node --test test/"
