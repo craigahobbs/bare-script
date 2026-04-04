@@ -2758,6 +2758,14 @@ test('library, regexNew', () => {
     assert.equal(regex.source, '(?<first>\\w+)(\\s+)(?<last>\\w+)');
     assert.equal(regex.flags, '');
 
+    // Backreferences
+    regex = scriptFunctions.regexNew(['(?<delim>[AB])[ab]+\\k<delim>'], null);
+    assert.equal(regex instanceof RegExp, true);
+    assert.equal(regex.source, '(?<delim>[AB])[ab]+\\k<delim>');
+    assert.equal(regex.flags, '');
+    assert.equal(regex.test('AabababA'), true);
+    assert.equal(regex.test('AabaB'), false);
+
     // Flag - "i"
     regex = scriptFunctions.regexNew(['a*b', 'i'], null);
     assert.equal(regex instanceof RegExp, true);
