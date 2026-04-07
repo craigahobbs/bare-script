@@ -893,18 +893,12 @@ test('library, barescriptEvaluateExpression', () => {
         10
     );
 
-    // Globals
-    expr = {'binary': {'left': {'variable': 'B'}, 'op': '*', 'right': {'variable': 'A'}}};
-    assert.equal(
-        scriptFunctions.barescriptEvaluateExpression([expr, {'A': 5}, {'B': 2}], {}),
-        10
-    );
-
     // Builtins
     expr = {'function': {'args': [{'function': {'args': [], 'name': 'pi'}}], 'name': 'cos'}};
+    assert.equal(scriptFunctions.barescriptEvaluateExpression([expr], null), -1);
     assert.throws(
         () => {
-            scriptFunctions.barescriptEvaluateExpression([expr], null);
+            scriptFunctions.barescriptEvaluateExpression([expr, null, false], null);
         },
         {
             'name': 'BareScriptRuntimeError',
