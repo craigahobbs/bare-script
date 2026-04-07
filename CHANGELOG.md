@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.23 (2026-04-07)
+
+- [4e3ca54](https://github.com/craigahobbs/bare-script/commit/4e3ca54) - revert prior change to barescriptEvaluateExpression
+
 ## 3.8.21 (2026-04-03)
 
 - [e66e0a7](https://github.com/craigahobbs/bare-script/commit/e66e0a7) - improve barescriptEvaluateExpression
