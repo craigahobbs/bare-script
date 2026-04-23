@@ -13,7 +13,9 @@ The baredocCLI input files argument, "vFiles", is the string literal of the JSON
 filename array. You can glob the input files argument as follows:
 
 ```sh
-bare -m -v 'vFiles' "'`jq -n --args '$ARGS.positional' *.bare`'" -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+bare -m \
+    -v 'vFiles' "'$(python3 -c 'import json; import sys; print(json.dumps(sys.argv[1:]))' src/bare_script/library.py src/bare_script/include/*.bare)'" \
+    -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
 ```
 
 You can specify an output file by using the output argument, "vOutput":
