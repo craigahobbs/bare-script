@@ -32,7 +32,15 @@
 /** @module lib/runtime */
 
 import {ValueArgsError, valueBoolean, valueCompare, valueString} from './value.js';
-import {coverageGlobalName, defaultMaxStatements, expressionFunctions, scriptFunctions} from './library.js';
+import {defaultMaxStatements, expressionFunctions, scriptFunctions} from './library.js';
+
+
+// Coverage configuration object global variable name
+export const systemGlobalCoverageName = '__barescriptCoverage';
+
+
+// System includes object global variable name
+export const systemGlobalIncludesName = '__barescriptIncludes';
 
 
 /**
@@ -82,7 +90,7 @@ function executeScriptHelper(script, statements, options, locals) {
         }
 
         // Record the statement coverage
-        const coverageGlobal = globals[coverageGlobalName] ?? null;
+        const coverageGlobal = globals[systemGlobalCoverageName] ?? null;
         const hasCoverage = coverageGlobal !== null &amp;&amp; typeof coverageGlobal === 'object' &amp;&amp; coverageGlobal.enabled &amp;&amp; !script.system;
         if (hasCoverage) {
             recordStatementCoverage(script, statement, statementKey, coverageGlobal);
@@ -478,7 +486,7 @@ export class BareScriptRuntimeError extends Error {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

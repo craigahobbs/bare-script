@@ -1,8 +1,5 @@
-Data functions provide operations for manipulating and analyzing arrays of data objects (also known
-as data tables or datasets). These functions enable filtering, sorting, aggregating, joining, and
-transforming tabular data.
-
-A data array is an array of objects where each object represents a row:
+The "data.bare" include library contains functions for manipulating and analyzing data arrays. A
+data array is an array of objects where each object represents a row:
 
 ~~~ bare-script
 data = [ \
@@ -15,6 +12,8 @@ data = [ \
 You can filter data using expressions:
 
 ~~~ bare-script
+include <data.bare>
+
 # Filter for people over 25 in New York
 filtered = dataFilter(data, 'age > 25 && city == "New York"')
 ~~~

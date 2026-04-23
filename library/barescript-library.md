@@ -12,25 +12,21 @@ globals.
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
 - [array](#var.vPublish=true&var.vSingle=true&array)
 - [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare)
+- [baredocCLI.bare](#var.vPublish=true&var.vSingle=true&baredoccli-bare)
 - [barescript](#var.vPublish=true&var.vSingle=true&barescript)
-- [coverage](#var.vPublish=true&var.vSingle=true&coverage)
-- [data](#var.vPublish=true&var.vSingle=true&data)
+- [data.bare](#var.vPublish=true&var.vSingle=true&data-bare)
+- [dataLineChart.bare](#var.vPublish=true&var.vSingle=true&datalinechart-bare)
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
 - [datetime](#var.vPublish=true&var.vSingle=true&datetime)
 - [diff.bare](#var.vPublish=true&var.vSingle=true&diff-bare)
+- [draw.bare](#var.vPublish=true&var.vSingle=true&draw-bare)
 - [elementModel.bare](#var.vPublish=true&var.vSingle=true&elementmodel-bare)
 - [forms.bare](#var.vPublish=true&var.vSingle=true&forms-bare)
 - [json](#var.vPublish=true&var.vSingle=true&json)
+- [markdown.bare](#var.vPublish=true&var.vSingle=true&markdown-bare)
+- [markdownElements.bare](#var.vPublish=true&var.vSingle=true&markdownelements-bare)
+- [markdownParser.bare](#var.vPublish=true&var.vSingle=true&markdownparser-bare)
 - [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare)
-- [markdownUp.bare: data](#var.vPublish=true&var.vSingle=true&markdownup-bare-data)
-- [markdownUp.bare: document](#var.vPublish=true&var.vSingle=true&markdownup-bare-document)
-- [markdownUp.bare: draw](#var.vPublish=true&var.vSingle=true&markdownup-bare-draw)
-- [markdownUp.bare: elementModel](#var.vPublish=true&var.vSingle=true&markdownup-bare-elementmodel)
-- [markdownUp.bare: localStorage](#var.vPublish=true&var.vSingle=true&markdownup-bare-localstorage)
-- [markdownUp.bare: markdown](#var.vPublish=true&var.vSingle=true&markdownup-bare-markdown)
-- [markdownUp.bare: sessionStorage](#var.vPublish=true&var.vSingle=true&markdownup-bare-sessionstorage)
-- [markdownUp.bare: url](#var.vPublish=true&var.vSingle=true&markdownup-bare-url)
-- [markdownUp.bare: window](#var.vPublish=true&var.vSingle=true&markdownup-bare-window)
 - [math](#var.vPublish=true&var.vSingle=true&math)
 - [number](#var.vPublish=true&var.vSingle=true&number)
 - [object](#var.vPublish=true&var.vSingle=true&object)
@@ -613,27 +609,24 @@ The sorted array
 
 ## baredoc.bare
 
-The "baredoc.bare" include library provides the main entry point for creating BareScript library
-documentation applications. This library is used to generate documentation websites like the
+The "baredoc.bare" include library contains the BareScript library documentation application, baredoc.
+See baredoc in action by visiting the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
 
-To create a documentation application, include the library and call the
-[baredocMain](#var.vGroup='baredoc.bare'&baredoc) function with your library's JSON resource
-URL:
+To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#baredocmain)
+function with your [library model JSON](model.html#var.vName='BaredocLibrary') URL and library name:
 
 ~~~ bare-script
 include <baredoc.bare>
 
-baredocMain( \
-    'my-library.json', \
-    'My Library' \
-)
+baredocMain('my-library.json', 'My Library')
 ~~~
 
-The library JSON resource should contain function and type documentation in the format expected by
-the documentation renderer. You can also provide optional menu links and group content URLs:
+You can add menu links and group content URLs:
 
 ~~~ bare-script
+include <baredoc.bare>
+
 menuLinks = [ \
     ['Home', 'index.html'], \
     ['GitHub', 'https://github.com/example/my-library'] \
@@ -644,12 +637,7 @@ groupURLs = { \
     'myGroup': 'group-content.md' \
 }
 
-baredocMain( \
-    'my-library.json', \
-    'My Library', \
-    menuLinks, \
-    groupURLs \
-)
+baredocMain('my-library.json', 'My Library', menuLinks, groupURLs)
 ~~~
 
 
@@ -680,6 +668,101 @@ Optional map of group name to group Markdown content URL ('' is index) or JSON r
 #### Returns
 
 Nothing
+
+---
+
+## baredocCLI.bare
+
+The "baredocCLI.bare" include library contains the baredoc command-line interface (CLI), baredocCLI.
+baredocCLI is used to generate a [library model JSON file](model.html#var.vName='BaredocLibrary')
+for consumption by the [baredoc application](#var.vGroup='baredoc.bare'&_top).
+
+To output the [library model JSON](model.html#var.vName='BaredocLibrary'), include and execute the
+`baredocCLIMain` function from the command line:
+
+```sh
+bare -m -v vFiles "'[\"test.bare\"]'" -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+```
+
+The baredocCLI input files argument, "vFiles", is the string literal of the JSON-serialized input
+filename array. You can glob the input files argument as follows:
+
+```sh
+bare -m -v 'vFiles' "'`jq -n --args '$ARGS.positional' *.bare`'" -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+```
+
+You can specify an output file by using the output argument, "vOutput":
+
+```sh
+bare -m -v vFiles "'[\"test.bare\"]'" -v vOutput '"test.json"' -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+```
+
+
+## baredoc Comment Syntax
+
+
+baredoc documentation comments begin with the "$" character, followed immediately by a keyword
+("function", "group", "doc", "arg", or "return"), followed by the ":" character, followed by the
+keyword value. The "function" keyword begins every library function definition. For example:
+
+```barescript
+# $function: myFunction
+# $group: My Group
+# $doc: This is my function.
+# $doc:
+# $doc: More on the function.
+# $arg arg1: The first argument
+# $arg arg2: The second argument.
+# $arg arg2:
+# $arg arg2: More on the second argument.
+# $return: The message
+function myFunction(arg1, arg2)
+    message = 'Hello'
+    systemLog(message)
+    return message
+endfunction
+```
+
+
+### Function Index
+
+- [baredocCLIMain](#var.vPublish=true&var.vSingle=true&baredocclimain)
+- [baredocCLIParse](#var.vPublish=true&var.vSingle=true&baredoccliparse)
+
+---
+
+### baredocCLIMain
+
+The BareScript documentation tool main entry point
+
+#### Arguments
+
+None
+
+#### Returns
+
+The exit status code
+
+---
+
+### baredocCLIParse
+
+Parse source code for baredoc documentation comments
+
+#### Arguments
+
+**functions -**
+The map of function name to [function documentation model](model.html#var.vName='BaredocFunction')
+
+**source -**
+The source code string
+
+**filename -**
+The source filename string
+
+#### Returns
+
+The array of errors
 
 ---
 
@@ -749,115 +832,10 @@ The [BareScript expression model](../model/#var.vName='Expression')
 
 ---
 
-## coverage
+## data.bare
 
-Coverage functions provide runtime code coverage tracking for BareScript scripts. These functions
-are primarily used in unit testing to ensure that tests exercise all code paths.
-
-To collect coverage data, start coverage tracking at the beginning of your test suite and stop it
-at the end:
-
-~~~ bare-script
-include <unittest.bare>
-
-# Start coverage tracking
-coverageStart()
-
-# Run your tests
-include 'test1.bare'
-include 'test2.bare'
-
-# Stop coverage tracking
-coverageStop()
-
-# Generate report with minimum coverage requirement
-return unittestReport({'coverageMin': 80})
-~~~
-
-The coverage system tracks which statements in your scripts have been executed. The coverage data is
-stored in a global variable that can be accessed using
-[coverageGlobalGet](#var.vGroup='coverage'&coverageglobalget):
-
-~~~ bare-script
-coverageData = coverageGlobalGet()
-~~~
-
-Coverage data is automatically used by the [unittest.bare](#var.vGroup='unittest.bare') library to
-generate coverage reports showing which lines of code were executed during testing.
-
-
-### Function Index
-
-- [coverageGlobalGet](#var.vPublish=true&var.vSingle=true&coverageglobalget)
-- [coverageGlobalName](#var.vPublish=true&var.vSingle=true&coverageglobalname)
-- [coverageStart](#var.vPublish=true&var.vSingle=true&coveragestart)
-- [coverageStop](#var.vPublish=true&var.vSingle=true&coveragestop)
-
----
-
-### coverageGlobalGet
-
-Get the coverage global object
-
-#### Arguments
-
-None
-
-#### Returns
-
-The [coverage global object](https://craigahobbs.github.io/bare-script/model/#var.vName='CoverageGlobal')
-
----
-
-### coverageGlobalName
-
-Get the coverage global variable name
-
-#### Arguments
-
-None
-
-#### Returns
-
-The coverage global variable name
-
----
-
-### coverageStart
-
-Start coverage data collection
-
-#### Arguments
-
-None
-
-#### Returns
-
-Nothing
-
----
-
-### coverageStop
-
-Stop coverage data collection
-
-#### Arguments
-
-None
-
-#### Returns
-
-Nothing
-
----
-
-## data
-
-Data functions provide operations for manipulating and analyzing arrays of data objects (also known
-as data tables or datasets). These functions enable filtering, sorting, aggregating, joining, and
-transforming tabular data.
-
-A data array is an array of objects where each object represents a row:
+The "data.bare" include library contains functions for manipulating and analyzing data arrays. A
+data array is an array of objects where each object represents a row:
 
 ~~~ bare-script
 data = [ \
@@ -870,6 +848,8 @@ data = [ \
 You can filter data using expressions:
 
 ~~~ bare-script
+include <data.bare>
+
 # Filter for people over 25 in New York
 filtered = dataFilter(data, 'age > 25 && city == "New York"')
 ~~~
@@ -942,7 +922,7 @@ Aggregate a data array
 The data array
 
 **aggregation -**
-The [aggregation model](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='Aggregation')
+The [aggregation model](model.html#var.vName='DataAggregation')
 
 #### Returns
 
@@ -1008,11 +988,11 @@ The left data array
 The right data array
 
 **joinExpr -**
-The [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)
+The join expression
 
 **rightExpr -**
 Optional (default is null).
-The right [join expression](https://craigahobbs.github.io/bare-script/language/#expressions)
+The right join expression
 
 **isLeftJoin -**
 Optional (default is false). If true, perform a left join (always include left row).
@@ -1032,7 +1012,7 @@ Parse CSV text to a data array
 
 #### Arguments
 
-**text... -**
+**text -**
 The CSV text
 
 #### Returns
@@ -1094,7 +1074,143 @@ Optional (default is false). If true, parse value strings.
 
 #### Returns
 
-The validated data array
+The map of field name to field type, or null if the data is invalid
+
+---
+
+## dataLineChart.bare
+
+The "dataLineChart.bare" include library provides functions for rendering line charts from data arrays.
+
+To render a line chart, use the [dataLineChart](#var.vGroup='dataLineChart.bare'&datalinechart)
+function with a data array and a [line chart model](model.html#var.vName='DataLineChart'):
+
+~~~ bare-script
+include <dataLineChart.bare>
+
+data = [ \
+    {'month': 1, 'sales': 120, 'costs': 80}, \
+    {'month': 2, 'sales': 150, 'costs': 90}, \
+    {'month': 3, 'sales': 130, 'costs': 85}, \
+    {'month': 4, 'sales': 170, 'costs': 95} \
+]
+
+dataLineChart(data, { \
+    'title': 'Monthly Sales vs Costs', \
+    'width': 800, \
+    'height': 400, \
+    'x': 'month', \
+    'y': ['sales', 'costs'] \
+})
+~~~
+
+You can customize axis tick marks, annotations, and the chart dimensions:
+
+~~~ bare-script
+dataLineChart(data, { \
+    'title': 'Sales Trend', \
+    'x': 'month', \
+    'y': ['sales'], \
+    'yTicks': {'count': 5}, \
+    'yLines': [{'value': 140, 'label': 'Target'}] \
+})
+~~~
+
+You can use a color encoding field to group lines by a category:
+
+~~~ bare-script
+data = [ \
+    {'month': 1, 'sales': 120, 'region': 'East'}, \
+    {'month': 1, 'sales': 95, 'region': 'West'}, \
+    {'month': 2, 'sales': 150, 'region': 'East'}, \
+    {'month': 2, 'sales': 110, 'region': 'West'} \
+]
+
+dataLineChart(data, { \
+    'x': 'month', \
+    'y': ['sales'], \
+    'color': 'region' \
+})
+~~~
+
+To obtain the line chart SVG
+[element model](https://github.com/craigahobbs/element-model#readme)
+instead of rendering directly, use the
+[dataLineChartElements](#var.vGroup='dataLineChart.bare'&datalinechartelements) function.
+
+~~~ bare-script
+elementModelRender(dataLineChartElements(data, { \
+    'x': 'month', \
+    'y': ['sales'], \
+    'color': 'region' \
+}))
+~~~
+
+
+### Function Index
+
+- [dataLineChart](#var.vPublish=true&var.vSingle=true&datalinechart)
+- [dataLineChartElements](#var.vPublish=true&var.vSingle=true&datalinechartelements)
+- [dataLineChartValidate](#var.vPublish=true&var.vSingle=true&datalinechartvalidate)
+
+---
+
+### dataLineChart
+
+Render a line chart
+
+#### Arguments
+
+**data -**
+The data array
+
+**lineChart -**
+The [line chart model](model.html#var.vName='DataLineChart')
+
+**options -**
+Optional (default is null). The line chart options object with the following optional members:
+- **fontSize** - The font size, in points
+
+#### Returns
+
+Nothing
+
+---
+
+### dataLineChartElements
+
+Render a line chart as an element model
+
+#### Arguments
+
+**data -**
+The data array
+
+**lineChart -**
+The [line chart model](model.html#var.vName='DataLineChart')
+
+**options -**
+Optional (default is null). The line chart options object with the following optional members:
+- **fontSize** - The font size, in points
+
+#### Returns
+
+The line chart [element model](https://github.com/craigahobbs/element-model#readme)
+
+---
+
+### dataLineChartValidate
+
+Validate a line chart model
+
+#### Arguments
+
+**lineChart -**
+The [line chart model](model.html#var.vName='DataLineChart')
+
+#### Returns
+
+The validated [line chart model](model.html#var.vName='DataLineChart')
 
 ---
 
@@ -1135,7 +1251,46 @@ markdownPrint(dataTableMarkdown(data))
 
 ### Function Index
 
+- [dataTable](#var.vPublish=true&var.vSingle=true&datatable)
+- [dataTableElements](#var.vPublish=true&var.vSingle=true&datatableelements)
 - [dataTableMarkdown](#var.vPublish=true&var.vSingle=true&datatablemarkdown)
+- [dataTableValidate](#var.vPublish=true&var.vSingle=true&datatablevalidate)
+
+---
+
+### dataTable
+
+Render a data table
+
+#### Arguments
+
+**data -**
+The data array
+
+**dataTable -**
+Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+
+#### Returns
+
+Nothing
+
+---
+
+### dataTableElements
+
+Render a data table
+
+#### Arguments
+
+**data -**
+The data array
+
+**dataTable -**
+Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+
+#### Returns
+
+The data table [element model](https://github.com/craigahobbs/element-model#readme)
 
 ---
 
@@ -1154,6 +1309,21 @@ The [data table model](model.html#var.vName='DataTable')
 #### Returns
 
 The array of Markdown table line strings
+
+---
+
+### dataTableValidate
+
+Validate a data table model
+
+#### Arguments
+
+**dataTable -**
+The [data table model](model.html#var.vName='DataTable')
+
+#### Returns
+
+The validated [data table model](model.html#var.vName='DataTable')
 
 ---
 
@@ -1486,6 +1656,542 @@ The array of [difference models](model.html#var.vName='Differences')
 
 ---
 
+## draw.bare
+
+The "draw.bare" include library contains functions for creating vector graphics drawings. These
+functions provide a programmatic way to draw shapes, lines, text, and images using SVG.
+
+Create a new drawing and draw basic shapes:
+
+~~~ bare-script
+include <draw.bare>
+
+# Create a new drawing and fill the background
+drawNew(400, 300)
+drawStyle('none', 0, 'white')
+drawRect(0, 0, drawWidth(), drawHeight())
+
+# Draw a rectangle, circle, and ellipse
+drawStyle('black', 2, 'blue')
+drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.2 * drawWidth(), 0.2 * drawHeight())
+drawStyle('black', 2, 'red')
+drawCircle(0.3 * drawWidth(), 0.6 * drawHeight(), 0.1 * drawWidth())
+drawStyle('black', 2, 'green')
+drawEllipse(0.7 * drawWidth(), 0.4 * drawHeight(), 0.2 * drawWidth(), 0.1 * drawHeight())
+
+# Render the drawing
+drawRender()
+~~~
+
+Draw paths with lines and curves:
+
+~~~ bare-script
+drawStyle('black', 4, '#cc222280')
+drawMove(0.7 * drawWidth(), 0.7 * drawHeight())
+drawLine(0.9 * drawWidth(), 0.7 * drawHeight())
+drawLine(0.9 * drawWidth(), 0.9 * drawHeight())
+drawClose()
+~~~
+
+Draw text:
+
+~~~ bare-script
+drawTextStyle(0.1 * drawHeight(), 'black', true)
+drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
+~~~
+
+Draw images:
+
+~~~ bare-script
+drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
+~~~
+
+Add click handlers to drawing objects:
+
+~~~ bare-script
+function myClickHandler():
+    systemLog('Click!')
+endfunction
+
+drawStyle('black', 2, 'gray')
+drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.1 * drawWidth(), 0.1 * drawHeight())
+drawOnClick(myClickHandler)
+~~~
+
+
+### Function Index
+
+- [drawArc](#var.vPublish=true&var.vSingle=true&drawarc)
+- [drawCircle](#var.vPublish=true&var.vSingle=true&drawcircle)
+- [drawClose](#var.vPublish=true&var.vSingle=true&drawclose)
+- [drawElements](#var.vPublish=true&var.vSingle=true&drawelements)
+- [drawEllipse](#var.vPublish=true&var.vSingle=true&drawellipse)
+- [drawHLine](#var.vPublish=true&var.vSingle=true&drawhline)
+- [drawHeight](#var.vPublish=true&var.vSingle=true&drawheight)
+- [drawImage](#var.vPublish=true&var.vSingle=true&drawimage)
+- [drawLine](#var.vPublish=true&var.vSingle=true&drawline)
+- [drawMove](#var.vPublish=true&var.vSingle=true&drawmove)
+- [drawNew](#var.vPublish=true&var.vSingle=true&drawnew)
+- [drawOnClick](#var.vPublish=true&var.vSingle=true&drawonclick)
+- [drawPathRect](#var.vPublish=true&var.vSingle=true&drawpathrect)
+- [drawRect](#var.vPublish=true&var.vSingle=true&drawrect)
+- [drawRender](#var.vPublish=true&var.vSingle=true&drawrender)
+- [drawStyle](#var.vPublish=true&var.vSingle=true&drawstyle)
+- [drawText](#var.vPublish=true&var.vSingle=true&drawtext)
+- [drawTextHeight](#var.vPublish=true&var.vSingle=true&drawtextheight)
+- [drawTextStyle](#var.vPublish=true&var.vSingle=true&drawtextstyle)
+- [drawTextWidth](#var.vPublish=true&var.vSingle=true&drawtextwidth)
+- [drawVLine](#var.vPublish=true&var.vSingle=true&drawvline)
+- [drawWidth](#var.vPublish=true&var.vSingle=true&drawwidth)
+
+---
+
+### drawArc
+
+Draw an arc curve from the current point to the end point
+
+#### Arguments
+
+**rx -**
+The arc ellipse's x-radius
+
+**ry -**
+The arc ellipse's y-radius
+
+**angle -**
+The rotation (in degrees) of the ellipse relative to the x-axis
+
+**largeArcFlag -**
+Either large arc (1) or small arc (0)
+
+**sweepFlag -**
+Either clockwise turning arc (1) or counterclockwise turning arc (0)
+
+**x -**
+The x-coordinate of the end point
+
+**y -**
+The y-coordinate of the end point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawCircle
+
+Draw a circle
+
+#### Arguments
+
+**cx -**
+The x-coordinate of the center of the circle
+
+**cy -**
+The y-coordinate of the center of the circle
+
+**r -**
+The radius of the circle
+
+#### Returns
+
+Nothing
+
+---
+
+### drawClose
+
+Close the current drawing path
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### drawElements
+
+Get the current drawing's SVG element model
+
+#### Arguments
+
+None
+
+#### Returns
+
+The current drawing's SVG element model
+
+---
+
+### drawEllipse
+
+Draw an ellipse
+
+#### Arguments
+
+**cx -**
+The x-coordinate of the center of the ellipse
+
+**cy -**
+The y-coordinate of the center of the ellipse
+
+**rx -**
+The x-radius of the ellipse
+
+**ry -**
+The y-radius of the ellipse
+
+#### Returns
+
+Nothing
+
+---
+
+### drawHLine
+
+Draw a horizontal line from the current point to the end point
+
+#### Arguments
+
+**x -**
+The x-coordinate of the end point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawHeight
+
+Get the current drawing's height
+
+#### Arguments
+
+None
+
+#### Returns
+
+The current drawing's height
+
+---
+
+### drawImage
+
+Draw an image
+
+#### Arguments
+
+**x -**
+The x-coordinate of the center of the image
+
+**y -**
+The y-coordinate of the center of the image
+
+**width -**
+The width of the image
+
+**height -**
+The height of the image
+
+**href -**
+The image resource URL
+
+#### Returns
+
+Nothing
+
+---
+
+### drawLine
+
+Draw a line from the current point to the end point
+
+#### Arguments
+
+**x -**
+The x-coordinate of the end point
+
+**y -**
+The y-coordinate of the end point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawMove
+
+Move the path's drawing point
+
+#### Arguments
+
+**x -**
+The x-coordinate of the new drawing point
+
+**y -**
+The y-coordinate of the new drawing point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawNew
+
+Create a new drawing
+
+#### Arguments
+
+**width -**
+The width of the drawing
+
+**height -**
+The height of the drawing
+
+#### Returns
+
+Nothing
+
+---
+
+### drawOnClick
+
+Set the most recent drawing object's on-click event handler
+
+#### Arguments
+
+**callback -**
+The on-click event callback function (x, y)
+
+#### Returns
+
+Nothing
+
+---
+
+### drawPathRect
+
+Draw a rectangle as a path
+
+#### Arguments
+
+**x -**
+The x-coordinate of the top-left of the rectangle
+
+**y -**
+The y-coordinate of the top-left of the rectangle
+
+**width -**
+The width of the rectangle
+
+**height -**
+The height of the rectangle
+
+#### Returns
+
+Nothing
+
+---
+
+### drawRect
+
+Draw a rectangle
+
+#### Arguments
+
+**x -**
+The x-coordinate of the top-left of the rectangle
+
+**y -**
+The y-coordinate of the top-left of the rectangle
+
+**width -**
+The width of the rectangle
+
+**height -**
+The height of the rectangle
+
+**rx -**
+Optional (default is null). The horizontal corner radius of the rectangle.
+
+**ry -**
+Optional (default is null). The vertical corner radius of the rectangle.
+
+#### Returns
+
+Nothing
+
+---
+
+### drawRender
+
+Render the current drawing
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### drawStyle
+
+Set the current drawing styles
+
+#### Arguments
+
+**stroke -**
+Optional (default is 'black'). The stroke color.
+
+**strokeWidth -**
+Optional (default is 1). The stroke width.
+
+**fill -**
+Optional (default is 'none'). The fill color.
+
+**strokeDashArray -**
+Optional (default is 'none'). The stroke
+[dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
+
+#### Returns
+
+Nothing
+
+---
+
+### drawText
+
+Draw text
+
+#### Arguments
+
+**text -**
+The text to draw
+
+**x -**
+The x-coordinate of the text
+
+**y -**
+The y-coordinate of the text
+
+**textAnchor -**
+Optional (default is 'middle'). The
+[text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
+
+**dominantBaseline -**
+Optional (default is 'middle'). The
+[dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
+style.
+
+#### Returns
+
+Nothing
+
+---
+
+### drawTextHeight
+
+Compute the text's height to fit the width
+
+#### Arguments
+
+**text -**
+The text
+
+**width -**
+The width of the text. If 0, the current font size (in pixels) is returned.
+
+#### Returns
+
+The text's height, in pixels
+
+---
+
+### drawTextStyle
+
+Set the current text drawing styles
+
+#### Arguments
+
+**fontSizePx -**
+Optional (default is null, the default font size). The text font size, in pixels.
+
+**textFill -**
+Optional (default is 'black'). The text fill color.
+
+**bold -**
+Optional (default is false). If true, text is bold.
+
+**italic -**
+Optional (default is false). If true, text is italic.
+
+**fontFamily -**
+Optional (default is null, the default font family). The text font family.
+
+#### Returns
+
+Nothing
+
+---
+
+### drawTextWidth
+
+Compute the text's width
+
+#### Arguments
+
+**text -**
+The text
+
+**fontSizePx -**
+The text font size, in pixels
+
+#### Returns
+
+The text's width, in pixels
+
+---
+
+### drawVLine
+
+Draw a vertical line from the current point to the end point
+
+#### Arguments
+
+**y -**
+The y-coordinate of the end point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawWidth
+
+Get the current drawing's width
+
+#### Arguments
+
+None
+
+#### Returns
+
+The current drawing's width
+
+---
+
 ## elementModel.bare
 
 The "elementModel.bare" include library contains functions for validating and rendering
@@ -1763,6 +2469,250 @@ The JSON string
 
 ---
 
+## markdown.bare
+
+The "markdown.bare" include library contains utility functions for working with Markdown text and
+[Markdown models](model.html#var.vName='Markdown'). These functions are useful for escaping text,
+generating header IDs, and extracting information from parsed Markdown content.
+
+Escape special Markdown characters in a string before including it in Markdown output:
+
+~~~ bare-script
+include <markdown.bare>
+
+title = 'Hello & "World" <Test>'
+markdownPrint('# ' + markdownEscape(title))
+~~~
+
+Generate a Markdown header anchor ID from a heading string. This produces the same ID that
+[markdownElements.bare](#var.vGroup='markdownElements.bare'&_top) generates for headers:
+
+~~~ bare-script
+headerId = markdownHeaderId('My Section Title')
+# headerId => 'my-section-title'
+~~~
+
+Extract the title (first heading) from a parsed Markdown model:
+
+~~~ bare-script
+include <markdownParser.bare>
+
+markdown = markdownParse('# My Page Title', '', 'Some content.')
+title = markdownTitle(markdown)
+# title => 'My Page Title'
+~~~
+
+
+### Function Index
+
+- [markdownEscape](#var.vPublish=true&var.vSingle=true&markdownescape)
+- [markdownHeaderId](#var.vPublish=true&var.vSingle=true&markdownheaderid)
+- [markdownParagraphText](#var.vPublish=true&var.vSingle=true&markdownparagraphtext)
+- [markdownTitle](#var.vPublish=true&var.vSingle=true&markdowntitle)
+- [markdownValidate](#var.vPublish=true&var.vSingle=true&markdownvalidate)
+
+---
+
+### markdownEscape
+
+Escape a string for inclusion in Markdown text
+
+#### Arguments
+
+**text -**
+The text to escape
+
+#### Returns
+
+The escaped text
+
+---
+
+### markdownHeaderId
+
+Generate a Markdown header ID from text
+
+#### Arguments
+
+**text -**
+The text
+
+#### Returns
+
+The header element ID
+
+---
+
+### markdownParagraphText
+
+Get a Markdown paragraph model's text
+
+#### Arguments
+
+**paragraph -**
+The Markdown paragraph model
+
+#### Returns
+
+The paragraph text string
+
+---
+
+### markdownTitle
+
+Get a Markdown model's title
+
+#### Arguments
+
+**markdown -**
+The Markdown model
+
+#### Returns
+
+The title string or null
+
+---
+
+### markdownValidate
+
+Validate a Markdown model
+
+#### Arguments
+
+**markdown -**
+The [Markdown model](model.html#var.vName='Markdown')
+
+#### Returns
+
+The validated [Markdown model](model.html#var.vName='Markdown')
+
+---
+
+## markdownElements.bare
+
+The "markdownElements.bare" include library provides functions for converting a parsed
+[Markdown model](model.html#var.vName='Markdown') into an
+[element model](https://github.com/craigahobbs/element-model#readme) for rendering.
+
+To render Markdown content as HTML elements, first parse the Markdown text with
+[markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), then generate the element model:
+
+~~~ bare-script
+include <markdownParser.bare>
+include <markdownElements.bare>
+
+markdown = markdownParse('# Hello, World!', '', 'This is a paragraph with **bold** text.')
+elements = markdownElements(markdown)
+elementModelRender(elements)
+~~~
+
+For applications that include asynchronous code block renderers, use the
+[markdownElementsAsync](#var.vGroup='markdownElements.bare'&markdownelementsasync) function instead.
+
+
+### Function Index
+
+- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
+- [markdownElementsAsync](#var.vPublish=true&var.vSingle=true&markdownelementsasync)
+
+---
+
+### markdownElements
+
+Generate an element model from a Markdown model
+
+#### Arguments
+
+**markdown -**
+The [Markdown model](model.html#var.vName='Markdown')
+
+**options -**
+Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+
+#### Returns
+
+The Markdown's [element model](https://github.com/craigahobbs/element-model#readme)
+
+---
+
+### markdownElementsAsync
+
+Generate an element model from a Markdown model
+
+#### Arguments
+
+**markdown -**
+The [Markdown model](model.html#var.vName='Markdown')
+
+**options -**
+Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+
+#### Returns
+
+The Markdown's [element model](https://github.com/craigahobbs/element-model#readme)
+
+---
+
+## markdownParser.bare
+
+The "markdownParser.bare" include library provides functions for parsing Markdown text.
+
+To parse a Markdown string into a [Markdown model](model.html#var.vName='Markdown'):
+
+~~~ bare-script
+include <markdownParser.bare>
+
+markdown = markdownParse('# Hello, World!', '', 'This is a paragraph.')
+~~~
+
+You can pass multiple strings or arrays of strings — they are joined as lines of Markdown text:
+
+~~~ bare-script
+lines = ['## Section', '', '- Item 1', '- Item 2']
+markdown = markdownParse(lines)
+~~~
+
+The parsed model can be rendered using the
+[markdownElements](#var.vGroup='markdownElements.bare'&markdownelements) function:
+
+~~~ bare-script
+include <markdownElements.bare>
+
+elements = markdownElements(markdown)
+elementModelRender(elements)
+~~~
+
+To determine the title of a parsed [Markdown model](model.html#var.vName='Markdown'), use the
+[markdownTitle](#var.vGroup='markdown.bare'&markdowntitle) function:
+
+~~~ bare-script
+include <markdown.bare>
+
+title = markdownTitle(markdown)
+~~~
+
+
+### Function Index
+
+- [markdownParse](#var.vPublish=true&var.vSingle=true&markdownparse)
+
+---
+
+### markdownParse
+
+Parse Markdown text into a Markdown model
+
+#### Arguments
+
+**lines... -**
+The Markdown text lines (may contain nested arrays of un-split lines)
+
+#### Returns
+
+The [Markdown model](model.html#var.vName='Markdown')
+
+---
+
 ## markdownUp.bare
 
 `markdownUp.bare` contains implementations of the
@@ -1826,158 +2776,6 @@ $ bare -m app.bare
 ~~~
 
 
----
-
-## markdownUp.bare: data
-
-The "markdownUp.bare: data" section contains functions for visualizing data in MarkdownUp
-applications. These functions integrate with the data manipulation functions to create charts and
-tables.
-
-Draw a data table:
-
-~~~ bare-script
-data = [ \
-    {'product': 'Widget', 'sales': 1000, 'profit': 250}, \
-    {'product': 'Gadget', 'sales': 1500, 'profit': 400}, \
-    {'product': 'Doohickey', 'sales': 800, 'profit': 150} \
-]
-
-tableModel = { \
-    'fields': ['product', 'sales', 'profit'], \
-    'formats': { \
-        'sales': {'align': 'right'}, \
-        'profit': {'align': 'right'} \
-    } \
-}
-
-dataTable(data, tableModel)
-~~~
-
-Draw a line chart:
-
-~~~ bare-script
-chartData = [ \
-    {'month': 1, 'revenue': 10000, 'costs': 7000}, \
-    {'month': 2, 'revenue': 12000, 'costs': 7500}, \
-    {'month': 3, 'revenue': 15000, 'costs': 8000} \
-]
-
-chartModel = { \
-    'x': 'month', \
-    'y': ['revenue', 'costs'], \
-    'title': 'Monthly Revenue and Costs' \
-}
-
-dataLineChart(chartData, chartModel)
-~~~
-
-These functions render visualizations directly into the MarkdownUp document, making it easy to
-create data-driven reports and dashboards.
-
-
-### Function Index
-
-- [dataLineChart](#var.vPublish=true&var.vSingle=true&datalinechart)
-- [dataTable](#var.vPublish=true&var.vSingle=true&datatable)
-
----
-
-### dataLineChart
-
-Draw a line chart
-
-#### Arguments
-
-**data -**
-The data array
-
-**lineChart -**
-The [line chart model](model.html#var.vName='LineChart')
-
-#### Returns
-
-Nothing
-
----
-
-### dataTable
-
-Draw a data table
-
-#### Arguments
-
-**data -**
-The data array
-
-**dataTable -**
-Optional (default is null). The [data table model](model.html#var.vName='DataTable').
-
-#### Returns
-
-Nothing
-
----
-
-## markdownUp.bare: document
-
-The "markdownUp.bare: document" section contains functions for interacting with the document and
-browser DOM. These functions allow you to manipulate the document title, get input values, set
-focus, and handle keyboard events.
-
-Set the document title:
-
-~~~ bare-script
-documentSetTitle('My Application')
-~~~
-
-Get the value of an input element:
-
-~~~ bare-script
-value = documentInputValue('myInput')
-~~~
-
-Set focus to an element:
-
-~~~ bare-script
-documentSetFocus('myInput')
-~~~
-
-Set a keyboard event handler:
-
-~~~ bare-script
-function myAppMain():
-    markdownPrint('Press any key...')
-    documentSetKeyDown(myAppOnKeyDown)
-endfunction
-
-function myAppOnKeyDown(event):
-    key = objectGet(event, 'key')
-    markdownPrint('You pressed: ' + key)
-endfunction
-
-myAppMain()
-~~~
-
-Get the document font size:
-
-~~~ bare-script
-fontSize = documentFontSize()
-~~~
-
-Get the document-relative URL:
-
-~~~ bare-script
-url = documentURL('path/to/resource')
-~~~
-
-Set the document reset element (the element to focus when the page resets):
-
-~~~ bare-script
-documentSetReset('myResetID')
-~~~
-
-
 ### Function Index
 
 - [documentFontSize](#var.vPublish=true&var.vSingle=true&documentfontsize)
@@ -1987,6 +2785,24 @@ documentSetReset('myResetID')
 - [documentSetReset](#var.vPublish=true&var.vSingle=true&documentsetreset)
 - [documentSetTitle](#var.vPublish=true&var.vSingle=true&documentsettitle)
 - [documentURL](#var.vPublish=true&var.vSingle=true&documenturl)
+- [elementModelRender](#var.vPublish=true&var.vSingle=true&elementmodelrender)
+- [localStorageClear](#var.vPublish=true&var.vSingle=true&localstorageclear)
+- [localStorageGet](#var.vPublish=true&var.vSingle=true&localstorageget)
+- [localStorageRemove](#var.vPublish=true&var.vSingle=true&localstorageremove)
+- [localStorageSet](#var.vPublish=true&var.vSingle=true&localstorageset)
+- [markdownPrint](#var.vPublish=true&var.vSingle=true&markdownprint)
+- [sessionStorageClear](#var.vPublish=true&var.vSingle=true&sessionstorageclear)
+- [sessionStorageGet](#var.vPublish=true&var.vSingle=true&sessionstorageget)
+- [sessionStorageRemove](#var.vPublish=true&var.vSingle=true&sessionstorageremove)
+- [sessionStorageSet](#var.vPublish=true&var.vSingle=true&sessionstorageset)
+- [windowClipboardRead](#var.vPublish=true&var.vSingle=true&windowclipboardread)
+- [windowClipboardWrite](#var.vPublish=true&var.vSingle=true&windowclipboardwrite)
+- [windowHeight](#var.vPublish=true&var.vSingle=true&windowheight)
+- [windowSetLocation](#var.vPublish=true&var.vSingle=true&windowsetlocation)
+- [windowSetResize](#var.vPublish=true&var.vSingle=true&windowsetresize)
+- [windowSetTimeout](#var.vPublish=true&var.vSingle=true&windowsettimeout)
+- [windowURLObject](#var.vPublish=true&var.vSingle=true&windowurlobject)
+- [windowWidth](#var.vPublish=true&var.vSingle=true&windowwidth)
 
 ---
 
@@ -2126,563 +2942,6 @@ The fixed-up URL
 
 ---
 
-## markdownUp.bare: draw
-
-The "markdownUp.bare: draw" section contains functions for creating vector graphics drawings. These
-functions provide a programmatic way to draw shapes, lines, text, and images using SVG.
-
-Create a new drawing and draw basic shapes:
-
-~~~ bare-script
-drawNew(400, 300)
-
-# Fill the background
-drawStyle('none', 0, 'white')
-drawRect(0, 0, drawWidth(), drawHeight())
-
-# Draw a rectangle
-drawStyle('black', 2, 'blue')
-drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.2 * drawWidth(), 0.2 * drawHeight())
-
-# Draw a circle
-drawStyle('black', 2, 'red')
-drawCircle(0.3 * drawWidth(), 0.6 * drawHeight(), 0.1 * drawWidth())
-
-# Draw an ellipse
-drawStyle('black', 2, 'green')
-drawEllipse(0.7 * drawWidth(), 0.4 * drawHeight(), 0.2 * drawWidth(), 0.1 * drawHeight())
-~~~
-
-Draw paths with lines and curves:
-
-~~~ bare-script
-drawStyle('black', 4, '#cc222280')
-drawMove(0.7 * drawWidth(), 0.7 * drawHeight())
-drawLine(0.9 * drawWidth(), 0.7 * drawHeight())
-drawLine(0.9 * drawWidth(), 0.9 * drawHeight())
-drawClose()
-~~~
-
-Draw text:
-
-~~~ bare-script
-drawTextStyle(0.1 * drawHeight(), 'black', true)
-drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
-~~~
-
-Draw images:
-
-~~~ bare-script
-drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
-~~~
-
-Add click handlers to drawing objects:
-
-~~~ bare-script
-function myClickHandler():
-    systemLog('Click!')
-endfunction
-
-drawStyle('black', 2, 'gray')
-drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.1 * drawWidth(), 0.1 * drawHeight())
-drawOnClick(myClickHandler)
-~~~
-
-
-### Function Index
-
-- [drawArc](#var.vPublish=true&var.vSingle=true&drawarc)
-- [drawCircle](#var.vPublish=true&var.vSingle=true&drawcircle)
-- [drawClose](#var.vPublish=true&var.vSingle=true&drawclose)
-- [drawEllipse](#var.vPublish=true&var.vSingle=true&drawellipse)
-- [drawHLine](#var.vPublish=true&var.vSingle=true&drawhline)
-- [drawHeight](#var.vPublish=true&var.vSingle=true&drawheight)
-- [drawImage](#var.vPublish=true&var.vSingle=true&drawimage)
-- [drawLine](#var.vPublish=true&var.vSingle=true&drawline)
-- [drawMove](#var.vPublish=true&var.vSingle=true&drawmove)
-- [drawNew](#var.vPublish=true&var.vSingle=true&drawnew)
-- [drawOnClick](#var.vPublish=true&var.vSingle=true&drawonclick)
-- [drawPathRect](#var.vPublish=true&var.vSingle=true&drawpathrect)
-- [drawRect](#var.vPublish=true&var.vSingle=true&drawrect)
-- [drawStyle](#var.vPublish=true&var.vSingle=true&drawstyle)
-- [drawText](#var.vPublish=true&var.vSingle=true&drawtext)
-- [drawTextHeight](#var.vPublish=true&var.vSingle=true&drawtextheight)
-- [drawTextStyle](#var.vPublish=true&var.vSingle=true&drawtextstyle)
-- [drawTextWidth](#var.vPublish=true&var.vSingle=true&drawtextwidth)
-- [drawVLine](#var.vPublish=true&var.vSingle=true&drawvline)
-- [drawWidth](#var.vPublish=true&var.vSingle=true&drawwidth)
-
----
-
-### drawArc
-
-Draw an arc curve from the current point to the end point
-
-#### Arguments
-
-**rx -**
-The arc ellipse's x-radius
-
-**ry -**
-The arc ellipse's y-radius
-
-**angle -**
-The rotation (in degrees) of the ellipse relative to the x-axis
-
-**largeArcFlag -**
-Either large arc (1) or small arc (0)
-
-**sweepFlag -**
-Either clockwise turning arc (1) or counterclockwise turning arc (0)
-
-**x -**
-The x-coordinate of the end point
-
-**y -**
-The y-coordinate of the end point
-
-#### Returns
-
-Nothing
-
----
-
-### drawCircle
-
-Draw a circle
-
-#### Arguments
-
-**cx -**
-The x-coordinate of the center of the circle
-
-**cy -**
-The y-coordinate of the center of the circle
-
-**r -**
-The radius of the circle
-
-#### Returns
-
-Nothing
-
----
-
-### drawClose
-
-Close the current drawing path
-
-#### Arguments
-
-None
-
-#### Returns
-
-Nothing
-
----
-
-### drawEllipse
-
-Draw an ellipse
-
-#### Arguments
-
-**cx -**
-The x-coordinate of the center of the ellipse
-
-**cy -**
-The y-coordinate of the center of the ellipse
-
-**rx -**
-The x-radius of the ellipse
-
-**ry -**
-The y-radius of the ellipse
-
-#### Returns
-
-Nothing
-
----
-
-### drawHLine
-
-Draw a horizontal line from the current point to the end point
-
-#### Arguments
-
-**x -**
-The x-coordinate of the end point
-
-#### Returns
-
-Nothing
-
----
-
-### drawHeight
-
-Get the current drawing's height
-
-#### Arguments
-
-None
-
-#### Returns
-
-The current drawing's height
-
----
-
-### drawImage
-
-Draw an image
-
-#### Arguments
-
-**x -**
-The x-coordinate of the center of the image
-
-**y -**
-The y-coordinate of the center of the image
-
-**width -**
-The width of the image
-
-**height -**
-The height of the image
-
-**href -**
-The image resource URL
-
-#### Returns
-
-Nothing
-
----
-
-### drawLine
-
-Draw a line from the current point to the end point
-
-#### Arguments
-
-**x -**
-The x-coordinate of the end point
-
-**y -**
-The y-coordinate of the end point
-
-#### Returns
-
-Nothing
-
----
-
-### drawMove
-
-Move the path's drawing point
-
-#### Arguments
-
-**x -**
-The x-coordinate of the new drawing point
-
-**y -**
-The y-coordinate of the new drawing point
-
-#### Returns
-
-Nothing
-
----
-
-### drawNew
-
-Create a new drawing
-
-#### Arguments
-
-**width -**
-The width of the drawing
-
-**height -**
-The height of the drawing
-
-#### Returns
-
-Nothing
-
----
-
-### drawOnClick
-
-Set the most recent drawing object's on-click event handler
-
-#### Arguments
-
-**callback -**
-The on-click event callback function (x, y)
-
-#### Returns
-
-Nothing
-
----
-
-### drawPathRect
-
-Draw a rectangle as a path
-
-#### Arguments
-
-**x -**
-The x-coordinate of the top-left of the rectangle
-
-**y -**
-The y-coordinate of the top-left of the rectangle
-
-**width -**
-The width of the rectangle
-
-**height -**
-The height of the rectangle
-
-#### Returns
-
-Nothing
-
----
-
-### drawRect
-
-Draw a rectangle
-
-#### Arguments
-
-**x -**
-The x-coordinate of the top-left of the rectangle
-
-**y -**
-The y-coordinate of the top-left of the rectangle
-
-**width -**
-The width of the rectangle
-
-**height -**
-The height of the rectangle
-
-**rx -**
-Optional (default is null). The horizontal corner radius of the rectangle.
-
-**ry -**
-Optional (default is null). The vertical corner radius of the rectangle.
-
-#### Returns
-
-Nothing
-
----
-
-### drawStyle
-
-Set the current drawing styles
-
-#### Arguments
-
-**stroke -**
-Optional (default is 'black'). The stroke color.
-
-**strokeWidth -**
-Optional (default is 1). The stroke width.
-
-**fill -**
-Optional (default is 'none'). The fill color.
-
-**strokeDashArray -**
-Optional (default is 'none'). The stroke
-[dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
-
-#### Returns
-
-Nothing
-
----
-
-### drawText
-
-Draw text
-
-#### Arguments
-
-**text -**
-The text to draw
-
-**x -**
-The x-coordinate of the text
-
-**y -**
-The y-coordinate of the text
-
-**textAnchor -**
-Optional (default is 'middle'). The
-[text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
-
-**dominantBaseline -**
-Optional (default is 'middle'). The
-[dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
-style.
-
-#### Returns
-
-Nothing
-
----
-
-### drawTextHeight
-
-Compute the text's height to fit the width
-
-#### Arguments
-
-**text -**
-The text
-
-**width -**
-The width of the text. If 0, the default font size (in pixels) is returned.
-
-#### Returns
-
-The text's height, in pixels
-
----
-
-### drawTextStyle
-
-Set the current text drawing styles
-
-#### Arguments
-
-**fontSizePx -**
-Optional (default is null, the default font size). The text font size, in pixels.
-
-**textFill -**
-Optional (default is 'black'). The text fill color.
-
-**bold -**
-Optional (default is false). If true, text is bold.
-
-**italic -**
-Optional (default is false). If true, text is italic.
-
-**fontFamily -**
-Optional (default is null, the default font family). The text font family.
-
-#### Returns
-
-Nothing
-
----
-
-### drawTextWidth
-
-Compute the text's width
-
-#### Arguments
-
-**text -**
-The text
-
-**fontSizePx -**
-The text font size, in pixels
-
-#### Returns
-
-The text's width, in pixels
-
----
-
-### drawVLine
-
-Draw a vertical line from the current point to the end point
-
-#### Arguments
-
-**y -**
-The y-coordinate of the end point
-
-#### Returns
-
-Nothing
-
----
-
-### drawWidth
-
-Get the current drawing's width
-
-#### Arguments
-
-None
-
-#### Returns
-
-The current drawing's width
-
----
-
-## markdownUp.bare: elementModel
-
-The "markdownUp.bare: elementModel" section contains functions for rendering
-[element models](https://github.com/craigahobbs/element-model#readme). Element models provide a
-declarative way to create HTML elements and handle user interactions.
-
-Render an element model:
-
-~~~ bare-script
-element = { \
-    'html': 'p', \
-    'elem': [ \
-        {'html': 'span', 'attr': {'style': 'font-weight: bold;'}, 'elem': {'text': 'Hello'}}, \
-        {'text': ' '}, \
-        {'html': 'span', 'elem': {'text': 'World!'}} \
-    ] \
-}
-
-elementModelRender(element)
-~~~
-
-Create elements with event handlers:
-
-~~~ bare-script
-function myAppMain():
-    button = { \
-        'html': 'button', \
-        'elem': {'text': 'Click me'}, \
-        'callback': {'click': myAppOnClick} \
-    }
-    elementModelRender(button)
-endfunction
-
-function myAppOnClick():
-    markdownPrint('Button clicked!')
-endfunction
-
-myAppMain()
-~~~
-
-Element models support various HTML elements, attributes, styles, and event callbacks. This provides
-a powerful way to create interactive user interfaces in MarkdownUp applications without writing HTML
-directly.
-
-
-### Function Index
-
-- [elementModelRender](#var.vPublish=true&var.vSingle=true&elementmodelrender)
-
----
-
 ### elementModelRender
 
 Render an [element model](https://github.com/craigahobbs/element-model#readme)
@@ -2701,62 +2960,6 @@ The [element model](https://github.com/craigahobbs/element-model#readme)
 #### Returns
 
 Nothing
-
----
-
-## markdownUp.bare: localStorage
-
-The "markdownUp.bare: localStorage" section contains functions for interacting with the browser's
-local storage. Local storage provides persistent key-value storage that survives browser restarts.
-
-Set a value in local storage:
-
-~~~ bare-script
-localStorageSet('username', 'Alice')
-localStorageSet('theme', 'dark')
-~~~
-
-Get a value from local storage:
-
-~~~ bare-script
-username = localStorageGet('username')
-theme = localStorageGet('theme')
-~~~
-
-Remove a key from local storage:
-
-~~~ bare-script
-localStorageRemove('username')
-~~~
-
-Clear all keys from local storage:
-
-~~~ bare-script
-localStorageClear()
-~~~
-
-Local storage is useful for saving user preferences, application state, or cached data that should
-persist across sessions. Values are stored as strings, so you may need to use
-[jsonStringify](#var.vGroup='json'&jsonstringify) and [jsonParse](#var.vGroup='json'&jsonparse) for
-complex data:
-
-~~~ bare-script
-# Store an object
-preferences = {'theme': 'dark', 'fontSize': 14}
-localStorageSet('preferences', jsonStringify(preferences))
-
-# Retrieve the object
-preferencesJson = localStorageGet('preferences')
-preferences = jsonParse(preferencesJson)
-~~~
-
-
-### Function Index
-
-- [localStorageClear](#var.vPublish=true&var.vSingle=true&localstorageclear)
-- [localStorageGet](#var.vPublish=true&var.vSingle=true&localstorageget)
-- [localStorageRemove](#var.vPublish=true&var.vSingle=true&localstorageremove)
-- [localStorageSet](#var.vPublish=true&var.vSingle=true&localstorageset)
 
 ---
 
@@ -2822,119 +3025,6 @@ Nothing
 
 ---
 
-## markdownUp.bare: markdown
-
-The "markdownUp.bare: markdown" section contains functions for parsing, rendering, and manipulating
-Markdown content. These are core functions for MarkdownUp applications.
-
-Render Markdown text:
-
-~~~ bare-script
-markdownPrint('# Hello, World!', '', 'This is a **Markdown** document.')
-~~~
-
-Escape text for safe inclusion in Markdown:
-
-~~~ bare-script
-# Escape special characters
-safeText = markdownEscape('Text with * and _ characters')
-markdownPrint('**Bold:** ' + safeText)
-~~~
-
-Compute a header element ID from text:
-
-~~~ bare-script
-# Get the ID for a header
-headerId = markdownHeaderId('My Section Title')
-# Returns: 'my-section-title'
-~~~
-
-Extract the title from Markdown text:
-
-~~~ bare-script
-model = markdownParse('# Title', '', 'Some *text*.')
-title = markdownTitle(model)
-~~~
-
-The Markdown functions support [GitHub Flavored Markdown](https://github.github.com/gfm/) including
-headers, emphasis, links, lists, code blocks, and tables. They integrate seamlessly with other
-MarkdownUp functions to create rich, interactive documents.
-
-
-### Function Index
-
-- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
-- [markdownEscape](#var.vPublish=true&var.vSingle=true&markdownescape)
-- [markdownHeaderId](#var.vPublish=true&var.vSingle=true&markdownheaderid)
-- [markdownParse](#var.vPublish=true&var.vSingle=true&markdownparse)
-- [markdownPrint](#var.vPublish=true&var.vSingle=true&markdownprint)
-- [markdownTitle](#var.vPublish=true&var.vSingle=true&markdowntitle)
-
----
-
-### markdownElements
-
-Generate an element model from a Markdown model
-
-#### Arguments
-
-**markdownModel -**
-The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-
-**generic -**
-Optional (default is false). If true, render markdown elements in a generic context.
-
-#### Returns
-
-The rendered Markdown [element model](https://github.com/craigahobbs/element-model#readme)
-
----
-
-### markdownEscape
-
-Escape text for inclusion in Markdown text
-
-#### Arguments
-
-**text -**
-The text
-
-#### Returns
-
-The escaped text
-
----
-
-### markdownHeaderId
-
-Compute the Markdown header element ID for some text
-
-#### Arguments
-
-**text -**
-The text
-
-#### Returns
-
-The header element ID
-
----
-
-### markdownParse
-
-Parse Markdown text
-
-#### Arguments
-
-**lines... -**
-The Markdown text lines (may contain nested arrays of un-split lines)
-
-#### Returns
-
-The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-
----
-
 ### markdownPrint
 
 Render Markdown text
@@ -2947,74 +3037,6 @@ The Markdown text lines (may contain nested arrays of un-split lines)
 #### Returns
 
 Nothing
-
----
-
-### markdownTitle
-
-Compute the title of a [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-
-#### Arguments
-
-**markdownModel -**
-The [Markdown model](https://craigahobbs.github.io/markdown-model/model/#var.vName='Markdown')
-
-#### Returns
-
-The Markdown title or null if there is no title
-
----
-
-## markdownUp.bare: sessionStorage
-
-The "markdownUp.bare: sessionStorage" section contains functions for interacting with the browser's
-session storage. Session storage provides key-value storage that persists for the duration of the
-browser session (until the tab or window is closed).
-
-Set a value in session storage:
-
-~~~ bare-script
-sessionStorageSet('currentPage', 'home')
-~~~
-
-Get a value from session storage:
-
-~~~ bare-script
-currentPage = sessionStorageGet('currentPage')
-~~~
-
-Remove a key from session storage:
-
-~~~ bare-script
-sessionStorageRemove('currentPage')
-~~~
-
-Clear all keys from session storage:
-
-~~~ bare-script
-sessionStorageClear()
-~~~
-
-Session storage is useful for temporary state that should persist across page refreshes but not
-across browser sessions. Like local storage, values are stored as strings:
-
-~~~ bare-script
-# Store an object
-state = {'page': 'home', 'filters': ['active', 'new']}
-sessionStorageSet('appState', jsonStringify(state))
-
-# Retrieve the object
-stateJson = sessionStorageGet('appState')
-state = jsonParse(stateJson)
-~~~
-
-
-### Function Index
-
-- [sessionStorageClear](#var.vPublish=true&var.vSingle=true&sessionstorageclear)
-- [sessionStorageGet](#var.vPublish=true&var.vSingle=true&sessionstorageget)
-- [sessionStorageRemove](#var.vPublish=true&var.vSingle=true&sessionstorageremove)
-- [sessionStorageSet](#var.vPublish=true&var.vSingle=true&sessionstorageset)
 
 ---
 
@@ -3077,144 +3099,6 @@ The value string
 #### Returns
 
 Nothing
-
----
-
-## markdownUp.bare: url
-
-The "markdownUp.bare: url" section contains functions for working with URLs in the browser
-environment.
-
-Create an object URL for file downloads:
-
-~~~ bare-script
-# Create a downloadable text file blob
-downloadFilename = 'test.txt'
-downloadContent = 'Hello, World!\nThis is a text file.'
-downloadURL = urlObjectCreate(downloadContent, 'text/plain')
-
-# Create a link to download the file
-elementModelRender({ \
-    'html': 'p', \
-    'elem': [ \
-        { \
-            'html': 'a', \
-            'attr': {'href': downloadURL, 'download': downloadFilename}, \
-            'elem': {'text': 'Download'} \
-        } \
-    ] \
-})
-~~~
-
-Object URLs are temporary URLs that reference in-memory data. They're useful for creating
-downloadable files on-the-fly without requiring server-side processing. The URLs remain valid until
-the page is closed.
-
-
-### Function Index
-
-- [urlObjectCreate](#var.vPublish=true&var.vSingle=true&urlobjectcreate)
-
----
-
-### urlObjectCreate
-
-Create an object URL (i.e. a file download URL)
-
-#### Arguments
-
-**data -**
-The object data string
-
-**contentType -**
-Optional (default is "text/plain"). The object content type.
-
-#### Returns
-
-The object URL string
-
----
-
-## markdownUp.bare: window
-
-The "markdownUp.bare: window" section contains functions for interacting with the browser window and
-its environment.
-
-Get window dimensions:
-
-~~~ bare-script
-width = windowWidth()
-height = windowHeight()
-markdownPrint('Window size: ' + width + ' x ' + height)
-~~~
-
-Navigate to a URL:
-
-~~~ bare-script
-windowSetLocation('other.html')
-~~~
-
-Set a window resize event handler:
-
-~~~ bare-script
-function myAppMain():
-    myAppRender()
-    windowSetResize(myAppOnResize)
-endfunction
-
-function myAppRender():
-    markdownPrint('Window: ' + windowWidth() + ' x ' + windowHeight())
-endfunction
-
-function myAppOnResize():
-    myAppRender()
-endfunction
-
-myAppMain()
-~~~
-
-Set a timeout event handler:
-
-~~~ bare-script
-function myAppMain():
-    markdownPrint('Starting timer...')
-    windowSetTimeout(myAppOnTimeout, 3000)
-endfunction
-
-function myAppOnTimeout():
-    markdownPrint('Timer fired after 3 seconds!')
-endfunction
-
-myAppMain()
-~~~
-
-Read from the clipboard:
-
-~~~ bare-script
-async function myAppReadClipboard():
-    text = windowClipboardRead()
-    markdownPrint('Clipboard contains: ' + text)
-endfunction
-~~~
-
-Write to the clipboard:
-
-~~~ bare-script
-async function myAppWriteClipboard():
-    windowClipboardWrite('Hello, clipboard!')
-endfunction
-~~~
-
-
-### Function Index
-
-- [windowClipboardRead](#var.vPublish=true&var.vSingle=true&windowclipboardread)
-- [windowClipboardWrite](#var.vPublish=true&var.vSingle=true&windowclipboardwrite)
-- [windowHeight](#var.vPublish=true&var.vSingle=true&windowheight)
-- [windowSetLocation](#var.vPublish=true&var.vSingle=true&windowsetlocation)
-- [windowSetResize](#var.vPublish=true&var.vSingle=true&windowsetresize)
-- [windowSetTimeout](#var.vPublish=true&var.vSingle=true&windowsettimeout)
-- [windowWidth](#var.vPublish=true&var.vSingle=true&windowwidth)
 
 ---
 
@@ -3309,6 +3193,24 @@ The delay, in milliseconds, to ellapse before calling the timeout
 #### Returns
 
 Nothing
+
+---
+
+### windowURLObject
+
+Create an object URL (i.e. a file download URL)
+
+#### Arguments
+
+**data -**
+The object data string
+
+**contentType -**
+Optional (default is "text/plain"). The object content type.
+
+#### Returns
+
+The object URL string
 
 ---
 
@@ -4160,10 +4062,12 @@ The "qrcode.bare" include library provides functions for drawing QR codes.
 To draw a QR code:
 
 ~~~ bare-script
+include <draw.bare>
 include <qrcode.bare>
 
 drawNew(300, 300)
 qrcodeDraw('https://craigahobbs.github.io/qrcode/', 0, 0, 300)
+drawRender()
 ~~~
 
 The library supports four error correction levels: `'low'`, `'medium'`, `'quartile'`, and `'high'`.
@@ -5180,8 +5084,6 @@ same = systemIs(obj1, obj2)
 - [systemCompare](#var.vPublish=true&var.vSingle=true&systemcompare)
 - [systemFetch](#var.vPublish=true&var.vSingle=true&systemfetch)
 - [systemGlobalGet](#var.vPublish=true&var.vSingle=true&systemglobalget)
-- [systemGlobalIncludesGet](#var.vPublish=true&var.vSingle=true&systemglobalincludesget)
-- [systemGlobalIncludesName](#var.vPublish=true&var.vSingle=true&systemglobalincludesname)
 - [systemGlobalSet](#var.vPublish=true&var.vSingle=true&systemglobalset)
 - [systemIs](#var.vPublish=true&var.vSingle=true&systemis)
 - [systemLog](#var.vPublish=true&var.vSingle=true&systemlog)
@@ -5257,34 +5159,6 @@ The default value (optional)
 #### Returns
 
 The global variable's value or null if it does not exist
-
----
-
-### systemGlobalIncludesGet
-
-Get the global system includes object
-
-#### Arguments
-
-None
-
-#### Returns
-
-The global system includes object
-
----
-
-### systemGlobalIncludesName
-
-Get the system includes object global variable name
-
-#### Arguments
-
-None
-
-#### Returns
-
-The system includes object global variable name
 
 ---
 
@@ -5424,13 +5298,13 @@ function and returns the number of unit test failures.
 include <unittest.bare>
 
 # Start coverage
-coverageStart()
+unittestCoverageStart()
 
 # Test includes
 include 'testCode1.bare'
 
 # Stop coverage
-coverageStop()
+unittestCoverageStop()
 
 # Test report
 return unittestReport({'coverageMin': 100})
@@ -5475,10 +5349,40 @@ The "runTests.bare" application returns an error status if there are any failure
 
 ### Function Index
 
+- [unittestCoverageStart](#var.vPublish=true&var.vSingle=true&unittestcoveragestart)
+- [unittestCoverageStop](#var.vPublish=true&var.vSingle=true&unittestcoveragestop)
 - [unittestDeepEqual](#var.vPublish=true&var.vSingle=true&unittestdeepequal)
 - [unittestEqual](#var.vPublish=true&var.vSingle=true&unittestequal)
 - [unittestReport](#var.vPublish=true&var.vSingle=true&unittestreport)
 - [unittestRunTest](#var.vPublish=true&var.vSingle=true&unittestruntest)
+
+---
+
+### unittestCoverageStart
+
+Start coverage data collection
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### unittestCoverageStop
+
+Stop coverage data collection
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
 
 ---
 
@@ -5598,13 +5502,13 @@ include <unittest.bare>
 include <unittestMock.bare>
 
 # Start coverage
-coverageStart()
+unittestCoverageStart()
 
 # Test includes
 include 'testApp.bare'
 
 # Stop coverage
-coverageStop()
+unittestCoverageStop()
 
 return unittestReport({'coverageMin': 100})
 ~~~
@@ -5655,9 +5559,6 @@ To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unit
 Optional (default is null). The map of function name to mock function data.
 The following functions make use of mock data:
 - **documentInputValue** - map of id to return value
-- **markdownElements** - array of return values
-- **markdownParse** - array of return values
-- **markdownTitle** - array of return values
 - **systemFetch** - map of URL to response text
 
 #### Returns

@@ -192,11 +192,11 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             // Add the if-then label definition
             const ifthen = {
                 'jump': {
-                    'label': `__bareScriptIf${labelIndex}`,
+                    'label': `__barescriptIf${labelIndex}`,
                     'expr': {'unary': {'op': '!', 'expr': ifthenExpr}},
                     ...statementBase
                 },
-                'done': `__bareScriptDone${labelIndex}`,
+                'done': `__barescriptDone${labelIndex}`,
                 'hasElse': false,
                 line,
                 'lineNumber': startLineNumber + ixLine
@@ -236,7 +236,7 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
             // Generate the next if-then jump statement
             const prevLabel = ifthen.jump.label;
             ifthen.jump = {
-                'label': `__bareScriptIf${labelIndex}`,
+                'label': `__barescriptIf${labelIndex}`,
                 'expr': {'unary': {'op': '!', 'expr': ifElseIfExpr}},
                 ...statementBase
             };
@@ -309,9 +309,9 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
 
             // Add the while-do label
             const whiledo = {
-                'loop': `__bareScriptLoop${labelIndex}`,
-                'continue': `__bareScriptLoop${labelIndex}`,
-                'done': `__bareScriptDone${labelIndex}`,
+                'loop': `__barescriptLoop${labelIndex}`,
+                'continue': `__barescriptLoop${labelIndex}`,
+                'done': `__barescriptDone${labelIndex}`,
                 'expr': whileBeginExpr,
                 line,
                 'lineNumber': startLineNumber + ixLine
@@ -350,12 +350,12 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
         if (matchForBegin !== null) {
             // Add the for-each label
             const foreach = {
-                'loop': `__bareScriptLoop${labelIndex}`,
-                'continue': `__bareScriptContinue${labelIndex}`,
-                'done': `__bareScriptDone${labelIndex}`,
-                'index': matchForBegin.groups.index ?? `__bareScriptIndex${labelIndex}`,
-                'values': `__bareScriptValues${labelIndex}`,
-                'length': `__bareScriptLength${labelIndex}`,
+                'loop': `__barescriptLoop${labelIndex}`,
+                'continue': `__barescriptContinue${labelIndex}`,
+                'done': `__barescriptDone${labelIndex}`,
+                'index': matchForBegin.groups.index ?? `__barescriptIndex${labelIndex}`,
+                'values': `__barescriptValues${labelIndex}`,
+                'length': `__barescriptLength${labelIndex}`,
                 'value': matchForBegin.groups.value,
                 line,
                 'lineNumber': startLineNumber + ixLine
@@ -972,7 +972,7 @@ ${' '.repeat(lineColumn - 1)}^
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

@@ -3,7 +3,8 @@
 ## Table of Contents
 
 - [args.bare](#var.vPublish=true&var.vSingle=true&args-bare)
-- [data](#var.vPublish=true&var.vSingle=true&data)
+- [data.bare](#var.vPublish=true&var.vSingle=true&data-bare)
+- [dataLineChart.bare](#var.vPublish=true&var.vSingle=true&datalinechart-bare)
 - [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare)
 - [diff.bare](#var.vPublish=true&var.vSingle=true&diff-bare)
 - [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare)
@@ -50,61 +51,65 @@ An argument value type
 
 ---
 
-## data
+## data.bare
 
-### struct Aggregation
+### struct DataAggregation
 
-A data aggregation specification
+The data aggregation model
 
-| Name       | Type                                                | Attributes                 | Description                     |
-|------------|-----------------------------------------------------|----------------------------|---------------------------------|
-| categories | string []                                           | optional<br>len(array) > 0 | The aggregation category fields |
-| measures   | [AggregationMeasure](#struct-aggregationmeasure) [] | len(array) > 0             | The aggregation measures        |
+| Name       | Type                                                        | Attributes                 | Description                     |
+|------------|-------------------------------------------------------------|----------------------------|---------------------------------|
+| categories | string []                                                   | optional<br>len(array) > 0 | The aggregation category fields |
+| measures   | [DataAggregationMeasure](#struct-dataaggregationmeasure) [] | len(array) > 0             | The aggregation measures        |
 
-### enum AggregationFunction
+### enum DataAggregationFunction
 
-An aggregation function
+The aggregation function enumeration
 
-| Value   | Description                                    |
-|---------|------------------------------------------------|
-| average | The average of the measure's values            |
-| count   | The count of the measure's values              |
-| max     | The greatest of the measure's values           |
-| min     | The least of the measure's values              |
-| stddev  | The standard deviation of the measure's values |
-| sum     | The sum of the measure's values                |
+| Value   | Description                                  |
+|---------|----------------------------------------------|
+| average | The average of the measure values            |
+| count   | The count of the measure values              |
+| max     | The greatest of the measure values           |
+| min     | The least of the measure values              |
+| stddev  | The standard deviation of the measure values |
+| sum     | The sum of the measure values                |
 
-### struct AggregationMeasure
+### struct DataAggregationMeasure
 
-An aggregation measure specification
+The aggregation measure model
 
-| Name     | Type                                             | Attributes | Description                       |
-|----------|--------------------------------------------------|------------|-----------------------------------|
-| field    | string                                           |            | The aggregation measure field     |
-| function | [AggregationFunction](#enum-aggregationfunction) |            | The aggregation function          |
-| name     | string                                           | optional   | The aggregated-measure field name |
+| Name     | Type                                                     | Attributes | Description                       |
+|----------|----------------------------------------------------------|------------|-----------------------------------|
+| field    | string                                                   |            | The aggregation measure field     |
+| function | [DataAggregationFunction](#enum-dataaggregationfunction) |            | The aggregation function          |
+| name     | string                                                   | optional   | The aggregated-measure field name |
 
-### struct LineChart
+---
+
+## dataLineChart.bare
+
+### struct DataLineChart
 
 A line chart model
 
-| Name       | Type                                                          | Attributes                 | Description                                     |
-|------------|---------------------------------------------------------------|----------------------------|-------------------------------------------------|
-| title      | string                                                        | optional                   | The chart title                                 |
-| width      | int                                                           | optional                   | The chart width                                 |
-| height     | int                                                           | optional                   | The chart height                                |
-| precision  | int                                                           | optional<br>value >= 0     | The numeric formatting precision (default is 2) |
-| datetime   | [LineChartDatetimeFormat](#enum-linechartdatetimeformat)      | optional                   | The datetime format                             |
-| x          | string                                                        |                            | The line chart's X-axis field                   |
-| y          | string []                                                     | len(array) > 0             | The line chart's Y-axis fields                  |
-| color      | string                                                        | optional                   | The color encoding field                        |
-| colorOrder | string []                                                     | optional<br>len(array) > 0 | The color encoding value order                  |
-| xTicks     | [LineChartAxisTicks](#struct-linechartaxisticks)              | optional                   | The X-axis tick marks                           |
-| yTicks     | [LineChartAxisTicks](#struct-linechartaxisticks)              | optional                   | The Y-axis tick marks                           |
-| xLines     | [LineChartAxisAnnotation](#struct-linechartaxisannotation) [] | optional<br>len(array) > 0 | The X-axis annotations                          |
-| yLines     | [LineChartAxisAnnotation](#struct-linechartaxisannotation) [] | optional<br>len(array) > 0 | The Y-axis annotations                          |
+| Name       | Type                                                                  | Attributes                 | Description                                     |
+|------------|-----------------------------------------------------------------------|----------------------------|-------------------------------------------------|
+| title      | string                                                                | optional                   | The chart title                                 |
+| width      | int                                                                   | optional                   | The chart width                                 |
+| height     | int                                                                   | optional                   | The chart height                                |
+| precision  | int                                                                   | optional<br>value >= 0     | The numeric formatting precision (default is 2) |
+| datetime   | [DataLineChartDatetimeFormat](#enum-datalinechartdatetimeformat)      | optional                   | The datetime format                             |
+| x          | string                                                                |                            | The line chart's X-axis field                   |
+| y          | string []                                                             | len(array) > 0             | The line chart's Y-axis fields                  |
+| color      | string                                                                | optional                   | The color encoding field                        |
+| colorOrder | string []                                                             | optional<br>len(array) > 0 | The color encoding value order                  |
+| xTicks     | [DataLineChartAxisTicks](#struct-datalinechartaxisticks)              | optional                   | The X-axis tick marks                           |
+| yTicks     | [DataLineChartAxisTicks](#struct-datalinechartaxisticks)              | optional                   | The Y-axis tick marks                           |
+| xLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The X-axis annotations                          |
+| yLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The Y-axis annotations                          |
 
-### struct LineChartAxisAnnotation
+### struct DataLineChartAxisAnnotation
 
 An axis annotation
 
@@ -113,7 +118,7 @@ An axis annotation
 | value | any    |            | The axis value       |
 | label | string | optional   | The annotation label |
 
-### struct LineChartAxisTicks
+### struct DataLineChartAxisTicks
 
 The axis tick mark model
 
@@ -124,7 +129,7 @@ The axis tick mark model
 | end   | any  | optional               | The value of the last tick mark. Default is the maximum axis value.  |
 | skip  | int  | optional<br>value > 0  | The number of tick mark labels to skip after a rendered label        |
 
-### enum LineChartDatetimeFormat
+### enum DataLineChartDatetimeFormat
 
 A datetime format
 

@@ -1,26 +1,26 @@
-The "markdownUp.bare: draw" section contains functions for creating vector graphics drawings. These
+The "draw.bare" include library contains functions for creating vector graphics drawings. These
 functions provide a programmatic way to draw shapes, lines, text, and images using SVG.
 
 Create a new drawing and draw basic shapes:
 
 ~~~ bare-script
-drawNew(400, 300)
+include <draw.bare>
 
-# Fill the background
+# Create a new drawing and fill the background
+drawNew(400, 300)
 drawStyle('none', 0, 'white')
 drawRect(0, 0, drawWidth(), drawHeight())
 
-# Draw a rectangle
+# Draw a rectangle, circle, and ellipse
 drawStyle('black', 2, 'blue')
 drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.2 * drawWidth(), 0.2 * drawHeight())
-
-# Draw a circle
 drawStyle('black', 2, 'red')
 drawCircle(0.3 * drawWidth(), 0.6 * drawHeight(), 0.1 * drawWidth())
-
-# Draw an ellipse
 drawStyle('black', 2, 'green')
 drawEllipse(0.7 * drawWidth(), 0.4 * drawHeight(), 0.2 * drawWidth(), 0.1 * drawHeight())
+
+# Render the drawing
+drawRender()
 ~~~
 
 Draw paths with lines and curves:

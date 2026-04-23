@@ -31,7 +31,9 @@
 
 /** @module lib/optionsNode */
 
+import {dirname, join} from 'path';
 import {readFile, writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'url';
 import {stdout} from 'node:process';
 
 
@@ -91,6 +93,52 @@ export const rURL = /^[a-z]+:/;
 
 
 /**
+ * A partial [fetch function]{@link module:lib/options~FetchFn} implementation that fetches system includes
+ * from the local package, otherwise falls back to the first argument, `fetchFn`, unless null.
+ */
+export function fetchSystem(fetchFn, url, options) {
+    // Is this a bare system include?
+    if (url.startsWith(fetchSystemPrefix)) {
+        // Get the include file path
+        const includePath = url.slice(fetchSystemPrefix.length);
+        const packageDir = dirname(fileURLToPath(import.meta.url));
+        const packagePath = join(packageDir, 'include', includePath);
+
+        // Return the include fetch-like promise
+        return new Promise((resolve) => {
+            const response = {
+                'ok': true,
+                'status': 200,
+                'statusText': 'OK',
+                'text': () => readFile(packagePath, 'utf8')
+            };
+            resolve(response);
+        });
+    }
+
+    // Null fetch function?
+    if (!fetchFn) {
+        return new Promise((resolve) => {
+            const response = {
+                'ok': false,
+                'status': 404,
+                'statusText': 'Not Found'
+            };
+            resolve(response);
+        });
+    }
+
+    return fetchFn(url, options);
+}
+
+
+/**
+ * The system include prefix to use in conjunction with the `fetchSystem` function.
+ */
+export const fetchSystemPrefix = ':bare-include:/';
+
+
+/**
  * A [log function]{@link module:lib/options~LogFn} implementation that outputs to stdout
  */
 export function logStdout(text, stdoutObj = stdout) {
@@ -106,7 +154,7 @@ export function logStdout(text, stdoutObj = stdout) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

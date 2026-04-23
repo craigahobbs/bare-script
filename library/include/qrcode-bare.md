@@ -3,10 +3,12 @@ The "qrcode.bare" include library provides functions for drawing QR codes.
 To draw a QR code:
 
 ~~~ bare-script
+include <draw.bare>
 include <qrcode.bare>
 
 drawNew(300, 300)
 qrcodeDraw('https://craigahobbs.github.io/qrcode/', 0, 0, 300)
+drawRender()
 ~~~
 
 The library supports four error correction levels: `'low'`, `'medium'`, `'quartile'`, and `'high'`.

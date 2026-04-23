@@ -31,13 +31,13 @@ function and returns the number of unit test failures.
 include <unittest.bare>
 
 # Start coverage
-coverageStart()
+unittestCoverageStart()
 
 # Test includes
 include 'testCode1.bare'
 
 # Stop coverage
-coverageStop()
+unittestCoverageStop()
 
 # Test report
 return unittestReport({'coverageMin': 100})

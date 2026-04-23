@@ -61,7 +61,6 @@ confident that BareScript will execute the same regardless of the underlying run
 <ul>
 <li><a href="https://craigahobbs.github.io/bare-script/language/">The BareScript Language</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/library/">The BareScript Library</a></li>
-<li><a href="https://craigahobbs.github.io/bare-script/library/expression.html">The BareScript Expression Library</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/">API Documentation</a></li>
 <li><a href="https://github.com/craigahobbs/bare-script">Source code</a></li>
 </ul>
@@ -107,7 +106,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
 const script = parseScript(`\
-# Fetch the BareScript library documentation JSON
+o# Fetch the BareScript library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
@@ -118,7 +117,7 @@ return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions'))
 console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 </code></pre>
 <p>This outputs:</p>
-<pre class="prettyprint source"><code>The BareScript Library has 186 functions
+<pre class="prettyprint source"><code>The BareScript Library has 209 functions
 </code></pre>
 <h2>Evaluating BareScript Expressions</h2>
 <p>To evaluate a
@@ -186,7 +185,7 @@ It was started using <a href="https://github.com/craigahobbs/javascript-template
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_data.html">lib/data</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">
