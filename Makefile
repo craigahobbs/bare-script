@@ -51,7 +51,7 @@ doc:
 
     # Generate the library documentation
 	$(NODE_SHELL) npx bare -m \
-		-v 'vFiles' "'$$(jq -n --args '$$ARGS.positional' lib/library.js lib/include/*.bare)'" \
+		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/library.js lib/include/*.bare)'" \
 		-v 'vOutput' "'build/doc/library/library.json'" \
 		-c 'include <baredocCLI.bare>' \
 		-c 'return baredocCLIMain()'
