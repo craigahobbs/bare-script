@@ -72,12 +72,12 @@ function testUnittestCoverageGlobalGet():
                                     { \
                                         'jump': { \
                                             'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                            'label': '__bareScriptDone0', \
+                                            'label': '__barescriptDone0', \
                                             'lineNumber': 2 \
                                         } \
                                     }, \
                                     {'return': {'expr': {'string': 'Test'}, 'lineNumber': 3}}, \
-                                    {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}}, \
+                                    {'label': {'lineNumber': 4, 'name': '__barescriptDone0'}}, \
                                     {'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2}} \
                                 ] \
                             } \
@@ -88,14 +88,14 @@ function testUnittestCoverageGlobalGet():
                         'statement': { \
                             'jump': { \
                                 'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                'label': '__bareScriptDone0', \
+                                'label': '__barescriptDone0', \
                                 'lineNumber': 2 \
                             } \
                         } \
                     }, \
                     '4': { \
                         'count': 1, \
-                        'statement': {'label': {'lineNumber': 4, 'name': '__bareScriptDone0'}} \
+                        'statement': {'label': {'lineNumber': 4, 'name': '__barescriptDone0'}} \
                     }, \
                     '6': { \
                         'count': 1, \
@@ -125,7 +125,7 @@ function testUnittestCoverageGlobalGet():
                                     { \
                                         'jump': { \
                                             'expr': {'unary': {'expr': {'variable': 'test'}, 'op': '!'}}, \
-                                            'label': '__bareScriptDone0', \
+                                            'label': '__barescriptDone0', \
                                             'lineNumber': 2 \
                                         } \
                                     }, \
@@ -133,7 +133,7 @@ function testUnittestCoverageGlobalGet():
                                         'return': {'expr': {'string': 'Test'}, 'lineNumber': 3} \
                                     }, \
                                     { \
-                                        'label': {'lineNumber': 4, 'name': '__bareScriptDone0'} \
+                                        'label': {'lineNumber': 4, 'name': '__barescriptDone0'} \
                                     }, \
                                     { \
                                         'return': {'expr': {'string': 'No Test'}, 'lineNumber': 6, 'lineCount': 2} \
@@ -286,9 +286,9 @@ endfunction
 
 
 async function testUnittestRunTest():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -299,8 +299,8 @@ async function testUnittestRunTest():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -320,9 +320,9 @@ unittestRunTest('testUnittestRunTest')
 
 
 async function testUnittestRunTestAsync():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -333,8 +333,8 @@ async function testUnittestRunTestAsync():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -355,9 +355,9 @@ unittestRunTest('testUnittestRunTestAsync')
 
 
 async function testUnittestRunTest_failure():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -369,8 +369,8 @@ async function testUnittestRunTest_failure():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 1)
@@ -443,9 +443,9 @@ unittestRunTest('testUnittestRunTest_failure')
 
 
 async function testUnittestRunTest_hideTests():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -458,8 +458,8 @@ async function testUnittestRunTest_hideTests():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 1)
@@ -481,9 +481,9 @@ unittestRunTest('testUnittestRunTest_hideTests')
 
 
 async function testUnittestRunTest_testName():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -497,8 +497,8 @@ async function testUnittestRunTest_testName():
     systemGlobalSet('vUnittestTest', null)
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -516,9 +516,9 @@ unittestRunTest('testUnittestRunTest_testName')
 
 
 async function testUnittestRunTest_disabled():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -532,8 +532,8 @@ async function testUnittestRunTest_disabled():
     systemGlobalSet('vUnittestDisabled', null)
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -545,9 +545,9 @@ unittestRunTest('testUnittestRunTest_disabled')
 
 
 async function testUnittestRunTest_multiple():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -559,8 +559,8 @@ async function testUnittestRunTest_multiple():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 1)
@@ -582,9 +582,9 @@ unittestRunTest('testUnittestRunTest_multiple')
 
 
 async function testUnittestRunTest_unknown():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -595,8 +595,8 @@ async function testUnittestRunTest_unknown():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 1)
@@ -616,9 +616,9 @@ unittestRunTest('testUnittestRunTest_unknown')
 
 
 async function testUnittestRunTest_noLinks():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -630,8 +630,8 @@ async function testUnittestRunTest_noLinks():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -659,9 +659,9 @@ unittestRunTest('testUnittestRunTest_noLinks')
 
 
 function testUnittestRunTest_coverage():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -671,8 +671,8 @@ function testUnittestRunTest_coverage():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -699,9 +699,9 @@ unittestRunTest('testUnittestRunTest_coverage')
 
 
 function testUnittestRunTest_coverage_links():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -711,8 +711,8 @@ function testUnittestRunTest_coverage_links():
     result = unittestReport({'title': 'My Title', 'links': ['[a](a.html)', '[b](b.html)']})
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -740,9 +740,9 @@ unittestRunTest('testUnittestRunTest_coverage_links')
 
 
 function testUnittestRunTest_coverage_exclude():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -752,8 +752,8 @@ function testUnittestRunTest_coverage_exclude():
     result = unittestReport({'coverageExclude': ['testTest.bare']})
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -779,9 +779,9 @@ unittestRunTest('testUnittestRunTest_coverage_exclude')
 
 
 function testUnittestRunTest_coverage_min():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -791,8 +791,8 @@ function testUnittestRunTest_coverage_min():
     result = unittestReport({'coverageMin': 100})
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 1)
@@ -823,9 +823,9 @@ unittestRunTest('testUnittestRunTest_coverage_min')
 
 
 function testUnittestRunTest_coverage_noData():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -835,8 +835,8 @@ function testUnittestRunTest_coverage_noData():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -854,9 +854,9 @@ unittestRunTest('testUnittestRunTest_coverage_noData')
 
 
 function testUnittestRunTest_coverage_script():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet)
 
     # Setup mocks
     unittestMockAll()
@@ -867,8 +867,8 @@ function testUnittestRunTest_coverage_script():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -912,9 +912,9 @@ unittestRunTest('testUnittestRunTest_coverage_script')
 
 
 function testUnittestRunTest_coverage_script_noData():
-    # Mock coverageGlobalGet
-    coverageGlobalGetOriginal = systemGlobalGet('coverageGlobalGet')
-    systemGlobalSet('coverageGlobalGet', testUnittestCoverageGlobalGet_noData)
+    # Mock unittestCoverageGlobal
+    unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')
+    systemGlobalSet('unittestCoverageGlobal', testUnittestCoverageGlobalGet_noData)
 
     # Setup mocks
     unittestMockAll()
@@ -925,8 +925,8 @@ function testUnittestRunTest_coverage_script_noData():
     result = unittestReport()
     testUnittestMockEnd(mockBegin)
 
-    # Restore the original coverageGlobalGet
-    systemGlobalSet('coverageGlobalGet', coverageGlobalGetOriginal)
+    # Restore the original unittestCoverageGlobal
+    systemGlobalSet('unittestCoverageGlobal', unittestCoverageGlobalOriginal)
 
     # Verify report result
     unittestEqual(result, 0)
@@ -939,3 +939,16 @@ function testUnittestRunTest_coverage_script_noData():
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage_script_noData')
+
+
+function testUnittestCoverageStart():
+    ix = 0
+    origCoverage = systemGlobalGet('__barescriptCoverage')
+    unittestCoverageStart()
+    while ix < 2:
+        systemGlobalSet('__barescriptCoverage', origCoverage)
+        ix = ix + 1
+    endwhile
+    unittestEqual(unittestCoverageGlobal() != null, true)
+endfunction
+unittestRunTest('testUnittestCoverageStart')

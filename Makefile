@@ -41,8 +41,8 @@ sync-include:
 commit: test-include
 test-include: build/npm.build
 	$(NODE_SHELL) npx bare -x -m lib/include/*.bare lib/include/test/*.bare
-	$(NODE_SHELL) npx bare -d -m lib/include/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 	$(NODE_SHELL) npx bare -d -v vUnittestReport true lib/include/test/runTestsMarkdownUp.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+	$(NODE_SHELL) npx bare -d -m lib/include/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 doc:
@@ -50,12 +50,18 @@ doc:
 	cp -R static/* build/doc/
 
     # Generate the library documentation
-	$(NODE_SHELL) npx baredoc lib/library.js lib/include/*.bare -o build/doc/library/library.json
+	$(NODE_SHELL) npx bare -m \
+		-v 'vFiles' "'$$(jq -n --args '$$ARGS.positional' lib/library.js lib/include/*.bare)'" \
+		-v 'vOutput' "'build/doc/library/library.json'" \
+		-c 'include <baredocCLI.bare>' \
+		-c 'return baredocCLIMain()'
 
     # Generate the single-page library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <baredoc.bare>' \
 		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
 		> barescript-library.md
 
@@ -64,8 +70,10 @@ doc:
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <baredoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <baredoc.bare>' \
 		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
 		> barescript-expression-library.md
 
@@ -74,8 +82,10 @@ doc:
 
     # Generate the single-page library model documentation
 	cd build/doc/library/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <schemaDoc.bare>' \
 		-c "schemaDocMain('model.json', 'The BareScript Library Models')" \
 		> barescript-library-model.md
 
@@ -84,8 +94,10 @@ doc:
 
     # Generate the single-page runtime model documentation
 	cd build/doc/model/ && \
-	$(NODE_SHELL) npx bare -m -c 'include <schemaDoc.bare>' \
-		-v 'vSingle' 'true' -v 'vPublish' 'true' \
+	$(NODE_SHELL) npx bare -m \
+		-v 'vSingle' 'true' \
+		-v 'vPublish' 'true' \
+		-c 'include <schemaDoc.bare>' \
 		-c "schemaDocMain('model.json', 'The BareScript Runtime Model')" \
 		> barescript-model.md
 
@@ -120,7 +132,6 @@ export DOC_EXPR_JS
 define DOC_LIBRARY_MODEL_JS
 import {fetchReadWrite, logStdout} from './lib/optionsNode.js';
 import {regexMatchTypes, systemFetchTypes} from './lib/library.js';
-import {aggregationTypes} from './lib/data.js';
 import {argv} from 'node:process';
 import {executeScriptAsync} from './lib/runtimeAsync.js';
 import {parseScript} from './lib/parser.js';
@@ -131,11 +142,12 @@ import {writeFileSync} from 'node:fs';
 const [, typeModelPath] = argv;
 
 // Create the library type model
-const types = {...aggregationTypes, ...regexMatchTypes, ...systemFetchTypes};
+const types = {...regexMatchTypes, ...systemFetchTypes};
 
 // Create the include library type model
 const script = parseScript(`\
 include 'lib/include/args.bare'
+include 'lib/include/data.bare'
 include 'lib/include/dataLineChart.bare'
 include 'lib/include/dataTable.bare'
 include 'lib/include/diff.bare'
@@ -143,6 +155,7 @@ include 'lib/include/pager.bare'
 
 includeTypes = {}
 objectAssign(includeTypes, argsTypes)
+objectAssign(includeTypes, dataAggregationTypes)
 objectAssign(includeTypes, dataLineChartTypes)
 objectAssign(includeTypes, dataTableTypes)
 objectAssign(includeTypes, diffTypes)
@@ -161,7 +174,7 @@ export DOC_LIBRARY_MODEL_JS
 # JavaScript to generate the runtime model documentation
 define DOC_RUNTIME_MODEL_JS
 import {argv} from 'node:process';
-import {bareScriptTypes} from './lib/model.js';
+import {barescriptTypes} from './lib/model.js';
 import {valueJSON} from './lib/value.js';
 import {writeFileSync} from 'node:fs';
 
@@ -169,7 +182,7 @@ import {writeFileSync} from 'node:fs';
 const [, typeModelPath] = argv;
 
 // Write the runtime type model
-writeFileSync(typeModelPath, valueJSON(bareScriptTypes));
+writeFileSync(typeModelPath, valueJSON(barescriptTypes));
 endef
 export DOC_RUNTIME_MODEL_JS
 
@@ -198,16 +211,18 @@ import {readFileSync} from 'node:fs';
 
 // Read the performance test data
 const bestTimings = {};
+let bestTiming = null;
 for (const {language, timeMs}  of JSON.parse(readFileSync('$(PERF_JSON)'))) {
     if (language !== null && (!(language in bestTimings) || timeMs < bestTimings[language])) {
         bestTimings[language] = timeMs;
+        bestTiming = (bestTiming === null ? timeMs : Math.min(bestTiming, timeMs));
     }
 }
 
 // Report the timing multiples
-for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], [, timeMs2]) => timeMs2 - timeMs1)) {
+for (const [language, timeMs] of Object.entries(bestTimings).sort(([, timeMs1], [, timeMs2]) => timeMs1 - timeMs2)) {
     const report = `$${language} - $${timeMs.toFixed(3)} milliseconds`;
-    console.log(language === 'BareScript' ? report : `$${report} ($${(bestTimings.BareScript / timeMs).toFixed(0)}x)`);
+    console.log(`$${report} ($${(timeMs / bestTiming).toFixed(0)}x)`);
 }
 endef
 export PERF_JS

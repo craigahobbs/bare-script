@@ -1,7 +1,7 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import {fetchReadOnly, fetchReadWrite, logStdout} from '../lib/optionsNode.js';
+import {fetchReadOnly, fetchReadWrite, fetchSystem, fetchSystemPrefix, logStdout} from '../lib/optionsNode.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -97,6 +97,21 @@ test('fetchReadWrite, file write', async () => {
 
 test('fetchReadWrite', () => {
     assert.equal(typeof fetchReadWrite, 'function');
+});
+
+
+test('fetchSystem', async () => {
+    const result = await fetchSystem(null, `${fetchSystemPrefix}args.bare`);
+    assert.equal(result.ok, true);
+    assert.equal((await result.text()).startsWith('# Licensed under the MIT License'), true);
+});
+
+
+test('fetchSystem, no fallback', async () => {
+    const result = await fetchSystem(null, 'unknown.bare');
+    assert.equal(result.ok, false);
+    assert.equal(result.status, 404);
+    assert.equal(result.statusText, 'Not Found');
 });
 
 

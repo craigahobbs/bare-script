@@ -5,6 +5,7 @@
 include <args.bare>
 include <dataTable.bare>
 include <diff.bare>
+include <markdown.bare>
 
 
 # $function: unittestRunTest
@@ -165,6 +166,30 @@ function unittestDataGet():
 endfunction
 
 
+# $function: unittestCoverageStart
+# $group: unittest.bare
+# $doc: Start coverage data collection
+function unittestCoverageStart():
+    coverageGlobal = {'enabled': true}
+    systemGlobalSet('__barescriptCoverage', coverageGlobal)
+endfunction
+
+
+# $function: unittestCoverageStop
+# $group: unittest.bare
+# $doc: Stop coverage data collection
+function unittestCoverageStop():
+    coverageGlobal = systemGlobalGet('__barescriptCoverage')
+    if(coverageGlobal, objectSet(coverageGlobal, 'enabled', false))
+endfunction
+
+
+# Helper function to get the global coverage object
+function unittestCoverageGlobal():
+    return systemGlobalGet('__barescriptCoverage')
+endfunction
+
+
 # $function: unittestReport
 # $group: unittest.bare
 # $doc: Render the unit test report
@@ -294,7 +319,7 @@ function unittestReport(options):
     endif
 
     # Coverage report
-    coverage = coverageGlobalGet()
+    coverage = unittestCoverageGlobal()
     coverageFailCount = 0
     if !testNameArg && coverage:
         markdownPrint('', '## Coverage Report')
@@ -361,7 +386,7 @@ function unittestReportScript(scriptName):
     )
 
     # Get the script coverage data
-    coverage = coverageGlobalGet()
+    coverage = unittestCoverageGlobal()
     scripts = if(coverage, objectGet(coverage, 'scripts'))
     coverageScript = if(scripts, objectGet(scripts, scriptName))
     if !coverageScript:
@@ -436,7 +461,7 @@ function unittestCoverageData(coverageExclude):
     data = []
 
     # Get the global coverage object
-    coverage = coverageGlobalGet()
+    coverage = unittestCoverageGlobal()
     if coverage:
         # Get the script names with coverage data
         scripts = objectGet(coverage, 'scripts')

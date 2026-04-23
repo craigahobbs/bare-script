@@ -35,8 +35,6 @@ testPagerModel = { \
 
 async function testPagerMarkdown():
     unittestMockAll({ \
-        'markdownParse': [{'parts': []}], \
-        'markdownTitle': ['The Title'], \
         'systemFetch': { \
             'README.md': 'Hello!' \
         } \
@@ -50,9 +48,7 @@ async function testPagerMarkdown():
             ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
             ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
             ['systemFetch', ['README.md']], \
-            ['markdownParse', ['Hello!']], \
-            ['markdownTitle', [{'parts': []}]], \
-            ['documentSetTitle', ['The Title']], \
+            ['documentSetTitle', ['No Title']], \
             ['markdownPrint', ['', 'Hello!']] \
         ] \
     )
@@ -62,8 +58,6 @@ unittestRunTest('testPagerMarkdown')
 
 async function testPagerMarkdown_noTitle():
     unittestMockAll({ \
-        'markdownParse': [{'parts': []}], \
-        'markdownTitle': [null], \
         'systemFetch': { \
             'README.md': 'Hello!' \
         } \
@@ -77,8 +71,6 @@ async function testPagerMarkdown_noTitle():
             ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
             ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
             ['systemFetch', ['README.md']], \
-            ['markdownParse', ['Hello!']], \
-            ['markdownTitle', [{'parts': []}]], \
             ['documentSetTitle', ['No Title']], \
             ['markdownPrint', ['', 'Hello!']] \
         ] \
@@ -312,8 +304,6 @@ unittestRunTest('testPagerHideNav')
 
 async function testPagerKeyboard():
     unittestMockAll({ \
-        'markdownParse': [{'parts': []}], \
-        'markdownTitle': ['The Title'], \
         'systemFetch': { \
             'README.md': 'Hello!' \
         } \
@@ -327,9 +317,7 @@ async function testPagerKeyboard():
         [ \
             ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
             ['systemFetch', ['README.md']], \
-            ['markdownParse', ['Hello!']], \
-            ['markdownTitle', [{'parts': []}]], \
-            ['documentSetTitle', ['The Title']], \
+            ['documentSetTitle', ['No Title']], \
             ['markdownPrint', ['', 'Hello!']], \
             ['documentSetKeyDown', ['<function>']] \
         ] \
@@ -361,8 +349,6 @@ unittestRunTest('testPagerKeyboard')
 
 async function testPagerKeyboardNonStart():
     unittestMockAll({ \
-        'markdownParse': [{'parts': []}], \
-        'markdownTitle': ['The Title'], \
         'systemFetch': { \
             'README.md': 'Hello!' \
         } \

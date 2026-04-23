@@ -35,7 +35,11 @@ test('bare.main, argument error', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output, ['error: unrecognized arguments: --unknown']);
+    assert.deepEqual(output, [
+        `\
+usage: bare [-h] [-c CODE] [-d] [-l | -m] [-s] [-x] [-v VAR EXPR] [file ...]
+error: unrecognized arguments: --unknown`
+    ]);
 });
 
 
@@ -87,6 +91,25 @@ test('bare.main, markdownUp', async () => {
     });
     assert.equal(exitCode, 0);
     assert.deepEqual(output, ['Hello']);
+});
+
+
+test('bare.main, html', async () => {
+    const output = [];
+    const exitCode = await main({
+        'argv': ['node', 'bare.js', '-l', '-c', "markdownPrint('Hello **World**')"],
+        'logFn': (message) => output.push(message)
+    });
+    assert.equal(exitCode, 0);
+    assert.deepEqual(output, [
+        '<!DOCTYPE html>',
+        '<html lang="en">',
+        '<head>',
+        '<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">',
+        '</head>',
+        '<p>\n    Hello \n    <strong>\n        World\n    </strong>\n</p>',
+        '</html>'
+    ]);
 });
 
 
@@ -659,6 +682,19 @@ test('parseArgs, error missing variable 2', () => {
         {
             'name': 'Error',
             'message': 'argument -v/--var: expected 2 arguments'
+        }
+    );
+});
+
+
+test('parseArgs, markdownUp exclusive', () => {
+    assert.throws(
+        () => {
+            parseArgs(['node', 'bare.js', '-l', '-m']);
+        },
+        {
+            'name': 'Error',
+            'message': 'argument -m/--markdown: not allowed with argument -l/--html'
         }
     );
 });

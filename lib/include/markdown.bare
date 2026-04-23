@@ -1,0 +1,292 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: markdownEscape
+# $group: markdown.bare
+# $doc: Escape a string for inclusion in Markdown text
+# $arg text: The text to escape
+# $return: The escaped text
+function markdownEscape(text):
+    return regexReplace(markdownRegexEscape, text, '\\$1')
+endfunction
+
+markdownRegexEscape = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
+
+
+# $function: markdownHeaderId
+# $group: markdown.bare
+# $doc: Generate a Markdown header ID from text
+# $arg text: The text
+# $return: The header element ID
+function markdownHeaderId(text):
+    result = stringLower(text)
+    result = regexReplace(markdownElementsHeaderIdStart, result, '')
+    result = regexReplace(markdownElementsHeaderIdEnd, result, '')
+    result = regexReplace(markdownElementsHeaderIdRemove, result, '')
+    return regexReplace(markdownElementsHeaderIdDash, result, '-')
+endfunction
+
+markdownElementsHeaderIdStart = regexNew('^[^a-z0-9]+')
+markdownElementsHeaderIdEnd = regexNew('[^a-z0-9]+$')
+markdownElementsHeaderIdRemove = regexNew('[\'"]')
+markdownElementsHeaderIdDash = regexNew('[^a-z0-9]+')
+
+
+# $function: markdownTitle
+# $group: markdown.bare
+# $doc: Get a Markdown model's title
+# $arg markdown: The Markdown model
+# $return: The title string or null
+function markdownTitle(markdown):
+    parts = objectGet(markdown, 'parts')
+    for part in parts:
+        if objectHas(part, 'paragraph') && objectHas(objectGet(part, 'paragraph'), 'style'):
+            return markdownParagraphText(objectGet(part, 'paragraph'))
+        endif
+    endfor
+    return null
+endfunction
+
+
+# $function: markdownParagraphText
+# $group: markdown.bare
+# $doc: Get a Markdown paragraph model's text
+# $arg paragraph: The Markdown paragraph model
+# $return: The paragraph text string
+function markdownParagraphText(paragraph):
+    spans = objectGet(paragraph, 'spans')
+    parts = []
+    for span in spans:
+        arrayPush(parts, markdownParserGetSpanText(span))
+    endfor
+    return arrayJoin(parts, '')
+endfunction
+
+
+# Helper function to get a Markdown span model's text
+function markdownParserGetSpanText(span):
+    if objectHas(span, 'image'):
+        return objectGet(objectGet(span, 'image'), 'alt')
+    elif objectHas(span, 'link'):
+        linkSpans = objectGet(objectGet(span, 'link'), 'spans')
+        parts = []
+        for linkSpan in linkSpans:
+            arrayPush(parts, markdownParserGetSpanText(linkSpan))
+        endfor
+        return arrayJoin(parts, '')
+    elif objectHas(span, 'style'):
+        styleSpans = objectGet(objectGet(span, 'style'), 'spans')
+        parts = []
+        for styleSpan in styleSpans:
+            arrayPush(parts, markdownParserGetSpanText(styleSpan))
+        endfor
+        return arrayJoin(parts, '')
+    endif
+    return objectGet(span, 'text')
+endfunction
+
+
+# $function: markdownValidate
+# $group: markdown.bare
+# $doc: Validate a Markdown model
+# $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
+# $return: The validated [Markdown model](model.html#var.vName='Markdown')
+function markdownValidate(markdown):
+    return schemaValidate(markdownTypes, 'Markdown', markdown)
+endfunction
+
+
+# The Markdown type model
+markdownTypes = schemaParse( \
+    'group "markdown.bare"', \
+    '', \
+    '', \
+    '# Markdown document', \
+    'struct Markdown', \
+    '', \
+    "    # The markdown document's parts", \
+    '    MarkdownPart[] parts', \
+    '', \
+    '', \
+    '# Markdown document part', \
+    'union MarkdownPart', \
+    '', \
+    '    # A paragraph', \
+    '    MarkdownParagraph paragraph', \
+    '', \
+    '    # A horizontal rule (value is ignored)', \
+    '    int(== 1) hr', \
+    '', \
+    '    # A list', \
+    '    MarkdownList list', \
+    '', \
+    '    # A block quote', \
+    '    MarkdownBlockQuote quote', \
+    '', \
+    '    # A code block', \
+    '    MarkdownCodeBlock codeBlock', \
+    '', \
+    '    # A table', \
+    '    MarkdownTable table', \
+    '', \
+    '', \
+    '# Paragraph markdown part', \
+    'struct MarkdownParagraph', \
+    '', \
+    '    # The paragraph style', \
+    '    optional MarkdownParagraphStyle style', \
+    '', \
+    '    # The paragraph span array', \
+    '    MarkdownSpan[] spans', \
+    '', \
+    '', \
+    '# Paragraph style enum', \
+    'enum MarkdownParagraphStyle', \
+    '    h1', \
+    '    h2', \
+    '    h3', \
+    '    h4', \
+    '    h5', \
+    '    h6', \
+    '', \
+    '', \
+    '# List markdown part', \
+    'struct MarkdownList', \
+    '', \
+    '    # The list is numbered and this is starting number', \
+    '    optional int(>= 0) start', \
+    '', \
+    "    # The list's items", \
+    '    MarkdownListItem[len > 0] items', \
+    '', \
+    '', \
+    '# List item', \
+    'struct MarkdownListItem', \
+    '', \
+    "    # The list's parts", \
+    '    MarkdownPart[] parts', \
+    '', \
+    '', \
+    '# Block quote markdown part', \
+    'struct MarkdownBlockQuote', \
+    '', \
+    "    # The block quote's parts", \
+    '    MarkdownPart[] parts', \
+    '', \
+    '', \
+    '# Code block markdown part', \
+    'struct MarkdownCodeBlock', \
+    '', \
+    "    # The code block's language", \
+    '    optional string(len > 0) language', \
+    '', \
+    "    # The code block's text lines", \
+    '    string[] lines', \
+    '', \
+    "    # The code block's starting line number", \
+    '    optional int(>= 1) startLineNumber', \
+    '', \
+    '', \
+    '# Table markdown part', \
+    'struct MarkdownTable', \
+    '', \
+    '    # The table header cell array', \
+    '    MarkdownTableRow headers', \
+    '', \
+    '    # The table cell alignment array', \
+    '    MarkdownTableAlignment[len > 0] aligns', \
+    '', \
+    '    # The table data', \
+    '    optional MarkdownTableRow[len > 0] rows', \
+    '', \
+    '', \
+    '# A table row', \
+    'typedef MarkdownTableCell[len > 0] MarkdownTableRow', \
+    '', \
+    '', \
+    '# A table cell', \
+    'typedef MarkdownSpan[] MarkdownTableCell', \
+    '', \
+    '', \
+    '# Table cell alignment', \
+    'enum MarkdownTableAlignment', \
+    '    left', \
+    '    right', \
+    '    center', \
+    '', \
+    '', \
+    '# Paragraph span', \
+    'union MarkdownSpan', \
+    '', \
+    '    # Text span', \
+    '    string(len > 0) text', \
+    '', \
+    '    # Line break (value is ignored)', \
+    '    int(== 1) br', \
+    '', \
+    '    # Style span', \
+    '    MarkdownStyleSpan style', \
+    '', \
+    '    # Link span', \
+    '    MarkdownLinkSpan link', \
+    '', \
+    '    # Image span', \
+    '    MarkdownImageSpan image', \
+    '', \
+    '    # Link reference span', \
+    '    MarkdownLinkRef linkRef', \
+    '', \
+    '    # Code span', \
+    '    string(len > 0) code', \
+    '', \
+    '', \
+    '# Style span', \
+    'struct MarkdownStyleSpan', \
+    '', \
+    "    # The span's character style", \
+    '    MarkdownCharacterStyle style', \
+    '', \
+    '    # The contained spans', \
+    '    MarkdownSpan[] spans', \
+    '', \
+    '', \
+    '# Character style enum', \
+    'enum MarkdownCharacterStyle', \
+    '    bold', \
+    '    italic', \
+    '    strikethrough', \
+    '', \
+    '', \
+    '# Link span', \
+    'struct MarkdownLinkSpan', \
+    '', \
+    "    # The link's URL", \
+    '    string href', \
+    '', \
+    "    # The image's title", \
+    '    optional string(len > 0) title', \
+    '', \
+    '    # The contained spans', \
+    '    MarkdownSpan[] spans', \
+    '', \
+    '', \
+    '# Image span', \
+    'struct MarkdownImageSpan', \
+    '', \
+    '    # The image URL', \
+    '    string src', \
+    '', \
+    "    # The image's title", \
+    '    optional string(len > 0) title', \
+    '', \
+    "    # The image's alternate text", \
+    '    string alt', \
+    '', \
+    '', \
+    '# Link reference span', \
+    'struct MarkdownLinkRef', \
+    '', \
+    "    # The link reference link span or its text's spans (if reference not found)", \
+    '    MarkdownSpan[] spans' \
+)

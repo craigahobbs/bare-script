@@ -2,7 +2,9 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <args.bare>
+include <dataUtil.bare>
 include <dataTable.bare>
+include <markdown.bare>
 
 
 # $function: schemaDocMain
@@ -255,7 +257,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
                 endif
                 if hasDoc:
                     doc = objectGet(member, 'doc')
-                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, ' '), ''))
+                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, '\n'), ''))
                 endif
                 arrayPush(tableData, row)
             endfor
@@ -319,7 +321,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
                 row = {'Value': valueName}
                 if hasDoc:
                     doc = objectGet(value, 'doc')
-                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, ' '), ''))
+                    objectSet(row, 'Description', if(doc != null, arrayJoin(doc, '\n'), ''))
                 endif
                 arrayPush(tableData, row)
             endfor

@@ -1,0 +1,683 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../draw.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testDrawAuto():
+    systemGlobalSet('drawCurrentDrawing', null)
+    drawCircle(25, 25, 25)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 300, 'height': 200}, \
+        'elem': [ \
+            { \
+                'svg': 'circle', \
+                'attr': { \
+                    'cx': 25, \
+                    'cy': 25, \
+                    'r': 25, \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawAuto')
+
+
+function testDrawArc():
+    drawNew(100, 50)
+    drawMove(0, 25)
+    drawArc(25, 25, 0, 0, 0, 50, 25)
+    drawArc(25, 25, 0, 1, 1, 100, 25)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 100, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 25.00000000 A 25.00000000 25.00000000 0.00000000 0 0 50.00000000 25.00000000 ' + \
+                        'A 25.00000000 25.00000000 0.00000000 1 1 100.00000000 25.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawArc')
+
+
+function testDrawCircle():
+    drawNew(50, 50)
+    drawCircle(25, 25, 25)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'circle', \
+                'attr': { \
+                    'cx': 25, \
+                    'cy': 25, \
+                    'r': 25, \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawCircle')
+
+
+function testDrawClose():
+    drawNew(50, 50)
+    drawMove(0, 0)
+    drawLine(50, 0)
+    drawLine(50, 50)
+    drawClose()
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 50.00000000 0.00000000 L 50.00000000 50.00000000 Z', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawClose')
+
+
+function testDrawEllipse():
+    drawNew(50, 40)
+    drawEllipse(25, 20, 25, 20)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 40}, \
+        'elem': [ \
+            { \
+                'svg': 'ellipse', \
+                'attr': { \
+                    'cx': 25, \
+                    'cy': 20, \
+                    'rx': 25, \
+                    'ry': 20, \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawEllipse')
+
+
+function testDrawHLine():
+    drawNew(50, 50)
+    drawMove(0, 25)
+    drawHLine(50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 25.00000000 H 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawHLine')
+
+
+function testDrawHeight():
+    drawNew()
+    unittestEqual(drawHeight(), 200)
+endfunction
+unittestRunTest('testDrawHeight', 200)
+
+
+function testDrawImage():
+    drawNew(50, 50)
+    drawImage(15, 15, 25, 25, '/foo/bar.jpg')
+    drawImage(35, 35, 25, 25, 'bar.jpg')
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'image', \
+                'attr': { \
+                    'height': 25, \
+                    'href': '/foo/bar.jpg', \
+                    'width': 25, \
+                    'x': 15, \
+                    'y': 15 \
+                } \
+            }, \
+            { \
+                'svg': 'image', \
+                'attr': { \
+                    'height': 25, \
+                    'href': 'bar.jpg', \
+                    'width': 25, \
+                    'x': 35, \
+                    'y': 35 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawImage')
+
+
+function testDrawLine():
+    drawNew(50, 50)
+    drawMove(0, 0)
+    drawLine(50, 0)
+    drawLine(50, 50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 50.00000000 0.00000000 L 50.00000000 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawLine')
+
+
+function testDrawMove():
+    drawNew(50, 50)
+    drawMove(0, 0)
+    drawLine(50, 0)
+    drawMove(0, 50)
+    drawLine(50, 50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 50.00000000 0.00000000 M 0.00000000 50.00000000 L 50.00000000 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawMove')
+
+
+function testDrawOnClick_clickHandler():
+    return 5
+endfunction
+
+
+function testDrawOnClick():
+    # Draw a rect and set an on-click event
+    drawNew(50, 50)
+    drawRect(0, 0, 50, 50)
+    drawOnClick(testDrawOnClick_clickHandler)
+    elements = drawElements()
+    clickHandler = objectGet(objectGet(arrayGet(objectGet(elements, 'elem'), 0), 'callback'), 'click')
+    unittestEqual(clickHandler(), 5)
+    unittestDeepEqual(elements, { \
+        'svg': 'svg', \
+        'attr': { \
+            'height': 50, \
+            'width': 50 \
+        }, \
+        'elem': [ \
+            { \
+                'svg': 'rect', \
+                'attr': { \
+                    'fill': 'none', \
+                    'height': 50, \
+                    'rx': null, \
+                    'ry': null, \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000', \
+                    'style': 'cursor: pointer;', \
+                    'width': 50, \
+                    'x': 0, \
+                    'y': 0 \
+                }, \
+                'callback': { \
+                    'click': '<function>' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawOnClick')
+
+
+function testDrawOnClick_svgClick():
+    # Draw a rect and set an on-click event
+    drawNew(50, 50)
+    drawOnClick(testDrawOnClick_clickHandler)
+    drawRect(0, 0, 50, 50)
+    elements = drawElements()
+    clickHandler = objectGet(objectGet(elements, 'callback'), 'click')
+    unittestEqual(clickHandler(), 5)
+    unittestDeepEqual(elements, { \
+        'svg': 'svg', \
+        'attr': { \
+            'height': 50, \
+            'width': 50, \
+            'style': 'cursor: pointer;' \
+        }, \
+        'elem': [ \
+            { \
+                'svg': 'rect', \
+                'attr': { \
+                    'fill': 'none', \
+                    'height': 50, \
+                    'rx': null, \
+                    'ry': null, \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000', \
+                    'width': 50, \
+                    'x': 0, \
+                    'y': 0 \
+                } \
+            } \
+        ], \
+        'callback': { \
+            'click': '<function>' \
+        } \
+    })
+endfunction
+unittestRunTest('testDrawOnClick_svgClick')
+
+
+function testDrawPathRect():
+    drawNew(50, 50)
+    drawPathRect(0, 0, 50, 50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 H 50.00000000 V 50.00000000 H 0.00000000 Z', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawPathRect')
+
+
+function testDrawRect():
+    drawNew(50, 50)
+    drawRect(0, 0, 50, 50, 5, 5)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'rect', \
+                'attr': { \
+                    'x': 0, \
+                    'y': 0, \
+                    'width': 50, \
+                    'height': 50, \
+                    'rx': 5, \
+                    'ry': 5, \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': '1.00000000' \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawRect')
+
+
+function testDrawNew():
+    drawNew()
+    unittestEqual(drawWidth(), 300)
+    unittestEqual(drawHeight(), 200)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 300, 'height': 200}, \
+        'elem': [] \
+    })
+
+    drawNew(50, 50)
+    unittestEqual(drawWidth(), 50)
+    unittestEqual(drawHeight(), 50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [] \
+    })
+endfunction
+unittestRunTest('testDrawNew')
+
+
+function testDrawRender():
+    unittestMockOneGeneric('elementModelRender')
+    drawNew()
+    drawMove(50, 50)
+    drawLine(50, 50)
+    drawRender()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['elementModelRender', [ \
+            { \
+                'html': 'p', \
+                'elem': { \
+                    'svg': 'svg', \
+                    'attr': {'height': 200, 'width': 300}, \
+                    'elem': [ \
+                        { \
+                            'svg': 'path', \
+                            'attr': { \
+                                'd': 'M 50.00000000 50.00000000 L 50.00000000 50.00000000', \
+                                'fill': 'none', \
+                                'stroke': 'black', \
+                                'stroke-dasharray': 'none', \
+                                'stroke-width': 1 \
+                            } \
+                        } \
+                    ] \
+                } \
+            } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testDrawRender')
+
+
+function testDrawStyle():
+    drawNew(50, 50)
+    drawMove(0, 0)
+    drawLine(50, 0)
+    drawStyle('red')
+    drawMove(50, 0)
+    drawLine(50, 50)
+    drawStyle('red', 2)
+    drawMove(50, 50)
+    drawLine(0, 50)
+    drawStyle('red', 2, 'blue')
+    drawMove(0, 50)
+    drawLine(0, 0)
+    drawStyle('red', 2, 'blue', '4 1')
+    drawMove(0, 0)
+    drawLine(50, 50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 50.00000000 0.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            }, \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 50.00000000 0.00000000 L 50.00000000 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'red', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            }, \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 50.00000000 50.00000000 L 0.00000000 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'red', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 2 \
+                } \
+            }, \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 50.00000000 L 0.00000000 0.00000000', \
+                    'fill': 'blue', \
+                    'stroke': 'red', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 2 \
+                } \
+            }, \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 50.00000000 50.00000000', \
+                    'fill': 'blue', \
+                    'stroke': 'red', \
+                    'stroke-dasharray': '4 1', \
+                    'stroke-width': 2 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawStyle')
+
+
+function testDrawStyle_noDrawing():
+    drawNew()
+    drawStyle('red', 2, 'blue', '4 1')
+    drawStyle()
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 300, 'height': 200}, \
+        'elem': [] \
+    })
+endfunction
+unittestRunTest('testDrawStyle_noDrawing')
+
+
+function testDrawText():
+    drawNew(50, 50)
+    drawText('Hello', 25, 15)
+    drawTextStyle(null, 'black', true, true)
+    drawText('World!', 25, 35)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 25, \
+                    'y': 15, \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'middle' \
+                }, \
+                'elem': {'text': 'Hello'} \
+            }, \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 25, \
+                    'y': 35, \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'italic', \
+                    'font-weight': 'bold', \
+                    'text-anchor': 'middle' \
+                }, \
+                'elem': {'text': 'World!'} \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawText')
+
+
+function testDrawTextHeight():
+    drawNew()
+    unittestEqual(mathRound(drawTextHeight('Hello', 50) * 1000) / 1000, 16.667)
+    unittestEqual(drawTextHeight('', 0), 16)
+endfunction
+unittestRunTest('testDrawTextHeight')
+
+
+function testDrawTextStyle():
+    drawNew(50, 50)
+    drawText('A', 10, 10)
+    drawTextStyle(10, 'red', true, true, 'Comic Sans')
+    drawText('B', 20, 20)
+    drawTextStyle()
+    drawText('C', 30, 30)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 10, \
+                    'y': 10, \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'middle' \
+                }, \
+                'elem': {'text': 'A'} \
+            }, \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 20, \
+                    'y': 20, \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'red', \
+                    'font-family': 'Comic Sans', \
+                    'font-size': '10.00000000', \
+                    'font-style': 'italic', \
+                    'font-weight': 'bold', \
+                    'text-anchor': 'middle' \
+                }, \
+                'elem': {'text': 'B'} \
+            }, \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 30, \
+                    'y': 30, \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'middle' \
+                }, \
+                'elem': {'text': 'C'} \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawTextStyle')
+
+
+function testDrawTextWidth():
+    drawNew()
+    unittestEqual(drawTextWidth('Hello', 16), 48)
+endfunction
+unittestRunTest('testDrawTextWidth')
+
+
+function testDrawVLine():
+    drawNew(50, 50)
+    drawMove(25, 0)
+    drawVLine(50)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 25.00000000 0.00000000 V 50.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'black', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawVLine')
+
+
+function testDrawWidth():
+    drawNew()
+    unittestEqual(drawWidth(), 300)
+endfunction
+unittestRunTest('testDrawWidth')

@@ -21,7 +21,6 @@ confident that BareScript will execute the same regardless of the underlying run
 
 - [The BareScript Language](https://craigahobbs.github.io/bare-script/language/)
 - [The BareScript Library](https://craigahobbs.github.io/bare-script/library/)
-- [The BareScript Expression Library](https://craigahobbs.github.io/bare-script/library/expression.html)
 - [API Documentation](https://craigahobbs.github.io/bare-script/)
 - [Source code](https://github.com/craigahobbs/bare-script)
 
@@ -79,7 +78,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
 const script = parseScript(`\
-# Fetch the BareScript library documentation JSON
+o# Fetch the BareScript library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
@@ -93,7 +92,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ```
-The BareScript Library has 186 functions
+The BareScript Library has 209 functions
 ```
 
 

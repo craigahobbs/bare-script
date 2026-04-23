@@ -5,6 +5,11 @@ include '../elementModel.bare'
 include '../unittest.bare'
 
 
+#
+# elementModelValidate tests
+#
+
+
 function testElementModelValidate():
     unittestDeepEqual( \
         elementModelValidate({ \
@@ -135,6 +140,11 @@ function testElementModelValidate_errorCallbackInvalidValue():
     unittestEqual(elementModelValidate({'html': 'html', 'callback': 0}), null)
 endfunction
 unittestRunTest('testElementModelValidate_errorCallbackInvalidValue')
+
+
+#
+# elementModelToString tests
+#
 
 
 function testElementModelToString_null():

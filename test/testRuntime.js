@@ -1,11 +1,10 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import {BareScriptRuntimeError, evaluateExpression, executeScript} from '../lib/runtime.js';
+import {BareScriptRuntimeError, evaluateExpression, executeScript, systemGlobalCoverageName} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
-import {coverageGlobalName} from '../lib/library.js';
 import test from 'node:test';
 
 
@@ -85,43 +84,43 @@ test('executeScript, coverage', () => {
                     {'label': {'lineNumber': 3, 'name': 'label'}},
                     {'jump': {
                         'expr': {'unary': {'expr': {'variable': 'false'}, 'op': '!'}},
-                        'label': '__bareScriptIf0',
+                        'label': '__barescriptIf0',
                         'lineNumber': 5
                     }},
                     {'expr': {'expr': {'number': 0.0}, 'lineNumber': 6, 'name': 'ix'}},
-                    {'jump': {'label': '__bareScriptDone0', 'lineNumber': 7}},
-                    {'label': {'lineNumber': 7, 'name': '__bareScriptIf0'}},
+                    {'jump': {'label': '__barescriptDone0', 'lineNumber': 7}},
+                    {'label': {'lineNumber': 7, 'name': '__barescriptIf0'}},
                     {'jump': {
                         'expr': {'unary': {'expr': {'variable': 'false'},'op': '!'}},
-                        'label': '__bareScriptIf1',
+                        'label': '__barescriptIf1',
                         'lineNumber': 7
                     }},
                     {'expr': {'expr': {'number': 1.0}, 'lineNumber': 8, 'name': 'ix'}},
-                    {'jump': {'label': '__bareScriptDone0', 'lineNumber': 9}},
-                    {'label': {'lineNumber': 9, 'name': '__bareScriptIf1'}},
+                    {'jump': {'label': '__barescriptDone0', 'lineNumber': 9}},
+                    {'label': {'lineNumber': 9, 'name': '__barescriptIf1'}},
                     {'expr': {'expr': {'number': 2.0}, 'lineNumber': 10, 'name': 'ix'}},
-                    {'label': {'lineNumber': 11, 'name': '__bareScriptDone0'}},
+                    {'label': {'lineNumber': 11, 'name': '__barescriptDone0'}},
                     {'expr': {
                         'expr': {'function': {'args': [{'number': 1.0}, {'number': 2.0}, {'number': 3.0}], 'name': 'arrayNew'}},
                         'lineNumber': 13,
-                        'name': '__bareScriptValues2'
+                        'name': '__barescriptValues2'
                     }},
                     {'expr': {
-                        'expr': {'function': {'args': [{'variable': '__bareScriptValues2'}], 'name': 'arrayLength'}},
+                        'expr': {'function': {'args': [{'variable': '__barescriptValues2'}], 'name': 'arrayLength'}},
                         'lineNumber': 13,
-                        'name': '__bareScriptLength2'
+                        'name': '__barescriptLength2'
                     }},
                     {'jump': {
-                        'expr': {'unary': {'expr': {'variable': '__bareScriptLength2'}, 'op': '!'}},
-                        'label': '__bareScriptDone2',
+                        'expr': {'unary': {'expr': {'variable': '__barescriptLength2'}, 'op': '!'}},
+                        'label': '__barescriptDone2',
                         'lineNumber': 13
                     }},
-                    {'expr': {'expr': {'number': 0.0}, 'lineNumber': 13, 'name': '__bareScriptIndex2'}},
-                    {'label': {'lineNumber': 13, 'name': '__bareScriptLoop2'}},
+                    {'expr': {'expr': {'number': 0.0}, 'lineNumber': 13, 'name': '__barescriptIndex2'}},
+                    {'label': {'lineNumber': 13, 'name': '__barescriptLoop2'}},
                     {'expr': {
                         'expr': {
                             'function': {
-                                'args': [{'variable': '__bareScriptValues2'}, {'variable': '__bareScriptIndex2'}],
+                                'args': [{'variable': '__barescriptValues2'}, {'variable': '__barescriptIndex2'}],
                                 'name': 'arrayGet'
                             }
                         },
@@ -130,39 +129,39 @@ test('executeScript, coverage', () => {
                     }},
                     {'expr': {'expr': {'function': {'args': [{'variable': 'num'}], 'name': 'systemLog'}}, 'lineNumber': 14}},
                     {'expr': {
-                        'expr': {'binary': {'left': {'variable': '__bareScriptIndex2'}, 'op': '+', 'right': {'number': 1.0}}},
+                        'expr': {'binary': {'left': {'variable': '__barescriptIndex2'}, 'op': '+', 'right': {'number': 1.0}}},
                         'lineNumber': 15,
-                        'name': '__bareScriptIndex2'
+                        'name': '__barescriptIndex2'
                     }},
                     {'jump': {
                         'expr': {
                             'binary': {
-                                'left': {'variable': '__bareScriptIndex2'},
+                                'left': {'variable': '__barescriptIndex2'},
                                 'op': '<',
-                                'right': {'variable': '__bareScriptLength2'}}
+                                'right': {'variable': '__barescriptLength2'}}
                         },
-                        'label': '__bareScriptLoop2',
+                        'label': '__barescriptLoop2',
                         'lineNumber': 15
                     }},
-                    {'label': {'lineNumber': 15, 'name': '__bareScriptDone2'}},
+                    {'label': {'lineNumber': 15, 'name': '__barescriptDone2'}},
                     {'expr': {'expr': {'number': 0.0}, 'lineNumber': 17, 'name': 'ix'}},
                     {'jump': {
                         'expr': {'unary': {'expr': {'variable': 'true'}, 'op': '!'}},
-                        'label': '__bareScriptDone3',
+                        'label': '__barescriptDone3',
                         'lineNumber': 18
                     }},
-                    {'label': {'lineNumber': 18, 'name': '__bareScriptLoop3'}},
+                    {'label': {'lineNumber': 18, 'name': '__barescriptLoop3'}},
                     {'jump': {
                         'expr': {
                             'unary': {
                                 'expr': {'binary': {'left': {'variable': 'ix'}, 'op': '==', 'right': {'number': 5.0}}},
                                 'op': '!'
                             }},
-                        'label': '__bareScriptDone4',
+                        'label': '__barescriptDone4',
                         'lineNumber': 19
                     }},
-                    {'jump': {'label': '__bareScriptDone3', 'lineNumber': 20}},
-                    {'label': {'lineNumber': 21, 'name': '__bareScriptDone4'}},
+                    {'jump': {'label': '__barescriptDone3', 'lineNumber': 20}},
+                    {'label': {'lineNumber': 21, 'name': '__barescriptDone4'}},
                     {'expr': {
                         'expr': {'binary': {'left': {'variable': 'ix'}, 'op': '+', 'right': {'number': 1.0}}},
                         'lineNumber': 22,
@@ -175,23 +174,23 @@ test('executeScript, coverage', () => {
                                 'op': '!'
                             }
                         },
-                        'label': '__bareScriptDone5',
+                        'label': '__barescriptDone5',
                         'lineNumber': 23
                     }},
-                    {'jump': {'label': '__bareScriptLoop3', 'lineNumber': 24}},
-                    {'label': {'lineNumber': 25, 'name': '__bareScriptDone5'}},
-                    {'jump': {'expr': {'variable': 'true'}, 'label': '__bareScriptLoop3', 'lineNumber': 26}},
-                    {'label': {'lineNumber': 26, 'name': '__bareScriptDone3'}},
+                    {'jump': {'label': '__barescriptLoop3', 'lineNumber': 24}},
+                    {'label': {'lineNumber': 25, 'name': '__barescriptDone5'}},
+                    {'jump': {'expr': {'variable': 'true'}, 'label': '__barescriptLoop3', 'lineNumber': 26}},
+                    {'label': {'lineNumber': 26, 'name': '__barescriptDone3'}},
                     {'return': {'expr': {'variable': 'true'}, 'lineNumber': 28}}
                 ]
             }},
             {'return': {'expr': {'function': {'args': [], 'name': 'main'}}, 'lineNumber': 31}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), true);
     const [mainStatement] = script.statements;
-    assert.deepEqual(options.globals[coverageGlobalName], {
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {
         'enabled': true,
         'scripts': {
             'test.bare': {
@@ -202,31 +201,31 @@ test('executeScript, coverage', () => {
                     '3': {'count': 1, 'statement': {'label': {'lineNumber': 3, 'name': 'label'}}},
                     '5': {'count': 1, 'statement': {'jump': {
                         'expr': {'unary': {'expr': {'variable': 'false'}, 'op': '!'}},
-                        'label': '__bareScriptIf0',
+                        'label': '__barescriptIf0',
                         'lineNumber': 5
                     }}},
-                    '7': {'count': 2, 'statement': {'label': {'lineNumber': 7, 'name': '__bareScriptIf0'}}},
-                    '9': {'count': 1, 'statement': {'label': {'lineNumber': 9, 'name': '__bareScriptIf1'}}},
+                    '7': {'count': 2, 'statement': {'label': {'lineNumber': 7, 'name': '__barescriptIf0'}}},
+                    '9': {'count': 1, 'statement': {'label': {'lineNumber': 9, 'name': '__barescriptIf1'}}},
                     '10': {'count': 1, 'statement': {'expr': {'expr': {'number': 2.0}, 'lineNumber': 10, 'name': 'ix'}}},
-                    '11': {'count': 1, 'statement': {'label': {'lineNumber': 11, 'name': '__bareScriptDone0'}}},
+                    '11': {'count': 1, 'statement': {'label': {'lineNumber': 11, 'name': '__barescriptDone0'}}},
                     '13': {'count': 10, 'statement': {'expr': {
                         'expr': {'function': {'args': [{'number': 1.0}, {'number': 2.0}, {'number': 3.0}], 'name': 'arrayNew'}},
                         'lineNumber': 13,
-                        'name': '__bareScriptValues2'
+                        'name': '__barescriptValues2'
                     }}},
                     '14': {'count': 3, 'statement': {'expr': {
                         'expr': {'function': {'args': [{'variable': 'num'}], 'name': 'systemLog'}},
                         'lineNumber': 14
                     }}},
                     '15': {'count': 7, 'statement': {'expr': {
-                        'expr': {'binary': {'left': {'variable': '__bareScriptIndex2'}, 'op': '+', 'right': {'number': 1.0}}},
+                        'expr': {'binary': {'left': {'variable': '__barescriptIndex2'}, 'op': '+', 'right': {'number': 1.0}}},
                         'lineNumber': 15,
-                        'name': '__bareScriptIndex2'
+                        'name': '__barescriptIndex2'
                     }}},
                     '17': {'count': 1, 'statement': {'expr': {'expr': {'number': 0.0}, 'lineNumber': 17, 'name': 'ix'}}},
                     '18': {'count': 7, 'statement': {'jump': {
                         'expr': {'unary': {'expr': {'variable': 'true'}, 'op': '!'}},
-                        'label': '__bareScriptDone3',
+                        'label': '__barescriptDone3',
                         'lineNumber': 18
                     }}},
                     '19': {'count': 6, 'statement': {'jump': {
@@ -234,11 +233,11 @@ test('executeScript, coverage', () => {
                             'expr': {'binary': {'left': {'variable': 'ix'}, 'op': '==', 'right': {'number': 5.0}}},
                             'op': '!'
                         }},
-                        'label': '__bareScriptDone4',
+                        'label': '__barescriptDone4',
                         'lineNumber': 19
                     }}},
-                    '20': {'count': 1, 'statement': {'jump': {'label': '__bareScriptDone3', 'lineNumber': 20}}},
-                    '21': {'count': 5, 'statement': {'label': {'lineNumber': 21, 'name': '__bareScriptDone4'}}},
+                    '20': {'count': 1, 'statement': {'jump': {'label': '__barescriptDone3', 'lineNumber': 20}}},
+                    '21': {'count': 5, 'statement': {'label': {'lineNumber': 21, 'name': '__barescriptDone4'}}},
                     '22': {'count': 5, 'statement': {'expr': {
                         'expr': {'binary': {'left': {'variable': 'ix'}, 'op': '+', 'right': {'number': 1.0}}},
                         'lineNumber': 22,
@@ -249,14 +248,14 @@ test('executeScript, coverage', () => {
                             'expr': {'binary': {'left': {'variable': 'ix'}, 'op': '==', 'right': {'number': 3.0}}},
                             'op': '!'
                         }},
-                        'label': '__bareScriptDone5',
+                        'label': '__barescriptDone5',
                         'lineNumber': 23
                     }}},
-                    '24': {'count': 1, 'statement': {'jump': {'label': '__bareScriptLoop3', 'lineNumber': 24}}},
-                    '25': {'count': 4, 'statement': {'label': {'lineNumber': 25, 'name': '__bareScriptDone5'}}},
+                    '24': {'count': 1, 'statement': {'jump': {'label': '__barescriptLoop3', 'lineNumber': 24}}},
+                    '25': {'count': 4, 'statement': {'label': {'lineNumber': 25, 'name': '__barescriptDone5'}}},
                     '26': {'count': 5, 'statement': {'jump': {
                         'expr': {'variable': 'true'},
-                        'label': '__bareScriptLoop3',
+                        'label': '__barescriptLoop3',
                         'lineNumber': 26
                     }}},
                     '28': {'count': 1, 'statement': {'return': {'expr': {'variable': 'true'}, 'lineNumber': 28}}},
@@ -283,10 +282,10 @@ test('executeScript, coverage disabled', () => {
         ]
     });
     const options = {
-        'globals': {[coverageGlobalName]: {'enabled': false}}
+        'globals': {[systemGlobalCoverageName]: {'enabled': false}}
     };
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': false});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': false});
 });
 
 
@@ -304,9 +303,9 @@ test('executeScript, coverage non-object', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: 42}};
+    const options = {'globals': {[systemGlobalCoverageName]: 42}};
     assert.equal(executeScript(script, options), 12);
-    assert.equal(options.globals[coverageGlobalName], 42);
+    assert.equal(options.globals[systemGlobalCoverageName], 42);
 });
 
 
@@ -323,9 +322,9 @@ test('executeScript, coverage no name', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}, 'lineNumber': 3}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 
@@ -343,9 +342,9 @@ test('executeScript, coverage no linenos', () => {
             {'return': {'expr': {'binary': {'op': '+', 'left': {'variable': 'a'}, 'right': {'variable': 'b'}}}}}
         ]
     });
-    const options = {'globals': {[coverageGlobalName]: {'enabled': true}}};
+    const options = {'globals': {[systemGlobalCoverageName]: {'enabled': true}}};
     assert.equal(executeScript(script, options), 12);
-    assert.deepEqual(options.globals[coverageGlobalName], {'enabled': true});
+    assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': true});
 });
 
 
