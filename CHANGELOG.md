@@ -1,5 +1,27 @@
 # Changelog
 
+## 4.0.0 (2026-04-23)
+
+- [712e30a](https://github.com/craigahobbs/bare-script/commit/712e30a)
+
+  BareScript 4.0 migrates built-in functions to the BareScript include library in an effort to further
+  reduce the effort of porting the BareScript runtime. This breaks backwards compatibility, but in
+  most cases is fixed with the addition of one or more system includes.
+
+  - migrate builtin data functions to data.bare
+
+  - migrate MarkdownUp builtin dataLineChart to dataLineChart.bare
+
+  - migrate MarkdownUp builtin dataTable to dataTable.bare
+
+  - migrate MarkdownUp draw functions to draw.bare
+
+  - migrate MarkdownUp markdown functions to markdown.bare
+
+  - add markdownParser.bare and markdownElements.bare
+
+  - add bare -l argument to render MarkdownUp applications as HTML
+
 ## 3.8.23 (2026-04-07)
 
 - [4e3ca54](https://github.com/craigahobbs/bare-script/commit/4e3ca54) - revert prior change to barescriptEvaluateExpression
