@@ -1,0 +1,149 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+async function testUnittestMockAll():
+    # Setup mocks
+    unittestMockAll({ \
+        'documentInputValue': {'id1': 'value1'}, \
+        'systemFetch': {'test.json': '{"key": "value"}'} \
+    })
+
+    # Document
+    unittestEqual(documentFontSize(), 16)
+    unittestEqual(documentInputValue('id1'), 'value1')
+    documentSetFocus('id1')
+    documentSetKeyDown(null)
+    documentSetReset('id1')
+    documentSetTitle('Hello')
+    unittestEqual(documentURL('test.json'), 'test.json')
+
+    # Element Model
+    elementModelRender({'html': 'h1', 'elem': {'text': 'Hello'}})
+
+    # Local Storage
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+    localStorageSet('key1', 'value1')
+    localStorageSet('key2', 'value2')
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), 'value2')
+    localStorageRemove('key2')
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), null)
+    localStorageClear()
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+
+    # Markdown
+    markdownPrint('# Title')
+
+    # Session Storage
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+    sessionStorageSet('key1', 'value1')
+    sessionStorageSet('key2', 'value2')
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), 'value2')
+    sessionStorageRemove('key2')
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), null)
+    sessionStorageClear()
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+
+    # System
+    unittestDeepEqual(systemFetch('test.json'), '{"key": "value"}')
+    systemLog('Hello')
+    systemLogDebug('Hello Debug')
+
+    # Window
+    unittestEqual(windowClipboardRead(), '')
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+    unittestEqual(windowHeight(), 768)
+    windowSetLocation('test.html')
+    windowSetResize(null)
+    windowSetTimeout(null, 1000)
+    unittestEqual(windowURLObject('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
+    unittestEqual(windowURLObject('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+    unittestEqual(windowWidth(), 1024)
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['documentInputValue', ['id1']], \
+        ['documentSetFocus', ['id1']], \
+        ['documentSetKeyDown', [null]], \
+        ['documentSetReset', ['id1']], \
+        ['documentSetTitle', ['Hello']], \
+        ['elementModelRender', [{'html': 'h1', 'elem': {'text': 'Hello'}}]], \
+        ['localStorageSet', ['key1', 'value1']], \
+        ['localStorageSet', ['key2', 'value2']], \
+        ['localStorageRemove', ['key2']], \
+        ['localStorageClear', []], \
+        ['markdownPrint', ['# Title']], \
+        ['sessionStorageSet', ['key1', 'value1']], \
+        ['sessionStorageSet', ['key2', 'value2']], \
+        ['sessionStorageRemove', ['key2']], \
+        ['sessionStorageClear', []], \
+        ['systemFetch', ['test.json']], \
+        ['systemLog', ['Hello']], \
+        ['systemLogDebug', ['Hello Debug']], \
+        ['windowClipboardWrite', ['Hello!']], \
+        ['windowSetLocation', ['test.html']], \
+        ['windowSetResize', [null]], \
+        ['windowSetTimeout', [null, 1000]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll')
+
+
+async function testUnittestMockAll_systemFetch_array():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.json': '{"key": "value"}', \
+            'test2.json': '{"key2": "value2"}' \
+        } \
+    })
+
+    # Call systemFetch with array of URLs
+    unittestDeepEqual( \
+        systemFetch(['test.json', {'url': 'test2.json'}]), \
+        [ \
+            '{"key": "value"}', \
+            '{"key2": "value2"}' \
+        ] \
+    )
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [['test.json', {'url': 'test2.json'}]]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll_systemFetch_array')
+
+
+async function testUnittestMockAll_systemFetch_request_model():
+    # Setup mocks
+    unittestMockAll({ \
+        'systemFetch': { \
+            'test.json': '{"key": "value"}' \
+        } \
+    })
+
+    # Call systemFetch with a request model
+    unittestDeepEqual( \
+        systemFetch({'url': 'test.json'}), \
+        '{"key": "value"}' \
+    )
+
+    # Reset mocks
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [{'url': 'test.json'}]] \
+    ])
+endfunction
+unittestRunTest('testUnittestMockAll_systemFetch_request_model')

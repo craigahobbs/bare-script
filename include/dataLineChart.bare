@@ -1,0 +1,806 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <dataUtil.bare>
+
+
+# The line chart model
+dataLineChartTypes = schemaParse( \
+    'group "dataLineChart.bare"', \
+    '', \
+    '', \
+    '# A line chart model', \
+    'struct DataLineChart', \
+    '', \
+    '    # The chart title', \
+    '    optional string title', \
+    '', \
+    '    # The chart width', \
+    '    optional int width', \
+    '', \
+    '    # The chart height', \
+    '    optional int height', \
+    '', \
+    '    # The numeric formatting precision (default is 2)', \
+    '    optional int(>= 0) precision', \
+    '', \
+    '    # The datetime format', \
+    '    optional DataLineChartDatetimeFormat datetime', \
+    '', \
+    "    # The line chart's X-axis field", \
+    '    string x', \
+    '', \
+    "    # The line chart's Y-axis fields", \
+    '    string[len > 0] y', \
+    '', \
+    '    # The color encoding field', \
+    '    optional string color', \
+    '', \
+    '    # The color encoding value order', \
+    '    optional string[len > 0] colorOrder', \
+    '', \
+    '    # The X-axis tick marks', \
+    '    optional DataLineChartAxisTicks xTicks', \
+    '', \
+    '    # The Y-axis tick marks', \
+    '    optional DataLineChartAxisTicks yTicks', \
+    '', \
+    '    # The X-axis annotations', \
+    '    optional DataLineChartAxisAnnotation[len > 0] xLines', \
+    '', \
+    '    # The Y-axis annotations', \
+    '    optional DataLineChartAxisAnnotation[len > 0] yLines', \
+    '', \
+    '', \
+    '# The axis tick mark model', \
+    'struct DataLineChartAxisTicks', \
+    '', \
+    '    # The count of evenly-spaced tick marks. The default is 3.', \
+    '    optional int(>= 0) count', \
+    '', \
+    '    # The value of the first tick mark. Default is the minimum axis value.', \
+    '    optional any start', \
+    '', \
+    '    # The value of the last tick mark. Default is the maximum axis value.', \
+    '    optional any end', \
+    '', \
+    '    # The number of tick mark labels to skip after a rendered label', \
+    '    optional int(> 0) skip', \
+    '', \
+    '', \
+    '# An axis annotation', \
+    'struct DataLineChartAxisAnnotation', \
+    '', \
+    '    # The axis value', \
+    '    any value', \
+    '', \
+    '    # The annotation label', \
+    '    optional string label', \
+    '', \
+    '', \
+    '# A datetime format', \
+    'enum DataLineChartDatetimeFormat', \
+    '', \
+    '    # ISO datetime year format', \
+    '    year', \
+    '', \
+    '    # ISO datetime month format', \
+    '    month', \
+    '', \
+    '    # ISO datetime day format', \
+    '    day' \
+)
+
+
+# $function: dataLineChartValidate
+# $group: dataLineChart.bare
+# $doc: Validate a line chart model
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $return: The validated [line chart model](model.html#var.vName='DataLineChart')
+function dataLineChartValidate(lineChart):
+    return schemaValidate(dataLineChartTypes, 'DataLineChart', lineChart)
+endfunction
+
+
+# Line chart defaults
+dataLineChartDefaultWidth = 640
+dataLineChartDefaultHeight = 320
+dataLineChartDefaultXAxisTickCount = 3
+dataLineChartDefaultYAxisTickCount = 3
+
+
+# The categorical color palette
+dataLineChartCategoricalColors = [ \
+    '#1f77b4', \
+    '#ff7f0e', \
+    '#2ca02c', \
+    '#d62728', \
+    '#9467bd', \
+    '#8c564b', \
+    '#e377c2', \
+    '#7f7f7f', \
+    '#bcbd22', \
+    '#17becf', \
+    '#aec7e8', \
+    '#ffbb78', \
+    '#98df8a', \
+    '#ff9896', \
+    '#c5b0d5', \
+    '#c49c94', \
+    '#f7b6d2', \
+    '#c7c7c7', \
+    '#dbdb8d', \
+    '#9edae5' \
+]
+
+
+# Line chart constants (all numbers in pixels)
+dataLineChartSvgPrecision = 3
+dataLineChartChartFontFamily = 'Arial, Helvetica, sans-serif'
+dataLineChartChartFontWidthRatio = 0.6
+dataLineChartChartFontDefaultSizePx = 16
+dataLineChartChartBackgroundColor = 'white'
+dataLineChartAxisColor = 'black'
+dataLineChartAxisTickLineColor = 'lightgray'
+dataLineChartAxisLineWidth = 1
+dataLineChartAxisTickWidth = 1
+dataLineChartAxisTickLength = 5
+dataLineChartAnnotationBackgroundColor = '#ffffffa0'
+dataLineChartAnnotationTextColor = 'black'
+dataLineChartAnnotationLineColor = 'black'
+dataLineChartAnnotationLineWidth = 2
+dataLineChartChartLineWidth = 3
+
+
+# $function: dataLineChart
+# $group: dataLineChart.bare
+# $doc: Render a line chart
+# $arg data: The data array
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg options: - **fontSize** - The font size, in pixels
+function dataLineChart(data, lineChart, options):
+    elementModelRender = systemGlobalGet('elementModelRender')
+    elementModelRender({'html': 'p', 'elem': dataLineChartElements(data, lineChart, options)})
+endfunction
+
+
+# $function: dataLineChartElements
+# $group: dataLineChart.bare
+# $doc: Render a line chart as an element model
+# $arg data: The data array
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg options: - **fontSize** - The font size, in pixels
+# $return: The line chart [element model](https://github.com/craigahobbs/element-model#readme)
+function dataLineChartElements(data, lineChart, options):
+    chartFontSize = if(options, objectGet(options, 'fontSize', dataLineChartChartFontDefaultSizePx), dataLineChartChartFontDefaultSizePx)
+    xField = objectGet(lineChart, 'x')
+    yFields = objectGet(lineChart, 'y')
+    colorField = objectGet(lineChart, 'color')
+    colorOrder = objectGet(lineChart, 'colorOrder')
+
+    # Sort the rows by the X field
+    arraySort(data, systemPartial(dataLineChartSortCompare, xField))
+
+    # Generate the line points - [{label, color, points}, ...]
+    linePoints = []
+    xMin = null
+    yMin = null
+    xMax = null
+    yMax = null
+    if colorField != null:
+        # Determine the set of color encoding values
+        colorValueSet = {}
+        pointsMap = {}
+        for row in data:
+            for yField in yFields:
+                colorValue = dataUtilFormatValue(objectGet(row, colorField), objectGet(lineChart, 'precision'), objectGet(lineChart, 'datetime'))
+                rowKey = if(arrayLength(yFields) == 1, colorValue, yField + ', ' + colorValue)
+                objectSet(colorValueSet, rowKey, true)
+                xRow = objectGet(row, xField)
+                yRow = objectGet(row, yField)
+                if xRow != null && yRow != null:
+                    if !objectHas(pointsMap, rowKey):
+                        objectSet(pointsMap, rowKey, [])
+                    endif
+                    arrayPush(objectGet(pointsMap, rowKey), [xRow, yRow])
+                    xMin = if(xMin == null, xRow, xMin)
+                    yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                    xMax = xRow
+                    yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                endif
+            endfor
+        endfor
+
+        # Sort color values
+        if colorOrder != null:
+            colorValues = arraySort(objectKeys(colorValueSet), systemPartial(dataLineChartColorOrderCompare, colorOrder))
+        else:
+            colorValues = arraySort(objectKeys(colorValueSet))
+        endif
+
+        # Add the points
+        for colorValue, ixColorValue in colorValues:
+            color = arrayGet(dataLineChartCategoricalColors, ixColorValue % arrayLength(dataLineChartCategoricalColors))
+            points = objectGet(pointsMap, colorValue)
+            arrayPush(linePoints, {'label': colorValue, 'color': color, 'points': points})
+        endfor
+    else:
+        # Create a line for each y-field
+        for yField, ixField in yFields:
+            color = arrayGet(dataLineChartCategoricalColors, ixField % arrayLength(dataLineChartCategoricalColors))
+            points = []
+            arrayPush(linePoints, {'label': yField, 'color': color, 'points': points})
+
+            # Add the points
+            for row in data:
+                xRow = objectGet(row, xField)
+                yRow = objectGet(row, yField)
+                if xRow != null && yRow != null:
+                    arrayPush(points, [xRow, yRow])
+                    xMin = if(xMin == null, xRow, if(xRow < xMin, xRow, xMin))
+                    yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                    xMax = xRow
+                    yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                endif
+            endfor
+        endfor
+    endif
+    linePointsReversed = arrayReverse(arrayCopy(linePoints))
+
+    # No data?
+    if xMin == null:
+        systemLogDebug('dataLineChart.bare - No data')
+        return null
+    endif
+
+    # Compute the chart title, width, and height
+    chartTitle = objectGet(lineChart, 'title')
+    chartWidth = objectGet(lineChart, 'width', dataLineChartDefaultWidth)
+    chartHeight = objectGet(lineChart, 'height', dataLineChartDefaultHeight)
+    chartPrecision = objectGet(lineChart, 'precision')
+    chartDatetime = objectGet(lineChart, 'datetime')
+
+    # Compute Y-axis tick values
+    yAxisTicks = []
+    yTicks = objectGet(lineChart, 'yTicks')
+    yTickCount = if(yTicks != null && objectHas(yTicks, 'count'), objectGet(yTicks, 'count'), dataLineChartDefaultYAxisTickCount)
+    yTickSkip = if(yTicks != null && objectHas(yTicks, 'skip'), objectGet(yTicks, 'skip') + 1, 1)
+    yTickStart = if(yTicks != null && objectHas(yTicks, 'start'), objectGet(yTicks, 'start'), yMin)
+    yTickEnd = if(yTicks != null && objectHas(yTicks, 'end'), objectGet(yTicks, 'end'), yMax)
+    ixTick = 0
+    while ixTick < yTickCount:
+        yTickParam = if(yTickCount == 1, 0, ixTick / (yTickCount - 1))
+        yTickValue = dataUtilParameterValue(yTickParam, yTickStart, yTickEnd)
+        yTickLabel = if((ixTick % yTickSkip) != 0, '', dataUtilFormatValue(yTickValue, chartPrecision, chartDatetime))
+        arrayPush(yAxisTicks, [yTickValue, yTickLabel])
+        yMin = if(yTickValue < yMin, yTickValue, yMin)
+        yMax = if(yTickValue > yMax, yTickValue, yMax)
+        ixTick = ixTick + 1
+    endwhile
+
+    # Compute X-axis tick values
+    xAxisTicks = []
+    xTicks = objectGet(lineChart, 'xTicks')
+    xTickCount = if(xTicks != null && objectHas(xTicks, 'count'), objectGet(xTicks, 'count'), dataLineChartDefaultXAxisTickCount)
+    xTickSkip = if(xTicks != null && objectHas(xTicks, 'skip'), objectGet(xTicks, 'skip') + 1, 1)
+    xTickStart = if(xTicks != null && objectHas(xTicks, 'start'), objectGet(xTicks, 'start'), xMin)
+    xTickEnd = if(xTicks != null && objectHas(xTicks, 'end'), objectGet(xTicks, 'end'), xMax)
+    ixTick = 0
+    while ixTick < xTickCount:
+        xTickParam = if(xTickCount == 1, 0, ixTick / (xTickCount - 1))
+        xTickValue = dataUtilParameterValue(xTickParam, xTickStart, xTickEnd)
+        xTickLabel = if((ixTick % xTickSkip) != 0, '', dataUtilFormatValue(xTickValue, chartPrecision, chartDatetime))
+        arrayPush(xAxisTicks, [xTickValue, xTickLabel])
+        xMin = if(xTickValue < xMin, xTickValue, xMin)
+        xMax = if(xTickValue > xMax, xTickValue, xMax)
+        ixTick = ixTick + 1
+    endwhile
+
+    # Compute Y-axis annotations
+    yAxisAnnotations = []
+    yLines = objectGet(lineChart, 'yLines')
+    if yLines != null:
+        for annotation in yLines:
+            yAnnotationValue = objectGet(annotation, 'value')
+            yAnnotationLabel = objectGet(annotation, 'label')
+            if yAnnotationLabel == null:
+                yAnnotationLabel = dataUtilFormatValue(yAnnotationValue, chartPrecision, chartDatetime)
+            endif
+            arrayPush(yAxisAnnotations, [yAnnotationValue, yAnnotationLabel])
+            yMin = if(yAnnotationValue < yMin, yAnnotationValue, yMin)
+            yMax = if(yAnnotationValue > yMax, yAnnotationValue, yMax)
+        endfor
+    endif
+
+    # Compute X-axis annotations
+    xAxisAnnotations = []
+    xLines = objectGet(lineChart, 'xLines')
+    if xLines != null:
+        for annotation in xLines:
+            xAnnotationValue = objectGet(annotation, 'value')
+            xAnnotationLabel = objectGet(annotation, 'label')
+            if xAnnotationLabel == null:
+                xAnnotationLabel = dataUtilFormatValue(xAnnotationValue, chartPrecision, chartDatetime)
+            endif
+            arrayPush(xAxisAnnotations, [xAnnotationValue, xAnnotationLabel])
+            xMin = if(xAnnotationValue < xMin, xAnnotationValue, xMin)
+            xMax = if(xAnnotationValue > xMax, xAnnotationValue, xMax)
+        endfor
+    endif
+
+    # Chart title calculations
+    chartBorderSize = chartFontSize
+    chartTitleFontSize = 1.1 * chartFontSize
+    chartTitleHeight = if(chartTitle != null, 1.5 * chartTitleFontSize, 0)
+
+    # Y-axis calculations
+    axisTitleFontSize = 1 * chartFontSize
+    axisLabelFontSize = chartFontSize
+    yAxisTitle = if(arrayLength(yFields) == 1, arrayGet(yFields, 0))
+    yAxisTitleWidth = if(yAxisTitle != null, 1.8 * axisTitleFontSize, 0)
+    yAxisLabelWidth = 0
+    for yTickPair in yAxisTicks:
+        yTickLabelText = arrayGet(yTickPair, 1)
+        labelWidth = stringLength(yTickLabelText) * dataLineChartChartFontWidthRatio * axisLabelFontSize
+        yAxisLabelWidth = if(labelWidth > yAxisLabelWidth, labelWidth, yAxisLabelWidth)
+    endfor
+    yAxisTickGap = 0.75 * dataLineChartAxisTickLength
+    yAxisX = mathMin( \
+        chartBorderSize + yAxisTitleWidth + if(yAxisTicks, yAxisLabelWidth + yAxisTickGap + dataLineChartAxisTickLength, 0), \
+        0.4 * chartWidth \
+    )
+
+    # X-axis calculations
+    xAxisTitleHeight = 1.8 * axisTitleFontSize
+    xAxisTickGap = 0.75 * dataLineChartAxisTickLength
+    xAxisY = chartHeight - chartBorderSize - xAxisTitleHeight - \
+        if(xAxisTicks, axisLabelFontSize - xAxisTickGap + dataLineChartAxisTickLength, 0)
+
+    # Y-axis annotation calculations
+    annotationLabelFontSize = axisLabelFontSize
+    annotationLabelMargin = 0.25 * annotationLabelFontSize
+    annotationLabelHeight = annotationLabelFontSize + 2 * annotationLabelMargin
+    yAnnotationLabelOffsetX = 0.2 * annotationLabelFontSize
+    yAnnotationLabelOffsetY = 0.1 * annotationLabelFontSize
+
+    # X-axis annotation calculations
+    xAnnotationLabelOffsetX = 0.2 * annotationLabelFontSize
+    xAnnotationLabelOffsetY = 0.1 * annotationLabelFontSize
+
+    # Color legend calculations
+    colorLegendFontSize = chartFontSize
+    colorLegendGap = 0.5 * colorLegendFontSize
+    colorLegendLabelHeight = colorLegendFontSize
+    colorLegendLabelGap = 0.35 * colorLegendLabelHeight
+    colorLegendSampleWidth = 1.35 * colorLegendLabelHeight
+    colorLegendLabelWidth = 0
+    for linePoint in linePoints:
+        labelWidth = stringLength(objectGet(linePoint, 'label')) * dataLineChartChartFontWidthRatio * colorLegendFontSize
+        colorLegendLabelWidth = if(labelWidth > colorLegendLabelWidth, labelWidth, colorLegendLabelWidth)
+    endfor
+    colorLegendX = if(arrayLength(yFields) == 1 && colorField == null, null, \
+        mathMax( \
+            chartWidth - chartBorderSize - colorLegendLabelWidth - colorLegendSampleWidth, \
+            0.6 * chartWidth \
+        ) \
+    )
+
+    # Chart area calculations
+    chartTop = chartBorderSize + chartTitleHeight + 0.5 * dataLineChartChartLineWidth
+    chartLeft = yAxisX + 0.5 * dataLineChartAxisLineWidth + 0.5 * dataLineChartChartLineWidth
+    chartBottom = xAxisY - 0.5 * dataLineChartAxisLineWidth - 0.5 * dataLineChartChartLineWidth
+    chartRight = if(colorLegendX != null, colorLegendX - colorLegendGap, chartWidth - chartBorderSize)
+
+    # Axis label limits
+    xAxisLabelLeft = chartLeft + 0.5 * axisLabelFontSize
+    xAxisLabelRight = chartRight - 0.5 * axisLabelFontSize
+    yAxisLabelTop = chartTop + 0.5 * axisLabelFontSize
+    yAxisLabelBottom = chartBottom - 0.5 * axisLabelFontSize
+
+    # Render Y-axis
+    yAxisTickElements = []
+    yAxisLabelElements = []
+    for yTickPair in yAxisTicks:
+        yCoord = arrayGet(yTickPair, 0)
+        yLabel = arrayGet(yTickPair, 1)
+        yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
+        hasLabel = yLabel != ''
+        hasLine = !hasLabel || (yPoint > yAxisLabelTop && yPoint < yAxisLabelBottom)
+
+        # Add tick
+        arrayPush(yAxisTickElements, [ \
+            if(!hasLabel, null, { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAxisColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
+                        ' H ' + dataLineChartSvgValue(yAxisX - dataLineChartAxisTickLength) \
+                } \
+            }), \
+            if(!hasLine, null, { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAxisTickLineColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
+                        ' H ' + dataLineChartSvgValue(chartRight) \
+                } \
+            }) \
+        ])
+
+        # Add tick label
+        if !hasLabel:
+            arrayPush(yAxisLabelElements, null)
+        else:
+            arrayPush(yAxisLabelElements, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(axisLabelFontSize) + 'px', \
+                    'fill': dataLineChartAxisColor, \
+                    'x': dataLineChartSvgValue(yAxisX - dataLineChartAxisTickLength - yAxisTickGap), \
+                    'y': dataLineChartSvgValue(yPoint), \
+                    'text-anchor': 'end', \
+                    'dominant-baseline': if(yPoint > yAxisLabelBottom, 'auto', if(yPoint < yAxisLabelTop, 'hanging', 'middle')) \
+                }, \
+                'elem': {'text': yLabel} \
+            })
+        endif
+    endfor
+
+    # Render X-axis
+    xAxisTickElements = []
+    xAxisLabelElements = []
+    for xTickPair in xAxisTicks:
+        xCoord = arrayGet(xTickPair, 0)
+        xLabel = arrayGet(xTickPair, 1)
+        xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
+        hasLabel = xLabel != ''
+        hasLine = !hasLabel || (xPoint > xAxisLabelLeft && xPoint < xAxisLabelRight)
+
+        # Add tick
+        arrayPush(xAxisTickElements, [ \
+            if(!hasLabel, null, { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAxisColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
+                        ' V ' + dataLineChartSvgValue(xAxisY + dataLineChartAxisTickLength) \
+                } \
+            }), \
+            if(!hasLine, null, { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAxisTickLineColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
+                        ' V ' + dataLineChartSvgValue(chartTop) \
+                } \
+            }) \
+        ])
+
+        # Add tick label
+        if !hasLabel:
+            arrayPush(xAxisLabelElements, null)
+        else:
+            arrayPush(xAxisLabelElements, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(axisLabelFontSize) + 'px', \
+                    'fill': dataLineChartAxisColor, \
+                    'x': dataLineChartSvgValue(xPoint), \
+                    'y': dataLineChartSvgValue(xAxisY + dataLineChartAxisTickLength + xAxisTickGap), \
+                    'text-anchor': if(xPoint < xAxisLabelLeft, 'start', if(xPoint > xAxisLabelRight, 'end', 'middle')), \
+                    'dominant-baseline': 'hanging' \
+                }, \
+                'elem': {'text': xLabel} \
+            })
+        endif
+    endfor
+
+    # Render lines
+    lineElements = []
+    for linePoint in linePointsReversed:
+        linePointColor = objectGet(linePoint, 'color')
+        linePointPoints = objectGet(linePoint, 'points')
+        linePointParts = []
+        for point, ixPoint in linePointPoints:
+            xCoord = arrayGet(point, 0)
+            yCoord = arrayGet(point, 1)
+            xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
+            yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
+            if arrayLength(linePointPoints) == 1:
+                arrayPush(linePointParts, \
+                    'M ' + dataLineChartSvgValue(xPoint - 0.5 * dataLineChartChartLineWidth) + ' ' + dataLineChartSvgValue(yPoint) + \
+                    ' L ' + dataLineChartSvgValue(xPoint + 0.5 * dataLineChartChartLineWidth) + ' ' + dataLineChartSvgValue(yPoint))
+            else:
+                arrayPush(linePointParts, \
+                    if(ixPoint == 0, 'M ', 'L ') + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(yPoint))
+            endif
+        endfor
+        arrayPush(lineElements, { \
+            'svg': 'path', \
+            'attr': { \
+                'stroke': linePointColor, \
+                'stroke-width': dataLineChartSvgValue(dataLineChartChartLineWidth), \
+                'fill': 'none', \
+                'd': arrayJoin(linePointParts, ' ') \
+            } \
+        })
+    endfor
+
+    # Render Y-axis annotations
+    yAnnotationElements = []
+    for yAxisAnnotation in yAxisAnnotations:
+        yCoord = arrayGet(yAxisAnnotation, 0)
+        yLabel = arrayGet(yAxisAnnotation, 1)
+        yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
+        isUnder = yPoint < 0.5 * (chartTop + chartBottom)
+        labelWidth = 2 * annotationLabelMargin + stringLength(yLabel) * dataLineChartChartFontWidthRatio * annotationLabelFontSize
+        labelY = if(isUnder, \
+            yPoint + dataLineChartAnnotationLineWidth + yAnnotationLabelOffsetY, \
+            yPoint - dataLineChartAnnotationLineWidth - yAnnotationLabelOffsetY - annotationLabelHeight)
+        arrayPush(yAnnotationElements, [ \
+            if(yLabel == '', null, { \
+                'svg': 'rect', \
+                'attr': { \
+                    'x': dataLineChartSvgValue(chartLeft + yAnnotationLabelOffsetX), \
+                    'y': dataLineChartSvgValue(labelY), \
+                    'width': dataLineChartSvgValue(labelWidth), \
+                    'height': dataLineChartSvgValue(annotationLabelHeight), \
+                    'fill': dataLineChartAnnotationBackgroundColor \
+                } \
+            }), \
+            if(yLabel == '', null, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(annotationLabelFontSize) + 'px', \
+                    'fill': dataLineChartAnnotationTextColor, \
+                    'x': dataLineChartSvgValue(chartLeft + yAnnotationLabelOffsetX + annotationLabelMargin), \
+                    'y': dataLineChartSvgValue(labelY + annotationLabelMargin + 0.5 * annotationLabelFontSize), \
+                    'text-anchor': 'start', \
+                    'dominant-baseline': 'middle' \
+                }, \
+                'elem': {'text': yLabel} \
+            }), \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAnnotationLineColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAnnotationLineWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
+                        ' H ' + dataLineChartSvgValue(chartRight) \
+                } \
+            } \
+        ])
+    endfor
+
+    # Render X-axis annotations
+    xAnnotationElements = []
+    for xAxisAnnotation in xAxisAnnotations:
+        xCoord = arrayGet(xAxisAnnotation, 0)
+        xLabel = arrayGet(xAxisAnnotation, 1)
+        xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
+        isLeft = xPoint > 0.5 * (chartLeft + chartRight)
+        labelWidth = 2 * annotationLabelMargin + stringLength(xLabel) * dataLineChartChartFontWidthRatio * annotationLabelFontSize
+        labelY = chartBottom - xAnnotationLabelOffsetY - annotationLabelHeight
+        labelX = if(isLeft, \
+            xPoint - 0.5 * dataLineChartAnnotationLineWidth - xAnnotationLabelOffsetX - labelWidth, \
+            xPoint + 0.5 * dataLineChartAnnotationLineWidth + xAnnotationLabelOffsetX)
+        textX = if(isLeft, \
+            xPoint - 0.5 * dataLineChartAnnotationLineWidth - xAnnotationLabelOffsetX - annotationLabelMargin, \
+            xPoint + 0.5 * dataLineChartAnnotationLineWidth + xAnnotationLabelOffsetX + annotationLabelMargin)
+        arrayPush(xAnnotationElements, [ \
+            if(xLabel == '', null, { \
+                'svg': 'rect', \
+                'attr': { \
+                    'x': dataLineChartSvgValue(labelX), \
+                    'y': dataLineChartSvgValue(labelY), \
+                    'width': dataLineChartSvgValue(labelWidth), \
+                    'height': dataLineChartSvgValue(annotationLabelHeight), \
+                    'fill': dataLineChartAnnotationBackgroundColor \
+                } \
+            }), \
+            if(xLabel == '', null, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(annotationLabelFontSize) + 'px', \
+                    'fill': dataLineChartAnnotationTextColor, \
+                    'x': dataLineChartSvgValue(textX), \
+                    'y': dataLineChartSvgValue(labelY + annotationLabelMargin + 0.5 * annotationLabelFontSize), \
+                    'text-anchor': if(isLeft, 'end', 'start'), \
+                    'dominant-baseline': 'middle' \
+                }, \
+                'elem': {'text': xLabel} \
+            }), \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAnnotationLineColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAnnotationLineWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
+                        ' V ' + dataLineChartSvgValue(chartTop) \
+                } \
+            } \
+        ])
+    endfor
+
+    # Render color legend
+    colorLegendElements = null
+    if colorLegendX != null:
+        colorLegendElements = []
+        for linePoint, ix in linePoints:
+            linePointLabel = objectGet(linePoint, 'label')
+            linePointColor = objectGet(linePoint, 'color')
+            arrayPush(colorLegendElements, [ \
+                { \
+                    'svg': 'rect', \
+                    'attr': { \
+                        'x': dataLineChartSvgValue(colorLegendX), \
+                        'y': dataLineChartSvgValue(chartTop + ix * (colorLegendLabelHeight + colorLegendLabelGap)), \
+                        'width': dataLineChartSvgValue(colorLegendLabelHeight), \
+                        'height': dataLineChartSvgValue(colorLegendLabelHeight), \
+                        'stroke': 'none', \
+                        'fill': linePointColor \
+                    } \
+                }, \
+                { \
+                    'svg': 'text', \
+                    'attr': { \
+                        'font-family': dataLineChartChartFontFamily, \
+                        'font-size': dataLineChartSvgValue(colorLegendFontSize) + 'px', \
+                        'fill': dataLineChartAxisColor, \
+                        'x': dataLineChartSvgValue(colorLegendX + colorLegendSampleWidth), \
+                        'y': dataLineChartSvgValue(chartTop + ix * (colorLegendLabelHeight + colorLegendLabelGap) + 0.5 * colorLegendLabelHeight), \
+                        'text-anchor': 'start', \
+                        'dominant-baseline': 'middle' \
+                    }, \
+                    'elem': {'text': linePointLabel} \
+                } \
+            ])
+        endfor
+    endif
+
+    # Return the chart element model
+    return { \
+        'svg': 'svg', \
+        'attr': { \
+            'width': chartWidth, \
+            'height': chartHeight \
+        }, \
+        'elem': [ \
+            { \
+                'svg': 'rect', \
+                'attr': { \
+                    'width': chartWidth, \
+                    'height': chartHeight, \
+                    'fill': dataLineChartChartBackgroundColor \
+                } \
+            }, \
+
+            # Chart title
+            if(chartTitle == null, null, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(chartTitleFontSize) + 'px', \
+                    'fill': dataLineChartAxisColor, \
+                    'style': 'font-weight: bold', \
+                    'x': dataLineChartSvgValue(0.5 * (chartLeft + chartRight)), \
+                    'y': dataLineChartSvgValue(chartBorderSize), \
+                    'text-anchor': 'middle', \
+                    'dominant-baseline': 'hanging' \
+                }, \
+                'elem': {'text': chartTitle} \
+            }), \
+
+            # Y-Axis title
+            if(yAxisTitle == null, null, { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(axisTitleFontSize) + 'px', \
+                    'fill': dataLineChartAxisColor, \
+                    'style': 'font-weight: bold', \
+                    'x': dataLineChartSvgValue(chartBorderSize), \
+                    'y': dataLineChartSvgValue(0.5 * (chartTop + chartBottom)), \
+                    'transform': 'rotate(-90 ' + dataLineChartSvgValue(chartBorderSize) + ', ' + \
+                        dataLineChartSvgValue(0.5 * (chartTop + chartBottom)) + ')', \
+                    'text-anchor': 'middle', \
+                    'dominant-baseline': 'hanging' \
+                }, \
+                'elem': {'text': yAxisTitle} \
+            }), \
+
+            # Y-axis
+            yAxisTickElements, \
+            yAxisLabelElements, \
+
+            # X-Axis title
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'font-family': dataLineChartChartFontFamily, \
+                    'font-size': dataLineChartSvgValue(axisTitleFontSize) + 'px', \
+                    'fill': dataLineChartAxisColor, \
+                    'style': 'font-weight: bold', \
+                    'x': dataLineChartSvgValue(0.5 * (chartLeft + chartRight)), \
+                    'y': dataLineChartSvgValue(chartHeight - chartBorderSize), \
+                    'text-anchor': 'middle', \
+                    'dominant-baseline': 'auto' \
+                }, \
+                'elem': {'text': xField} \
+            }, \
+
+            # X-axis
+            xAxisTickElements, \
+            xAxisLabelElements, \
+
+            # Axis lines
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'stroke': dataLineChartAxisColor, \
+                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisLineWidth), \
+                    'fill': 'none', \
+                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(chartTop - 0.5 * dataLineChartAxisTickWidth) + \
+                        ' V ' + dataLineChartSvgValue(xAxisY) + ' H ' + dataLineChartSvgValue(chartRight + 0.5 * dataLineChartAxisTickWidth) \
+                } \
+            }, \
+
+            # Chart lines
+            lineElements, \
+
+            # Annotations
+            yAnnotationElements, \
+            xAnnotationElements, \
+
+            # Color legend
+            colorLegendElements \
+        ] \
+    }
+endfunction
+
+
+# Helper function to format an SVG number value
+function dataLineChartSvgValue(value):
+    return numberToFixed(value, dataLineChartSvgPrecision)
+endfunction
+
+
+# Helper function to compute a chart point
+function dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight):
+    return dataUtilParameterValue(dataUtilValueParameter(xCoord, xMin, xMax), chartLeft, chartRight)
+endfunction
+
+
+# Helper sort comparison function for data rows by X field
+function dataLineChartSortCompare(xField, row1, row2):
+    return systemCompare(objectGet(row1, xField), objectGet(row2, xField))
+endfunction
+
+
+# Helper sort comparison function for color order
+function dataLineChartColorOrderCompare(colorOrder, cv1, cv2):
+    ix1 = arrayIndexOf(colorOrder, cv1)
+    ix2 = arrayIndexOf(colorOrder, cv2)
+    if ix1 != -1 && ix2 != -1:
+        return if(ix1 < ix2, -1, 1)
+    elif ix1 == -1 && ix2 == -1:
+        return if(cv1 < cv2, -1, 1)
+    endif
+    return if(ix1 != -1, -1, 1)
+endfunction

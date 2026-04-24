@@ -1,0 +1,361 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <elementModel.bare>
+include <markdown.bare>
+include <markdownHighlight.bare>
+include <markdownElements.bare>
+include <markdownParser.bare>
+
+
+# Constants
+markdownUpPixelsPerPoint = 4 / 3
+markdownUpDefaultFontSizePx = 12 * markdownUpPixelsPerPoint
+markdownUpWindowHeight = 768
+markdownUpWindowWidth = 1024
+
+
+# The simulated MarkdownUp state
+markdownUpState = { \
+    'localStorage': {}, \
+    'sessionStorage': {}, \
+    'windowClipboard': '' \
+}
+
+
+#
+# Document functions
+#
+
+
+# $function: documentFontSize
+# $group: markdownUp.bare
+# $doc: Get the document font size
+# $return: The document font size, in pixels
+function documentFontSize():
+    return markdownUpDefaultFontSizePx
+endfunction
+
+
+# $function: documentInputValue
+# $group: markdownUp.bare
+# $doc: Get an input element's value
+# $arg id: The input element ID
+# $return: The input element value or null if the element does not exist
+function documentInputValue():
+endfunction
+
+
+# $function: documentSetFocus
+# $group: markdownUp.bare
+# $doc: Set focus to an element
+# $arg id: The element ID
+function documentSetFocus():
+endfunction
+
+
+# $function: documentSetKeyDown
+# $group: markdownUp.bare
+# $doc: Set the document keydown event handler. For example:
+# $doc:
+# $doc: ```barescript
+# $doc: function myAppMain():
+# $doc:     myAppRender()
+# $doc:     documentSetKeyDown(myAppKeyDown)
+# $doc: endfunction
+# $doc:
+# $doc: function myAppRender(key):
+# $doc:     markdownPrint( \
+# $doc:         '# KeyDown Test', \
+# $doc:         '', \
+# $doc:         if(key, '**Key pressed:** "' + key + '"', '*No key pressed yet.*') \
+# $doc:     )
+# $doc: endfunction
+# $doc:
+# $doc: function myAppKeyDown(event):
+# $doc:     key = objectGet(event, 'key')
+# $doc:     myAppRender(key)
+# $doc: endfunction
+# $doc:
+# $doc: myAppMain()
+# $doc: ```
+# $arg callback: The keydown event callback function, which takes a single `event` object that has
+# $arg callback: the following attributes:
+# $arg callback: - `key` - The key value (e.g., "a", "Enter", "ArrowUp")
+# $arg callback: - `code` - The physical key code (e.g., "KeyA", "Enter")
+# $arg callback: - `keyCode` - The legacy numeric code (e.g., 65 for 'a')
+# $arg callback: - `ctrlKey` - If true, the control key is pressed
+# $arg callback: - `altKey` - If true, the alt key is pressed
+# $arg callback: - `shiftKey` - If true, the shift key is pressed
+# $arg callback: - `metaKey` - If true, the cmd key is pressed
+# $arg callback: - `repeat` - If true, the key is held down
+# $arg callback: - `location` - 0=standard, 1=left, 2=right
+function documentSetKeyDown():
+endfunction
+
+
+# $function: documentSetReset
+# $group: markdownUp.bare
+# $doc: Set the document reset element
+# $arg id: The element ID
+function documentSetReset():
+endfunction
+
+
+# $function: documentSetTitle
+# $group: markdownUp.bare
+# $doc: Set the document title
+# $arg title: The document title string
+function documentSetTitle():
+endfunction
+
+
+# $function: documentURL
+# $group: markdownUp.bare
+# $doc: Fix-up relative URLs
+# $arg url: The URL
+# $return: The fixed-up URL
+function documentURL(url):
+    return url
+endfunction
+
+
+#
+# Element Model functions
+#
+
+
+# $function: elementModelRender
+# $group: markdownUp.bare
+# $doc: Render an [element model](https://github.com/craigahobbs/element-model#readme)
+# $doc:
+# $doc: **Note:** Element model "callback" members are a map of event name (e.g., "click") to
+# $doc: event callback function. The following events have callback arguments:
+# $doc: - **keydown** - keyCode
+# $doc: - **keypress** - keyCode
+# $doc: - **keyup** - keyCode
+# $arg element: The [element model](https://github.com/craigahobbs/element-model#readme)
+function elementModelRender(element):
+    if systemGlobalGet('vMarkdownUpHTML'):
+        markdownUpHTMLMarkdown()
+        systemLog(stringTrim(elementModelToString(element, 4)))
+    endif
+endfunction
+
+
+#
+# Local storage functions
+#
+
+
+# $function: localStorageClear
+# $group: markdownUp.bare
+# $doc: Clear all keys from the browser's local storage
+function localStorageClear():
+    objectSet(markdownUpState, 'localStorage', {})
+endfunction
+
+
+# $function: localStorageGet
+# $group: markdownUp.bare
+# $doc: Get a browser local storage key's value
+# $arg key: The key string
+# $return: The local storage value string or null if the key does not exist
+function localStorageGet(key):
+    return objectGet(objectGet(markdownUpState, 'localStorage'), key)
+endfunction
+
+
+# $function: localStorageRemove
+# $group: markdownUp.bare
+# $doc: Remove a browser local storage key
+# $arg key: The key string
+function localStorageRemove(key):
+    objectDelete(objectGet(markdownUpState, 'localStorage'), key)
+endfunction
+
+
+# $function: localStorageSet
+# $group: markdownUp.bare
+# $doc: Set a browser local storage key's value
+# $arg key: The key string
+# $arg value: The value string
+function localStorageSet(key, value):
+    objectSet(objectGet(markdownUpState, 'localStorage'), key, value)
+endfunction
+
+
+#
+# Markdown functions
+#
+
+
+# $function: markdownPrint
+# $group: markdownUp.bare
+# $doc: Render Markdown text
+# $arg lines...: The Markdown text lines (may contain nested arrays of un-split lines)
+function markdownPrint(lines...):
+    if systemGlobalGet('vMarkdownUpHTML'):
+        markdownLines = systemGlobalGet('markdownUpMarkdownLines')
+        if markdownLines == null:
+            markdownLines = []
+            systemGlobalSet('markdownUpMarkdownLines', markdownLines)
+        endif
+        arrayExtend(markdownLines, lines)
+    else:
+        for line in arrayFlat(lines):
+            if line != null:
+                systemLog(line)
+            endif
+        endfor
+    endif
+endfunction
+
+
+# HTML rendering header function
+function markdownUpHTMLBegin():
+    systemGlobalSet('vMarkdownUpHTML', true)
+    systemLog('<!DOCTYPE html>')
+    systemLog('<html lang="en">')
+    systemLog('<head>')
+    systemLog('<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">')
+    systemLog('</head>')
+endfunction
+
+
+# HTML rendering footer function
+function markdownUpHTMLEnd():
+    markdownUpHTMLMarkdown()
+    systemLog('</html>')
+    systemGlobalSet('vMarkdownUpHTML', null)
+endfunction
+
+
+# HTML markdown rendering helper function
+function markdownUpHTMLMarkdown():
+    markdownLines = systemGlobalGet('markdownUpMarkdownLines')
+    if markdownLines != null:
+        systemLog(stringTrim(elementModelToString(markdownElements(markdownParse(markdownLines)), 4)))
+        systemGlobalSet('markdownUpMarkdownLines', null)
+    endif
+endfunction
+
+
+#
+# Session storage functions
+#
+
+
+# $function: sessionStorageClear
+# $group: markdownUp.bare
+# $doc: Clear all keys from the browser's session storage
+function sessionStorageClear():
+    objectSet(markdownUpState, 'sessionStorage', {})
+endfunction
+
+
+# $function: sessionStorageGet
+# $group: markdownUp.bare
+# $doc: Get a browser session storage key's value
+# $arg key: The key string
+# $return: The session storage value string or null if the key does not exist
+function sessionStorageGet(key):
+    return objectGet(objectGet(markdownUpState, 'sessionStorage'), key)
+endfunction
+
+
+# $function: sessionStorageRemove
+# $group: markdownUp.bare
+# $doc: Remove a browser session storage key
+# $arg key: The key string
+function sessionStorageRemove(key):
+    objectDelete(objectGet(markdownUpState, 'sessionStorage'), key)
+endfunction
+
+
+# $function: sessionStorageSet
+# $group: markdownUp.bare
+# $doc: Set a browser session storage key's value
+# $arg key: The key string
+# $arg value: The value string
+function sessionStorageSet(key, value):
+    objectSet(objectGet(markdownUpState, 'sessionStorage'), key, value)
+endfunction
+
+
+#
+# Window functions
+#
+
+
+# $function: windowClipboardRead
+# $group: markdownUp.bare
+# $doc: Read text from the clipboard
+# $return: The clipboard text
+function windowClipboardRead():
+    return objectGet(markdownUpState, 'windowClipboard')
+endfunction
+
+
+# $function: windowClipboardWrite
+# $group: markdownUp.bare
+# $doc: Write text to the clipboard
+# $arg text: The text to write
+# $arg type: The clipboard content type (default is "text/plain")
+function windowClipboardWrite(text):
+    return objectSet(markdownUpState, 'windowClipboard', text)
+endfunction
+
+
+# $function: windowHeight
+# $group: markdownUp.bare
+# $doc: Get the browser window's height
+# $return: The browser window's height
+function windowHeight():
+    return markdownUpWindowHeight
+endfunction
+
+
+# $function: windowSetLocation
+# $group: markdownUp.bare
+# $doc: Navigate the browser window to a location URL
+# $arg url: The new location URL
+function windowSetLocation():
+endfunction
+
+
+# $function: windowSetResize
+# $group: markdownUp.bare
+# $doc: Set the browser window resize event handler
+# $arg callback: The window resize callback function
+function windowSetResize():
+endfunction
+
+
+# $function: windowSetTimeout
+# $group: markdownUp.bare
+# $doc: Set the browser window timeout event handler
+# $arg callback: The window timeout callback function
+# $arg delay: The delay, in milliseconds, to ellapse before calling the timeout
+function windowSetTimeout():
+endfunction
+
+
+# $function: windowURLObject
+# $group: markdownUp.bare
+# $doc: Create an object URL (i.e. a file download URL)
+# $arg data: The object data string
+# $arg contentType: Optional (default is "text/plain"). The object content type.
+# $return: The object URL string
+function windowURLObject(data, contentType):
+    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
+endfunction
+
+
+# $function: windowWidth
+# $group: markdownUp.bare
+# $doc: Get the browser window's width
+# $return: The browser window's width
+function windowWidth():
+    return markdownUpWindowWidth
+endfunction

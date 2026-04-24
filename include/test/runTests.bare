@@ -1,0 +1,87 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# Include all system includes
+include <args.bare>
+include <baredoc.bare>
+include <baredocCLI.bare>
+include <data.bare>
+include <dataLineChart.bare>
+include <dataTable.bare>
+include <dataUtil.bare>
+include <diff.bare>
+include <draw.bare>
+include <elementModel.bare>
+include <forms.bare>
+include <markdown.bare>
+include <markdownElements.bare>
+include <markdownHighlight.bare>
+include <markdownParser.bare>
+include <pager.bare>
+include <qrcode.bare>
+include <schemaDoc.bare>
+include <unittest.bare>
+include <unittestMock.bare>
+
+# Start coverage
+unittestCoverageStart()
+
+# Override all system includes
+include '../args.bare'
+include '../baredoc.bare'
+include '../baredocCLI.bare'
+include '../data.bare'
+include '../dataLineChart.bare'
+include '../dataTable.bare'
+include '../dataUtil.bare'
+include '../diff.bare'
+include '../draw.bare'
+include '../elementModel.bare'
+include '../forms.bare'
+include '../markdown.bare'
+include '../markdownElements.bare'
+include '../markdownHighlight.bare'
+include '../markdownParser.bare'
+include '../pager.bare'
+include '../qrcode.bare'
+include '../schemaDoc.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+# Run markdownUp include library unit tests
+include 'testArgs.bare'
+include 'testBaredoc.bare'
+include 'testBaredocCLI.bare'
+include 'testData.bare'
+include 'testDataLineChart.bare'
+include 'testDataTable.bare'
+include 'testDataUtil.bare'
+include 'testDiff.bare'
+include 'testDraw.bare'
+include 'testElementModel.bare'
+include 'testForms.bare'
+include 'testMarkdown.bare'
+include 'testMarkdownElements.bare'
+include 'testMarkdownHighlight.bare'
+include 'testMarkdownHighlight2.bare'
+include 'testMarkdownHighlight3.bare'
+include 'testMarkdownParser.bare'
+include 'testMarkdownParserSpans.bare'
+include 'testPager.bare'
+include 'testQrcode.bare'
+include 'testSchemaDoc.bare'
+include 'testSchemaDocMain.bare'
+include 'testUnittest.bare'
+include 'testUnittestMock.bare'
+
+# Stop coverage
+unittestCoverageStop()
+
+# Test report
+return unittestReport({ \
+    'title': 'MarkdownUp Include Library Tests', \
+    'links': ['[markdownUp.bare Tests](#url=runTestsMarkdownUp.md&var=)'], \
+    'coverageExclude': ['runTests.bare'], \
+    'coverageMin': 100 \
+})

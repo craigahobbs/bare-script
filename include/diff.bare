@@ -1,0 +1,146 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# The text line difference model
+diffTypes = schemaParse( \
+    'group "diff.bare"', \
+    '', \
+    '', \
+    '# A list of text line differences', \
+    'typedef Difference[] Differences', \
+    '', \
+    '', \
+    '# A difference', \
+    'struct Difference', \
+    '', \
+    '    # The type of difference', \
+    '    DifferenceType type', \
+    '', \
+    '    # The text lines of this difference', \
+    '    string[] lines', \
+    '', \
+    '', \
+    '# A difference type', \
+    'enum DifferenceType', \
+    '', \
+    '    # The lines are identical', \
+    '    Identical', \
+    '', \
+    '    # The lines were added', \
+    '    Add', \
+    '', \
+    '    # The lines were removed', \
+    '    Remove' \
+)
+
+
+# $function: diffLines
+# $group: diff.bare
+# $doc: Compute the line-differences of two strings or arrays of strings
+# $arg left: The "left" string or array of strings
+# $arg right: The "right" string or array of strings
+# $return: The array of [difference models](model.html#var.vName='Differences')
+function diffLines(left, right):
+    diffs = []
+
+    # Convert inputs to arrays of lines
+    leftLines = diffLinesToArray(left)
+    rightLines = diffLinesToArray(right)
+
+    # Compute the differences
+    ixLeft = 0
+    ixRight = 0
+    leftLength = arrayLength(leftLines)
+    rightLength = arrayLength(rightLines)
+    while ixLeft < leftLength || ixRight < rightLength:
+        # If we've run out of lines on either side
+        if ixLeft >= leftLength:
+            if ixRight < rightLength:
+                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
+            endif
+            break
+        endif
+        if ixRight >= rightLength:
+            if ixLeft < leftLength:
+                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
+            endif
+            break
+        endif
+
+        # Find consecutive identical lines
+        identicalLines = []
+        while ixLeft < leftLength && ixRight < rightLength && arrayGet(leftLines, ixLeft) == arrayGet(rightLines, ixRight):
+            arrayPush(identicalLines, arrayGet(leftLines, ixLeft))
+            ixLeft = ixLeft + 1
+            ixRight = ixRight + 1
+        endwhile
+        if identicalLines:
+            arrayPush(diffs, {'type': 'Identical', 'lines': identicalLines})
+            continue
+        endif
+
+        # Look ahead to find next matching point
+        matchIxLeft = null
+        matchIxRight = null
+        ixLeftTmp = ixLeft
+        while ixLeftTmp < leftLength && matchIxLeft == null:
+            ixRightTmp = ixRight
+            while ixRightTmp < rightLength && matchIxLeft == null:
+                if arrayGet(leftLines, ixLeftTmp) == arrayGet(rightLines, ixRightTmp):
+                    matchIxLeft = ixLeftTmp
+                    matchIxRight = ixRightTmp
+                endif
+                ixRightTmp = ixRightTmp + 1
+            endwhile
+            ixLeftTmp = ixLeftTmp + 1
+        endwhile
+
+        # If no match found, use remaining lines
+        if matchIxLeft == null:
+            if ixLeft < leftLength:
+                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
+                ixLeft = leftLength
+            endif
+            if ixRight < rightLength:
+                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
+                ixRight = rightLength
+            endif
+            continue
+        endif
+
+        # Add removed lines if any
+        if matchIxLeft > ixLeft:
+            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft, matchIxLeft)})
+            ixLeft = matchIxLeft
+        endif
+
+        # Add added lines if any
+        if matchIxRight > ixRight:
+            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight, matchIxRight)})
+            ixRight = matchIxRight
+        endif
+    endwhile
+
+    return diffs
+endfunction
+
+
+# Helper function to convert input to array of lines
+function diffLinesToArray(input):
+    # Array input?
+    if systemType(input) == 'array':
+        lines = []
+        for part in input:
+            arrayExtend(lines, stringSplitLines(part))
+        endfor
+        return lines
+    endif
+
+    # String input
+    lines = stringSplitLines(input)
+    if arrayLength(lines) == 1 && arrayGet(lines, 0) == '':
+        return []
+    endif
+    return lines
+endfunction

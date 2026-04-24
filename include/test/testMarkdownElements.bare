@@ -1,0 +1,1199 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../elementModel.bare'
+include '../markdownElements.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testMarkdownElements():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            {'paragraph': {'style': 'h1', 'spans': [{'text': 'The Title'}]}}, \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a sentence. This is '}, \
+                        { \
+                            'style': { \
+                                'style': 'bold', \
+                                'spans': [ \
+                                    {'text': 'bold and '}, \
+                                    {'style': {'style': 'italic', 'spans': [{'text': 'bold-italic'}]}}, \
+                                    {'text': '.'} \
+                                ] \
+                            } \
+                        }, \
+                        {'text': 'This is '}, \
+                        { \
+                            'style': {'style': 'strikethrough', 'spans': [{'text': 'strikethrough'}]} \
+                        }, \
+                        {'text': '.'} \
+                    ] \
+                } \
+            }, \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a link to the '}, \
+                        {'link': { \
+                            'href': 'https://craigahobbs.github.io/schema-markdown/doc/', \
+                            'title': 'The Schema Markdown Type Model', \
+                            'spans': [ \
+                                {'style': {'style': 'bold', 'spans': [{'text': 'Schema Markdown'}]}}, \
+                                {'text': ' Type Model'} \
+                            ] \
+                        }} \
+                    ] \
+                } \
+            }, \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is an image: '}, \
+                        {'image': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'alt': 'Schema Markdown Documentation Icon', \
+                            'title': 'Schema Markdown' \
+                        }} \
+                    ] \
+                } \
+            }, \
+            { \
+                'list': { \
+                    'items': [ \
+                        { \
+                            'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'This is a paragraph.'}]}}, \
+                                {'paragraph': {'spans': [{'text': 'This is a another paragraph.'}]}} \
+                            ] \
+                        }, \
+                        { \
+                            'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'This is the second list item.'}]}} \
+                            ] \
+                        } \
+                    ] \
+                } \
+            }, \
+            { \
+                'list': { \
+                    'start': 10, \
+                    'items': [ \
+                        { \
+                            'parts': [ \
+                                {'paragraph': {'spans': [{'text': 'This is a paragraph.'}]}} \
+                            ] \
+                        } \
+                    ] \
+                } \
+            }, \
+            { \
+                'quote': { \
+                    'parts': [ \
+                        {'paragraph': {'spans': [{'text': 'This is a paragraph.'}]}} \
+                    ] \
+                } \
+            }, \
+            { \
+                'codeBlock': { \
+                    'lines': [ \
+                        'Line 1', \
+                        'Line 2' \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            {'html': 'h1', 'attr': null, 'elem': [{'text': 'The Title'}]}, \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': 'This is a sentence. This is '}, \
+                    {'html': 'strong', 'elem': [ \
+                        {'text': 'bold and '}, \
+                        {'html': 'em', 'elem': [{'text': 'bold-italic'}]}, \
+                        {'text': '.'} \
+                    ]}, \
+                    {'text': 'This is '}, \
+                    {'html': 'del', 'elem': [{'text': 'strikethrough'}]}, \
+                    {'text': '.'} \
+                ] \
+            }, \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': 'This is a link to the '}, \
+                    { \
+                        'html': 'a', \
+                        'attr': {'href': 'https://craigahobbs.github.io/schema-markdown/doc/', 'title': 'The Schema Markdown Type Model'}, \
+                        'elem': [{'html': 'strong', 'elem': [{'text': 'Schema Markdown'}]}, {'text': ' Type Model'}] \
+                    } \
+                ] \
+            }, \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': 'This is an image: '}, \
+                    { \
+                        'html': 'img', \
+                        'attr': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'title': 'Schema Markdown', \
+                            'alt': 'Schema Markdown Documentation Icon', \
+                            'style': 'max-width: 100%;' \
+                        } \
+                    } \
+                ] \
+            }, \
+            { \
+                'html': 'ul', \
+                'attr': null, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]}, \
+                            {'html': 'p', 'elem': [{'text': 'This is a another paragraph.'}]} \
+                        ] \
+                    }, \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            {'html': 'p', 'elem': [{'text': 'This is the second list item.'}]} \
+                        ] \
+                    } \
+                ] \
+            }, \
+            { \
+                'html': 'ol', \
+                'attr': {'start': '10'}, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]} \
+                        ] \
+                    } \
+                ] \
+            }, \
+            { \
+                'html': 'blockquote', \
+                'elem': [ \
+                    {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]} \
+                ] \
+            }, \
+            [ \
+                null, \
+                { \
+                    'html': 'pre', \
+                    'attr': null, \
+                    'elem': { \
+                        'html': 'code', \
+                        'elem': {'text': 'Line 1\nLine 2\n'} \
+                    } \
+                } \
+            ] \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements')
+
+
+async function testMarkdownElementsAsync_codeBlockFn(codeBlock):
+    return {'html': 'p', 'elem': {'text': systemFetch(objectGet(codeBlock, 'language'))}}
+endfunction
+
+
+async function testMarkdownElementsAsync():
+    unittestMockAll({ \
+        'systemFetch': { \
+            'async-code-block': 'This is the text' \
+        } \
+    })
+    elements = markdownElementsAsync( \
+        markdownValidate({ \
+            'parts': [ \
+                {'paragraph': {'style': 'h1', 'spans': [{'text': 'The Title'}]}}, \
+                { \
+                    'list': { \
+                        'items': [ \
+                            { \
+                                'parts': [ \
+                                    {'codeBlock': {'lines': ['Line 1', 'Line 2']}}, \
+                                    {'codeBlock': {'language': 'async-code-block', 'lines': ['Line 1', 'Line 2']}} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                }, \
+                { \
+                    'quote': { \
+                        'parts': [ \
+                            {'codeBlock': {'lines': ['Line 1', 'Line 2']}}, \
+                            {'codeBlock': {'language': 'async-code-block', 'lines': ['Line 1', 'Line 2']}} \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'codeBlocks': { \
+                'async-code-block': testMarkdownElementsAsync_codeBlockFn \
+            } \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            {'html': 'h1', 'attr': null, 'elem': [{'text': 'The Title'}]}, \
+            { \
+                'html': 'ul', \
+                'attr': null, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            [ \
+                                null, \
+                                { \
+                                    'html': 'pre', \
+                                    'attr': null, \
+                                    'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
+                                } \
+                            ], \
+                            {'html': 'p', 'elem': {'text': 'This is the text'}} \
+                        ] \
+                    } \
+                ] \
+            }, \
+            { \
+                'html': 'blockquote', \
+                'elem': [ \
+                    [ \
+                        null, \
+                        { \
+                            'html': 'pre', \
+                            'attr': null, \
+                            'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
+                        } \
+                    ], \
+                    {'html': 'p', 'elem': {'text': 'This is the text'}} \
+                ] \
+            } \
+        ] \
+    )
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['async-code-block']], \
+        ['systemFetch', ['async-code-block']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownElementsAsync')
+
+
+function testMarkdownElements_headerIDs():
+    elements = markdownElements( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'paragraph': { \
+                        'style': 'h1', \
+                        'spans': [ \
+                            {'text': "The @#$ Page's Title!!"} \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'headerIds': true \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'h1', \
+                'attr': {'id': 'the-pages-title'}, \
+                'elem': [ \
+                    {'text': "The @#$ Page's Title!!"} \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_headerIDs')
+
+
+function testMarkdownElements_headerIDsURLFn_urlFn(url):
+    return '#url=README.md&' + stringSlice(url, 1)
+endfunction
+
+
+function testMarkdownElements_headerIDsURLFn():
+    elements = markdownElements( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'paragraph': { \
+                        'style': 'h1', \
+                        'spans': [ \
+                            {'text': "The @#$ Page's Title!!"} \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'headerIds': true, \
+            'urlFn': testMarkdownElements_headerIDsURLFn_urlFn \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'h1', \
+                'attr': {'id': 'url=README.md&the-pages-title'}, \
+                'elem': [ \
+                    {'text': "The @#$ Page's Title!!"} \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_headerIDsURLFn')
+
+
+function testMarkdownElements_duplicateHeaderIDs():
+    elements = markdownElements( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'paragraph': { \
+                        'style': 'h1', \
+                        'spans': [ \
+                            {'text': 'The Title'} \
+                        ] \
+                    } \
+                }, \
+                { \
+                    'list': { \
+                        'items': [ \
+                            { \
+                                'parts': [ \
+                                    { \
+                                        'paragraph': { \
+                                            'style': 'h2', \
+                                            'spans': [ \
+                                                {'text': 'The Title'} \
+                                            ] \
+                                        } \
+                                    } \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'headerIds': true \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'h1', \
+                'attr': {'id': 'the-title'}, \
+                'elem': [ \
+                    {'text': 'The Title'} \
+                ] \
+            }, \
+            { \
+                'html': 'ul', \
+                'attr': null, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            { \
+                                'html': 'h2', \
+                                'attr': {'id': 'the-title2'}, \
+                                'elem': [ \
+                                    {'text': 'The Title'} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_duplicateHeaderIDs')
+
+
+function testMarkdownElements_duplicateHeaderIDsWithUsedHeaderIdsOption():
+    elements = markdownElements( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'paragraph': { \
+                        'style': 'h1', \
+                        'spans': [ \
+                            {'text': 'The Title'} \
+                        ] \
+                    } \
+                }, \
+                { \
+                    'list': { \
+                        'items': [ \
+                            { \
+                                'parts': [ \
+                                    { \
+                                        'paragraph': { \
+                                            'style': 'h2', \
+                                            'spans': [ \
+                                                {'text': 'The Title'} \
+                                            ] \
+                                        } \
+                                    } \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'headerIds': true, \
+            'usedHeaderIds': {'the-title': true, 'the-title2': true} \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'h1', \
+                'attr': {'id': 'the-title3'}, \
+                'elem': [ \
+                    {'text': 'The Title'} \
+                ] \
+            }, \
+            { \
+                'html': 'ul', \
+                'attr': null, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            { \
+                                'html': 'h2', \
+                                'attr': {'id': 'the-title4'}, \
+                                'elem': [ \
+                                    {'text': 'The Title'} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_duplicateHeaderIDsWithUsedHeaderIdsOption')
+
+
+async function testMarkdownElementsAsync_duplicateHeaderIDsWithUsedHeaderIdsOption():
+    elements = markdownElementsAsync( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'paragraph': { \
+                        'style': 'h1', \
+                        'spans': [ \
+                            {'text': 'The Title'} \
+                        ] \
+                    } \
+                }, \
+                { \
+                    'list': { \
+                        'items': [ \
+                            { \
+                                'parts': [ \
+                                    { \
+                                        'paragraph': { \
+                                            'style': 'h2', \
+                                            'spans': [ \
+                                                {'text': 'The Title'} \
+                                            ] \
+                                        } \
+                                    } \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'headerIds': true, \
+            'usedHeaderIds': {'the-title': true, 'the-title2': true} \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'h1', \
+                'attr': {'id': 'the-title3'}, \
+                'elem': [ \
+                    {'text': 'The Title'} \
+                ] \
+            }, \
+            { \
+                'html': 'ul', \
+                'attr': null, \
+                'elem': [ \
+                    { \
+                        'html': 'li', \
+                        'elem': [ \
+                            { \
+                                'html': 'h2', \
+                                'attr': {'id': 'the-title4'}, \
+                                'elem': [ \
+                                    {'text': 'The Title'} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElementsAsync_duplicateHeaderIDsWithUsedHeaderIdsOption')
+
+
+function testMarkdownElements_lineBreak():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is a line break'}, \
+                        {'br': 1}, \
+                        {'text': 'some more text'} \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': 'This is a line break'}, \
+                    {'html': 'br'}, \
+                    {'text': 'some more text'} \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_lineBreak')
+
+
+function testMarkdownElements_horizontalRule():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            {'paragraph': {'spans': [{'text': 'Some text'}]}}, \
+            {'hr': 1}, \
+            {'paragraph': {'spans': [{'text': 'More text'}]}} \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            {'html': 'p', 'elem': [{'text': 'Some text'}]}, \
+            {'html': 'hr'}, \
+            {'html': 'p', 'elem': [{'text': 'More text'}]} \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_horizontalRule')
+
+
+function testMarkdownElements_linkSpanWithNoTitle():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'link': { \
+                            'href': 'https://craigahobbs.github.io/schema-markdown/doc/', \
+                            'spans': [{'text': 'Type Model'}] \
+                        }} \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    { \
+                        'html': 'a', \
+                        'attr': {'href': 'https://craigahobbs.github.io/schema-markdown/doc/'}, \
+                        'elem': [{'text': 'Type Model'}] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_linkSpanWithNoTitle')
+
+
+function testMarkdownElements_imageSpanWithNoTitle():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'image': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'alt': 'Schema Markdown Documentation Icon' \
+                        }} \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    { \
+                        'html': 'img', \
+                        'attr': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'alt': 'Schema Markdown Documentation Icon', \
+                            'style': 'max-width: 100%;' \
+                        } \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_imageSpanWithNoTitle')
+
+
+function testMarkdownElements_linkReference():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'linkRef': { \
+                            'spans': [ \
+                                {'text': '[foo]'} \
+                            ] \
+                        }} \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': '[foo]'} \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_linkReference')
+
+
+function testMarkdownElements_codeSpan():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'text': 'This is code: '}, \
+                        {'code': 'foo'} \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    {'text': 'This is code: '}, \
+                    {'html': 'code', 'elem': {'text': 'foo'}} \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_codeSpan')
+
+
+function testMarkdownElements_codeBlockWithLanguage():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'codeBlock': { \
+                    'language': 'javascript', \
+                    'lines': [ \
+                        'foo();', \
+                        'bar();' \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            [ \
+                null, \
+                { \
+                    'html': 'pre', \
+                    'attr': null, \
+                    'elem': { \
+                        'html': 'code', \
+                        'elem': [ \
+                            {'text': 'foo();\nbar();\n'} \
+                        ] \
+                    } \
+                } \
+            ] \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_codeBlockWithLanguage')
+
+
+function testMarkdownElements_codeBlockWithLanguageOverride_fooscript(codeBlock):
+    return {'text': objectGet(codeBlock, 'language') + ', ' + jsonStringify(objectGet(codeBlock, 'lines'))}
+endfunction
+
+
+function testMarkdownElements_codeBlockWithLanguageOverride():
+    codeBlocks = { \
+        'fooscript': testMarkdownElements_codeBlockWithLanguageOverride_fooscript \
+    }
+    elements = markdownElements( \
+        markdownValidate({ \
+            'parts': [ \
+                { \
+                    'codeBlock': { \
+                        'language': 'fooscript', \
+                        'lines': [ \
+                            'foo();', \
+                            'bar();' \
+                        ] \
+                    } \
+                } \
+            ] \
+        }), \
+        { \
+            'codeBlocks': codeBlocks \
+        } \
+    )
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            {'text': 'fooscript, ["foo();","bar();"]'} \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_codeBlockWithLanguageOverride')
+
+
+function testMarkdownElements_table():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'table': { \
+                    'headers': [[{'text': 'Column A'}], [{'text': 'Column B'}]], \
+                    'aligns': ['left', 'right'], \
+                    'rows': [ \
+                        [[{'text': 'A0'}], [{'text': 'B0'}]], \
+                        [[{'text': 'A1'}], [{'text': 'B1'}]] \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'table', \
+                'elem': [ \
+                    { \
+                        'html': 'thead', \
+                        'elem': { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'th', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'Column A'}]}, \
+                                {'html': 'th', 'attr': {'style': 'text-align: right'}, 'elem': [{'text': 'Column B'}]} \
+                            ] \
+                        } \
+                    }, \
+                    { \
+                        'html': 'tbody', \
+                        'elem': [ \
+                            { \
+                                'html': 'tr', \
+                                'elem': [ \
+                                    {'html': 'td', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'A0'}]}, \
+                                    {'html': 'td', 'attr': {'style': 'text-align: right'}, 'elem': [{'text': 'B0'}]} \
+                                ] \
+                            }, \
+                            { \
+                                'html': 'tr', \
+                                'elem': [ \
+                                    {'html': 'td', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'A1'}]}, \
+                                    {'html': 'td', 'attr': {'style': 'text-align: right'}, 'elem': [{'text': 'B1'}]} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_table')
+
+
+function testMarkdownElements_tableNoRows():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'table': { \
+                    'headers': [[{'text': 'Column A'}]], \
+                    'aligns': ['left'] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'table', \
+                'elem': [ \
+                    { \
+                        'html': 'thead', \
+                        'elem': { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'th', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'Column A'}]} \
+                            ] \
+                        } \
+                    }, \
+                    null \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_tableNoRows')
+
+
+function testMarkdownElements_tableMissingAlign():
+    elements = markdownElements(markdownValidate({ \
+        'parts': [ \
+            { \
+                'table': { \
+                    'headers': [[{'text': 'Column A'}], [{'text': 'Column B'}]], \
+                    'aligns': ['left'], \
+                    'rows': [ \
+                        [[{'text': 'A0'}], [{'text': 'B0'}]] \
+                    ] \
+                } \
+            } \
+        ] \
+    }))
+    unittestDeepEqual( \
+        elementModelValidate(elements), \
+        [ \
+            { \
+                'html': 'table', \
+                'elem': [ \
+                    { \
+                        'html': 'thead', \
+                        'elem': { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'th', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'Column A'}]}, \
+                                {'html': 'th', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'Column B'}]} \
+                            ] \
+                        } \
+                    }, \
+                    { \
+                        'html': 'tbody', \
+                        'elem': [ \
+                            { \
+                                'html': 'tr', \
+                                'elem': [ \
+                                    {'html': 'td', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'A0'}]}, \
+                                    {'html': 'td', 'attr': {'style': 'text-align: left'}, 'elem': [{'text': 'B0'}]} \
+                                ] \
+                            } \
+                        ] \
+                    } \
+                ] \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_tableMissingAlign')
+
+
+function testMarkdownElements_relativeAndAbsoluteURLs_urlFn(url):
+    if regexMatch(testMarkdownElements_relativeAndAbsoluteURLs_rNotRelativeURL, url):
+        return url
+    endif
+    return 'https://foo.com/' + url
+endfunction
+
+
+testMarkdownElements_relativeAndAbsoluteURLs_rNotRelativeURL = regexNew('^(?:[a-z]+:|\/|\?|#)')
+
+
+function testMarkdownElements_relativeAndAbsoluteURLs():
+    markdown = markdownValidate({ \
+        'parts': [ \
+            { \
+                'paragraph': { \
+                    'spans': [ \
+                        {'link': { \
+                            'href': 'https://craigahobbs.github.io/schema-markdown/doc/', \
+                            'spans': [{'text': 'Absolute link URL'}] \
+                        }}, \
+                        {'link': { \
+                            'href': 'mailto:johndoe@gmail.com', \
+                            'spans': [{'text': 'Email absolute URL'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '/schema-markdown/doc/', \
+                            'spans': [{'text': 'Absolute link URL without scheme'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '#', \
+                            'spans': [{'text': 'Top link'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '#anchor', \
+                            'spans': [{'text': 'Anchor link'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '#foo=bar', \
+                            'spans': [{'text': 'Page link'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '#foo=bar&url=bar.md', \
+                            'spans': [{'text': 'Page link with url param'}] \
+                        }}, \
+                        {'link': { \
+                            'href': '?foo=bar', \
+                            'spans': [{'text': 'Query string'}] \
+                        }}, \
+                        {'link': { \
+                            'href': 'doc/', \
+                            'spans': [{'text': 'Relative link URL'}] \
+                        }}, \
+                        {'image': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'alt': 'Absolute image URL' \
+                        }}, \
+                        {'image': { \
+                            'src': 'doc.svg', \
+                            'alt': 'Relative image URL' \
+                        }} \
+                    ] \
+                } \
+            } \
+        ] \
+    })
+
+    # Default elements
+    defaultElements = [ \
+        { \
+            'elem': [ \
+                { \
+                    'attr': {'href': 'https://craigahobbs.github.io/schema-markdown/doc/'}, \
+                    'elem': [{'text': 'Absolute link URL'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': 'mailto:johndoe@gmail.com'}, \
+                    'elem': [{'text': 'Email absolute URL'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '/schema-markdown/doc/'}, \
+                    'elem': [{'text': 'Absolute link URL without scheme'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '#'}, \
+                    'elem': [{'text': 'Top link'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '#anchor'}, \
+                    'elem': [{'text': 'Anchor link'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '#foo=bar'}, \
+                    'elem': [{'text': 'Page link'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '#foo=bar&url=bar.md'}, \
+                    'elem': [{'text': 'Page link with url param'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': '?foo=bar'}, \
+                    'elem': [{'text': 'Query string'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': {'href': 'doc/'}, \
+                    'elem': [{'text': 'Relative link URL'}], \
+                    'html': 'a' \
+                }, \
+                { \
+                    'attr': { \
+                        'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                        'alt': 'Absolute image URL', \
+                        'style': 'max-width: 100%;' \
+                    }, \
+                    'html': 'img' \
+                }, \
+                { \
+                    'attr': { \
+                        'src': 'doc.svg', \
+                        'alt': 'Relative image URL', \
+                        'style': 'max-width: 100%;' \
+                    }, \
+                    'html': 'img' \
+                } \
+            ], \
+            'html': 'p' \
+        } \
+    ]
+
+    # Test without options
+    elements = markdownElements(markdown)
+    unittestDeepEqual(elementModelValidate(elements), defaultElements)
+
+    # Test with urlFn option - relative file fixup
+    elementsURL = markdownElements(markdown, { \
+        'urlFn': testMarkdownElements_relativeAndAbsoluteURLs_urlFn \
+    })
+    unittestDeepEqual( \
+        elementModelValidate(elementsURL), \
+        [ \
+            { \
+                'elem': [ \
+                    { \
+                        'attr': {'href': 'https://craigahobbs.github.io/schema-markdown/doc/'}, \
+                        'elem': [{'text': 'Absolute link URL'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': 'mailto:johndoe@gmail.com'}, \
+                        'elem': [{'text': 'Email absolute URL'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '/schema-markdown/doc/'}, \
+                        'elem': [{'text': 'Absolute link URL without scheme'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '#'}, \
+                        'elem': [{'text': 'Top link'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '#anchor'}, \
+                        'elem': [{'text': 'Anchor link'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '#foo=bar'}, \
+                        'elem': [{'text': 'Page link'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '#foo=bar&url=bar.md'}, \
+                        'elem': [{'text': 'Page link with url param'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': '?foo=bar'}, \
+                        'elem': [{'text': 'Query string'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': {'href': 'https://foo.com/doc/'}, \
+                        'elem': [{'text': 'Relative link URL'}], \
+                        'html': 'a' \
+                    }, \
+                    { \
+                        'attr': { \
+                            'src': 'https://craigahobbs.github.io/schema-markdown/doc/doc.svg', \
+                            'alt': 'Absolute image URL', \
+                            'style': 'max-width: 100%;' \
+                        }, \
+                        'html': 'img' \
+                    }, \
+                    { \
+                        'attr': { \
+                            'src': 'https://foo.com/doc.svg', \
+                            'alt': 'Relative image URL', \
+                            'style': 'max-width: 100%;' \
+                        }, \
+                        'html': 'img' \
+                    } \
+                ], \
+                'html': 'p' \
+            } \
+        ] \
+    )
+endfunction
+unittestRunTest('testMarkdownElements_relativeAndAbsoluteURLs')

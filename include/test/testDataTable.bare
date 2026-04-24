@@ -1,0 +1,566 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../dataTable.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+#
+# dataTableValidate tests
+#
+
+
+function testDataTableValidate():
+    dataTable = {'fields': ['A', 'B']}
+    unittestDeepEqual(dataTableValidate(dataTable), dataTable)
+endfunction
+unittestRunTest('testDataTableValidate')
+
+
+function testDataTableValidate_error():
+    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    dataTable = {'fields': 1}
+    unittestEqual(dataTableValidate(dataTable), null)
+endfunction
+unittestRunTest('testDataTableValidate_error')
+
+
+#
+# dataTableMarkdown tests
+#
+
+
+function testDataTableMarkdown():
+    data = [{'A': 1.495, 'B': 2}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    | B |', \
+        '|------|---|', \
+        '| 1.50 | 2 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown')
+
+
+function testDataTableMarkdown_multiline():
+    data = [{'A': 1.5, 'B': 'A\nmultiline\nsentence.\n\nAfter paragraph.\n\n'}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    | B                                             |', \
+        '|------|-----------------------------------------------|', \
+        '| 1.50 | A multiline sentence.<br><br>After paragraph. |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_multiline')
+
+
+function testDataTableMarkdown_fields():
+    data = [{'A': 1, 'B': 2, 'C': 3}]
+    model = { \
+        'fields': ['C'], \
+        'categories': ['A'] \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A | C |', \
+        '|---|---|', \
+        '| 1 | 3 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_fields')
+
+
+function testDataTableMarkdown_precision():
+    data = [{'A': 1.495, 'B': 2}]
+    model = { \
+        'precision': 1, \
+        'trim': false \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A   | B   |', \
+        '|-----|-----|', \
+        '| 1.5 | 2.0 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_precision')
+
+
+function testDataTableMarkdown_datetime():
+    dt = datetimeNew(2023, 9, 25)
+    data = [{'A': dt}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A                         |', \
+        '|---------------------------|', \
+        '| ' + datetimeISOFormat(dt) + ' |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime')
+
+
+function testDataTableMarkdown_datetime_precision():
+    data = [{'A': datetimeNew(2023, 9, 25)}]
+    model = {'datetime': 'day'}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A          |', \
+        '|------------|', \
+        '| 2023-09-25 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime_precision')
+
+
+function testDataTableMarkdown_null():
+    data = [{'A': null}]
+    unittestDeepEqual(dataTableMarkdown(data), [ \
+        '| A    |', \
+        '|------|', \
+        '| null |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_null')
+
+
+function testDataTableMarkdown_formats():
+    data = [ \
+        {'A': 'asdf', 'B': 'asdf', 'CCCCCCCCCC': 'asdf'}, \
+        {'A': 'asdfasdf', 'B': 'asdfasdf', 'CCCCCCCCCC': 'asdfasdf'}, \
+        {'A': 'asdfa', 'B': 'asdfas', 'CCCCCCCCCC': 'asdfas'} \
+    ]
+    model = { \
+        'formats': { \
+            'A': {'align': 'center'}, \
+            'B': {'align': 'right', 'header': 'BB'}, \
+            'CCCCCCCCCC': {'align': 'right'} \
+        } \
+    }
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        "|    A     |       BB | CCCCCCCCCC |", \
+        "|:--------:|---------:|-----------:|", \
+        "|   asdf   |     asdf |       asdf |", \
+        "| asdfasdf | asdfasdf |   asdfasdf |", \
+        "|  asdfa   |   asdfas |     asdfas |" \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_formats')
+
+
+function testDataTableMarkdown_noFields():
+    data = []
+    unittestDeepEqual(dataTableMarkdown(data), null)
+endfunction
+unittestRunTest('testDataTableMarkdown_noFields')
+
+
+#
+# dataTable tests
+#
+
+
+function testDataTable():
+    unittestMockAll()
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': datetimeNew(2022, 8, 30)}, \
+        {'A': 2, 'B': 'def', 'C': datetimeNew(2022, 8, 31)} \
+    ]
+    unittestEqual(dataTable(data), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['elementModelRender', [ \
+            { \
+                'html': 'p', \
+                'elem': { \
+                    'html': 'table', \
+                    'elem': [ \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                                {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                            ] \
+                        }, \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '1'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-30'}} \
+                            ] \
+                        }, \
+                        { \
+                            'html': 'tr', \
+                            'elem': [ \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': 'def'}}, \
+                                {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-31'}} \
+                            ] \
+                        } \
+                    ] \
+                } \
+             } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testDataTable')
+
+
+#
+# dataTableElements tests
+#
+
+
+function testDataTableElements():
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': datetimeNew(2022, 8, 30)}, \
+        {'A': 2, 'B': 'def', 'C': datetimeNew(2022, 8, 31)} \
+    ]
+    unittestDeepEqual(dataTableElements(data), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '1'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-30'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'def'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2022-08-31'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements')
+
+
+function testDataTableElements_modelFields():
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': 5}, \
+        {'A': 2, 'B': 'def', 'C': 6} \
+    ]
+    dataTable = dataTableValidate({'fields': ['B', 'A']})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '1'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                   {'html': 'td', 'attr': null, 'elem': {'text': 'def'}}, \
+                   {'html': 'td', 'attr': null, 'elem': {'text': '2'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_modelFields')
+
+
+function testDataTableElements_modelCategoryFields():
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': 5}, \
+        {'A': 1, 'B': 'def', 'C': 6}, \
+        {'C': 7}, \
+        {'A': 2, 'B': 'ghi'} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A']})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '1'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '5'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': null}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'def'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '6'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'null'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'null'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '7'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'ghi'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'null'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_modelCategoryFields')
+
+
+function testDataTableElements_modelPrecisionAndTrim():
+    data = [ \
+        {'A': 1.25, 'B': datetimeNew(2023, 8, 1)}, \
+        {'A': 2.04, 'B': datetimeNew(2023, 9, 1)} \
+    ]
+    dataTable = dataTableValidate({'precision': 1, 'datetime': 'month', 'trim': false})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '1.3'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2023-08'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2.0'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '2023-09'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_modelPrecisionAndTrim')
+
+
+function testDataTableElements_formatMarkdownFields():
+    data = [ \
+        {'A': '**1**', 'B': '**bold**', 'C': 5}, \
+        {'A': '*2*', 'B': '*italic*', 'C': 6}, \
+        {'A': '3', 'B': '[Link](test.html)', 'C': 7}, \
+        {'A': '4', 'B': '- item 1\n- item 2', 'C': 8} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A'], 'formats': {'A': {'markdown': true}, 'B': {'markdown': true}}})
+    elements = dataTableElements(data, dataTable)
+    unittestDeepEqual(elements, { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'html': 'strong', 'elem': [{'text': '1'}]}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'html': 'strong', 'elem': [{'text': 'bold'}]}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '5'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'html': 'em', 'elem': [{'text': '2'}]}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'html': 'em', 'elem': [{'text': 'italic'}]}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '6'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'text': '3'}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'html': 'a', 'attr': {'href': 'test.html'}, 'elem': [{'text': 'Link'}]}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '7'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'p', 'elem': [{'text': '4'}]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': [ \
+                        {'html': 'ul', 'attr': null, 'elem': [ \
+                            {'html': 'li', 'elem': [{'html': 'p', 'elem': [{'text': 'item 1'}]}]}, \
+                            {'html': 'li', 'elem': [{'html': 'p', 'elem': [{'text': 'item 2'}]}]} \
+                        ]} \
+                    ]}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '8'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_formatMarkdownFields')
+
+
+function testDataTableElements_formatMarkdownFieldsMissing():
+    data = [ \
+        {'A': '**1**', 'B': '**2**', 'C': 'abc'} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A'], 'formats': {'C': {}}})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '**1**'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': '**2**'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'abc'}} \
+                ] \
+            } \
+        ] \
+   })
+endfunction
+unittestRunTest('testDataTableElements_formatMarkdownFieldsMissing')
+
+
+function testDataTableElements_formatAlignment():
+    data = [ \
+        {'A': 'a', 'B': 'b', 'C': 'c'} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A'], 'formats': {'A': {'align': 'center'}, 'B': {'align': 'right'}}})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': {'style': 'text-align: center'}, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': {'style': 'text-align: right'}, 'elem': {'text': 'B'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'C'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': {'style': 'text-align: center'}, 'elem': {'text': 'a'}}, \
+                    {'html': 'td', 'attr': {'style': 'text-align: right'}, 'elem': {'text': 'b'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'c'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_formatAlignment')
+
+
+function testDataTableElements_formatNowrap():
+    data = [ \
+        {'A': 'a', 'B': 'b'} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A'], 'formats': {'A': {'nowrap': true}, 'B': {'nowrap': false}}})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': {'style': 'white-space: nowrap'}, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'B'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': {'style': 'white-space: nowrap'}, 'elem': {'text': 'a'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'b'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_formatNowrap')
+
+
+function testDataTableElements_formatHeader():
+    data = [ \
+        {'A': 'a', 'B': 'b'} \
+    ]
+    dataTable = dataTableValidate({'categories': ['A'], 'formats': {'A': {'nowrap': true}, 'B': {'header': 'BB'}}})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': {'style': 'white-space: nowrap'}, 'elem': {'text': 'A'}}, \
+                    {'html': 'th', 'attr': null, 'elem': {'text': 'BB'}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': {'style': 'white-space: nowrap'}, 'elem': {'text': 'a'}}, \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'b'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_formatHeader')

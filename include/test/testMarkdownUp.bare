@@ -1,0 +1,174 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+function testMarkdownUp_documentFontSize():
+    unittestEqual(documentFontSize(), 16)
+endfunction
+unittestRunTest('testMarkdownUp_documentFontSize')
+
+
+function testMarkdownUp_documentInputValue():
+    unittestEqual(documentInputValue(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentInputValue')
+
+
+function testMarkdownUp_documentSetFocus():
+    unittestEqual(documentSetFocus(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetFocus')
+
+
+function testMarkdownUp_documentSetKeyDown():
+    unittestEqual(documentSetKeyDown(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetKeyDown')
+
+
+function testMarkdownUp_documentSetReset():
+    unittestEqual(documentSetReset(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetReset')
+
+
+function testMarkdownUp_documentSetTitle():
+    unittestEqual(documentSetTitle(), null)
+endfunction
+unittestRunTest('testMarkdownUp_documentSetTitle')
+
+
+function testMarkdownUp_documentURL():
+    unittestEqual(documentURL('test.json'), 'test.json')
+endfunction
+unittestRunTest('testMarkdownUp_documentURL')
+
+
+function testMarkdownUp_elementModelRender():
+    unittestEqual(elementModelRender(), null)
+endfunction
+unittestRunTest('testMarkdownUp_elementModelRender')
+
+
+function testMarkdownUp_localStorage():
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+    unittestEqual(localStorageSet('key1', 'value1'), null)
+    unittestEqual(localStorageSet('key2', 'value2'), null)
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), 'value2')
+    unittestEqual(localStorageRemove('key2'), null)
+    unittestEqual(localStorageGet('key1'), 'value1')
+    unittestEqual(localStorageGet('key2'), null)
+    unittestEqual(localStorageClear(), null)
+    unittestEqual(localStorageGet('key1'), null)
+    unittestEqual(localStorageGet('key2'), null)
+endfunction
+unittestRunTest('testMarkdownUp_localStorage')
+
+
+function testMarkdownUp_markdownPrint():
+    markdownPrintStub = systemGlobalGet('markdownPrintStub')
+    unittestMockOneGeneric('systemLog')
+    unittestEqual(markdownPrintStub('Hello', ['1', '2'], null, 'Goodbye'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['Hello']], \
+        ['systemLog', ['1']], \
+        ['systemLog', ['2']], \
+        ['systemLog', ['Goodbye']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_markdownPrint')
+
+
+function testMarkdownUp_html():
+    markdownPrintStub = systemGlobalGet('markdownPrintStub')
+    unittestMockOneGeneric('systemLog')
+    markdownUpHTMLBegin()
+    unittestEqual(markdownPrintStub('Hello'), null)
+    unittestEqual(elementModelRender({'html': 'p', 'elem': {'text': 'Goodbye'}}))
+    markdownUpHTMLEnd()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['<!DOCTYPE html>']], \
+        ['systemLog', ['<html lang="en">']], \
+        ['systemLog', ['<head>']], \
+        ['systemLog', ['<link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">']], \
+        ['systemLog', ['</head>']], \
+        ['systemLog', ['<p>\n    Hello\n</p>']], \
+        ['systemLog', ['<p>\n    Goodbye\n</p>']], \
+        ['systemLog', ['</html>']] \
+    ])
+endfunction
+unittestRunTest('testMarkdownUp_html')
+
+
+function testMarkdownUp_sessionStorage():
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+    unittestEqual(sessionStorageSet('key1', 'value1'), null)
+    unittestEqual(sessionStorageSet('key2', 'value2'), null)
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), 'value2')
+    unittestEqual(sessionStorageRemove('key2'), null)
+    unittestEqual(sessionStorageGet('key1'), 'value1')
+    unittestEqual(sessionStorageGet('key2'), null)
+    unittestEqual(sessionStorageClear(), null)
+    unittestEqual(sessionStorageGet('key1'), null)
+    unittestEqual(sessionStorageGet('key2'), null)
+endfunction
+unittestRunTest('testMarkdownUp_sessionStorage')
+
+
+function testMarkdownUp_windowURLObject():
+    unittestEqual(windowURLObject('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
+    unittestEqual(windowURLObject('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+endfunction
+unittestRunTest('testMarkdownUp_windowURLObject')
+
+
+function testMarkdownUp_windowClipboardRead():
+    unittestEqual(windowClipboardRead(), '')
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+endfunction
+unittestRunTest('testMarkdownUp_windowClipboardRead')
+
+
+function testMarkdownUp_windowClipboardWrite():
+    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardRead(), 'Hello!')
+endfunction
+unittestRunTest('testMarkdownUp_windowClipboardWrite')
+
+
+function testMarkdownUp_windowHeight():
+    unittestEqual(windowHeight(), 768)
+endfunction
+unittestRunTest('testMarkdownUp_windowHeight')
+
+
+function testMarkdownUp_windowSetLocation():
+    unittestEqual(windowSetLocation(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetLocation')
+
+
+function testMarkdownUp_windowSetResize():
+    unittestEqual(windowSetResize(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetResize')
+
+
+function testMarkdownUp_windowSetTimeout():
+    unittestEqual(windowSetTimeout(), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowSetTimeout')
+
+
+function testMarkdownUp_windowWidth():
+    unittestEqual(windowWidth(), 1024)
+endfunction
+unittestRunTest('testMarkdownUp_windowWidth')
