@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.2 (2026-04-24)
+
+- [924cec6](https://github.com/craigahobbs/bare-script/commit/924cec6) - define dataLineChart option fontSize in pixels
+
 ## 4.0.0 (2026-04-23)
 
 - [712e30a](https://github.com/craigahobbs/bare-script/commit/712e30a)
