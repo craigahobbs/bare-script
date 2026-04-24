@@ -135,11 +135,10 @@ dataLineChartCategoricalColors = [ \
 
 
 # Line chart constants (all numbers in pixels)
-dataLineChartPixelsPerPoint = 4 / 3
 dataLineChartSvgPrecision = 3
 dataLineChartChartFontFamily = 'Arial, Helvetica, sans-serif'
 dataLineChartChartFontWidthRatio = 0.6
-dataLineChartChartFontDefaultSize = 12
+dataLineChartChartFontDefaultSizePx = 16
 dataLineChartChartBackgroundColor = 'white'
 dataLineChartAxisColor = 'black'
 dataLineChartAxisTickLineColor = 'lightgray'
@@ -159,7 +158,7 @@ dataLineChartChartLineWidth = 3
 # $arg data: The data array
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
 # $arg options: Optional (default is null). The line chart options object with the following optional members:
-# $arg options: - **fontSize** - The font size, in points
+# $arg options: - **fontSize** - The font size, in pixels
 function dataLineChart(data, lineChart, options):
     elementModelRender = systemGlobalGet('elementModelRender')
     elementModelRender({'html': 'p', 'elem': dataLineChartElements(data, lineChart, options)})
@@ -172,11 +171,10 @@ endfunction
 # $arg data: The data array
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
 # $arg options: Optional (default is null). The line chart options object with the following optional members:
-# $arg options: - **fontSize** - The font size, in points
+# $arg options: - **fontSize** - The font size, in pixels
 # $return: The line chart [element model](https://github.com/craigahobbs/element-model#readme)
 function dataLineChartElements(data, lineChart, options):
-    chartFontSize = dataLineChartPixelsPerPoint * \
-        if(options != null && objectHas(options, 'fontSize'), objectGet(options, 'fontSize'), dataLineChartChartFontDefaultSize)
+    chartFontSize = if(options, objectGet(options, 'fontSize', dataLineChartChartFontDefaultSizePx), dataLineChartChartFontDefaultSizePx)
     xField = objectGet(lineChart, 'x')
     yFields = objectGet(lineChart, 'y')
     colorField = objectGet(lineChart, 'color')
