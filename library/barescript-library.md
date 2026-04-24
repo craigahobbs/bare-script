@@ -1171,7 +1171,7 @@ The [line chart model](model.html#var.vName='DataLineChart')
 
 **options -**
 Optional (default is null). The line chart options object with the following optional members:
-- **fontSize** - The font size, in points
+- **fontSize** - The font size, in pixels
 
 #### Returns
 
@@ -1193,7 +1193,7 @@ The [line chart model](model.html#var.vName='DataLineChart')
 
 **options -**
 Optional (default is null). The line chart options object with the following optional members:
-- **fontSize** - The font size, in points
+- **fontSize** - The font size, in pixels
 
 #### Returns
 
