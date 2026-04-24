@@ -48,6 +48,7 @@ test-include: build/npm.build
 doc:
     # Copy statics
 	cp -R static/* build/doc/
+	cp -R lib/include build/doc/
 
     # Generate the library documentation
 	$(NODE_SHELL) npx bare -m \

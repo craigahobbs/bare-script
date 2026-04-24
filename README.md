@@ -21,6 +21,7 @@ confident that BareScript will execute the same regardless of the underlying run
 
 - [The BareScript Language](https://craigahobbs.github.io/bare-script/language/)
 - [The BareScript Library](https://craigahobbs.github.io/bare-script/library/)
+- [The BareScript Include Library Tests](https://craigahobbs.github.io/bare-script/include/test/)
 - [API Documentation](https://craigahobbs.github.io/bare-script/)
 - [Source code](https://github.com/craigahobbs/bare-script)
 
