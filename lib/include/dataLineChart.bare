@@ -174,11 +174,17 @@ endfunction
 # $arg options: - **fontSize** - The font size, in pixels
 # $return: The line chart [element model](https://github.com/craigahobbs/element-model#readme)
 function dataLineChartElements(data, lineChart, options):
-    chartFontSize = if(options, objectGet(options, 'fontSize', dataLineChartChartFontDefaultSizePx), dataLineChartChartFontDefaultSizePx)
     xField = objectGet(lineChart, 'x')
     yFields = objectGet(lineChart, 'y')
     colorField = objectGet(lineChart, 'color')
     colorOrder = objectGet(lineChart, 'colorOrder')
+
+    # Determine the font size
+    fontSize = if(options, objectGet(options, 'fontSize'))
+    if !fontSize:
+        documentFontSize = systemGlobalGet('documentFontSize')
+        fontSize = if(documentFontSize, documentFontSize(), dataLineChartChartFontDefaultSizePx)
+    endif
 
     # Sort the rows by the X field
     arraySort(data, systemPartial(dataLineChartSortCompare, xField))
@@ -331,13 +337,13 @@ function dataLineChartElements(data, lineChart, options):
     endif
 
     # Chart title calculations
-    chartBorderSize = chartFontSize
-    chartTitleFontSize = 1.1 * chartFontSize
+    chartBorderSize = fontSize
+    chartTitleFontSize = 1.1 * fontSize
     chartTitleHeight = if(chartTitle != null, 1.5 * chartTitleFontSize, 0)
 
     # Y-axis calculations
-    axisTitleFontSize = 1 * chartFontSize
-    axisLabelFontSize = chartFontSize
+    axisTitleFontSize = 1 * fontSize
+    axisLabelFontSize = fontSize
     yAxisTitle = if(arrayLength(yFields) == 1, arrayGet(yFields, 0))
     yAxisTitleWidth = if(yAxisTitle != null, 1.8 * axisTitleFontSize, 0)
     yAxisLabelWidth = 0
@@ -370,7 +376,7 @@ function dataLineChartElements(data, lineChart, options):
     xAnnotationLabelOffsetY = 0.1 * annotationLabelFontSize
 
     # Color legend calculations
-    colorLegendFontSize = chartFontSize
+    colorLegendFontSize = fontSize
     colorLegendGap = 0.5 * colorLegendFontSize
     colorLegendLabelHeight = colorLegendFontSize
     colorLegendLabelGap = 0.35 * colorLegendLabelHeight
