@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.0.3 (2026-04-25)
+
+- [a6c121d](https://github.com/craigahobbs/bare-script/commit/a6c121d) - dataLineChart.bare uses documentFontSize if available
+
+- [61b1a63](https://github.com/craigahobbs/bare-script/commit/61b1a63) - simplify valueBoolean
+
+- [ac83392](https://github.com/craigahobbs/bare-script/commit/ac83392) - simplify valueBoolean
+
 ## 4.0.2 (2026-04-24)
 
 - [924cec6](https://github.com/craigahobbs/bare-script/commit/924cec6) - define dataLineChart option fontSize in pixels
