@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.0 (2026-05-13)
+
+- [abe030c](https://github.com/craigahobbs/bare-script/commit/abe030c) - move defaultMaxStatements to runtime
+
 ## 4.0.3 (2026-04-25)
 
 - [a6c121d](https://github.com/craigahobbs/bare-script/commit/a6c121d) - dataLineChart.bare uses documentFontSize if available
