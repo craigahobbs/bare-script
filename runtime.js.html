@@ -47,6 +47,10 @@ export const systemGlobalCoverageName = '__barescriptCoverage';
 export const systemGlobalIncludesName = '__barescriptIncludes';
 
 
+// The AsyncFunction constructor, cached for fast async-function detection
+export const AsyncFunction = (async () => { /* c8 ignore next */ }).constructor;
+
+
 /**
  * Execute a BareScript model
  *
@@ -78,6 +82,12 @@ export function executeScript(script, options = {}) {
 
 function executeScriptHelper(script, statements, options, locals) {
     const {globals} = options;
+    const maxStatements = options.maxStatements ?? defaultMaxStatements;
+    options.statementCount ??= 0;
+
+    // Coverage configuration is invariant across this helper invocation
+    const coverageGlobal = globals[systemGlobalCoverageName] ?? null;
+    const hasCoverage = coverageGlobal !== null &amp;&amp; typeof coverageGlobal === 'object' &amp;&amp; coverageGlobal.enabled &amp;&amp; !script.system;
 
     // Iterate each script statement
     let labelIndexes = null;
@@ -87,47 +97,47 @@ function executeScriptHelper(script, statements, options, locals) {
         const [statementKey] = Object.keys(statement);
 
         // Increment the statement counter
-        options.statementCount = (options.statementCount ?? 0) + 1;
-        const maxStatements = options.maxStatements ?? defaultMaxStatements;
+        options.statementCount += 1;
         if (maxStatements > 0 &amp;&amp; options.statementCount > maxStatements) {
             throw new BareScriptRuntimeError(script, statement, `Exceeded maximum script statements (${maxStatements})`);
         }
 
         // Record the statement coverage
-        const coverageGlobal = globals[systemGlobalCoverageName] ?? null;
-        const hasCoverage = coverageGlobal !== null &amp;&amp; typeof coverageGlobal === 'object' &amp;&amp; coverageGlobal.enabled &amp;&amp; !script.system;
         if (hasCoverage) {
             recordStatementCoverage(script, statement, statementKey, coverageGlobal);
         }
 
         // Expression?
         if (statementKey === 'expr') {
-            const exprValue = evaluateExpression(statement.expr.expr, options, locals, false, script, statement);
-            if ('name' in statement.expr) {
+            const stmtExpr = statement.expr;
+            const exprValue = evaluateExpression(stmtExpr.expr, options, locals, false, script, statement);
+            if ('name' in stmtExpr) {
                 if (locals !== null) {
-                    locals[statement.expr.name] = exprValue;
+                    locals[stmtExpr.name] = exprValue;
                 } else {
-                    globals[statement.expr.name] = exprValue;
+                    globals[stmtExpr.name] = exprValue;
                 }
             }
 
         // Jump?
         } else if (statementKey === 'jump') {
+            const stmtJump = statement.jump;
             // Evaluate the expression (if any)
-            if (!('expr' in statement.jump) ||
-                valueBoolean(evaluateExpression(statement.jump.expr, options, locals, false, script, statement))) {
+            if (!('expr' in stmtJump) ||
+                valueBoolean(evaluateExpression(stmtJump.expr, options, locals, false, script, statement))) {
                 // Find the label
-                if (labelIndexes !== null &amp;&amp; statement.jump.label in labelIndexes) {
-                    ixStatement = labelIndexes[statement.jump.label];
+                const jumpLabel = stmtJump.label;
+                if (labelIndexes !== null &amp;&amp; jumpLabel in labelIndexes) {
+                    ixStatement = labelIndexes[jumpLabel];
                 } else {
-                    const ixLabel = statements.findIndex((stmt) => 'label' in stmt &amp;&amp; stmt.label.name === statement.jump.label);
+                    const ixLabel = statements.findIndex((stmt) => 'label' in stmt &amp;&amp; stmt.label.name === jumpLabel);
                     if (ixLabel === -1) {
-                        throw new BareScriptRuntimeError(script, statement, `Unknown jump label "${statement.jump.label}"`);
+                        throw new BareScriptRuntimeError(script, statement, `Unknown jump label "${jumpLabel}"`);
                     }
                     if (labelIndexes === null) {
                         labelIndexes = {};
                     }
-                    labelIndexes[statement.jump.label] = ixLabel;
+                    labelIndexes[jumpLabel] = ixLabel;
                     ixStatement = ixLabel;
                 }
 
@@ -141,14 +151,16 @@ function executeScriptHelper(script, statements, options, locals) {
 
         // Return?
         } else if (statementKey === 'return') {
-            if ('expr' in statement.return) {
-                return evaluateExpression(statement.return.expr, options, locals, false, script, statement);
+            const stmtReturn = statement.return;
+            if ('expr' in stmtReturn) {
+                return evaluateExpression(stmtReturn.expr, options, locals, false, script, statement);
             }
             return null;
 
         // Function?
         } else if (statementKey === 'function') {
-            globals[statement.function.name] = (args, fnOptions) => scriptFunction(script, statement.function, args, fnOptions);
+            const stmtFunction = statement.function;
+            globals[stmtFunction.name] = (args, fnOptions) => scriptFunction(script, stmtFunction, args, fnOptions);
 
         // Include?
         } else if (statementKey === 'include') {
@@ -196,12 +208,13 @@ export function recordStatementCoverage(script, statement, statementKey, coverag
 // Runtime script function implementation
 export function scriptFunction(script, function_, args, options) {
     const funcLocals = {};
-    if ('args' in function_) {
+    const funcArgs = function_.args ?? null;
+    if (funcArgs !== null) {
         const argsLength = args.length;
-        const funcArgsLength = function_.args.length;
+        const funcArgsLength = funcArgs.length;
         const ixArgLast = (function_.lastArgArray ?? null) &amp;&amp; (funcArgsLength - 1);
         for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
-            const argName = function_.args[ixArg];
+            const argName = funcArgs[ixArg];
             if (ixArg &lt; argsLength) {
                 funcLocals[argName] = (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]);
             } else {
@@ -239,38 +252,48 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
 
     // Variable
     if (exprKey === 'variable') {
+        const {variable} = expr;
+
         // Keywords
-        if (expr.variable === 'null') {
+        if (variable === 'null') {
             return null;
-        } else if (expr.variable === 'false') {
+        } else if (variable === 'false') {
             return false;
-        } else if (expr.variable === 'true') {
+        } else if (variable === 'true') {
             return true;
         }
 
         // Get the local or global variable value or null if undefined
-        let varValue = (locals !== null ? locals[expr.variable] : undefined);
+        let varValue = (locals !== null ? locals[variable] : undefined);
         if (typeof varValue === 'undefined') {
-            varValue = (globals !== null ? (globals[expr.variable] ?? null) : null);
+            varValue = (globals !== null ? (globals[variable] ?? null) : null);
         }
         return varValue;
     }
 
     // Function
     if (exprKey === 'function') {
+        const {function: func} = expr;
+
         // "if" built-in function?
-        const funcName = expr.function.name;
+        const funcName = func.name;
         if (funcName === 'if') {
-            const [valueExpr = null, trueExpr = null, falseExpr = null] = expr.function.args ?? [];
+            const [valueExpr = null, trueExpr = null, falseExpr = null] = func.args ?? [];
             const value = (valueExpr !== null ? evaluateExpression(valueExpr, options, locals, builtins, script, statement) : false);
             const resultExpr = (valueBoolean(value) ? trueExpr : falseExpr);
             return resultExpr !== null ? evaluateExpression(resultExpr, options, locals, builtins, script, statement) : null;
         }
 
         // Compute the function arguments
-        const funcArgs = 'args' in expr.function
-            ? expr.function.args.map((arg) => evaluateExpression(arg, options, locals, builtins, script, statement))
-            : null;
+        const argExprs = func.args ?? null;
+        let funcArgs = null;
+        if (argExprs !== null) {
+            const numArgs = argExprs.length;
+            funcArgs = new Array(numArgs);
+            for (let ixArg = 0; ixArg &lt; numArgs; ixArg++) {
+                funcArgs[ixArg] = evaluateExpression(argExprs[ixArg], options, locals, builtins, script, statement);
+            }
+        }
 
         // Global/local function?
         let funcValue = (locals !== null ? locals[funcName] : undefined);
@@ -282,7 +305,7 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
         }
         if (funcValue !== null) {
             // Async function called within non-async execution?
-            if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor.name === 'AsyncFunction') {
+            if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor === AsyncFunction) {
                 throw new BareScriptRuntimeError(script, statement, `Async function "${funcName}" called within non-async scope`);
             }
 
@@ -314,26 +337,27 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
 
     // Binary expression
     if (exprKey === 'binary') {
-        const binOp = expr.binary.op;
-        const leftValue = evaluateExpression(expr.binary.left, options, locals, builtins, script, statement);
+        const {binary} = expr;
+        const binOp = binary.op;
+        const leftValue = evaluateExpression(binary.left, options, locals, builtins, script, statement);
 
         // Short-circuiting "and" binary operator
         if (binOp === '&amp;&amp;') {
             if (!valueBoolean(leftValue)) {
                 return leftValue;
             }
-            return evaluateExpression(expr.binary.right, options, locals, builtins, script, statement);
+            return evaluateExpression(binary.right, options, locals, builtins, script, statement);
 
         // Short-circuiting "or" binary operator
         } else if (binOp === '||') {
             if (valueBoolean(leftValue)) {
                 return leftValue;
             }
-            return evaluateExpression(expr.binary.right, options, locals, builtins, script, statement);
+            return evaluateExpression(binary.right, options, locals, builtins, script, statement);
         }
 
         // Non-short-circuiting binary operators
-        const rightValue = evaluateExpression(expr.binary.right, options, locals, builtins, script, statement);
+        const rightValue = evaluateExpression(binary.right, options, locals, builtins, script, statement);
         if (binOp === '+') {
             // number + number
             if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
@@ -375,16 +399,34 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
                 return leftValue / rightValue;
             }
         } else if (binOp === '==') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue === rightValue;
+            }
             return valueCompare(leftValue, rightValue) === 0;
         } else if (binOp === '!=') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue !== rightValue;
+            }
             return valueCompare(leftValue, rightValue) !== 0;
         } else if (binOp === '&lt;=') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue &lt;= rightValue;
+            }
             return valueCompare(leftValue, rightValue) &lt;= 0;
         } else if (binOp === '&lt;') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue &lt; rightValue;
+            }
             return valueCompare(leftValue, rightValue) &lt; 0;
         } else if (binOp === '>=') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue >= rightValue;
+            }
             return valueCompare(leftValue, rightValue) >= 0;
         } else if (binOp === '>') {
+            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+                return leftValue > rightValue;
+            }
             return valueCompare(leftValue, rightValue) > 0;
         } else if (binOp === '%') {
             // number % number
@@ -430,8 +472,9 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
 
     // Unary expression
     if (exprKey === 'unary') {
-        const unaryOp = expr.unary.op;
-        const value = evaluateExpression(expr.unary.expr, options, locals, builtins, script, statement);
+        const {unary} = expr;
+        const unaryOp = unary.op;
+        const value = evaluateExpression(unary.expr, options, locals, builtins, script, statement);
         if (unaryOp === '!') {
             return !valueBoolean(value);
         } else if (unaryOp === '-') {
