@@ -1909,6 +1909,25 @@ test('evaluateExpressionAsync, binary greater-than', async () => {
 });
 
 
+test('evaluateExpressionAsync, binary comparison non-number', async () => {
+    // The testNumber async function forces the runtimeAsync path; string operand exercises
+    // the valueCompare fallthrough since the operands are not both numbers
+    const options = {'globals': {testNumber}};
+    let expr = validateExpression({'binary': {'op': '==', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), false);
+    expr = validateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), true);
+    expr = validateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), false);
+    expr = validateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), false);
+    expr = validateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), true);
+    expr = validateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), true);
+});
+
+
 test('evaluateExpressionAsync, binary modulus', async () => {
     const options = {'globals': {testNumber}};
 

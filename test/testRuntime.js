@@ -1433,6 +1433,23 @@ test('evaluateExpression, binary greater-than', () => {
 });
 
 
+test('evaluateExpression, binary comparison non-number', () => {
+    // String compare exercises the valueCompare fallthrough for all comparison operators
+    let expr = validateExpression({'binary': {'op': '==', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), false);
+    expr = validateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), true);
+    expr = validateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), true);
+    expr = validateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), true);
+    expr = validateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), false);
+    expr = validateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    assert.equal(evaluateExpression(expr), false);
+});
+
+
 test('evaluateExpression, binary modulus', () => {
     const options = {'globals': {testNumber}};
 

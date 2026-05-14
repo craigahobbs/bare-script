@@ -23,12 +23,22 @@ include Makefile.base
 ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 
 
+# Optimization model and effort
+OPTIMIZE_MODEL ?= opus
+OPTIMIZE_EFFORT ?= high
+
+
 help:
-	@echo "            [perf|sync-include|test-include]"
+	@echo "            [perf|runtime-optimize|perf|sync-include|test-include]"
 
 
 clean:
 	rm -rf Makefile.base jsdoc.json eslint.config.js
+
+
+.PHONY: runtime-optimize
+runtime-optimize:
+	claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-optimize.md)"
 
 
 .PHONY: sync-include
