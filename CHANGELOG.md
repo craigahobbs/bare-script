@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.1 (2026-05-14)
+
+- [e15f33f](https://github.com/craigahobbs/bare-script/commit/e15f33f) - run make runtime-optimize for 11% performance improvement
+
 ## 4.1.0 (2026-05-13)
 
 - [abe030c](https://github.com/craigahobbs/bare-script/commit/abe030c) - move defaultMaxStatements to runtime
