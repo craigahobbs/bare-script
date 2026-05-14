@@ -38,7 +38,7 @@ clean:
 
 .PHONY: runtime-optimize
 runtime-optimize:
-	claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-optimize.md)"
+	claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-runtime-optimize.md)"
 
 
 .PHONY: sync-include
