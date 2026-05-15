@@ -203,7 +203,7 @@ export DOC_RUNTIME_MODEL_JS
 perf: build/npm.build
 	mkdir -p $(dir $(PERF_JSON))
 	echo "[" > $(PERF_JSON)
-	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript", "timeMs": '$$($(NODE_SHELL) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
+	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "BareScript (JS)", "timeMs": '$$($(NODE_SHELL) npx bare perf/test.bare)'},' >> $(PERF_JSON); done
 	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "JavaScript", "timeMs": '$$($(NODE_SHELL) node perf/test.js)'},' >> $(PERF_JSON); done
 	for X in $$(seq 1 $(PERF_RUNS)); do echo '{"language": "Python", "timeMs": '$$($(PYTHON_SHELL) python3 perf/test.py)'},' >> $(PERF_JSON); done
 	echo '{"language": null, "timeMs": null}' >> $(PERF_JSON)
