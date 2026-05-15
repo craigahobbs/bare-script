@@ -443,6 +443,32 @@ test('executeScript, function lastArgArray missing', () => {
 });
 
 
+test('executeScript, function lastArgArray missing intermediate', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'test',
+                    'args': ['a', 'b', 'c'],
+                    'lastArgArray': true,
+                    'statements': [
+                        {'return': {
+                            'expr': {'function': {
+                                'name': 'arrayNew', 'args': [{'variable': 'a'}, {'variable': 'b'}, {'variable': 'c'}]
+                            }}
+                        }}
+                    ]
+                }
+            },
+            {'return': {
+                'expr': {'function': {'name': 'test', 'args': [{'number': 1}]}}
+            }}
+        ]
+    });
+    assert.deepEqual(executeScript(script), [1, null, []]);
+});
+
+
 test('executeScript, function async', () => {
     const script = validateScript({
         'statements': [
