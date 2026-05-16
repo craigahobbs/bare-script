@@ -26,6 +26,7 @@ ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 # Optimization model and effort
 OPTIMIZE_MODEL ?= opus
 OPTIMIZE_EFFORT ?= high
+OPTIMIZE_ENVIRON ?= $(if $(OPTIMIZE_OLLAMA), ANTHROPIC_BASE_URL=http://localhost:11434 ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_API_KEY="")
 
 
 help:
@@ -38,7 +39,7 @@ clean:
 
 .PHONY: runtime-optimize
 runtime-optimize:
-	claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-runtime-optimize.md)"
+	$(OPTIMIZE_ENVIRON) claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-runtime-optimize.md)"
 
 
 .PHONY: sync-include
