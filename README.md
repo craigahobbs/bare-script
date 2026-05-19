@@ -171,10 +171,11 @@ markdownPrint('Hello, Markdown!')
 
 ## Using BareScript with an AI Assistant
 
-This repository ships a [`SKILL.md`](SKILL.md) file that teaches an AI coding assistant how to write
-idiomatic BareScript — language syntax, the built-in and include libraries, the MarkdownUp
-application pattern, and the unit-test conventions. It is plain Markdown and applies to either
-BareScript implementation.
+This repository ships a
+[`SKILL.md`](https://github.com/craigahobbs/bare-script-py/blob/main/SKILL.md)
+file that teaches an AI coding assistant how to write idiomatic BareScript — language syntax, the
+built-in and include libraries, the MarkdownUp application pattern, and the unit-test conventions.
+It is plain Markdown and applies to either BareScript implementation.
 
 For [Claude Code](https://claude.com/claude-code) and other tools that follow the
 [Agent Skills](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
