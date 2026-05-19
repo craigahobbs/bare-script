@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-BareScript is a lightweight, embeddable scripting and expression language with a Python-like syntax. This repository is the **JavaScript implementation**; a companion Python implementation lives at `../bare-script-py` and shares the same `lib/include/` `.bare` library files and unit tests (synced via `make sync-include`). Both implementations are kept at 100% test coverage with identical test suites — changes here generally need a mirrored change in the Python repo.
+BareScript is a lightweight, embeddable scripting and expression language with a Python-like syntax. This repository is the **JavaScript implementation**; a companion Python implementation lives at `../bare-script-py` and shares the same `lib/include/` `.bare` library files and unit tests (synced via `make sync`). Both implementations are kept at 100% test coverage with identical test suites — changes here generally need a mirrored change in the Python repo.
+
+## Authoring BareScript code
+
+When the user asks you to write, modify, or review BareScript (`.bare` files, `markdown-script` blocks, MarkdownUp applications, or BareScript unit tests), first read `SKILL.md` at the repo root. It documents the language, the built-in and include libraries, the MarkdownUp app pattern, and the unit-test / mocking pattern used here. It is a model-agnostic skill file — Claude Code, other assistants, and human readers all use the same content.
 
 ## Common commands
 
@@ -46,7 +50,7 @@ The runtime is split so the synchronous path stays free of `async`:
 
 Pure-BareScript libraries (args parsing, data aggregation/charts, markdown rendering, diff, unittest framework, etc.) live under `lib/include/`. They are part of the **shipped package** (`files` in `package.json`) and are loaded via `include <name.bare>` using the system include prefix. Each has a `testXxx.bare` counterpart in `lib/include/test/` driven by `unittest.bare`.
 
-When modifying include files, run `make test-include` (not just `make test`). After changes, sync to the Python repo: `make sync-include`.
+When modifying include files, run `make test-include` (not just `make test`). After changes, sync to the Python repo: `make sync`.
 
 ### Where library functions are documented
 
@@ -67,4 +71,4 @@ Documentation comments inside `lib/library.js` and the `.bare` files use the `//
 
 ## Cross-repo workflow
 
-When changing anything under `lib/include/` or `static/`, the canonical workflow is: make the change here, run `make test-include`, then `make sync-include` to push to `../bare-script-py`. Equivalent JavaScript-side changes in `lib/*.js` typically need a parallel edit in the Python implementation's source.
+When changing anything under `lib/include/` or `static/`, the canonical workflow is: make the change here, run `make test-include`, then `make sync` to push to `../bare-script-py`. Equivalent JavaScript-side changes in `lib/*.js` typically need a parallel edit in the Python implementation's source.

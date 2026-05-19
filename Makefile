@@ -30,7 +30,7 @@ OPTIMIZE_ENVIRON ?= $(if $(OPTIMIZE_OLLAMA), ANTHROPIC_BASE_URL=http://localhost
 
 
 help:
-	@echo "            [perf|runtime-optimize|perf|sync-include|test-include]"
+	@echo "            [perf|runtime-optimize|perf|sync|test-include]"
 
 
 clean:
@@ -42,8 +42,9 @@ runtime-optimize:
 	$(OPTIMIZE_ENVIRON) claude --enable-auto-mode --add-dir ../bare-script-py --model $(OPTIMIZE_MODEL) --effort $(OPTIMIZE_EFFORT) "$$(cat static/claude-runtime-optimize.md)"
 
 
-.PHONY: sync-include
-sync-include:
+.PHONY: sync
+sync:
+	cp SKILL.md ../bare-script-py/
 	rsync -rv --delete --exclude=.git/ --exclude=__init__.py lib/include/ ../bare-script-py/src/bare_script/include/
 	rsync -rv --delete --exclude=.git/ static/ ../bare-script-py/static/
 

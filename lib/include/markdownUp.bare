@@ -1,6 +1,22 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+#
+# Stub implementations of the MarkdownUp runtime functions (markdownPrint,
+# elementModelRender, document*, window*, *Storage*) for use under the plain
+# `bare` CLI.
+#
+# DO NOT `include <markdownUp.bare>` from application or test code:
+#
+#   - In the real MarkdownUp browser runtime, markdownPrint, elementModelRender,
+#     and the document*/window*/*Storage* functions are built-in. Including
+#     this file would OVERWRITE the built-ins with the logging stubs, and the
+#     app would silently stop rendering.
+#   - Under the `bare` CLI, the `-m` / `-l` flags prepend this include for
+#     you, so including it again is redundant.
+#
+
+
 include <elementModel.bare>
 include <markdown.bare>
 include <markdownHighlight.bare>
