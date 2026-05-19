@@ -171,6 +171,25 @@ This is a Markdown document with embedded BareScript:
 markdownPrint('Hello, Markdown!')
 ```
 </code></pre>
+<h2>Using BareScript with an AI Assistant</h2>
+<p>This repository ships a
+<a href="https://github.com/craigahobbs/bare-script-py/blob/main/SKILL.md"><code>SKILL.md</code></a>
+file that teaches an AI coding assistant how to write idiomatic BareScript — language syntax, the
+built-in and include libraries, the MarkdownUp application pattern, and the unit-test conventions.
+It is plain Markdown and applies to either BareScript implementation.</p>
+<p>For <a href="https://claude.com/claude-code">Claude Code</a> and other tools that follow the
+<a href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview">Agent Skills</a>
+convention, install it as a project or user skill:</p>
+<pre class="prettyprint source"><code>mkdir -p .claude/skills/bare-script
+cp SKILL.md .claude/skills/bare-script/SKILL.md
+</code></pre>
+<p>Use <code>~/.claude/skills/bare-script/SKILL.md</code> instead to make it available across all projects. For
+other assistants, include the file's contents in your system prompt or rules file.</p>
+<p>Once installed, you can prompt the assistant with tasks like:</p>
+<blockquote>
+<p>Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button
+and a running win/loss/draw tally rendered as a bar chart.</p>
+</blockquote>
 <h2>Development</h2>
 <p>This package is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>.
 It was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a> as follows:</p>

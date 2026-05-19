@@ -192,8 +192,8 @@ function qrcodeMatrix(message, level):
         # Set the format strips bits
         qrcodeMatrixFormatStrips(maskMatrix, level, mask)
 
-        # Compute the mask's penalty
-        maskPenalty = qrcodeMatrixPenalty(maskMatrix)
+        # Compute the mask's penalty (with early-bailout against current best)
+        maskPenalty = qrcodeMatrixPenalty(maskMatrix, bestPenalty)
         if bestPenalty == null || maskPenalty < bestPenalty:
             bestMatrix = maskMatrix
             bestPenalty = maskPenalty
@@ -351,36 +351,68 @@ qrcodeMatrixVersionBitsTable = { \
 
 # Set a pixel array's pixels
 function qrcodeMatrixPixels(matrix, pixels, bits, mask):
-    for bitValue, ixBit in bits:
-        pixel = arrayGet(pixels, ixBit)
-        ix = arrayGet(pixel, 0)
-        iy = arrayGet(pixel, 1)
-
-        # Apply an XOR mask, if requested
-        if mask != null:
-            if mask == 0:
-                maskBit = if((iy + ix) % 2, 0, 1)
-            elif mask == 1:
-                maskBit = if(iy % 2, 0, 1)
-            elif mask == 2:
-                maskBit = if(ix % 3, 0, 1)
-            elif mask == 3:
-                maskBit = if((iy + ix) % 3, 0, 1)
-            elif mask == 4:
-                maskBit = if((mathFloor(iy / 2) + mathFloor(ix / 3)) % 2, 0, 1)
-            elif mask == 5:
-                maskBit = if((iy * ix) % 2 + (iy * ix) % 3, 0, 1)
-            elif mask == 6:
-                maskBit = if((((iy * ix) % 2) + ((iy * ix) % 3)) % 2, 0, 1)
-            else: # mask == 7
-                maskBit = if((((iy + ix) % 2) + ((iy * ix) % 3)) % 2, 0, 1)
-            endif
-            bitValue = bitValue ^ maskBit
-        endif
-
-        # Set the pixel
-        arraySet(arrayGet(matrix, iy), ix, bitValue)
-    endfor
+    if mask == null:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            arraySet(arrayGet(matrix, arrayGet(pixel, 1)), arrayGet(pixel, 0), bitValue)
+        endfor
+    elif mask == 0:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((iy + ix) % 2, 0, 1))
+        endfor
+    elif mask == 1:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if(iy % 2, 0, 1))
+        endfor
+    elif mask == 2:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if(ix % 3, 0, 1))
+        endfor
+    elif mask == 3:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((iy + ix) % 3, 0, 1))
+        endfor
+    elif mask == 4:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((mathFloor(iy / 2) + mathFloor(ix / 3)) % 2, 0, 1))
+        endfor
+    elif mask == 5:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((iy * ix) % 2 + (iy * ix) % 3, 0, 1))
+        endfor
+    elif mask == 6:
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((((iy * ix) % 2) + ((iy * ix) % 3)) % 2, 0, 1))
+        endfor
+    else: # mask == 7
+        for bitValue, ixBit in bits:
+            pixel = arrayGet(pixels, ixBit)
+            ix = arrayGet(pixel, 0)
+            iy = arrayGet(pixel, 1)
+            arraySet(arrayGet(matrix, iy), ix, bitValue ^ if((((iy + ix) % 2) + ((iy * ix) % 3)) % 2, 0, 1))
+        endfor
+    endif
 endfunction
 
 
@@ -633,7 +665,7 @@ endfunction
 
 
 # Compute the masked matrix penalty
-function qrcodeMatrixPenalty(matrix):
+function qrcodeMatrixPenalty(matrix, bestPenalty):
     size = arrayLength(matrix)
     penalty = 0
 
@@ -682,6 +714,11 @@ function qrcodeMatrixPenalty(matrix):
 
         # Penalty 3: Finder-like patterns (1011101 with 4 white modules on either side)
         penalty = penalty + 40 * arrayLength(regexMatchAll(qrcodeMatrixPenaltyPatternRegex, stringColumn))
+
+        # Early bailout - penalty is monotonically increasing
+        if bestPenalty != null && penalty >= bestPenalty:
+            return penalty
+        endif
 
         ix = ix + 1
     endwhile
