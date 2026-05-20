@@ -33,8 +33,8 @@ function dataParseCSV(text):
         linePart = line
         while linePart != null:
             # Quoted field?
-            mQuoted = regexMatch(dataParseCSVQuotedField, linePart)
-            if mQuoted != null:
+            mQuoted = stringStartsWith(linePart, '"') && regexMatch(dataParseCSVQuotedField, linePart)
+            if mQuoted:
                 groups = objectGet(mQuoted, 'groups')
                 arrayPush(row, stringReplace(objectGet(groups, '1'), '""', '"'))
                 linePart = stringSlice(linePart, stringLength(objectGet(groups, '0')))
@@ -96,8 +96,8 @@ function dataValidate(data, csv):
     types = {}
     for row in data:
         for field in objectKeys(row):
-            value = objectGet(row, field)
             if !objectGet(types, field):
+                value = objectGet(row, field)
                 valueType = systemType(value)
                 if valueType == 'boolean':
                     objectSet(types, field, 'boolean')
@@ -137,14 +137,12 @@ function dataValidate(data, csv):
         endif
     endfor
 
-    # Validate field values
+    # Validate field values (typeKeys ensures fieldType is always set by the fix-up pass above)
+    typeKeys = objectKeys(types)
     for row in data:
-        for field in objectKeys(row):
+        for field in typeKeys:
             value = objectGet(row, field)
             fieldType = objectGet(types, field)
-            if fieldType == null:
-                continue
-            endif
             valueType = systemType(value)
 
             # Null string?
@@ -324,10 +322,15 @@ function dataCalculatedField(data, fieldName, expr, variables):
     calcExpr = barescriptParseExpression(expr, false)
 
     # Compute the calculated field for each row
-    for row in data:
-        rowVars = if(variables != null, objectAssign(objectCopy(row), variables), row)
-        objectSet(row, fieldName, barescriptEvaluateExpression(calcExpr, rowVars))
-    endfor
+    if variables != null:
+        for row in data:
+            objectSet(row, fieldName, barescriptEvaluateExpression(calcExpr, objectAssign(objectCopy(row), variables)))
+        endfor
+    else:
+        for row in data:
+            objectSet(row, fieldName, barescriptEvaluateExpression(calcExpr, row))
+        endfor
+    endif
 
     return data
 endfunction
@@ -347,12 +350,19 @@ function dataFilter(data, expr, variables):
     filterExpr = barescriptParseExpression(expr, false)
 
     # Filter the data
-    for row in data:
-        rowVars = if(variables != null, objectAssign(objectCopy(row), variables), row)
-        if systemBoolean(barescriptEvaluateExpression(filterExpr, rowVars)):
-            arrayPush(result, row)
-        endif
-    endfor
+    if variables != null:
+        for row in data:
+            if barescriptEvaluateExpression(filterExpr, objectAssign(objectCopy(row), variables)):
+                arrayPush(result, row)
+            endif
+        endfor
+    else:
+        for row in data:
+            if barescriptEvaluateExpression(filterExpr, row):
+                arrayPush(result, row)
+            endif
+        endfor
+    endif
 
     return result
 endfunction
@@ -374,6 +384,17 @@ function dataAggregate(data, aggregation):
     categories = objectGet(aggregation, 'categories')
     measures = objectGet(aggregation, 'measures')
 
+    # Precompute per-measure metadata: [outputName, inputFieldKey, function]
+    measureMeta = []
+    for measure in measures:
+        measureFieldKey = objectGet(measure, 'field')
+        arrayPush(measureMeta, [ \
+            objectGet(measure, 'name', measureFieldKey), \
+            measureFieldKey, \
+            objectGet(measure, 'function') \
+        ])
+    endfor
+
     # Create the aggregate rows
     categoryRows = {}
     for row in data:
@@ -391,7 +412,7 @@ function dataAggregate(data, aggregation):
 
         # Get or create the aggregate row
         aggregateRow = objectGet(categoryRows, rowKey)
-        if aggregateRow == null:
+        if !aggregateRow:
             aggregateRow = {}
             objectSet(categoryRows, rowKey, aggregateRow)
             if categories != null:
@@ -402,13 +423,13 @@ function dataAggregate(data, aggregation):
         endif
 
         # Accumulate measure values
-        for measure in measures:
-            measureField = objectGet(measure, 'name', objectGet(measure, 'field'))
-            measureValue = objectGet(row, objectGet(measure, 'field'))
-            measureValues = objectGet(aggregateRow, measureField)
+        for meta in measureMeta:
+            measureName = arrayGet(meta, 0)
+            measureValue = objectGet(row, arrayGet(meta, 1))
+            measureValues = objectGet(aggregateRow, measureName)
             if measureValues == null:
                 measureValues = []
-                objectSet(aggregateRow, measureField, measureValues)
+                objectSet(aggregateRow, measureName, measureValues)
             endif
             if measureValue != null:
                 arrayPush(measureValues, measureValue)
@@ -421,32 +442,32 @@ function dataAggregate(data, aggregation):
     for categoryRowsKey in objectKeys(categoryRows):
         aggregateRow = objectGet(categoryRows, categoryRowsKey)
         arrayPush(aggregateRows, aggregateRow)
-        for measure in measures:
-            measureField = objectGet(measure, 'name', objectGet(measure, 'field'))
-            measureFunc = objectGet(measure, 'function')
-            measureValues = objectGet(aggregateRow, measureField)
+        for meta in measureMeta:
+            measureName = arrayGet(meta, 0)
+            measureFunc = arrayGet(meta, 2)
+            measureValues = objectGet(aggregateRow, measureName)
             if !arrayLength(measureValues):
-                objectSet(aggregateRow, measureField, null)
+                objectSet(aggregateRow, measureName, null)
             elif measureFunc == 'count':
-                objectSet(aggregateRow, measureField, arrayLength(measureValues))
+                objectSet(aggregateRow, measureName, arrayLength(measureValues))
             elif measureFunc == 'max':
                 maxVal = arrayGet(measureValues, 0)
                 for val in measureValues:
                     maxVal = if(val > maxVal, val, maxVal)
                 endfor
-                objectSet(aggregateRow, measureField, maxVal)
+                objectSet(aggregateRow, measureName, maxVal)
             elif measureFunc == 'min':
                 minVal = arrayGet(measureValues, 0)
                 for val in measureValues:
                     minVal = if(val < minVal, val, minVal)
                 endfor
-                objectSet(aggregateRow, measureField, minVal)
+                objectSet(aggregateRow, measureName, minVal)
             elif measureFunc == 'sum':
                 sumVal = 0
                 for val in measureValues:
                     sumVal = sumVal + val
                 endfor
-                objectSet(aggregateRow, measureField, sumVal)
+                objectSet(aggregateRow, measureName, sumVal)
             elif measureFunc == 'stddev':
                 sumVal = 0
                 for val in measureValues:
@@ -457,14 +478,14 @@ function dataAggregate(data, aggregation):
                 for val in measureValues:
                     sumSqDiff = sumSqDiff + (val - avgVal) ** 2
                 endfor
-                objectSet(aggregateRow, measureField, mathSqrt(sumSqDiff / arrayLength(measureValues)))
+                objectSet(aggregateRow, measureName, mathSqrt(sumSqDiff / arrayLength(measureValues)))
             else:
                 # measureFunc == 'average'
                 sumVal = 0
                 for val in measureValues:
                     sumVal = sumVal + val
                 endfor
-                objectSet(aggregateRow, measureField, sumVal / arrayLength(measureValues))
+                objectSet(aggregateRow, measureName, sumVal / arrayLength(measureValues))
             endif
         endfor
     endfor
