@@ -188,6 +188,41 @@ a string. Datetimes support `+ number` (milliseconds) and `datetime - datetime`
 Operator on incompatible types returns `null`. **Library functions also return
 `null` on invalid arguments** rather than raising.
 
+### Truthiness
+
+`if`, `&&`, `||`, `!`, and the `if(test, a, b)` expression function all use
+the same boolean coercion. Falsy values:
+
+- `null`
+- `false`
+- `0`
+- `''` (empty string)
+- `[]` (empty array)
+
+Everything else is truthy — including the empty object `{}`.
+
+This differs from JavaScript: empty arrays are **falsy** here. The practical
+consequence: `if !arr:` is **not** equivalent to `if arr == null:` because the
+former also triggers on `[]`. Only collapse `X == null` to `!X` when you can
+prove `X` is either `null` or guaranteed-truthy (an object, or a string the
+producer never returns as empty).
+
+### Short-circuit evaluation
+
+`&&`, `||`, and the `if(test, a, b)` expression function all short-circuit —
+the unused branch is never evaluated:
+
+```barescript
+# regexMatch only runs when stringStartsWith returns true
+m = stringStartsWith(s, '"') && regexMatch(quotedFieldRe, s)
+
+# Equivalent using the if expression — same short-circuit behavior
+m = if(stringStartsWith(s, '"'), regexMatch(quotedFieldRe, s))
+```
+
+Library functions don't short-circuit their arguments. Use the operators or
+`if()` when you need to guard an expensive call behind a cheap predicate.
+
 ### Includes
 
 ```barescript
@@ -226,6 +261,38 @@ person = { \
 - No destructuring, no spread.
 - No `null` coalescing operator. Use `objectGet(obj, 'k', default)` or
   `if(x == null, default, x)`.
+
+### Performance principles
+
+When optimizing `.bare` code, a few rules of thumb that hold up in practice:
+
+- **Native built-ins generally beat interpreted replacements.** Things like
+  `regexMatch`, `jsonStringify` / `jsonParse`, `arrayJoin`, and `stringEncode`
+  are implemented in JS/C — don't rewrite them as BareScript loops to "skip
+  overhead." A pure-BareScript deep-clone via `arrayCopy` per row loses to
+  `jsonParse(jsonStringify(x))`. Measure before assuming.
+- **Hoist loop invariants.** `objectGet(config, 'key')`, `arrayLength(constArr)`,
+  `precision != null`, etc. that don't depend on the loop variable should live
+  above the loop. Per-row × per-field overhead adds up fast.
+- **Split a loop on a function-arg invariant** instead of re-checking it
+  per iteration. `if variables != null:` outside, with two specialized loop
+  bodies inside, beats one body with a per-iter `if(variables != null, ...)`.
+- **`if X:` is cheaper than `if X != null:`** because it skips a binary
+  comparison op — but only safe when X is null or guaranteed-truthy. The
+  empty-array-is-falsy rule (see Truthiness above) breaks this for `X` that
+  could be `[]`.
+- **`systemBoolean(X)` inside `if` is redundant** — `if` already coerces.
+- **Precompute per-field metadata as tuples** (e.g.
+  `[field, attr, isMarkdown]`) once before the row loop when the same
+  metadata is read across many rows. Read the tuple with `arrayGet(meta, N)`
+  or destructure to named locals at the top of each iteration.
+- **Per-row string dispatch is expensive.** A chain like
+  `elif fn == 'sum': ... elif fn == 'avg': ...` inside a hot per-row loop
+  can cost more than the work it dispatches to. Pre-group by function
+  beforehand instead of dispatching per item.
+- **Always measure within a single session.** System load drifts run-to-run,
+  so before/after numbers from different minutes can mislead. Save the diff,
+  revert, measure, reapply, measure.
 
 ---
 

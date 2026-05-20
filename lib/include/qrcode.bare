@@ -755,21 +755,16 @@ function qrcodeRSEncode(bytesIn, numCodewords):
             # Precompute log of leading coefficient for faster GF multiplication
             logLead = arrayGet(qrcodeGaloisFieldLogTable, leadCoef)
 
-            # Apply generator polynomial (skip j=0 term — it's always 1)
+            # Apply generator polynomial (skip j=0 term — it's always 1).
+            # genExponents are already alpha exponents, so log(exp(e)) = e — use directly.
             j = 1
             while j < lenGen:
-                oldVal = arrayGet(bytesOut, i + j)
-
-                # Convert generator coefficient from alpha exponent to field element
-                genCoefExp = arrayGet(genExponents, j)
-                genCoef = if(genCoefExp == 0, 1, arrayGet(qrcodeGaloisFieldExpTable, genCoefExp))
-
-                # GF multiply: leadCoef * genCoef → using log tables
-                productExp = (logLead + arrayGet(qrcodeGaloisFieldLogTable, genCoef)) % 255
+                # GF multiply: leadCoef * exp(genExponent) via the exp/log tables
+                productExp = (logLead + arrayGet(genExponents, j)) % 255
                 product = arrayGet(qrcodeGaloisFieldExpTable, productExp)
 
                 # XOR with existing value (subtraction in GF(2^8))
-                arraySet(bytesOut, i + j, oldVal ^ product)
+                arraySet(bytesOut, i + j, arrayGet(bytesOut, i + j) ^ product)
 
                 j = j + 1
             endwhile

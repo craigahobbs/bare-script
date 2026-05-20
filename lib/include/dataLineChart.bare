@@ -195,22 +195,27 @@ function dataLineChartElements(data, lineChart, options):
     yMin = null
     xMax = null
     yMax = null
+    chartPrecision = objectGet(lineChart, 'precision')
+    chartDatetime = objectGet(lineChart, 'datetime')
     if colorField != null:
         # Determine the set of color encoding values
+        isSingleY = (arrayLength(yFields) == 1)
         colorValueSet = {}
         pointsMap = {}
         for row in data:
+            xRow = objectGet(row, xField)
+            colorValue = dataUtilFormatValue(objectGet(row, colorField), chartPrecision, chartDatetime)
             for yField in yFields:
-                colorValue = dataUtilFormatValue(objectGet(row, colorField), objectGet(lineChart, 'precision'), objectGet(lineChart, 'datetime'))
-                rowKey = if(arrayLength(yFields) == 1, colorValue, yField + ', ' + colorValue)
+                rowKey = if(isSingleY, colorValue, yField + ', ' + colorValue)
                 objectSet(colorValueSet, rowKey, true)
-                xRow = objectGet(row, xField)
                 yRow = objectGet(row, yField)
                 if xRow != null && yRow != null:
-                    if !objectHas(pointsMap, rowKey):
-                        objectSet(pointsMap, rowKey, [])
+                    rowPoints = objectGet(pointsMap, rowKey)
+                    if rowPoints == null:
+                        rowPoints = []
+                        objectSet(pointsMap, rowKey, rowPoints)
                     endif
-                    arrayPush(objectGet(pointsMap, rowKey), [xRow, yRow])
+                    arrayPush(rowPoints, [xRow, yRow])
                     xMin = if(xMin == null, xRow, xMin)
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
                     xMax = xRow
@@ -265,8 +270,6 @@ function dataLineChartElements(data, lineChart, options):
     chartTitle = objectGet(lineChart, 'title')
     chartWidth = objectGet(lineChart, 'width', dataLineChartDefaultWidth)
     chartHeight = objectGet(lineChart, 'height', dataLineChartDefaultHeight)
-    chartPrecision = objectGet(lineChart, 'precision')
-    chartDatetime = objectGet(lineChart, 'datetime')
 
     # Compute Y-axis tick values
     yAxisTicks = []
@@ -515,29 +518,46 @@ function dataLineChartElements(data, lineChart, options):
 
     # Render lines
     lineElements = []
+    xRange = xMax - xMin
+    yRange = yMax - yMin
+    xScale = if(xRange == 0, 0, (chartRight - chartLeft) / xRange)
+    yScale = if(yRange == 0, 0, (chartTop - chartBottom) / yRange)
+    svgPrecision = dataLineChartSvgPrecision
+    chartLineWidthValue = numberToFixed(dataLineChartChartLineWidth, svgPrecision)
     for linePoint in linePointsReversed:
         linePointColor = objectGet(linePoint, 'color')
         linePointPoints = objectGet(linePoint, 'points')
         linePointParts = []
-        for point, ixPoint in linePointPoints:
-            xCoord = arrayGet(point, 0)
-            yCoord = arrayGet(point, 1)
-            xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
-            yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
-            if arrayLength(linePointPoints) == 1:
+        nPoints = arrayLength(linePointPoints)
+        if nPoints == 1:
+            point = arrayGet(linePointPoints, 0)
+            xPoint = chartLeft + (arrayGet(point, 0) - xMin) * xScale
+            yPoint = chartBottom + (arrayGet(point, 1) - yMin) * yScale
+            yPointStr = numberToFixed(yPoint, svgPrecision)
+            arrayPush(linePointParts, \
+                'M ' + numberToFixed(xPoint - 0.5 * dataLineChartChartLineWidth, svgPrecision) + ' ' + yPointStr + \
+                ' L ' + numberToFixed(xPoint + 0.5 * dataLineChartChartLineWidth, svgPrecision) + ' ' + yPointStr)
+        else:
+            firstPoint = arrayGet(linePointPoints, 0)
+            xPoint = chartLeft + (arrayGet(firstPoint, 0) - xMin) * xScale
+            yPoint = chartBottom + (arrayGet(firstPoint, 1) - yMin) * yScale
+            arrayPush(linePointParts, \
+                'M ' + numberToFixed(xPoint, svgPrecision) + ' ' + numberToFixed(yPoint, svgPrecision))
+            ixPoint = 1
+            while ixPoint < nPoints:
+                point = arrayGet(linePointPoints, ixPoint)
+                xPoint = chartLeft + (arrayGet(point, 0) - xMin) * xScale
+                yPoint = chartBottom + (arrayGet(point, 1) - yMin) * yScale
                 arrayPush(linePointParts, \
-                    'M ' + dataLineChartSvgValue(xPoint - 0.5 * dataLineChartChartLineWidth) + ' ' + dataLineChartSvgValue(yPoint) + \
-                    ' L ' + dataLineChartSvgValue(xPoint + 0.5 * dataLineChartChartLineWidth) + ' ' + dataLineChartSvgValue(yPoint))
-            else:
-                arrayPush(linePointParts, \
-                    if(ixPoint == 0, 'M ', 'L ') + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(yPoint))
-            endif
-        endfor
+                    'L ' + numberToFixed(xPoint, svgPrecision) + ' ' + numberToFixed(yPoint, svgPrecision))
+                ixPoint = ixPoint + 1
+            endwhile
+        endif
         arrayPush(lineElements, { \
             'svg': 'path', \
             'attr': { \
                 'stroke': linePointColor, \
-                'stroke-width': dataLineChartSvgValue(dataLineChartChartLineWidth), \
+                'stroke-width': chartLineWidthValue, \
                 'fill': 'none', \
                 'd': arrayJoin(linePointParts, ' ') \
             } \
