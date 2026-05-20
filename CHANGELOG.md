@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.4 (2026-05-20)
+
+- [f5a3857](https://github.com/craigahobbs/bare-script/commit/f5a3857) - optimize data.bare, dataLineChart.bare, dataTable.bare, and qrcode.bare
+
+- [9c768c9](https://github.com/craigahobbs/bare-script/commit/9c768c9) - optimize qrcode.bare
+
 ## 4.1.3 (2026-05-15)
 
 - [ae253a9](https://github.com/craigahobbs/bare-script/commit/ae253a9) - optimize parser.py for ~30% performance improvement
