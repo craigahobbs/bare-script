@@ -117,13 +117,11 @@ endfunction
 function markdownHighlightCompileHighlightModels(highlights):
     highlightMap = {}
     for highlight in highlights:
-        highlightRegex = {}
-        parts = []
-
         # Validate the highlight model (for potential debug logging)
         schemaValidate(markdownHighlightTypes, 'MarkdownHighlight', highlight)
 
-        # Create regex-based regex for each member
+        # Build a named-group aggregate so a single match identifies the member type via its groups dict
+        namedParts = []
         for memberName in markdownHighlightMemberNames:
             memberPatterns = objectGet(highlight, memberName)
             if memberPatterns:
@@ -131,32 +129,18 @@ function markdownHighlightCompileHighlightModels(highlights):
                 for memberPattern in memberPatterns:
                     arrayPush(partStrs, '(?:' + memberPattern + ')')
                 endfor
-                part = arrayJoin(partStrs, '|')
-                memberRegex = regexNew('^(?:' + part + ')')
-                if memberRegex:
-                    objectSet(highlightRegex, memberName, memberRegex)
-                    arrayPush(parts, part)
-                endif
+                arrayPush(namedParts, '(?<' + memberName + '>' + arrayJoin(partStrs, '|') + ')')
             endif
         endfor
 
-        # Add the special aggregate-highlight-matching regexp
-        if parts:
-            aggregateParts = []
-            for part in parts:
-                arrayPush(aggregateParts, '(?:' + part + ')')
+        # Compile and register the language's render function
+        if namedParts:
+            highlightRegex = regexNew(arrayJoin(namedParts, '|'), 'm')
+            highlightFn = systemPartial(markdownHighlightRenderFn, highlightRegex)
+            for name in objectGet(highlight, 'names'):
+                objectSet(highlightMap, name, highlightFn)
             endfor
-            highlightRegexAggregate = regexNew(arrayJoin(aggregateParts, '|'), 'm')
-            if highlightRegexAggregate:
-                objectSet(highlightRegex, 'highlight', highlightRegexAggregate)
-            endif
         endif
-
-        # Add the name/alias to code block render function
-        highlightFn = systemPartial(markdownHighlightRenderFn, highlightRegex)
-        for name in objectGet(highlight, 'names'):
-            objectSet(highlightMap, name, highlightFn)
-        endfor
     endfor
 
     return highlightMap
@@ -179,11 +163,7 @@ endfunction
 # $ignore: true
 function markdownHighlightElements(highlightRegex, lines, options):
     # Join the text lines
-    textParts = []
-    for line in lines:
-        arrayPush(textParts, if(stringEndsWith(line, '\n'), line, line + '\n'))
-    endfor
-    text = arrayJoin(textParts, '')
+    text = arrayJoin(lines, '\n') + '\n'
 
     # The copy link elements
     preAttr = null
@@ -221,43 +201,47 @@ function markdownHighlightElements(highlightRegex, lines, options):
 
     # Match the highlight spans
     spans = []
-    rHighlight = objectGet(highlightRegex, 'highlight')
-    while true:
-        mHighlight = regexMatch(rHighlight, text)
-        if !mHighlight:
-            break
-        endif
-        highlightText = objectGet(objectGet(mHighlight, 'groups'), '0')
+    ixSearch = 0
+    for mHighlight in regexMatchAll(highlightRegex, text):
+        matchGroups = objectGet(mHighlight, 'groups')
+        highlightText = objectGet(matchGroups, '0')
         highlightIndex = objectGet(mHighlight, 'index')
 
         # Add the pre-text span
-        if highlightIndex > 0:
-            arrayPush(spans, {'text': stringSlice(text, 0, highlightIndex)})
+        if ixSearch < highlightIndex:
+            arrayPush(spans, {'text': stringSlice(text, ixSearch, highlightIndex)})
         endif
 
-        # Determine the highlight color
-        for memberName in markdownHighlightMemberNames:
-            memberRegex = objectGet(highlightRegex, memberName)
-            if memberRegex && regexMatch(memberRegex, highlightText):
-                color = 'var(--barescript-color-highlight-' + memberName + ')'
-                break
-            endif
-        endfor
+        # Determine the highlight style from which named group matched
+        if objectGet(matchGroups, 'builtin'):
+            attrStyle = 'color: var(--barescript-color-highlight-builtin);'
+        elif objectGet(matchGroups, 'comment'):
+            attrStyle = 'color: var(--barescript-color-highlight-comment);'
+        elif objectGet(matchGroups, 'keyword'):
+            attrStyle = 'color: var(--barescript-color-highlight-keyword);'
+        elif objectGet(matchGroups, 'literal'):
+            attrStyle = 'color: var(--barescript-color-highlight-literal);'
+        elif objectGet(matchGroups, 'preprocessor'):
+            attrStyle = 'color: var(--barescript-color-highlight-preprocessor);'
+        elif objectGet(matchGroups, 'string'):
+            attrStyle = 'color: var(--barescript-color-highlight-string);'
+        elif objectGet(matchGroups, 'tag'):
+            attrStyle = 'color: var(--barescript-color-highlight-tag);'
+        endif
 
         # Add the highlight span
         arrayPush(spans, { \
             'html': 'span', \
-            'attr': {'style': 'color: ' + color + ';'}, \
+            'attr': {'style': attrStyle}, \
             'elem': {'text': highlightText} \
         })
 
-        # Advance past the highlight match
-        text = stringSlice(text, highlightIndex + stringLength(highlightText))
-    endwhile
+        ixSearch = highlightIndex + stringLength(highlightText)
+    endfor
 
     # Add the final un-matched text
-    if text:
-        arrayPush(spans, {'text': text})
+    if ixSearch < stringLength(text):
+        arrayPush(spans, {'text': stringSlice(text, ixSearch)})
     endif
 
     # Create the code block elements

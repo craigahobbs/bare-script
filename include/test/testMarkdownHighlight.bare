@@ -486,7 +486,7 @@ function testMarkdownHighlightCodeBlockElements_barescript():
         { \
             'language': 'barescript', \
             'lines': [ \
-                '# Iterate over an array\n', \
+                '# Iterate over an array', \
                 "number5 = 'alive'", \
                 'for number in [1, 2, 3]:', \
                 "    markfownPrint('Number ' + number);", \
