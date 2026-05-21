@@ -27,7 +27,6 @@ return fibonacci(10)
 - [BareScript for JavaScript](https://github.com/craigahobbs/bare-script#readme)
 - [BareScript for Python](https://github.com/craigahobbs/bare-script-py#readme)
 - [The BareScript Library](../library/)
-- [The BareScript Expression Library](../library/expression.html)
 
 
 ## Table of Contents
@@ -535,13 +534,6 @@ Group expressions provide control over expression evaluation order. For example:
 ~~~ barescript
 0.5 * (x + y)
 ~~~
-
-
-### The BareScript Expression Library
-
-The [BareScript Expression Library](../library/expression.html) is a set of built-in,
-spreadsheet-like global functions available to all expressions. The library contains functions for
-manipulating datetimes, strings, standard math operations, and parsing/formatting numbers.
 
 
 ## Emacs Mode
