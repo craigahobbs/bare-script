@@ -280,19 +280,75 @@ When optimizing `.bare` code, a few rules of thumb that hold up in practice:
 - **`if X:` is cheaper than `if X != null:`** because it skips a binary
   comparison op — but only safe when X is null or guaranteed-truthy. The
   empty-array-is-falsy rule (see Truthiness above) breaks this for `X` that
-  could be `[]`.
+  could be `[]`; the empty-string-is-falsy and `0`-is-falsy rules break it
+  for `X` that could be `''` or `0` (e.g. a parsed list-start number that
+  accepts `0.` as a valid mark, or a regex-captured title that may be empty).
 - **`systemBoolean(X)` inside `if` is redundant** — `if` already coerces.
 - **Precompute per-field metadata as tuples** (e.g.
   `[field, attr, isMarkdown]`) once before the row loop when the same
   metadata is read across many rows. Read the tuple with `arrayGet(meta, N)`
   or destructure to named locals at the top of each iteration.
-- **Per-row string dispatch is expensive.** A chain like
+- **Per-row dispatch is expensive — avoid it when you can.** A chain like
   `elif fn == 'sum': ... elif fn == 'avg': ...` inside a hot per-row loop
   can cost more than the work it dispatches to. Pre-group by function
-  beforehand instead of dispatching per item.
+  beforehand so dispatch happens once per group, not once per row.
+- **When dispatch IS unavoidable, prefer inline `if`/`elif` over a `for`
+  loop sweep.** When you must dispatch per item (e.g. "which named group of
+  this regex match matched?"), inline the choices as an `if`/`elif` chain
+  instead of iterating a list of candidate keys. Two wins: per-iteration
+  loop-variable bookkeeping goes away, and each branch can assign a string
+  literal directly instead of building one by concatenating with the loop
+  variable. We saw ~25% on one inner loop from this change alone.
+- **`arrayGet(objectKeys(obj), 0)` is an anti-pattern for single-key
+  dispatch.** This pattern — used to pick a span/part by its sole key —
+  allocates a fresh keys array per call. Replace with direct
+  `objectGet(obj, 'key')` truthy chains: same dispatch, no array allocation,
+  and the same lookup caches the inner value for use in the matching branch.
+- **Named-group regex dispatch.** When a regex is an alternation of member
+  patterns and you need to know which member matched, wrap each part with
+  `(?<name>...)` at compile time. A single `objectGet(match.groups, name)`
+  truthy check then identifies the member — no extra `regexMatch` calls
+  per match.
+- **Lazy chained lookups.** Useful when you want a named local for each
+  candidate group AND only the first matching group should do real work.
+  Each subsequent line guards on the prior siblings' results:
+
+  ```barescript
+  boldStr = objectGet(matchGroups, 'bold')
+  italicStr = !boldStr && objectGet(matchGroups, 'italic')
+  codeStr = !boldStr && !italicStr && objectGet(matchGroups, 'code')
+  ```
+
+  Once an earlier sibling matched, later lines short-circuit on `!prev` and
+  skip their `objectGet`. Each `xxx` ends up as the captured value if its
+  group matched, or `false` if some earlier sibling already matched.
+- **`regexMatchAll` + `ixSearch` index beats `while + regexMatch +
+  stringSlice`** for iterating matches in a string. The former is one regex
+  scan with an index pointer; the latter re-scans a fresh slice each
+  iteration. Even when perf is close, prefer `regexMatchAll` — it's the
+  idiomatic form used in `markdownParserParagraphSpans` and
+  `markdownHighlightElements`. Caveat: with the `m` flag, `^` / `$` in
+  inner patterns match true line boundaries in the `regexMatchAll` form, but
+  the slice point in the `while+slice` form. The `regexMatchAll` semantics
+  are usually what you want.
+- **`objectGet` on a precomputed lookup map is not "free"** and is often
+  *slower* than re-doing the work it replaces. The library function call
+  into `objectGet` can exceed the cost of, say, a string concat of literals.
+  Don't reach for "precompute into a map and look up" as a default — measure
+  first. The same lesson applies to sharing small precomputed dicts (e.g.
+  a shared `{'style': '...'}`): host runtimes allocate fresh small objects
+  efficiently enough that the saved allocations often don't register.
+- **Native regex calls on anchored no-match patterns are cheap.** Don't gate
+  `regexMatch(re, line)` with `stringIndexOf` / single-character pre-checks
+  hoping to skip the regex; the engine fails fast on anchored mismatches,
+  and the gating string ops typically cost more than they save.
 - **Always measure within a single session.** System load drifts run-to-run,
   so before/after numbers from different minutes can mislead. Save the diff,
   revert, measure, reapply, measure.
+- **Trust measurement over intuition.** A-priori estimates of perf impact are
+  often wrong by 5–10× in both directions — wins predicted to be large turn
+  out marginal, and "cleanup-grade" changes occasionally land big. Estimate
+  to prioritize what to try first; let the measurement decide what stays.
 
 ---
 

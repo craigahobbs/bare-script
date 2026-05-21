@@ -83,6 +83,13 @@ node bin/bare.js perf/foo.bare    # AFTER
 
 Have the harness run each scenario 3–5 times; the first iteration is usually slow due to JIT warmup — focus on the steady-state numbers. Treat changes under ~2% as noise. Optimization ideas that look promising in isolation often regress in real workloads — measure each candidate against a same-session baseline before committing.
 
+Prefer a *real* document over a synthetic one for the harness input. The distribution of features in real content — span density, link patterns, code-block sizes, paragraph length — reflects what users actually feed the library; a hand-built blob can over-weight one feature and miss the actual bottleneck. For markdown-rendering work, `static/language/README.md` is a convenient ~14 KB sample. Two practical notes:
+
+- `systemFetch` is async, so a harness that calls it needs `async function main():`.
+- `systemFetch` resolves relative paths against the script's directory, not the process CWD. From `perf/foo.bare`, the README is `'../static/language/README.md'`.
+
+When an optimization is behaviorally correct but fails a test, consider whether the test is asserting on a "don't care" edge case — for example, a code-block-line input with a baked-in trailing `\n` that the parser pipeline never actually produces. Modifying the test input is sometimes the right call. Check whether the corner case is documented behavior first.
+
 ## Cross-repo workflow
 
 Changes to `lib/include/` or `static/`: make the change here, run `make test-include`, then `make sync` to push to `../bare-script-py/`. JavaScript-side changes in `lib/*.js` typically need a parallel edit in the Python implementation.

@@ -522,110 +522,27 @@ function markdownParserParagraphSpans(text, linkRefs):
         if ixSearch < matchIndex:
             arrayPush(spans, {'text': markdownParserRemoveEscapes(stringSlice(text, ixSearch, matchIndex), false)})
         endif
+        ixSearch = matchIndex + stringLength(matchFullText)
 
-        # Line break?
-        if objectGet(matchGroups, 'br') != null:
-            arrayPush(spans, {'br': 1})
-
-        # <br> HTML line break?
-        elif objectGet(matchGroups, 'brHtml') != null:
-            arrayPush(spans, {'br': 1})
-
-        # Link with inline image?
-        elif objectGet(matchGroups, 'linkImg') != null:
-            linkImgResult = markdownParserGetLinkText(matchGroups, 'linkImg')
-            linkImgText = arrayGet(linkImgResult, 0)
-            linkImgHref = arrayGet(linkImgResult, 1)
-            linkImgTitle = arrayGet(linkImgResult, 2)
-            linkImgLinkResult = markdownParserGetLinkText(matchGroups, 'linkImgLink')
-            linkImgLinkHref = arrayGet(linkImgLinkResult, 1)
-            linkImgLinkTitle = arrayGet(linkImgLinkResult, 2)
-            imgSpan = markdownParserCreateImageSpan(linkImgHref, linkImgText, linkImgTitle)
-            arrayPush(spans, markdownParserCreateLinkSpan(linkImgLinkHref, [imgSpan], linkImgLinkTitle))
-
-        # Link with inline image reference
-        elif objectGet(matchGroups, 'linkImgRef') != null:
-            linkImgRefText = objectGet(matchGroups, 'linkImgRefText')
-            linkImgRefImgText = objectGet(matchGroups, 'linkImgRefImgText')
-            linkImgRefFull = objectGet(matchGroups, 'linkImgRefFull')
-            linkImgRefLinkResult = markdownParserGetLinkText(matchGroups, 'linkImgRefLink')
-            linkImgRefLinkHref = arrayGet(linkImgRefLinkResult, 1)
-            linkImgRefLinkTitle = arrayGet(linkImgRefLinkResult, 2)
-            imgSpan = markdownParserCreateImageRefSpan(linkImgRefText, linkImgRefImgText, linkImgRefFull, linkRefs, true)
-            arrayPush(spans, markdownParserCreateLinkSpan(linkImgRefLinkHref, [imgSpan], linkImgRefLinkTitle))
-
-        # Link reference with inline image
-        elif objectGet(matchGroups, 'linkRefImg') != null:
-            linkRefImgResult = markdownParserGetLinkText(matchGroups, 'linkRefImg')
-            linkRefImgText = arrayGet(linkRefImgResult, 0)
-            linkRefImgHref = arrayGet(linkRefImgResult, 1)
-            linkRefImgTitle = arrayGet(linkRefImgResult, 2)
-            linkRefImgLinkText = objectGet(matchGroups, 'linkRefImgLinkText')
-            imgSpan = markdownParserCreateImageSpan(linkRefImgHref, linkRefImgText, linkRefImgTitle)
-            arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefImgLinkText, [imgSpan], matchFullText, linkRefs, true))
-
-        # Link reference with inline image reference
-        elif objectGet(matchGroups, 'linkRefImgRef') != null:
-            linkRefImgRefText = objectGet(matchGroups, 'linkRefImgRefText')
-            linkRefImgRefImgText = objectGet(matchGroups, 'linkRefImgRefImgText')
-            linkRefImgRefFull = objectGet(matchGroups, 'linkRefImgRefFull')
-            linkRefImgRefLinkText = objectGet(matchGroups, 'linkRefImgRefLinkText')
-            imgSpan = markdownParserCreateImageRefSpan(linkRefImgRefText, linkRefImgRefImgText, linkRefImgRefFull, linkRefs, true)
-            arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefImgRefLinkText, [imgSpan], matchFullText, linkRefs, true))
-
-        # Link or image?
-        elif objectGet(matchGroups, 'link') != null:
-            linkResult = markdownParserGetLinkText(matchGroups, 'link')
-            linkText = arrayGet(linkResult, 0)
-            linkHref = arrayGet(linkResult, 1)
-            linkTitle = arrayGet(linkResult, 2)
-            if stringStartsWith(objectGet(matchGroups, 'link'), '!'):
-                arrayPush(spans, markdownParserCreateImageSpan(linkHref, linkText, linkTitle))
-            else:
-                arrayPush(spans, markdownParserCreateLinkSpan(linkHref, linkText, linkTitle, linkRefs))
-            endif
-
-        # Link reference?
-        elif objectGet(matchGroups, 'linkRef') != null:
-            linkRefText = objectGet(matchGroups, 'linkRefText')
-            linkRefOtherText = objectGet(matchGroups, 'linkRefOtherText')
-            if stringStartsWith(objectGet(matchGroups, 'linkRef'), '!'):
-                arrayPush(spans, markdownParserCreateImageRefSpan(linkRefText, linkRefOtherText, matchFullText, linkRefs, false))
-            else:
-                arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefText, linkRefOtherText, matchFullText, linkRefs, false))
-            endif
-
-        # Link (alternate syntax)?
-        elif objectGet(matchGroups, 'linkAlt') != null:
-            linkAlt = objectGet(matchGroups, 'linkAlt')
-            linkAltScheme = objectGet(matchGroups, 'linkAltScheme')
-            linkAltHref = stringSlice(linkAlt, 1, stringLength(linkAlt) - 1)
-            linkHref = if(stringEndsWith(linkAltScheme, '@'), 'mailto:' + linkAltHref, linkAltHref)
-            arrayPush(spans, {'link': {'href': linkHref, 'spans': [{'text': linkHref}]}})
-
-        # Bold style?
-        elif objectGet(matchGroups, 'bold') != null || objectGet(matchGroups, 'boldu') != null:
-            bold = if(objectGet(matchGroups, 'bold') != null, objectGet(matchGroups, 'bold'), objectGet(matchGroups, 'boldu'))
-            boldText = stringSlice(bold, 2, stringLength(bold) - 2)
+        # Bold style? (bold or boldu)
+        boldStr = objectGet(matchGroups, 'bold') || objectGet(matchGroups, 'boldu')
+        if boldStr:
+            boldText = stringSlice(boldStr, 2, stringLength(boldStr) - 2)
             arrayPush(spans, {'style': {'style': 'bold', 'spans': markdownParserParagraphSpans(boldText, linkRefs)}})
+            continue
+        endif
 
-        # Italic style?
-        elif objectGet(matchGroups, 'italic') != null || objectGet(matchGroups, 'italicu') != null:
-            italic = if(objectGet(matchGroups, 'italic') != null, objectGet(matchGroups, 'italic'), objectGet(matchGroups, 'italicu'))
-            italicText = stringSlice(italic, 1, stringLength(italic) - 1)
+        # Italic style? (italic or italicu)
+        italicStr = objectGet(matchGroups, 'italic') || objectGet(matchGroups, 'italicu')
+        if italicStr:
+            italicText = stringSlice(italicStr, 1, stringLength(italicStr) - 1)
             arrayPush(spans, {'style': {'style': 'italic', 'spans': markdownParserParagraphSpans(italicText, linkRefs)}})
-
-        # Strikethrough style?
-        elif objectGet(matchGroups, 'strike') != null:
-            strike = objectGet(matchGroups, 'strike')
-            strikeT = objectGet(matchGroups, 'strikeT')
-            strikeTLen = stringLength(strikeT)
-            strikeText = stringSlice(strike, strikeTLen, stringLength(strike) - strikeTLen)
-            arrayPush(spans, {'style': {'style': 'strikethrough', 'spans': markdownParserParagraphSpans(strikeText, linkRefs)}})
+            continue
+        endif
 
         # Code?
-        elif objectGet(matchGroups, 'code') != null:
-            code = objectGet(matchGroups, 'code')
+        code = objectGet(matchGroups, 'code')
+        if code:
             codeT = objectGet(matchGroups, 'codeT')
             codeTLen = stringLength(codeT)
             codeText = stringSlice(code, codeTLen, stringLength(code) - codeTLen)
@@ -635,9 +552,111 @@ function markdownParserParagraphSpans(text, linkRefs):
                 codeScrubbed = objectGet(objectGet(codeMatch, 'groups'), '1')
             endif
             arrayPush(spans, {'code': codeScrubbed})
+            continue
         endif
 
-        ixSearch = matchIndex + stringLength(matchFullText)
+        # Link or image?
+        link = objectGet(matchGroups, 'link')
+        if link:
+            linkResult = markdownParserGetLinkText(matchGroups, 'link')
+            linkText = arrayGet(linkResult, 0)
+            linkHref = arrayGet(linkResult, 1)
+            linkTitle = arrayGet(linkResult, 2)
+            if stringStartsWith(link, '!'):
+                arrayPush(spans, markdownParserCreateImageSpan(linkHref, linkText, linkTitle))
+            else:
+                arrayPush(spans, markdownParserCreateLinkSpan(linkHref, linkText, linkTitle, linkRefs))
+            endif
+            continue
+        endif
+
+        # Link reference?
+        linkRef = objectGet(matchGroups, 'linkRef')
+        if linkRef:
+            linkRefText = objectGet(matchGroups, 'linkRefText')
+            linkRefOtherText = objectGet(matchGroups, 'linkRefOtherText')
+            if stringStartsWith(linkRef, '!'):
+                arrayPush(spans, markdownParserCreateImageRefSpan(linkRefText, linkRefOtherText, matchFullText, linkRefs, false))
+            else:
+                arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefText, linkRefOtherText, matchFullText, linkRefs, false))
+            endif
+            continue
+        endif
+
+        # Strikethrough style?
+        strike = objectGet(matchGroups, 'strike')
+        if strike:
+            strikeT = objectGet(matchGroups, 'strikeT')
+            strikeTLen = stringLength(strikeT)
+            strikeText = stringSlice(strike, strikeTLen, stringLength(strike) - strikeTLen)
+            arrayPush(spans, {'style': {'style': 'strikethrough', 'spans': markdownParserParagraphSpans(strikeText, linkRefs)}})
+            continue
+        endif
+
+        # Link (alternate syntax)?
+        linkAlt = objectGet(matchGroups, 'linkAlt')
+        if linkAlt:
+            linkAltScheme = objectGet(matchGroups, 'linkAltScheme')
+            linkAltHref = stringSlice(linkAlt, 1, stringLength(linkAlt) - 1)
+            linkHref = if(stringEndsWith(linkAltScheme, '@'), 'mailto:' + linkAltHref, linkAltHref)
+            arrayPush(spans, {'link': {'href': linkHref, 'spans': [{'text': linkHref}]}})
+            continue
+        endif
+
+        # Line break? (br or brHtml)
+        if objectGet(matchGroups, 'br') || objectGet(matchGroups, 'brHtml'):
+            arrayPush(spans, {'br': 1})
+            continue
+        endif
+
+        # Link with inline image?
+        if objectGet(matchGroups, 'linkImg'):
+            linkImgResult = markdownParserGetLinkText(matchGroups, 'linkImg')
+            linkImgText = arrayGet(linkImgResult, 0)
+            linkImgHref = arrayGet(linkImgResult, 1)
+            linkImgTitle = arrayGet(linkImgResult, 2)
+            linkImgLinkResult = markdownParserGetLinkText(matchGroups, 'linkImgLink')
+            linkImgLinkHref = arrayGet(linkImgLinkResult, 1)
+            linkImgLinkTitle = arrayGet(linkImgLinkResult, 2)
+            imgSpan = markdownParserCreateImageSpan(linkImgHref, linkImgText, linkImgTitle)
+            arrayPush(spans, markdownParserCreateLinkSpan(linkImgLinkHref, [imgSpan], linkImgLinkTitle))
+            continue
+        endif
+
+        # Link with inline image reference
+        if objectGet(matchGroups, 'linkImgRef'):
+            linkImgRefText = objectGet(matchGroups, 'linkImgRefText')
+            linkImgRefImgText = objectGet(matchGroups, 'linkImgRefImgText')
+            linkImgRefFull = objectGet(matchGroups, 'linkImgRefFull')
+            linkImgRefLinkResult = markdownParserGetLinkText(matchGroups, 'linkImgRefLink')
+            linkImgRefLinkHref = arrayGet(linkImgRefLinkResult, 1)
+            linkImgRefLinkTitle = arrayGet(linkImgRefLinkResult, 2)
+            imgSpan = markdownParserCreateImageRefSpan(linkImgRefText, linkImgRefImgText, linkImgRefFull, linkRefs, true)
+            arrayPush(spans, markdownParserCreateLinkSpan(linkImgRefLinkHref, [imgSpan], linkImgRefLinkTitle))
+            continue
+        endif
+
+        # Link reference with inline image
+        if objectGet(matchGroups, 'linkRefImg'):
+            linkRefImgResult = markdownParserGetLinkText(matchGroups, 'linkRefImg')
+            linkRefImgText = arrayGet(linkRefImgResult, 0)
+            linkRefImgHref = arrayGet(linkRefImgResult, 1)
+            linkRefImgTitle = arrayGet(linkRefImgResult, 2)
+            linkRefImgLinkText = objectGet(matchGroups, 'linkRefImgLinkText')
+            imgSpan = markdownParserCreateImageSpan(linkRefImgHref, linkRefImgText, linkRefImgTitle)
+            arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefImgLinkText, [imgSpan], matchFullText, linkRefs, true))
+            continue
+        endif
+
+        # Link reference with inline image reference
+        if objectGet(matchGroups, 'linkRefImgRef'):
+            linkRefImgRefText = objectGet(matchGroups, 'linkRefImgRefText')
+            linkRefImgRefImgText = objectGet(matchGroups, 'linkRefImgRefImgText')
+            linkRefImgRefFull = objectGet(matchGroups, 'linkRefImgRefFull')
+            linkRefImgRefLinkText = objectGet(matchGroups, 'linkRefImgRefLinkText')
+            imgSpan = markdownParserCreateImageRefSpan(linkRefImgRefText, linkRefImgRefImgText, linkRefImgRefFull, linkRefs, true)
+            arrayPush(spans, markdownParserCreateLinkRefSpan(linkRefImgRefLinkText, [imgSpan], matchFullText, linkRefs, true))
+        endif
     endfor
 
     # Add any remaining text
@@ -736,32 +755,36 @@ endfunction
 # Helper function to remove span text escapes and replace character references
 function markdownParserRemoveEscapes(text, isHref):
     # Remove escapes
-    escapeRegex = if(isHref, markdownParserRegexEscapeHref, markdownParserRegexEscapeText)
-    result = regexReplace(escapeRegex, text, '$1')
+    if stringIndexOf(text, '\\') >= 0:
+        escapeRegex = if(isHref, markdownParserRegexEscapeHref, markdownParserRegexEscapeText)
+        result = regexReplace(escapeRegex, text, '$1')
+    else:
+        result = text
+    endif
 
-    # Replace entity references
-    for entityMatch in regexMatchAll(markdownParserRegexEntityRef, result):
-        entityGroups = objectGet(entityMatch, 'groups')
-        entityName = objectGet(entityGroups, '1')
-        entityChar = objectGet(markdownParserEntityRefs, entityName)
-        if entityChar != null:
-            result = stringReplace(result, objectGet(entityGroups, '0'), entityChar)
-        endif
-    endfor
+    # Replace entity and numeric character references
+    if stringIndexOf(text, '&') >= 0:
+        for entityMatch in regexMatchAll(markdownParserRegexEntityRef, result):
+            entityGroups = objectGet(entityMatch, 'groups')
+            entityName = objectGet(entityGroups, '1')
+            entityChar = objectGet(markdownParserEntityRefs, entityName)
+            if entityChar != null:
+                result = stringReplace(result, objectGet(entityGroups, '0'), entityChar)
+            endif
+        endfor
 
-    # Replace decimal numeric character references
-    for decimalMatch in regexMatchAll(markdownParserRegexDecimalRef, result):
-        decimalGroups = objectGet(decimalMatch, 'groups')
-        decimalValue = numberParseInt(objectGet(decimalGroups, '1'))
-        result = stringReplace(result, objectGet(decimalGroups, '0'), stringFromCharCode(decimalValue))
-    endfor
+        for decimalMatch in regexMatchAll(markdownParserRegexDecimalRef, result):
+            decimalGroups = objectGet(decimalMatch, 'groups')
+            decimalValue = numberParseInt(objectGet(decimalGroups, '1'))
+            result = stringReplace(result, objectGet(decimalGroups, '0'), stringFromCharCode(decimalValue))
+        endfor
 
-    # Replace hex numeric character references
-    for hexMatch in regexMatchAll(markdownParserRegexHexRef, result):
-        hexGroups = objectGet(hexMatch, 'groups')
-        hexValue = numberParseInt(objectGet(hexGroups, '1'), 16)
-        result = stringReplace(result, objectGet(hexGroups, '0'), stringFromCharCode(hexValue))
-    endfor
+        for hexMatch in regexMatchAll(markdownParserRegexHexRef, result):
+            hexGroups = objectGet(hexMatch, 'groups')
+            hexValue = numberParseInt(objectGet(hexGroups, '1'), 16)
+            result = stringReplace(result, objectGet(hexGroups, '0'), stringFromCharCode(hexValue))
+        endfor
+    endif
 
     return result
 endfunction
