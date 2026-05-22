@@ -165,7 +165,7 @@ function markdownHighlightElements(highlightRegex, lines, options):
     # Join the text lines
     text = arrayJoin(lines, '\n') + '\n'
 
-    # The copy link elements
+    # The copy button element
     preAttr = null
     copyElements = null
     if options && objectGet(options, 'copyLinks'):
@@ -173,82 +173,89 @@ function markdownHighlightElements(highlightRegex, lines, options):
         copyLinksIndex = objectGet(options, 'copyLinksIndex', 1)
         objectSet(options, 'copyLinksIndex', copyLinksIndex + 1)
 
-        # Generate the code block ID and elements
+        # Generate the code block ID and copy button element
         preID = '__markdown_copy_' + copyLinksIndex
-        preAttr = {'id': preID, 'style': 'margin-top: 0.25em'}
+        preAttr = {'id': preID, 'style': 'grid-area: 1 / 1; margin-top: 0; padding-right: 2.5em;'}
         copyElements = { \
-            'html': 'p', \
+            'svg': 'svg', \
             'attr': { \
-                'style': 'cursor: pointer; font-size: 0.85em; text-align: right; user-select: none;' \
+                'width': '20', \
+                'height': '20', \
+                'viewBox': '0 0 24 24', \
+                'style': 'grid-area: 1 / 1; justify-self: end; align-self: start; margin: 0.4em; cursor: pointer; user-select: none;', \
+                'onclick': "window.navigator.clipboard.writeText(document.getElementById('" + preID + "').innerText);" \
             }, \
             'elem': { \
-                'html': 'a', \
+                'svg': 'path', \
                 'attr': { \
-                    'onclick': "window.navigator.clipboard.writeText(document.getElementById('" + preID + "').innerText);" \
-                }, \
-                'elem': {'text': 'Copy'} \
+                    'fill': 'var(--barescript-color-border)', \
+                    'd': 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z' \
+                } \
             } \
         }
     endif
 
-    # No language specified or unknown language?
+    # Determine the code element children
     if !highlightRegex:
-        return [ \
-            copyElements, \
-            {'html': 'pre', 'attr': preAttr, 'elem': {'html': 'code', 'elem': {'text': text}}} \
-        ]
+        # No language specified or unknown language
+        codeChildren = {'text': text}
+    else:
+        # Match the highlight spans
+        codeChildren = []
+        ixSearch = 0
+        for mHighlight in regexMatchAll(highlightRegex, text):
+            matchGroups = objectGet(mHighlight, 'groups')
+            highlightText = objectGet(matchGroups, '0')
+            highlightIndex = objectGet(mHighlight, 'index')
+
+            # Add the pre-text span
+            if ixSearch < highlightIndex:
+                arrayPush(codeChildren, {'text': stringSlice(text, ixSearch, highlightIndex)})
+            endif
+
+            # Determine the highlight style from which named group matched
+            if objectGet(matchGroups, 'builtin'):
+                attrStyle = 'color: var(--barescript-color-highlight-builtin);'
+            elif objectGet(matchGroups, 'comment'):
+                attrStyle = 'color: var(--barescript-color-highlight-comment);'
+            elif objectGet(matchGroups, 'keyword'):
+                attrStyle = 'color: var(--barescript-color-highlight-keyword);'
+            elif objectGet(matchGroups, 'literal'):
+                attrStyle = 'color: var(--barescript-color-highlight-literal);'
+            elif objectGet(matchGroups, 'preprocessor'):
+                attrStyle = 'color: var(--barescript-color-highlight-preprocessor);'
+            elif objectGet(matchGroups, 'string'):
+                attrStyle = 'color: var(--barescript-color-highlight-string);'
+            elif objectGet(matchGroups, 'tag'):
+                attrStyle = 'color: var(--barescript-color-highlight-tag);'
+            endif
+
+            # Add the highlight span
+            arrayPush(codeChildren, { \
+                'html': 'span', \
+                'attr': {'style': attrStyle}, \
+                'elem': {'text': highlightText} \
+            })
+
+            ixSearch = highlightIndex + stringLength(highlightText)
+        endfor
+
+        # Add the final un-matched text
+        if ixSearch < stringLength(text):
+            arrayPush(codeChildren, {'text': stringSlice(text, ixSearch)})
+        endif
     endif
 
-    # Match the highlight spans
-    spans = []
-    ixSearch = 0
-    for mHighlight in regexMatchAll(highlightRegex, text):
-        matchGroups = objectGet(mHighlight, 'groups')
-        highlightText = objectGet(matchGroups, '0')
-        highlightIndex = objectGet(mHighlight, 'index')
-
-        # Add the pre-text span
-        if ixSearch < highlightIndex:
-            arrayPush(spans, {'text': stringSlice(text, ixSearch, highlightIndex)})
-        endif
-
-        # Determine the highlight style from which named group matched
-        if objectGet(matchGroups, 'builtin'):
-            attrStyle = 'color: var(--barescript-color-highlight-builtin);'
-        elif objectGet(matchGroups, 'comment'):
-            attrStyle = 'color: var(--barescript-color-highlight-comment);'
-        elif objectGet(matchGroups, 'keyword'):
-            attrStyle = 'color: var(--barescript-color-highlight-keyword);'
-        elif objectGet(matchGroups, 'literal'):
-            attrStyle = 'color: var(--barescript-color-highlight-literal);'
-        elif objectGet(matchGroups, 'preprocessor'):
-            attrStyle = 'color: var(--barescript-color-highlight-preprocessor);'
-        elif objectGet(matchGroups, 'string'):
-            attrStyle = 'color: var(--barescript-color-highlight-string);'
-        elif objectGet(matchGroups, 'tag'):
-            attrStyle = 'color: var(--barescript-color-highlight-tag);'
-        endif
-
-        # Add the highlight span
-        arrayPush(spans, { \
-            'html': 'span', \
-            'attr': {'style': attrStyle}, \
-            'elem': {'text': highlightText} \
-        })
-
-        ixSearch = highlightIndex + stringLength(highlightText)
-    endfor
-
-    # Add the final un-matched text
-    if ixSearch < stringLength(text):
-        arrayPush(spans, {'text': stringSlice(text, ixSearch)})
+    # Create the code block element, wrapping with the copy button when present
+    preElement = {'html': 'pre', 'attr': preAttr, 'elem': {'html': 'code', 'elem': codeChildren}}
+    if !copyElements:
+        return preElement
     endif
-
-    # Create the code block elements
-    return [ \
-        copyElements, \
-        {'html': 'pre', 'attr': preAttr, 'elem': {'html': 'code', 'elem': spans}} \
-    ]
+    return { \
+        'html': 'div', \
+        'attr': {'style': 'display: grid; margin-top: 1em;'}, \
+        'elem': [preElement, copyElements] \
+    }
 endfunction
 
 
