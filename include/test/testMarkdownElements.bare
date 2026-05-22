@@ -187,17 +187,14 @@ function testMarkdownElements():
                     {'html': 'p', 'elem': [{'text': 'This is a paragraph.'}]} \
                 ] \
             }, \
-            [ \
-                null, \
-                { \
-                    'html': 'pre', \
-                    'attr': null, \
-                    'elem': { \
-                        'html': 'code', \
-                        'elem': {'text': 'Line 1\nLine 2\n'} \
-                    } \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': {'text': 'Line 1\nLine 2\n'} \
                 } \
-            ] \
+            } \
         ] \
     )
 endfunction
@@ -258,14 +255,11 @@ async function testMarkdownElementsAsync():
                     { \
                         'html': 'li', \
                         'elem': [ \
-                            [ \
-                                null, \
-                                { \
-                                    'html': 'pre', \
-                                    'attr': null, \
-                                    'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
-                                } \
-                            ], \
+                            { \
+                                'html': 'pre', \
+                                'attr': null, \
+                                'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
+                            }, \
                             {'html': 'p', 'elem': {'text': 'This is the text'}} \
                         ] \
                     } \
@@ -274,14 +268,11 @@ async function testMarkdownElementsAsync():
             { \
                 'html': 'blockquote', \
                 'elem': [ \
-                    [ \
-                        null, \
-                        { \
-                            'html': 'pre', \
-                            'attr': null, \
-                            'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
-                        } \
-                    ], \
+                    { \
+                        'html': 'pre', \
+                        'attr': null, \
+                        'elem': {'html': 'code', 'elem': {'text': 'Line 1\nLine 2\n'}} \
+                    }, \
                     {'html': 'p', 'elem': {'text': 'This is the text'}} \
                 ] \
             } \
@@ -780,19 +771,16 @@ function testMarkdownElements_codeBlockWithLanguage():
     unittestDeepEqual( \
         elementModelValidate(elements), \
         [ \
-            [ \
-                null, \
-                { \
-                    'html': 'pre', \
-                    'attr': null, \
-                    'elem': { \
-                        'html': 'code', \
-                        'elem': [ \
-                            {'text': 'foo();\nbar();\n'} \
-                        ] \
-                    } \
+            { \
+                'html': 'pre', \
+                'attr': null, \
+                'elem': { \
+                    'html': 'code', \
+                    'elem': [ \
+                        {'text': 'foo();\nbar();\n'} \
+                    ] \
                 } \
-            ] \
+            } \
         ] \
     )
 endfunction
