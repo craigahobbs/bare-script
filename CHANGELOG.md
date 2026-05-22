@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.8 (2026-05-22)
+
+- [f2852a5](https://github.com/craigahobbs/bare-script/commit/f2852a5) - improve markdownElements code block copy link
+
 ## 4.1.7 (2026-05-22)
 
 - [842c60d](https://github.com/craigahobbs/bare-script/commit/842c60d) - markdown.css - use pure white/black for print
