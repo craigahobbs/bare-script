@@ -10,9 +10,9 @@
     --barescript-dark-mode: 0;
     --barescript-light-mode: calc(1 - var(--barescript-dark-mode));
     --barescript-color-foreground: rgb(
-        calc(255 * var(--barescript-dark-mode) + 0 * var(--barescript-light-mode)),
-        calc(255 * var(--barescript-dark-mode) + 0 * var(--barescript-light-mode)),
-        calc(255 * var(--barescript-dark-mode) + 0 * var(--barescript-light-mode))
+        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode)),
+        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode)),
+        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode))
     );
     --barescript-color-link: rgb(
         calc(0 * var(--barescript-dark-mode) + 0 * var(--barescript-light-mode)),
@@ -20,9 +20,9 @@
         calc(220 * var(--barescript-dark-mode) + 144 * var(--barescript-light-mode))
     );
     --barescript-color-background: rgb(
-        calc(0 * var(--barescript-dark-mode) + 255 * var(--barescript-light-mode)),
-        calc(0 * var(--barescript-dark-mode) + 255 * var(--barescript-light-mode)),
-        calc(0 * var(--barescript-dark-mode) + 255 * var(--barescript-light-mode))
+        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode)),
+        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode)),
+        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode))
     );
     --barescript-color-background-pre: rgb(
         calc(32 * var(--barescript-dark-mode) + 239 * var(--barescript-light-mode)),
@@ -84,12 +84,7 @@
 @media print
 {
     :root {
-        --barescript-color-foreground: rgb(0, 0, 0);
-        --barescript-color-link: rgb(0, 80, 144);
-        --barescript-color-background: rgb(255, 255, 255);
-        --barescript-color-background-pre: rgb(245, 245, 245);
-        --barescript-color-background-code: rgb(230, 230, 230);
-        --barescript-color-border: rgb(192, 192, 192);
+        --barescript-dark-mode: 0;
     }
     .barescript-no-print {
         display: none;
@@ -102,7 +97,6 @@ html, body, div, span, h1, h2, h3, h4, h5, h6, p, hr, blockquote, pre, code, a, 
     margin: 0;
     padding: 0;
     border: 0;
-    outline: 0;
     font-size: 1em;
     line-height: var(--barescript-line-height);
     color: var(--barescript-color-foreground);
@@ -135,17 +129,25 @@ h3 {
 p {
     margin-top: 0.5em;
 }
-h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child, p:first-child, li:first-child, table:first-child {
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child,
+h5:first-child,
+h6:first-child,
+blockquote:first-child,
+hr:first-child,
+li:first-child,
+ol:first-child,
+p:first-child,
+pre:first-child,
+table:first-child,
+ul:first-child {
     margin-top: 0;
 }
 hr {
-    margin-top: 1.6em;
-    margin-bottom: 1.6em;
-    margin-left: 0.25em;
-    margin-right: 0.25em;
-    border-top-width: 0.25em;
-    border-top-style: solid;
-    border-top-color: var(--barescript-color-border);
+    margin: 1.6em 0.25em;
+    border-top: 0.25em solid var(--barescript-color-border);
 }
 blockquote {
     margin-top: 0.5em;
@@ -157,11 +159,8 @@ pre {
     font-family: monospace;
     font-size: 0.9rem;
     margin-top: 1em;
-    margin-bottom: 1em;
     padding: 0.5em;
-    border-width: 1px;
-    border-style: solid;
-    border-color: var(--barescript-color-border);
+    border: 1px solid var(--barescript-color-border);
     border-radius: 4px;
     overflow-x: auto;
 }
@@ -175,7 +174,7 @@ code {
     background-color: var(--barescript-color-background-code);
     font-family: monospace;
     font-size: 0.9em;
-    padding: 0.2em 0.4em;
+    padding: 0 0.4em;
     border-radius: 4px;
     overflow-wrap: break-word;
 }
