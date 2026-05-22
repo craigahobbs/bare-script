@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.9 (2026-05-22)
+
+- [0e65881](https://github.com/craigahobbs/bare-script/commit/0e65881) - markdown.css fixes and improvements
+
 ## 4.1.8 (2026-05-22)
 
 - [f2852a5](https://github.com/craigahobbs/bare-script/commit/f2852a5) - improve markdownElements code block copy link
