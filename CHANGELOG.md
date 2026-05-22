@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.10 (2026-05-22)
+
+- [da62601](https://github.com/craigahobbs/bare-script/commit/da62601) - update markdown.css light/dark mode colors
+
 ## 4.1.9 (2026-05-22)
 
 - [0e65881](https://github.com/craigahobbs/bare-script/commit/0e65881) - markdown.css fixes and improvements
