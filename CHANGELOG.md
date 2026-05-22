@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.7 (2026-05-22)
+
+- [842c60d](https://github.com/craigahobbs/bare-script/commit/842c60d) - markdown.css - use pure white/black for print
+
 ## 4.1.6 (2026-05-22)
 
 - [49384fd](https://github.com/craigahobbs/bare-script/commit/49384fd) - markdown.css fixes and improvements
