@@ -150,19 +150,16 @@ function testMarkdownHighlightCodeBlockElements_copyUnknownLanguage():
     unittestDeepEqual( \
         markdownHighlightCodeBlockElements({'language': 'unknown', 'lines': ['foo', 'bar']}, options), \
         { \
-            'html': 'div', \
-            'attr': {'style': 'display: grid; margin-top: 1em;'}, \
+            'html': 'pre', \
+            'attr': { \
+                'id': '__markdown_copy_1', \
+                'style': 'display: flex;' \
+            }, \
             'elem': [ \
                 { \
-                    'html': 'pre', \
-                    'attr': { \
-                        'id': '__markdown_copy_1', \
-                        'style': 'grid-area: 1 / 1; margin-top: 0; padding-right: 2.5em;' \
-                    }, \
-                    'elem': { \
-                        'html': 'code', \
-                        'elem': {'text': 'foo\nbar\n'} \
-                    } \
+                    'html': 'code', \
+                    'attr': {'style': 'flex: 1; min-width: 0; overflow-x: auto;'}, \
+                    'elem': {'text': 'foo\nbar\n'} \
                 }, \
                 { \
                     'svg': 'svg', \
@@ -170,7 +167,7 @@ function testMarkdownHighlightCodeBlockElements_copyUnknownLanguage():
                         'width': '20', \
                         'height': '20', \
                         'viewBox': '0 0 24 24', \
-                        'style': 'grid-area: 1 / 1; justify-self: end; align-self: start; margin: 0.4em; cursor: pointer; user-select: none;', \
+                        'style': 'align-self: flex-start; flex-shrink: 0; cursor: pointer; user-select: none;', \
                         'onclick': "window.navigator.clipboard.writeText(document.getElementById('__markdown_copy_1').innerText);" \
                     }, \
                     'elem': { \
@@ -197,27 +194,24 @@ function testMarkdownHighlightCodeBlockElements_copyKnownLanguage():
     unittestDeepEqual( \
         markdownHighlightCodeBlockElements({'language': 'barescript', 'lines': ["markdownPrint('Hello!')"]}, options), \
         { \
-            'html': 'div', \
-            'attr': {'style': 'display: grid; margin-top: 1em;'}, \
+            'html': 'pre', \
+            'attr': { \
+                'id': '__markdown_copy_2', \
+                'style': 'display: flex;' \
+            }, \
             'elem': [ \
                 { \
-                    'html': 'pre', \
-                    'attr': { \
-                        'id': '__markdown_copy_2', \
-                        'style': 'grid-area: 1 / 1; margin-top: 0; padding-right: 2.5em;' \
-                    }, \
-                    'elem': { \
-                        'html': 'code', \
-                        'elem': [ \
-                            {'text': 'markdownPrint('}, \
-                            { \
-                                'html': 'span', \
-                                'attr': {'style': 'color: var(--barescript-color-highlight-string);'}, \
-                                'elem': {'text': "'Hello!'"} \
-                            }, \
-                            {'text': ')\n'} \
-                        ] \
-                    } \
+                    'html': 'code', \
+                    'attr': {'style': 'flex: 1; min-width: 0; overflow-x: auto;'}, \
+                    'elem': [ \
+                        {'text': 'markdownPrint('}, \
+                        { \
+                            'html': 'span', \
+                            'attr': {'style': 'color: var(--barescript-color-highlight-string);'}, \
+                            'elem': {'text': "'Hello!'"} \
+                        }, \
+                        {'text': ')\n'} \
+                    ] \
                 }, \
                 { \
                     'svg': 'svg', \
@@ -225,7 +219,7 @@ function testMarkdownHighlightCodeBlockElements_copyKnownLanguage():
                         'width': '20', \
                         'height': '20', \
                         'viewBox': '0 0 24 24', \
-                        'style': 'grid-area: 1 / 1; justify-self: end; align-self: start; margin: 0.4em; cursor: pointer; user-select: none;', \
+                        'style': 'align-self: flex-start; flex-shrink: 0; cursor: pointer; user-select: none;', \
                         'onclick': "window.navigator.clipboard.writeText(document.getElementById('__markdown_copy_2').innerText);" \
                     }, \
                     'elem': { \
