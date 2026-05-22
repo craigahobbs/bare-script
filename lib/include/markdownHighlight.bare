@@ -167,6 +167,7 @@ function markdownHighlightElements(highlightRegex, lines, options):
 
     # The copy button element
     preAttr = null
+    codeAttr = null
     copyElements = null
     if options && objectGet(options, 'copyLinks'):
         # Increment the copy links ID index
@@ -175,14 +176,15 @@ function markdownHighlightElements(highlightRegex, lines, options):
 
         # Generate the code block ID and copy button element
         preID = '__markdown_copy_' + copyLinksIndex
-        preAttr = {'id': preID, 'style': 'grid-area: 1 / 1; margin-top: 0; padding-right: 2.5em;'}
+        preAttr = {'id': preID, 'style': 'display: flex;'}
+        codeAttr = {'style': 'flex: 1; min-width: 0; overflow-x: auto;'}
         copyElements = { \
             'svg': 'svg', \
             'attr': { \
                 'width': '20', \
                 'height': '20', \
                 'viewBox': '0 0 24 24', \
-                'style': 'grid-area: 1 / 1; justify-self: end; align-self: start; margin: 0.4em; cursor: pointer; user-select: none;', \
+                'style': 'align-self: flex-start; flex-shrink: 0; cursor: pointer; user-select: none;', \
                 'onclick': "window.navigator.clipboard.writeText(document.getElementById('" + preID + "').innerText);" \
             }, \
             'elem': { \
@@ -246,15 +248,14 @@ function markdownHighlightElements(highlightRegex, lines, options):
         endif
     endif
 
-    # Create the code block element, wrapping with the copy button when present
-    preElement = {'html': 'pre', 'attr': preAttr, 'elem': {'html': 'code', 'elem': codeChildren}}
+    # Create the code block element, including the copy button when present
     if !copyElements:
-        return preElement
+        return {'html': 'pre', 'attr': preAttr, 'elem': {'html': 'code', 'elem': codeChildren}}
     endif
     return { \
-        'html': 'div', \
-        'attr': {'style': 'display: grid; margin-top: 1em;'}, \
-        'elem': [preElement, copyElements] \
+        'html': 'pre', \
+        'attr': preAttr, \
+        'elem': [{'html': 'code', 'attr': codeAttr, 'elem': codeChildren}, copyElements] \
     }
 endfunction
 

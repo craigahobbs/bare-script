@@ -6,83 +6,40 @@
 
 /* Variables */
 :root {
-    /* Color variables */
+    color-scheme: light dark;
+
+    /* Light/dark mode toggle (0 = light, 1 = dark); markdown-up's JS sets --barescript-dark-mode from prefers-color-scheme */
     --barescript-dark-mode: 0;
     --barescript-light-mode: calc(1 - var(--barescript-dark-mode));
-    --barescript-color-foreground: rgb(
-        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode)),
-        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode)),
-        calc(255 * var(--barescript-dark-mode) + 34 * var(--barescript-light-mode))
-    );
-    --barescript-color-link: rgb(
-        calc(0 * var(--barescript-dark-mode) + 0 * var(--barescript-light-mode)),
-        calc(130 * var(--barescript-dark-mode) + 80 * var(--barescript-light-mode)),
-        calc(220 * var(--barescript-dark-mode) + 144 * var(--barescript-light-mode))
-    );
-    --barescript-color-background: rgb(
-        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode)),
-        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode)),
-        calc(0 * var(--barescript-dark-mode) + 250 * var(--barescript-light-mode))
-    );
-    --barescript-color-background-pre: rgb(
-        calc(32 * var(--barescript-dark-mode) + 239 * var(--barescript-light-mode)),
-        calc(35 * var(--barescript-dark-mode) + 243 * var(--barescript-light-mode)),
-        calc(39 * var(--barescript-dark-mode) + 244 * var(--barescript-light-mode))
-    );
-    --barescript-color-background-code: rgb(
-        calc(80 * var(--barescript-dark-mode) + 230 * var(--barescript-light-mode)),
-        calc(80 * var(--barescript-dark-mode) + 230 * var(--barescript-light-mode)),
-        calc(80 * var(--barescript-dark-mode) + 230 * var(--barescript-light-mode))
-    );
-    --barescript-color-border: rgb(
-        calc(80 * var(--barescript-dark-mode) + 192 * var(--barescript-light-mode)),
-        calc(80 * var(--barescript-dark-mode) + 192 * var(--barescript-light-mode)),
-        calc(80 * var(--barescript-dark-mode) + 192 * var(--barescript-light-mode))
-    );
+    --barescript-light-pct: calc(100% * var(--barescript-light-mode));
+
+    /* Color variables (light value mixed at --barescript-light-pct with dark value) */
+    --barescript-color-foreground: color-mix(in srgb, rgb(34, 34, 34) var(--barescript-light-pct), rgb(255, 255, 255));
+    --barescript-color-link: color-mix(in srgb, rgb(0, 80, 144) var(--barescript-light-pct), rgb(0, 130, 220));
+    --barescript-color-background: color-mix(in srgb, rgb(250, 250, 250) var(--barescript-light-pct), rgb(0, 0, 0));
+    --barescript-color-background-pre: color-mix(in srgb, rgb(239, 243, 244) var(--barescript-light-pct), rgb(32, 35, 39));
+    --barescript-color-background-code: color-mix(in srgb, rgb(230, 230, 230) var(--barescript-light-pct), rgb(80, 80, 80));
+    --barescript-color-border: color-mix(in srgb, rgb(192, 192, 192) var(--barescript-light-pct), rgb(80, 80, 80));
 
     /* Syntax-highlighting color variables */
-    --barescript-color-highlight-builtin: rgb(
-        calc(230 * var(--barescript-dark-mode) + 193 * var(--barescript-light-mode)),
-        calc(192 * var(--barescript-dark-mode) + 132 * var(--barescript-light-mode)),
-        calc(123 * var(--barescript-dark-mode) +   1 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-comment: rgb(
-        calc( 92 * var(--barescript-dark-mode) + 160 * var(--barescript-light-mode)),
-        calc( 99 * var(--barescript-dark-mode) + 161 * var(--barescript-light-mode)),
-        calc(112 * var(--barescript-dark-mode) + 167 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-keyword: rgb(
-        calc(198 * var(--barescript-dark-mode) + 166 * var(--barescript-light-mode)),
-        calc(120 * var(--barescript-dark-mode) +  38 * var(--barescript-light-mode)),
-        calc(221 * var(--barescript-dark-mode) + 164 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-literal: rgb(
-        calc( 86 * var(--barescript-dark-mode) +   1 * var(--barescript-light-mode)),
-        calc(182 * var(--barescript-dark-mode) + 132 * var(--barescript-light-mode)),
-        calc(194 * var(--barescript-dark-mode) + 187 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-preprocessor: rgb(
-        calc( 97 * var(--barescript-dark-mode) +  64 * var(--barescript-light-mode)),
-        calc(174 * var(--barescript-dark-mode) + 120 * var(--barescript-light-mode)),
-        calc(238 * var(--barescript-dark-mode) + 242 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-string: rgb(
-        calc(152 * var(--barescript-dark-mode) +  80 * var(--barescript-light-mode)),
-        calc(195 * var(--barescript-dark-mode) + 161 * var(--barescript-light-mode)),
-        calc(121 * var(--barescript-dark-mode) +  79 * var(--barescript-light-mode))
-    );
-    --barescript-color-highlight-tag: rgb(
-        calc(224 * var(--barescript-dark-mode) + 228 * var(--barescript-light-mode)),
-        calc(108 * var(--barescript-dark-mode) +  86 * var(--barescript-light-mode)),
-        calc(117 * var(--barescript-dark-mode) +  73 * var(--barescript-light-mode))
-    );
+    --barescript-color-highlight-builtin: color-mix(in srgb, rgb(193, 132, 1) var(--barescript-light-pct), rgb(230, 192, 123));
+    --barescript-color-highlight-comment: color-mix(in srgb, rgb(160, 161, 167) var(--barescript-light-pct), rgb(92, 99, 112));
+    --barescript-color-highlight-keyword: color-mix(in srgb, rgb(166, 38, 164) var(--barescript-light-pct), rgb(198, 120, 221));
+    --barescript-color-highlight-literal: color-mix(in srgb, rgb(1, 132, 187) var(--barescript-light-pct), rgb(86, 182, 194));
+    --barescript-color-highlight-preprocessor: color-mix(in srgb, rgb(64, 120, 242) var(--barescript-light-pct), rgb(97, 174, 238));
+    --barescript-color-highlight-string: color-mix(in srgb, rgb(80, 161, 79) var(--barescript-light-pct), rgb(152, 195, 121));
+    --barescript-color-highlight-tag: color-mix(in srgb, rgb(228, 86, 73) var(--barescript-light-pct), rgb(224, 108, 117));
 
     /* Font size and line height variables */
     --barescript-font-size: 12pt;
-    --barescript-line-height: 1.2em;
+    --barescript-line-height: 1.3em;
 }
-@media print
-{
+@media (prefers-color-scheme: dark) {
+    :root {
+        --barescript-dark-mode: 1;
+    }
+}
+@media print {
     :root {
         --barescript-dark-mode: 0;
         --barescript-color-foreground: rgb(0, 0, 0);
@@ -101,58 +58,52 @@ html, body, div, span, h1, h2, h3, h4, h5, h6, p, hr, blockquote, pre, code, a, 
     border: 0;
     font-size: 1em;
     line-height: var(--barescript-line-height);
-    color: var(--barescript-color-foreground);
-    vertical-align: baseline;
 }
 html {
     font-family: system-ui, Arial, sans-serif;
     font-size: var(--barescript-font-size);
     text-size-adjust: 100%;
-    -webkit-text-size-adjust: 100%;
 }
 body {
     background-color: var(--barescript-color-background);
+    color: var(--barescript-color-foreground);
     margin: 1.5em;
 }
 h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
-    margin-top: 0.6em;
-    margin-bottom: 0.3em;
 }
 h1 {
-    font-size: 1.9rem;
+    font-size: 2rem;
+    margin-top: 0.8em;
 }
 h2 {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
+    margin-top: 0.7em;
 }
 h3 {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
+    margin-top: 0.7em;
+}
+h4 {
+    font-size: 1.2rem;
+    margin-top: 0.6em;
+}
+h5 {
+    font-size: 1.1rem;
+    margin-top: 0.6em;
+}
+h6 {
+    margin-top: 0.6em;
 }
 p {
-    margin-top: 0.5em;
-}
-h1:first-child,
-h2:first-child,
-h3:first-child,
-h4:first-child,
-h5:first-child,
-h6:first-child,
-blockquote:first-child,
-hr:first-child,
-li:first-child,
-ol:first-child,
-p:first-child,
-pre:first-child,
-table:first-child,
-ul:first-child {
-    margin-top: 0;
+    margin-top: 0.6em;
 }
 hr {
-    margin: 1.6em 0.25em;
-    border-top: 0.25em solid var(--barescript-color-border);
+    margin: 1.6em 0;
+    border-top: 1px solid var(--barescript-color-border);
 }
 blockquote {
-    margin-top: 0.5em;
+    margin-top: 0.6em;
     padding-left: 1em;
     border-left: 0.25em solid var(--barescript-color-border);
 }
@@ -160,12 +111,15 @@ pre {
     background-color: var(--barescript-color-background-pre);
     font-family: monospace;
     font-size: 0.9rem;
-    margin-top: 1em;
+    /* Explicit so body line-height changes don't propagate to code */
+    line-height: 1.3em;
+    margin-top: 0.6em;
     padding: 0.5em;
     border: 1px solid var(--barescript-color-border);
     border-radius: 4px;
     overflow-x: auto;
 }
+/* Override inline code styling when inside a pre block */
 pre > code {
     background-color: var(--barescript-color-background-pre);
     font-size: 0.9rem;
@@ -189,17 +143,17 @@ a:hover {
 }
 ul, ol {
     list-style-position: outside;
-    margin-top: 0.5em;
+    margin-top: 0.6em;
     margin-left: 2em;
 }
 ul {
     list-style-type: disc;
 }
 li {
-    margin-top: 0.5em;
+    margin-top: 0.4em;
 }
 table {
-    margin-top: 0.4em;
+    margin-top: 0.6em;
     margin-left: 0.4em;
 }
 th {
@@ -219,4 +173,22 @@ td {
 }
 td:last-child {
     padding-right: 0;
+}
+
+/* First-child overrides — strip the leading top margin on top-level blocks */
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child,
+h5:first-child,
+h6:first-child,
+blockquote:first-child,
+hr:first-child,
+li:first-child,
+ol:first-child,
+p:first-child,
+pre:first-child,
+table:first-child,
+ul:first-child {
+    margin-top: 0;
 }
