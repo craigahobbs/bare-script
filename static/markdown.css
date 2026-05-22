@@ -85,6 +85,8 @@
 {
     :root {
         --barescript-dark-mode: 0;
+        --barescript-color-foreground: rgb(0, 0, 0);
+        --barescript-color-background: rgb(255, 255, 255);
     }
     .barescript-no-print {
         display: none;
