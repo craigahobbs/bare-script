@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.6 (2026-05-22)
+
+- [49384fd](https://github.com/craigahobbs/bare-script/commit/49384fd) - markdown.css fixes and improvements
+
 ## 4.1.5 (2026-05-21)
 
 - [8aada16](https://github.com/craigahobbs/bare-script/commit/8aada16) - optimize markdownElements.bare and markdownParser.bare
