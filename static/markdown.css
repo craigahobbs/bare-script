@@ -40,10 +40,22 @@
     }
 }
 @media print {
+    /* Override concrete color values so printing is unaffected by a JS-pinned --barescript-dark-mode on :root */
     :root {
         --barescript-dark-mode: 0;
         --barescript-color-foreground: rgb(0, 0, 0);
         --barescript-color-background: rgb(255, 255, 255);
+        --barescript-color-background-pre: rgb(255, 255, 255);
+        --barescript-color-background-code: rgb(255, 255, 255);
+        --barescript-color-border: rgb(192, 192, 192);
+        --barescript-color-link: rgb(0, 80, 144);
+        --barescript-color-highlight-builtin: rgb(193, 132, 1);
+        --barescript-color-highlight-comment: rgb(160, 161, 167);
+        --barescript-color-highlight-keyword: rgb(166, 38, 164);
+        --barescript-color-highlight-literal: rgb(1, 132, 187);
+        --barescript-color-highlight-preprocessor: rgb(64, 120, 242);
+        --barescript-color-highlight-string: rgb(80, 161, 79);
+        --barescript-color-highlight-tag: rgb(228, 86, 73);
     }
     .barescript-no-print {
         display: none;
@@ -168,6 +180,7 @@ th:last-child {
 }
 td {
     text-align: left;
+    vertical-align: top;
     padding-top: 0.2em;
     padding-right: 0.8em;
 }

@@ -53,6 +53,6 @@ markdownPrint('', argsLink(arguments, 'Reset', null, true))
 ~~~
 
 
-[argsLink]: include.html#var.vGroup='args.bare'&argslink
-[argsParse]: include.html#var.vGroup='args.bare'&argsparse
-[arguments model]: includeModel.html#var.vName='ArgsArguments'
+[argsLink]: #var.vGroup='args.bare'&argslink
+[argsParse]: #var.vGroup='args.bare'&argsparse
+[arguments model]: model.html#var.vName='ArgsArguments'
