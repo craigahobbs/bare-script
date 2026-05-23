@@ -90,6 +90,13 @@ Prefer a *real* document over a synthetic one for the harness input. The distrib
 
 When an optimization is behaviorally correct but fails a test, consider whether the test is asserting on a "don't care" edge case — for example, a code-block-line input with a baked-in trailing `\n` that the parser pipeline never actually produces. Modifying the test input is sometimes the right call. Check whether the corner case is documented behavior first.
 
-## Cross-repo workflow
+## Cross-repo workflow / tandem development
 
-Changes to `lib/include/` or `static/`: make the change here, run `make test-include`, then `make sync` to push to `../bare-script-py/`. JavaScript-side changes in `lib/*.js` typically need a parallel edit in the Python implementation.
+The JS and Python implementations are mirrors of each other — great effort has been made to keep `lib/*.js` and the corresponding `bare_script/*.py` files (runtime, value, parser, library, model, options, etc.) as close to line-for-line identical as possible, and they must stay that way. **Any change to one implementation needs a parallel change to the other in the same working session** — features, bug fixes, refactors, optimizations, and test additions all apply.
+
+Workflow for a tandem change:
+
+- Changes to `lib/include/` or `static/` (the shared `.bare` sources and include-library tests): make the change here, run `make test-include`, then `make sync` to push to `../bare-script-py/`. Do not hand-edit those files in the Python repo.
+- Changes to `lib/*.js`: make the parallel edit in `../bare-script-py/`'s corresponding module. Keep structure, naming, and ordering aligned so the two files diff cleanly.
+- After editing both repos, run the full gate in each: `make commit` (tests + lint + 100% coverage), plus `make test-include`. For perf-sensitive changes also run `make perf` in both.
+- For optimization work specifically: an optimization should not disproportionately regress either implementation. Favor wins that make `bare-script` (JavaScript) faster, since JS is the more performance-sensitive target. Stage the changes in each repo with a prepared commit message but don't commit until you've made an accept/reject recommendation per project based on the measured deltas — an optimization can be worth keeping in one repo and rejecting in the other if perf diverges sharply.
