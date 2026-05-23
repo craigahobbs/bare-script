@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.11 (2026-05-23)
+
+- [f506776](https://github.com/craigahobbs/bare-script/commit/f506776) - fix markdown.css issues, fix doc links
+
 ## 4.1.10 (2026-05-22)
 
 - [da62601](https://github.com/craigahobbs/bare-script/commit/da62601) - update markdown.css light/dark mode colors
