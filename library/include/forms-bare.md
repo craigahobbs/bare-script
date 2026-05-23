@@ -43,4 +43,4 @@ myAppMain()
 ~~~
 
 These helper functions create properly structured element models that can be rendered with the
-[elementModelRender](#var.vGroup='markdownUp.bare%3A%20elementModel'&elementmodelrender) function.
+[elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender) function.

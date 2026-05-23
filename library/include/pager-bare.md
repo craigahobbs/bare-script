@@ -58,6 +58,6 @@ pagerMain(pagerModel, {'start': 'Markdown Page'})
 ~~~
 
 
-[arguments model]: includeModel.html#var.vName='ArgsArguments'
-[pager model]: includeModel.html#var.vName='Pager'
-[pagerMain]: include.html#var.vGroup='pager.bare'&pagermain
+[arguments model]: model.html#var.vName='ArgsArguments'
+[pager model]: model.html#var.vName='Pager'
+[pagerMain]: #var.vGroup='pager.bare'&pagermain

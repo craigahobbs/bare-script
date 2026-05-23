@@ -100,9 +100,9 @@ markdownPrint('', argsLink(arguments, 'Reset', null, true))
 ~~~
 
 
-[argsLink]: include.html#var.vGroup='args.bare'&argslink
-[argsParse]: include.html#var.vGroup='args.bare'&argsparse
-[arguments model]: includeModel.html#var.vName='ArgsArguments'
+[argsLink]: #var.vGroup='args.bare'&argslink
+[argsParse]: #var.vGroup='args.bare'&argsparse
+[arguments model]: model.html#var.vName='ArgsArguments'
 
 
 ### Function Index
@@ -2332,7 +2332,7 @@ myAppMain()
 ~~~
 
 These helper functions create properly structured element models that can be rendered with the
-[elementModelRender](#var.vGroup='markdownUp.bare%3A%20elementModel'&elementmodelrender) function.
+[elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender) function.
 
 
 ### Function Index
@@ -4015,9 +4015,9 @@ pagerMain(pagerModel, {'start': 'Markdown Page'})
 ~~~
 
 
-[arguments model]: includeModel.html#var.vName='ArgsArguments'
-[pager model]: includeModel.html#var.vName='Pager'
-[pagerMain]: include.html#var.vGroup='pager.bare'&pagermain
+[arguments model]: model.html#var.vName='ArgsArguments'
+[pager model]: model.html#var.vName='Pager'
+[pagerMain]: #var.vGroup='pager.bare'&pagermain
 
 
 ### Function Index
