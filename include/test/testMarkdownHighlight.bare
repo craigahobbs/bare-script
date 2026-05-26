@@ -164,6 +164,7 @@ function testMarkdownHighlightCodeBlockElements_copyUnknownLanguage():
                 { \
                     'svg': 'svg', \
                     'attr': { \
+                        'class': 'barescript-no-print', \
                         'width': '20', \
                         'height': '20', \
                         'viewBox': '0 0 24 24', \
@@ -216,6 +217,7 @@ function testMarkdownHighlightCodeBlockElements_copyKnownLanguage():
                 { \
                     'svg': 'svg', \
                     'attr': { \
+                        'class': 'barescript-no-print', \
                         'width': '20', \
                         'height': '20', \
                         'viewBox': '0 0 24 24', \
