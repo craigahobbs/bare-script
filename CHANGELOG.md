@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.0 (2026-05-26)
+
+- [f0c6f55](https://github.com/craigahobbs/bare-script/commit/f0c6f55) - use css light-dark function in markdown.css, remove --barescript-dark-mode, improve printing, remove markdown.css from package
+
 ## 4.1.11 (2026-05-23)
 
 - [f506776](https://github.com/craigahobbs/bare-script/commit/f506776) - fix markdown.css issues, fix doc links
