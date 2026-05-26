@@ -751,6 +751,82 @@ pagerMain({ \
    coroutine cancellation. Long synchronous loops will freeze the browser.
    For animation, schedule with `windowSetTimeout(fn, ms)`.
 
+### Real-world example applications
+
+Complete, working MarkdownUp apps to study — each is a single `.bare` file
+exercising the patterns above. Grouped by what they demonstrate (full gallery:
+<https://craigahobbs.github.io/MarkdownUpApplications.md>):
+
+**Canvas drawing & animation (`draw.bare`)**
+
+- **Mandelbrot Set Explorer** — fractal rendering, zoom/pan via URL args.
+  [App](https://craigahobbs.github.io/mandelbrot/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/mandelbrot/mandelbrot.bare)
+- **Conway's Game of Life** — `windowSetTimeout` animation loop with
+  `forms.bare` controls.
+  [App](https://craigahobbs.github.io/life/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/life/life.bare)
+- **Chaos Balls** — animated bouncing-ball physics; `forms.bare` +
+  `schemaDoc.bare` settings.
+  [App](https://craigahobbs.github.io/chaosBalls/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/chaosBalls/chaosBalls.bare)
+- **Color Ramp** — color-space drawing driven by form controls.
+  [App](https://craigahobbs.github.io/color-ramp/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/color-ramp/colorRamp.bare)
+- **The Fruit Fly Trap Maker** — generates a printable diagram from inputs.
+  [App](https://craigahobbs.github.io/fruit-fly-trap/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/fruit-fly-trap/fruit-fly-trap.bare)
+- **Happy Holidays!** — a seasonal greeting drawing; custom message via URL
+  arg, full-screen mode, redraws on resize.
+  [App](https://craigahobbs.github.io/happy-holidays/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/happy-holidays/happy-holidays.bare)
+- **Tunguska Event Simulation** — the largest example (~1200 lines), a pure
+  `draw.bare` simulation.
+  [App](https://craigahobbs.github.io/tunguska/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/tunguska/tunguska.bare)
+
+**Data dashboards (`data.bare` + `dataTable.bare` / `dataLineChart.bare`, often `pager.bare`)**
+
+- **Solar Dashboard** — multi-page dashboard of fetched data; charts + tables.
+  [App](https://craigahobbs.github.io/solar/) ·
+  [Source](https://github.com/craigahobbs/solar/blob/main/solar.bare)
+- **Sunrise Dashboard** — sunrise/sunset-time dashboard; pager + charts + tables.
+  [App](https://craigahobbs.github.io/sunrise/) ·
+  [Source](https://github.com/craigahobbs/sunrise/blob/main/sunrise.bare)
+- **Day Hikes Dashboard** — multi-page hike data with charts and tables.
+  [App](https://craigahobbs.github.io/day-hikes/) ·
+  [Source](https://github.com/craigahobbs/day-hikes/blob/main/dayHikes.bare)
+- **Money** — financial-data dashboard; pager + charts + `schemaDoc.bare`.
+  [App](https://craigahobbs.github.io/money/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/money/money.bare)
+- **Package Downloads Dashboard** — package download stats as charts/tables.
+  [App](https://craigahobbs.github.io/downloads/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/downloads/downloads.bare)
+- **npm Dependency Explorer** — fetches and aggregates the npm registry;
+  `forms.bare`-driven.
+  [App](https://craigahobbs.github.io/npm-dependency-explorer/) ·
+  [Source](https://github.com/craigahobbs/npm-dependency-explorer/blob/main/npmDependencyExplorer.bare)
+
+**Forms, widgets & documentation viewers (`forms.bare`, `schemaDoc.bare`)**
+
+- **QR Code** — generates QR codes with `qrcode.bare` + `elementModel.bare`.
+  [App](https://craigahobbs.github.io/qrcode/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/qrcode/qrcodeApp.bare)
+- **Emoji** — searchable emoji table; `forms.bare` + `dataTable.bare`.
+  [App](https://craigahobbs.github.io/emoji/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/emoji/emoji.bare)
+- **The Hobbs Family Cookbook** — a "Markdown book" reader app.
+  [App](https://craigahobbs.github.io/hobbs-family-cookbook/) ·
+  [Source](https://github.com/craigahobbs/hobbs-family-cookbook/blob/main/markdownBook.bare)
+- **BareScript Library Documentation Viewer** — renders library JSON docs with
+  `schemaDoc.bare` + `markdown.bare` (this skill's own library reference).
+  [App](https://craigahobbs.github.io/bare-script/library/) ·
+  [Source](https://github.com/craigahobbs/bare-script/blob/main/lib/include/baredoc.bare)
+- **Chisel Documentation Viewer** — smallest example (~90 lines): renders API
+  schema docs via `schemaDoc.bare`.
+  [App](https://craigahobbs.github.io/chisel/example/#var.vName='chisel_doc_request') ·
+  [Source](https://github.com/craigahobbs/chisel/blob/main/src/chisel/static/chiselDoc.bare)
+
 ---
 
 ## 5. Unit testing BareScript
@@ -1002,5 +1078,6 @@ most commonly produce when writing BareScript for the first time.
 - Built-in library, single-page Markdown (fetch for the full reference): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
 - Library models, single-page Markdown: <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>
 - MarkdownUp: <https://craigahobbs.github.io/markdown-up/>
+- MarkdownUp example applications (fetchable Markdown): <https://craigahobbs.github.io/MarkdownUpApplications.md>
 - JS source: <https://github.com/craigahobbs/bare-script>
 - Python source: <https://github.com/craigahobbs/bare-script-py>
