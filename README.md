@@ -79,7 +79,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
 const script = parseScript(`\
-o# Fetch the BareScript library documentation JSON
+# Fetch the BareScript library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
@@ -193,6 +193,12 @@ Once installed, you can prompt the assistant with tasks like:
 
 > Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button
 > and a running win/loss/draw tally rendered as a bar chart.
+
+The BareScript library is also documented as single-page Markdown, which can be fetched directly
+into an assistant's context alongside `SKILL.md`:
+
+- [The BareScript Library](https://craigahobbs.github.io/bare-script/library/barescript-library.md)
+- [The BareScript Library Models](https://craigahobbs.github.io/bare-script/library/barescript-library-model.md)
 
 
 ## Development

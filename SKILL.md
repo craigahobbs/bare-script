@@ -358,7 +358,9 @@ All functions are global — no namespacing. Names are camelCase, grouped by
 prefix. Library functions **validate arguments and return `null` on type
 mismatch** (with a debug log if debug mode is on).
 
-Full reference: <https://craigahobbs.github.io/bare-script/library/>.
+Full reference: <https://craigahobbs.github.io/bare-script/library/> — also
+published as a single-page Markdown document that can be fetched directly into
+context: <https://craigahobbs.github.io/bare-script/library/barescript-library.md>.
 What follows is what you need to *recall the right name* without searching.
 
 ### Array (`array*`)
@@ -997,6 +999,8 @@ most commonly produce when writing BareScript for the first time.
 - Built-in library: <https://craigahobbs.github.io/bare-script/library/>
 - Include library: <https://craigahobbs.github.io/bare-script/include/>
 - Expression library: <https://craigahobbs.github.io/bare-script/library/expression.html>
+- Built-in library, single-page Markdown (fetch for the full reference): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
+- Library models, single-page Markdown: <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>
 - MarkdownUp: <https://craigahobbs.github.io/markdown-up/>
 - JS source: <https://github.com/craigahobbs/bare-script>
 - Python source: <https://github.com/craigahobbs/bare-script-py>

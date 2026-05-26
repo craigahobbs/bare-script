@@ -60,6 +60,8 @@ Pure-BareScript libraries (args parsing, data aggregation/charts, markdown rende
 2. Add the `$function: / $group: / $doc: / $arg:` doc block above it.
 3. Add test cases in `test/testLibrary.js`.
 
+`make doc` (and therefore `make commit`) also renders single-page Markdown versions of the library and library-model docs into `build/doc/library/` — `barescript-library.md` and `barescript-library-model.md` — published at <https://craigahobbs.github.io/bare-script/library/barescript-library.md> and <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>. These are the Markdown equivalents of the HTML library reference, intended for fetching into an AI assistant's context alongside `SKILL.md`.
+
 ## Conventions
 
 - ESM throughout (`"type": "module"`). Use the `.js` extension in import paths.
