@@ -107,7 +107,7 @@ import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
 const script = parseScript(`\
-o# Fetch the BareScript library documentation JSON
+# Fetch the BareScript library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
 
 # Return the number of library functions
@@ -190,6 +190,12 @@ other assistants, include the file's contents in your system prompt or rules fil
 <p>Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button
 and a running win/loss/draw tally rendered as a bar chart.</p>
 </blockquote>
+<p>The BareScript library is also documented as single-page Markdown, which can be fetched directly
+into an assistant's context alongside <code>SKILL.md</code>:</p>
+<ul>
+<li><a href="https://craigahobbs.github.io/bare-script/library/barescript-library.md">The BareScript Library</a></li>
+<li><a href="https://craigahobbs.github.io/bare-script/library/barescript-library-model.md">The BareScript Library Models</a></li>
+</ul>
 <h2>Development</h2>
 <p>This package is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>.
 It was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a> as follows:</p>
