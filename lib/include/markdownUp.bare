@@ -332,6 +332,48 @@ function windowHeight():
 endfunction
 
 
+# $function: windowKeyState
+# $group: markdownUp.bare
+# $doc: Test whether a key combination is currently held down. Unlike `documentSetKeyDown`, which
+# $doc: fires a callback once per key press, this polls the live keyboard state and is intended for
+# $doc: game loops and animations. The modifier-key states must match exactly, so by default the key
+# $doc: must be pressed with no modifier keys held. For example:
+# $doc:
+# $doc: ```barescript
+# $doc: if windowKeyState('ArrowLeft'):
+# $doc:     playerX = playerX - playerSpeed
+# $doc: endif
+# $doc: if windowKeyState('ArrowRight'):
+# $doc:     playerX = playerX + playerSpeed
+# $doc: endif
+# $doc: ```
+# $doc:
+# $doc: The key is matched against the physical key code (e.g., "ArrowUp", "KeyW", "Space", "Enter").
+# $arg key: The physical key code (e.g., "ArrowUp", "ArrowDown", "KeyA", "KeyW", "Space")
+# $arg ctrl: If true, the control key must be down; if false (the default), it must be up
+# $arg shift: If true, the shift key must be down; if false (the default), it must be up
+# $arg alt: If true, the alt key must be down; if false (the default), it must be up
+# $arg meta: If true, the meta (command) key must be down; if false (the default), it must be up
+# $return: true if the key is down and all modifier-key states match, false otherwise
+function windowKeyState():
+endfunction
+
+
+# $function: windowPlaySound
+# $group: markdownUp.bare
+# $doc: Play a generated sound effect. Unknown sounds are ignored. The sound name is one of:
+# $doc:
+# $doc: - **UI** - "beep", "click", "error", "success", "warning"
+# $doc: - **Arcade** - "coin", "jump", "laser", "explosion", "powerup", "powerdown", "hit", "blip", "gameover"
+# $doc: - **Notes** - "noteC4", "noteCs4", "noteD4", "noteDs4", "noteE4", "noteF4", "noteFs4", "noteG4",
+# $doc:   "noteGs4", "noteA4", "noteAs4", "noteB4", "noteC5"
+# $doc: - **Drums** - "drumKick", "drumSnare", "drumHihat", "drumOpenhat", "drumTomLow", "drumTomMid",
+# $doc:   "drumTomHigh", "drumClap", "drumCrash", "drumRide"
+# $arg sound: The sound name
+function windowPlaySound():
+endfunction
+
+
 # $function: windowSetLocation
 # $group: markdownUp.bare
 # $doc: Navigate the browser window to a location URL
