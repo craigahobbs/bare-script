@@ -889,6 +889,11 @@ exercising the patterns above. Grouped by what they demonstrate (full gallery:
   arg, full-screen mode, redraws on resize.
   [App](https://craigahobbs.github.io/happy-holidays/) ·
   [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/happy-holidays/happy-holidays.bare)
+- **Snack Attack** — a Galaxian-like arcade game; `windowSetTimeout` game loop,
+  `windowKeyState` input, `windowPlaySound` effects, and title/play/game-over
+  screens with full-window `drawNew`.
+  [App](https://craigahobbs.github.io/snackAttack/) ·
+  [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/snackAttack/snackAttack.bare)
 - **Tunguska Event Simulation** — the largest example (~1200 lines), a pure
   `draw.bare` simulation.
   [App](https://craigahobbs.github.io/tunguska/) ·
