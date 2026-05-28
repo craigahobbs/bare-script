@@ -2809,6 +2809,8 @@ $ bare -m app.bare
 - [windowClipboardRead](#var.vPublish=true&var.vSingle=true&windowclipboardread)
 - [windowClipboardWrite](#var.vPublish=true&var.vSingle=true&windowclipboardwrite)
 - [windowHeight](#var.vPublish=true&var.vSingle=true&windowheight)
+- [windowKeyState](#var.vPublish=true&var.vSingle=true&windowkeystate)
+- [windowPlaySound](#var.vPublish=true&var.vSingle=true&windowplaysound)
 - [windowSetLocation](#var.vPublish=true&var.vSingle=true&windowsetlocation)
 - [windowSetResize](#var.vPublish=true&var.vSingle=true&windowsetresize)
 - [windowSetTimeout](#var.vPublish=true&var.vSingle=true&windowsettimeout)
@@ -3156,6 +3158,69 @@ None
 #### Returns
 
 The browser window's height
+
+---
+
+### windowKeyState
+
+Test whether a key combination is currently held down. Unlike `documentSetKeyDown`, which
+fires a callback once per key press, this polls the live keyboard state and is intended for
+game loops and animations. The modifier-key states must match exactly, so by default the key
+must be pressed with no modifier keys held. For example:
+
+```barescript
+if windowKeyState('ArrowLeft'):
+    playerX = playerX - playerSpeed
+endif
+if windowKeyState('ArrowRight'):
+    playerX = playerX + playerSpeed
+endif
+```
+
+The key is matched against the physical key code (e.g., "ArrowUp", "KeyW", "Space", "Enter").
+
+#### Arguments
+
+**key -**
+The physical key code (e.g., "ArrowUp", "ArrowDown", "KeyA", "KeyW", "Space")
+
+**ctrl -**
+If true, the control key must be down; if false (the default), it must be up
+
+**shift -**
+If true, the shift key must be down; if false (the default), it must be up
+
+**alt -**
+If true, the alt key must be down; if false (the default), it must be up
+
+**meta -**
+If true, the meta (command) key must be down; if false (the default), it must be up
+
+#### Returns
+
+true if the key is down and all modifier-key states match, false otherwise
+
+---
+
+### windowPlaySound
+
+Play a generated sound effect. Unknown sounds are ignored. The sound name is one of:
+
+- **UI** - "beep", "click", "error", "success", "warning"
+- **Arcade** - "coin", "jump", "laser", "explosion", "powerup", "powerdown", "hit", "blip", "gameover"
+- **Notes** - "noteC4", "noteCs4", "noteD4", "noteDs4", "noteE4", "noteF4", "noteFs4", "noteG4",
+  "noteGs4", "noteA4", "noteAs4", "noteB4", "noteC5"
+- **Drums** - "drumKick", "drumSnare", "drumHihat", "drumOpenhat", "drumTomLow", "drumTomMid",
+  "drumTomHigh", "drumClap", "drumCrash", "drumRide"
+
+#### Arguments
+
+**sound -**
+The sound name
+
+#### Returns
+
+Nothing
 
 ---
 

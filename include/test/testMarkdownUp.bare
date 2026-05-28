@@ -150,6 +150,18 @@ endfunction
 unittestRunTest('testMarkdownUp_windowHeight')
 
 
+function testMarkdownUp_windowKeyState():
+    unittestEqual(windowKeyState('ArrowUp'), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowKeyState')
+
+
+function testMarkdownUp_windowPlaySound():
+    unittestEqual(windowPlaySound('beep'), null)
+endfunction
+unittestRunTest('testMarkdownUp_windowPlaySound')
+
+
 function testMarkdownUp_windowSetLocation():
     unittestEqual(windowSetLocation(), null)
 endfunction
