@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.1 (2026-05-27)
+
+- [4ab00cc](https://github.com/craigahobbs/bare-script/commit/4ab00cc) - add markdownUp.bare windowKeyState and windowPlaySound functions
+
 ## 4.2.0 (2026-05-26)
 
 - [f0c6f55](https://github.com/craigahobbs/bare-script/commit/f0c6f55) - use css light-dark function in markdown.css, remove --barescript-dark-mode, improve printing, remove markdown.css from package
