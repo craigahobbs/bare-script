@@ -503,7 +503,7 @@ calling. Each is documented in detail at
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
 | `markdownElements.bare` | Markdown model → element model | `markdownElements`, `markdownElementsAsync` |
 | `markdownHighlight.bare` | Code-block syntax highlighting | `markdownHighlightElements`, `markdownHighlightCodeBlockElements`, `markdownHighlightCodeBlockElementsAsync`, `markdownHighlightCompileHighlightModels` |
-| `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
+| `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
 | `pager.bare` | Multi-page MarkdownUp app shell | `pagerMain`, `pagerValidate` |
 | `qrcode.bare` | Render QR codes | `qrcodeDraw`, `qrcodeElements`, `qrcodeMatrix` |
 | `schemaDoc.bare` | Schema-markdown documentation app | `schemaDocMain`, `schemaDocMarkdown` |
@@ -622,11 +622,36 @@ When code runs inside MarkdownUp (in the browser), these "document" / "window"
   `elementModelRender(model)` — render an element model.
 - **Document:** `documentSetTitle(s)`, `documentURL(url)`,
   `documentInputValue(id)`, `documentFontSize()`, `documentSetFocus(id)`,
-  `documentSetKeyDown(fn)`, `documentSetReset(fn)`.
+  `documentSetKeyDown(fn)`, `documentSetReset(id)`.
 - **Window:** `windowWidth()`, `windowHeight()`, `windowSetLocation(url)`,
   `windowSetResize(fn)`, `windowSetTimeout(fn, ms)`, `windowURLObject(url)`,
-  `windowClipboardRead()`, `windowClipboardWrite(s)`.
+  `windowClipboardRead()`, `windowClipboardWrite(s)`,
+  `windowKeyState(code, ctrl?, shift?, alt?, meta?)`,
+  `windowPlaySound(name)`.
 - **Storage:** `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear`.
+
+Notes on a few of these:
+
+- `documentSetKeyDown(fn)` — the event passed to `fn` carries `.key` (the
+  logical key, e.g. `'r'` or `'ArrowLeft'`), `.code` (the physical key,
+  e.g. `'KeyR'` or `'ArrowLeft'`), and `.ctrlKey` / `.shiftKey` /
+  `.altKey` / `.metaKey`.
+- `documentSetReset(id)` — tells the runtime to clear everything below the
+  element with this id before the next re-render. Pair with an invisible
+  `<div>` you render once so the MarkdownUp menu DOM stays stable while
+  your canvas repaints (see the Animation apps section below).
+- `windowKeyState(code, ...)` — *polls* the current keyboard state for a
+  physical key (e.g. `'ArrowLeft'`, `'Space'`, `'KeyR'`). For game /
+  animation loops, polling inside the tick is preferable to a
+  `documentSetKeyDown` handler — see gotcha #5 below.
+- `windowPlaySound(name)` — built-in SFX, sourced from `markdownUp.bare`:
+  - **UI:** `beep`, `click`, `error`, `success`, `warning`
+  - **Arcade:** `coin`, `jump`, `laser`, `explosion`, `powerup`,
+    `powerdown`, `hit`, `blip`, `gameover`
+  - **Notes:** `noteC4` … `noteC5` (including sharps `noteCs4`,
+    `noteDs4`, `noteFs4`, `noteGs4`, `noteAs4`)
+  - **Drums:** `drumKick`, `drumSnare`, `drumHihat`, `drumOpenhat`,
+    `drumTomLow/Mid/High`, `drumClap`, `drumCrash`, `drumRide`
 
 In the browser, MarkdownUp itself provides these functions. Under the plain
 `bare` CLI, pass `-m` (or `-l` for HTML output) and the CLI **automatically
@@ -737,6 +762,79 @@ pagerMain({ \
 })
 ```
 
+### Animation apps (the tick pattern)
+
+Animation in MarkdownUp is a tick function that runs every N ms and
+reschedules itself via `windowSetTimeout`. Two non-obvious pieces make it
+work cleanly:
+
+- **An invisible "reset anchor" `<div>` rendered once + `documentSetReset(id)`
+  before each redraw.** Without it, the SVG fights the MarkdownUp burger
+  menu on every redraw. With it, the runtime preserves everything up to the
+  anchor element and replaces only what's below — so the menu DOM stays
+  stable while the canvas repaints.
+- **Polled input via `windowKeyState`**, *not* `documentSetKeyDown`. See
+  gotcha #5 below: a keydown handler that doesn't itself call
+  `windowSetTimeout` silently kills the animation loop on the next
+  keypress.
+
+A minimal skeleton:
+
+```barescript
+include <draw.bare>
+
+appAnchorId = 'app-anchor'
+appTickMs = 50
+appState = {'x': 100, 'spaceWasDown': false}
+
+
+function appMain():
+    documentSetTitle('Animated')
+    elementModelRender([{'html': 'div', 'attr': {'id': appAnchorId, 'style': 'display: none;'}}])
+    appRenderAndSchedule()
+endfunction
+
+
+function appRenderAndSchedule():
+    documentSetReset(appAnchorId)
+    appDraw()
+    windowSetTimeout(appTick, appTickMs)
+endfunction
+
+
+function appTick():
+    # Continuous: held-down motion
+    if windowKeyState('ArrowRight'):
+        objectSet(appState, 'x', objectGet(appState, 'x') + 2)
+    endif
+    # Edge-triggered: fire only on rising edge of Space
+    spaceNow = windowKeyState('Space')
+    if spaceNow && !objectGet(appState, 'spaceWasDown'):
+        windowPlaySound('laser')
+    endif
+    objectSet(appState, 'spaceWasDown', spaceNow)
+    appRenderAndSchedule()
+endfunction
+
+
+function appDraw():
+    drawNew(200, 200)
+    drawStyle('#000', 0, '#000')
+    drawRect(0, 0, 200, 200)
+    drawStyle('#0f0', 0, '#0f0')
+    drawRect(objectGet(appState, 'x'), 100, 20, 20)
+    drawRender()
+endfunction
+```
+
+For apps that need to survive a hamburger toggle or hash-param change
+(which tear down all BareScript globals), persist the state object with
+`sessionStorageSet(key, jsonStringify(appState))` at the end of each tick
+and restore it in `appMain` — Tunguska is the canonical example. Version
+the saved blob so a schema change ignores stale saves rather than
+producing partial state.
+
+
 ### MarkdownUp gotchas
 
 1. **Always escape user input** (URL args, fetched data, anything string-y)
@@ -750,6 +848,17 @@ pagerMain({ \
 4. The MarkdownUp runtime is single-threaded JavaScript — there is no
    coroutine cancellation. Long synchronous loops will freeze the browser.
    For animation, schedule with `windowSetTimeout(fn, ms)`.
+5. **MarkdownUp cancels the pending `windowSetTimeout` at the end of every
+   script invocation.** After a `documentSetKeyDown` handler, a
+   `windowSetResize` handler, or any other event callback returns, the
+   runtime clears whatever timer was armed *before* the callback ran and
+   only re-installs one if **this** invocation called
+   `windowSetTimeout(...)`. Practical consequence: a `documentSetKeyDown`
+   handler that doesn't itself reschedule will silently kill an animation
+   loop on the next keypress. The safest pattern for game / animation apps
+   is to poll all input via `windowKeyState` **inside the tick** and skip
+   `documentSetKeyDown` entirely — the tick is then the only invocation
+   that runs, and it always reschedules itself.
 
 ### Real-world example applications
 

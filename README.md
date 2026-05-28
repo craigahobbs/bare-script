@@ -194,6 +194,14 @@ Once installed, you can prompt the assistant with tasks like:
 > Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button
 > and a running win/loss/draw tally rendered as a bar chart.
 
+To run the resulting MarkdownUp application locally, install the
+[markdown-up](https://pypi.org/project/markdown-up/) viewer and point it at the Markdown file:
+
+```
+pip install markdown-up
+markdown-up yourApp.md
+```
+
 The BareScript library is also documented as single-page Markdown, which can be fetched directly
 into an assistant's context alongside `SKILL.md`:
 
