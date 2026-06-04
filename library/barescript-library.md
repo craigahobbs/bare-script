@@ -1033,7 +1033,10 @@ Sort a data array
 The data array
 
 **sorts -**
-The sort field-name/descending-sort tuples
+The array of sort tuples. Each tuple is a one- or two-element array, \[field\] or
+\[field, descending\]. "field" is the field name to sort by. "descending" is an
+optional boolean - if true, the field is sorted in descending order (default is
+ascending).
 
 #### Returns
 

@@ -549,7 +549,10 @@ dataAggregationTypes = schemaParse( \
 # $group: data.bare
 # $doc: Sort a data array
 # $arg data: The data array
-# $arg sorts: The sort field-name/descending-sort tuples
+# $arg sorts: The array of sort tuples. Each tuple is a one- or two-element array, \[field\] or
+# $arg sorts: \[field, descending\]. "field" is the field name to sort by. "descending" is an
+# $arg sorts: optional boolean - if true, the field is sorted in descending order (default is
+# $arg sorts: ascending).
 # $return: The sorted data array
 function dataSort(data, sorts):
     return arraySort(data, systemPartial(dataSortCompare, sorts))
@@ -561,7 +564,7 @@ function dataSortCompare(sorts, row1, row2):
     result = 0
     for sort in sorts:
         field = arrayGet(sort, 0)
-        result = if(arrayGet(sort, 1), \
+        result = if(arrayLength(sort) >= 2 && arrayGet(sort, 1), \
             systemCompare(objectGet(row2, field), objectGet(row1, field)), \
             systemCompare(objectGet(row1, field), objectGet(row2, field)))
         if result != 0:
