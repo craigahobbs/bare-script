@@ -189,17 +189,18 @@ cp SKILL.md .claude/skills/bare-script/SKILL.md
 Use `~/.claude/skills/bare-script/SKILL.md` instead to make it available across all projects. For
 other assistants, include the file's contents in your system prompt or rules file.
 
-Once installed, you can prompt the assistant with tasks like:
+Once installed, prompt the assistant with a task like:
 
-> Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button
-> and a running win/loss/draw tally rendered as a bar chart.
+```
+claude "Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button and a running win/loss/draw tally rendered as a bar chart. Save it as ticTacToe.md"
+```
 
 To run the resulting MarkdownUp application locally, install the
 [markdown-up](https://pypi.org/project/markdown-up/) viewer and point it at the Markdown file:
 
 ```
 pip install markdown-up
-markdown-up yourApp.md
+markdown-up ticTacToe.md
 ```
 
 The BareScript library is also documented as single-page Markdown, which can be fetched directly

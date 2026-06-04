@@ -12,19 +12,12 @@ Llama, …) can read it.
 
 ## When to use this skill
 
-Use this skill whenever you are asked to:
-
-- Write or modify a `.bare` file.
-- Write or modify a `markdown-script` fenced code block inside a Markdown
-  document.
-- Write a MarkdownUp client-rendered Markdown application.
-- Write unit tests for any BareScript code.
-- Explain, review, or debug BareScript.
-
-Recognize BareScript without being told: `.bare` extension, `markdown-script`
-code fences, function names like `arrayLength`, `objectGet`, `markdownPrint`,
-`systemFetch`, or the `function:` / `endfunction` / `if:` / `endif` /
-`for ... in ...:` / `endfor` block syntax.
+Use it whenever you write, modify, review, or debug BareScript — `.bare` files,
+`markdown-script` fenced blocks, MarkdownUp apps, or their unit tests. Recognize
+BareScript even when it isn't named: the `.bare` extension, `markdown-script`
+code fences, function names like `arrayLength` / `objectGet` / `markdownPrint` /
+`systemFetch`, or the `function:` … `endfunction` / `if:` … `endif` /
+`for … in …:` … `endfor` block syntax.
 
 ## What BareScript is (one paragraph)
 
@@ -262,93 +255,48 @@ person = { \
 - No `null` coalescing operator. Use `objectGet(obj, 'k', default)` or
   `if(x == null, default, x)`.
 
-### Performance principles
+### Performance
 
-When optimizing `.bare` code, a few rules of thumb that hold up in practice:
+These hold up when writing or optimizing any BareScript. Each is a starting
+hypothesis, not a guarantee — a-priori estimates of perf impact are routinely
+off by 5–10× in both directions, so measure a candidate against a baseline
+before committing to it.
 
-- **Native built-ins generally beat interpreted replacements.** Things like
-  `regexMatch`, `jsonStringify` / `jsonParse`, `arrayJoin`, and `stringEncode`
-  are implemented in JS/C — don't rewrite them as BareScript loops to "skip
-  overhead." A pure-BareScript deep-clone via `arrayCopy` per row loses to
-  `jsonParse(jsonStringify(x))`. Measure before assuming.
-- **Hoist loop invariants.** `objectGet(config, 'key')`, `arrayLength(constArr)`,
-  `precision != null`, etc. that don't depend on the loop variable should live
-  above the loop. Per-row × per-field overhead adds up fast.
-- **Split a loop on a function-arg invariant** instead of re-checking it
-  per iteration. `if variables != null:` outside, with two specialized loop
-  bodies inside, beats one body with a per-iter `if(variables != null, ...)`.
-- **`if X:` is cheaper than `if X != null:`** because it skips a binary
-  comparison op — but only safe when X is null or guaranteed-truthy. The
-  empty-array-is-falsy rule (see Truthiness above) breaks this for `X` that
-  could be `[]`; the empty-string-is-falsy and `0`-is-falsy rules break it
-  for `X` that could be `''` or `0` (e.g. a parsed list-start number that
-  accepts `0.` as a valid mark, or a regex-captured title that may be empty).
-- **`systemBoolean(X)` inside `if` is redundant** — `if` already coerces.
-- **Precompute per-field metadata as tuples** (e.g.
-  `[field, attr, isMarkdown]`) once before the row loop when the same
-  metadata is read across many rows. Read the tuple with `arrayGet(meta, N)`
-  or destructure to named locals at the top of each iteration.
-- **Per-row dispatch is expensive — avoid it when you can.** A chain like
-  `elif fn == 'sum': ... elif fn == 'avg': ...` inside a hot per-row loop
-  can cost more than the work it dispatches to. Pre-group by function
-  beforehand so dispatch happens once per group, not once per row.
-- **When dispatch IS unavoidable, prefer inline `if`/`elif` over a `for`
-  loop sweep.** When you must dispatch per item (e.g. "which named group of
-  this regex match matched?"), inline the choices as an `if`/`elif` chain
-  instead of iterating a list of candidate keys. Two wins: per-iteration
-  loop-variable bookkeeping goes away, and each branch can assign a string
-  literal directly instead of building one by concatenating with the loop
-  variable. We saw ~25% on one inner loop from this change alone.
-- **`arrayGet(objectKeys(obj), 0)` is an anti-pattern for single-key
-  dispatch.** This pattern — used to pick a span/part by its sole key —
-  allocates a fresh keys array per call. Replace with direct
-  `objectGet(obj, 'key')` truthy chains: same dispatch, no array allocation,
-  and the same lookup caches the inner value for use in the matching branch.
-- **Named-group regex dispatch.** When a regex is an alternation of member
-  patterns and you need to know which member matched, wrap each part with
-  `(?<name>...)` at compile time. A single `objectGet(match.groups, name)`
-  truthy check then identifies the member — no extra `regexMatch` calls
-  per match.
-- **Lazy chained lookups.** Useful when you want a named local for each
-  candidate group AND only the first matching group should do real work.
-  Each subsequent line guards on the prior siblings' results:
-
-  ```barescript
-  boldStr = objectGet(matchGroups, 'bold')
-  italicStr = !boldStr && objectGet(matchGroups, 'italic')
-  codeStr = !boldStr && !italicStr && objectGet(matchGroups, 'code')
-  ```
-
-  Once an earlier sibling matched, later lines short-circuit on `!prev` and
-  skip their `objectGet`. Each `xxx` ends up as the captured value if its
-  group matched, or `false` if some earlier sibling already matched.
-- **`regexMatchAll` + `ixSearch` index beats `while + regexMatch +
-  stringSlice`** for iterating matches in a string. The former is one regex
-  scan with an index pointer; the latter re-scans a fresh slice each
-  iteration. Even when perf is close, prefer `regexMatchAll` — it's the
-  idiomatic form used in `markdownParserParagraphSpans` and
-  `markdownHighlightElements`. Caveat: with the `m` flag, `^` / `$` in
-  inner patterns match true line boundaries in the `regexMatchAll` form, but
-  the slice point in the `while+slice` form. The `regexMatchAll` semantics
-  are usually what you want.
-- **`objectGet` on a precomputed lookup map is not "free"** and is often
-  *slower* than re-doing the work it replaces. The library function call
-  into `objectGet` can exceed the cost of, say, a string concat of literals.
-  Don't reach for "precompute into a map and look up" as a default — measure
-  first. The same lesson applies to sharing small precomputed dicts (e.g.
-  a shared `{'style': '...'}`): host runtimes allocate fresh small objects
-  efficiently enough that the saved allocations often don't register.
-- **Native regex calls on anchored no-match patterns are cheap.** Don't gate
-  `regexMatch(re, line)` with `stringIndexOf` / single-character pre-checks
-  hoping to skip the regex; the engine fails fast on anchored mismatches,
-  and the gating string ops typically cost more than they save.
-- **Always measure within a single session.** System load drifts run-to-run,
-  so before/after numbers from different minutes can mislead. Save the diff,
-  revert, measure, reapply, measure.
-- **Trust measurement over intuition.** A-priori estimates of perf impact are
-  often wrong by 5–10× in both directions — wins predicted to be large turn
-  out marginal, and "cleanup-grade" changes occasionally land big. Estimate
-  to prioritize what to try first; let the measurement decide what stays.
+- **Prefer native built-ins over interpreted replacements.** `regexMatch`,
+  `jsonStringify` / `jsonParse`, `arrayJoin`, `stringEncode` run in the host
+  language; don't reimplement them as BareScript loops to "skip overhead."
+  `jsonParse(jsonStringify(x))` deep-clones faster than a per-element
+  `arrayCopy` loop.
+- **Hoist loop invariants**, and split a loop on a function-arg invariant
+  rather than re-checking it per iteration (`if variables != null:` outside,
+  two specialized loop bodies inside, beats one body with a per-iter
+  `if(variables != null, ...)`).
+- **`systemBoolean(X)` inside an `if` is redundant** — `if` already coerces.
+- **Precompute per-field metadata as tuples** (e.g. `[field, attr, isMarkdown]`)
+  once before a row loop when the same metadata is read across many rows.
+- **Per-row dispatch is expensive.** Pre-group by function so a
+  `elif fn == 'sum': … elif fn == 'avg': …` chain runs once per group, not once
+  per row. When dispatch is unavoidable, an inline `if`/`elif` chain beats a
+  `for`-loop sweep over candidate keys — it drops the loop-variable bookkeeping
+  and lets each branch assign a string literal directly (~25% on one inner loop).
+- **For single-key / member dispatch, avoid `arrayGet(objectKeys(obj), 0)`** —
+  it allocates a fresh keys array per call; use direct `objectGet(obj, 'key')`
+  truthy chains. For "which alternation member of a regex matched," wrap each
+  member as `(?<name>...)` at compile time and identify it with one
+  `objectGet(match.groups, name)`; chain lazily
+  (`x = !prev && objectGet(groups, 'x')`) so later lookups short-circuit once an
+  earlier sibling matched.
+- **`regexMatchAll` + an `ixSearch` index beats `while + regexMatch +
+  stringSlice`** for iterating matches — one scan with a pointer vs a fresh
+  re-scan each iteration — and it's the idiomatic form (see
+  `markdownParserParagraphSpans`, `markdownHighlightElements`). Caveat: with the
+  `m` flag, `^` / `$` in inner patterns match true line boundaries in the
+  `regexMatchAll` form (usually what you want).
+- **Don't assume "precompute into a lookup map" is free** — an `objectGet` into
+  a map can cost more than the work it replaces (e.g. a concat of string
+  literals). Likewise, don't gate `regexMatch(re, line)` with `stringIndexOf`
+  pre-checks; the engine fails fast on anchored mismatches, and the gate usually
+  costs more than it saves.
 
 ---
 
@@ -379,6 +327,23 @@ arrayPush(nums, 9, 2, 6)
 sorted = arraySort(arrayCopy(nums))     # don't mutate the original
 first  = arrayGet(sorted, 0)
 ```
+
+**`arrayGet` out of bounds is not free.** Unlike `objectGet` (which takes a
+default and quietly returns it for a missing key), `arrayGet` with an index
+`>= arrayLength(arr)` is an *invalid argument*: it returns `null` but **emits a
+debug log** in debug mode — so you can't use it to "peek" at an optional
+trailing element. Guard the length, and let short-circuiting skip the read:
+
+```barescript
+desc = arrayGet(sort, 1)                          # BAD: logs when sort is just [field]
+desc = if(arrayLength(sort) >= 2, arrayGet(sort, 1))   # GOOD: null when absent
+```
+
+Prefer `if()` when *binding the optional value to a variable* — a missing
+element becomes `null`, the natural "absent" value. `&&` works too
+(`arrayLength(sort) >= 2 && arrayGet(sort, 1)`) but yields `false` rather than
+`null` for the short tuple, so reserve it for feeding a boolean test. This is
+the array analog of guarding with `objectHas` before a no-default `objectGet`.
 
 ### Object (`object*`)
 
@@ -664,20 +629,12 @@ bare -l app.bare          # run the app, output an HTML document
 bare -m -x app.bare       # lint / static-analyze a MarkdownUp app
 ```
 
-> ⚠ **Never write `include <markdownUp.bare>` yourself.** Application code,
-> test code, and `include`d helpers must not reference it. There are two
-> independent reasons:
->
-> 1. **In the real MarkdownUp runtime (browser)**, `markdownPrint`,
->    `elementModelRender`, the `document*` / `window*` / `*Storage*`
->    functions are **built-in**. `include <markdownUp.bare>` would
->    **overwrite those built-ins with the logging stubs** — your app would
->    silently stop rendering and just record calls.
-> 2. **Under `bare -m` / `-l` (and therefore unit tests)**, the CLI has
->    already prepended `include <markdownUp.bare>` for you. Including it
->    again is redundant.
->
-> Either way, the include is wrong.
+> ⚠ **Never write `include <markdownUp.bare>` yourself** — not in app code,
+> test code, or `include`d helpers. In the real browser runtime these
+> functions are built-in, and the include would **overwrite them with the
+> logging stubs**, silently turning rendering into call-recording. Under
+> `bare -m` / `-l` (and unit tests) the CLI already prepends it for you, so
+> a manual include is at best redundant. Either way it's wrong.
 
 In tests, the stubs let you assert what the app *would have rendered*.
 
@@ -1069,6 +1026,26 @@ Patterns:
 - For functions with side effects, **always** `unittestMockAll()` and assert
   on the call log — do not mock partially.
 
+### Builtin debug logs are NOT mockable
+
+When a builtin fails on an invalid argument (e.g. an out-of-bounds `arrayGet`),
+the runtime emits its debug log by calling the interpreter's log sink
+**directly** — *not* through `systemLog` / `systemLogDebug`. So
+`unittestMockAll()` / `unittestMockOne('systemLog', ...)` **cannot** capture it:
+the mock records nothing while the message still prints. A test asserting "no
+debug log" by mocking `systemLog` passes whether or not the bug is present, so
+don't write one. (Mocking the failing builtin itself doesn't work either — the
+unittest framework calls that same builtin.)
+
+To prove a change produces no spurious debug output, run the suite in debug
+mode (`bare -d …`; the include-test runner already passes `-d`) — a failing
+builtin then prints `… BareScript: Function "X" failed with error: …`. This
+repo's convention: a test that *intentionally* triggers an expected failure
+precedes it with `systemLogDebug('NOTICE: The following "X" error is
+expected:')`. So **every `failed with error` line must be immediately preceded
+by a `NOTICE:` line** — `grep -B1 "failed with error"` over the output makes
+that a one-look check; any un-NOTICE'd line is unintended logging.
+
 ---
 
 ## 6. Running BareScript
@@ -1127,6 +1104,9 @@ most commonly produce when writing BareScript for the first time.
 - [ ] **No bracket access**: no `obj['k']`, no `arr[0]`. Use `objectGet`,
       `arrayGet`. (Brackets appear only in `[1, 2, 3]` literals and
       `[Variable Name]`-style identifiers.)
+- [ ] **`[]`, `''`, and `0` are all falsy.** To tell `null` from an empty
+      array/string, test `x == null` and `systemType(x)` / `arrayLength(x)`
+      explicitly — don't lean on `if x:` or `if !x:` (see Truthiness).
 - [ ] **No `+=`, `++`, `--`**. Write `i = i + 1`.
 - [ ] **Every `function` has `endfunction`**, every `if` has `endif`, every
       `while` has `endwhile`, every `for` has `endfor`.
@@ -1143,9 +1123,8 @@ most commonly produce when writing BareScript for the first time.
       blocks to get a Markdown paragraph break.
 - [ ] **Escape Markdown** with `markdownEscape` before printing user content.
 - [ ] **Includes go at the top**, before any code that uses their functions.
-- [ ] **Never `include <markdownUp.bare>`** (see Section 4 for the two
-      reasons). Run/lint MarkdownUp apps with `bare -m -x app.bare`, not
-      `bare -x app.bare`.
+- [ ] **Never `include <markdownUp.bare>`** (see Section 4). Run/lint
+      MarkdownUp apps with `bare -m -x app.bare`, not `bare -x app.bare`.
 - [ ] **Use `for value, ixValue in items:`** to get both value and index;
       don't reinvent with `while`.
 
@@ -1153,33 +1132,22 @@ most commonly produce when writing BareScript for the first time.
 
 ## 8. Notes for the model
 
-- **Examples beat prose.** Pattern-match on the concrete examples above. If
-  you're unsure of an exact name, recall the camelCase prefix (`array*`,
-  `object*`, `string*`, `data*`, `draw*`, `markdown*`, `unittest*`,
-  `systemFetch`, …) and pick the function whose name literally describes the
-  operation.
-- **When uncertain, grep before guessing.** Function names live in
-  `lib/library.js` (built-ins) and `lib/include/*.bare` (includes); they're
-  stable and 100%-covered.
+- **Examples beat prose.** Pattern-match on the concrete examples above, and
+  match their style — 4-space indent, trailing `\` for continuation inside
+  literals, `function` / `endfunction`, lowercase camelCase names.
+- **Recall names before inventing them; grep before guessing.** If you're
+  unsure of a name, recall its camelCase prefix (`array*`, `object*`,
+  `string*`, `data*`, `draw*`, `markdown*`, `unittest*`, `systemFetch`, …) and
+  pick the function that literally describes the operation. If it isn't in
+  this file, search `lib/library.js` (built-ins) and `lib/include/*.bare`
+  (includes) — both stable and 100%-covered.
 - **Don't translate from JavaScript or Python without re-checking.** The
-  syntactic similarity hides three pitfalls: bracket access, augmented
-  assignment, and exceptions. None exist here.
-- **Don't introduce abstractions.** BareScript apps are small. Inline the
-  logic; one `appMain()` is fine.
-
-### Your obligations, in order
-
-1. **Apply Section 7's checklist** before returning code.
-2. **Match the examples' style** — 4-space indent, trailing `\` for
-   continuation inside literals, `function` / `endfunction`, lowercase
-   camelCase names.
-3. **Recall function names from this file before inventing them.** If you
-   need one that isn't listed, search `lib/library.js` and
-   `lib/include/*.bare`.
-4. **Never `include <markdownUp.bare>`** from application or test code (see
-   Section 4). Lint MarkdownUp apps with `bare -m -x app.bare`.
-5. **For tests, use the `unittest.bare` + `unittestMock.bare` pattern** from
-   Section 5. Don't invent your own assertions.
+  syntactic similarity hides three pitfalls — bracket access, augmented
+  assignment, and exceptions — none of which exist here.
+- **Don't introduce abstractions.** BareScript apps are small; inline the
+  logic, one `appMain()` is fine.
+- **For tests, use the `unittest.bare` + `unittestMock.bare` pattern** from
+  Section 5 — don't invent your own assertions.
 
 ---
 
