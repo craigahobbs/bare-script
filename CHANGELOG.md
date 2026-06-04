@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.2 (2026-06-04)
+
+- [8ebc167](https://github.com/craigahobbs/bare-script/commit/8ebc167) - eliminate dataSort debug logging for field-only sort orders
+
 ## 4.2.1 (2026-05-27)
 
 - [4ab00cc](https://github.com/craigahobbs/bare-script/commit/4ab00cc) - add markdownUp.bare windowKeyState and windowPlaySound functions
