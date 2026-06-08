@@ -936,6 +936,13 @@ unittestCoverageStop()
 return unittestReport({'coverageMin': 100})
 ```
 
+`unittestReport({'coverageMin': N})` **fails the run when coverage falls below
+the floor**, separately from assertion failures — so "every assertion passed"
+and "the suite is green" are two different checks. A new branch (an added
+`if`/`elif`, a new `objectGet` default path) with no fixture that exercises it
+turns the suite red on coverage even when every test passes; new code paths
+need new tests.
+
 ### `test/testApp.bare` — basic assertions
 
 ```barescript
@@ -1008,6 +1015,11 @@ Patterns:
   - `'documentInputValue'`: object mapping input element id → value
   - `'systemFetch'`: object mapping URL → response text
   Example: `unittestMockAll({'systemFetch': {'data.json': '{"a": 1}'}})`.
+  `systemFetch` also accepts an **array** of URLs and returns an array of
+  responses (a batched, parallel fetch), recorded as
+  `['systemFetch', [[url1, url2]]]`. Calling `systemFetch` with an empty array
+  succeeds and returns `[]`, so consider guarding with `if arrayLength(urls):`
+  before fetching to skip a wasted no-op call.
 - **`unittestMockOne(funcName, mockFunc)`** — replace one library function
   with `mockFunc` (a function value). `mockFunc` is called instead of the
   real implementation; its return value is what callers see. The call is
@@ -1025,6 +1037,10 @@ Patterns:
 - Async tests use `async function` and the runner awaits them.
 - For functions with side effects, **always** `unittestMockAll()` and assert
   on the call log — do not mock partially.
+- **Reset the globals a test sets.** Apps read URL args from `v<Name>` globals
+  (`systemGlobalSet('vName', 'x')`); a test that sets them should set each back
+  to `null` at the end so state never leaks into the next test. Prefer
+  unsetting exactly what the test set over a blanket "clear everything" helper.
 
 ### Builtin debug logs are NOT mockable
 
@@ -1045,6 +1061,25 @@ precedes it with `systemLogDebug('NOTICE: The following "X" error is
 expected:')`. So **every `failed with error` line must be immediately preceded
 by a `NOTICE:` line** — `grep -B1 "failed with error"` over the output makes
 that a one-look check; any un-NOTICE'd line is unintended logging.
+
+### Asserting rendered output
+
+Apps render through `markdownPrint` and `elementModelRender`; under
+`unittestMockAll()` you assert the recorded call log. Three things make those
+assertions tractable:
+
+- **`unittestDeepEqual` compares `jsonStringify` output**, and that one fact
+  drives the rest. Object keys serialize **sorted**, so key order never has to
+  match. Every function serializes to the string `'<function>'` (and every
+  regex to `'<regex>'`), so to assert an element model that carries an
+  event-handler callback — e.g. `formsTextElements` stores
+  `systemPartial(formsTextOnKeyup, onEnter)` under `callback.keyup` — just write
+  the string `'<function>'` in that slot and the deep-equal matches. There is no
+  literal for the anonymous partial, but none is needed and no scrubbing of the
+  call log is needed either. Trade-off: all functions collapse to the same
+  sentinel, so the assertion proves a callback is *present*, not *which* one.
+  (`jsonStringify(value, 4)` on its own is also handy for dumping a captured log
+  into a stable, diffable literal.)
 
 ---
 
