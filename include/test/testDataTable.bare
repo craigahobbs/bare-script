@@ -84,18 +84,17 @@ unittestRunTest('testDataTableMarkdown_precision')
 
 
 function testDataTableMarkdown_datetime():
-    dt = datetimeNew(2023, 9, 25)
-    data = [{'A': dt}]
+    data = [{'A': datetimeNew(2023, 9, 25, 13, 30)}]
     unittestDeepEqual(dataTableMarkdown(data), [ \
-        '| A                         |', \
-        '|---------------------------|', \
-        '| ' + datetimeISOFormat(dt) + ' |' \
+        '| A                |', \
+        '|------------------|', \
+        '| 2023-09-25T13:30 |' \
     ])
 endfunction
 unittestRunTest('testDataTableMarkdown_datetime')
 
 
-function testDataTableMarkdown_datetime_precision():
+function testDataTableMarkdown_datetime_day():
     data = [{'A': datetimeNew(2023, 9, 25)}]
     model = {'datetime': 'day'}
     unittestDeepEqual(dataTableMarkdown(data, model), [ \
@@ -104,7 +103,31 @@ function testDataTableMarkdown_datetime_precision():
         '| 2023-09-25 |' \
     ])
 endfunction
-unittestRunTest('testDataTableMarkdown_datetime_precision')
+unittestRunTest('testDataTableMarkdown_datetime_day')
+
+
+function testDataTableMarkdown_datetime_month():
+    data = [{'A': datetimeNew(2023, 9, 25)}]
+    model = {'datetime': 'month'}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A       |', \
+        '|---------|', \
+        '| 2023-10 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime_month')
+
+
+function testDataTableMarkdown_datetime_year():
+    data = [{'A': datetimeNew(2023, 9, 25)}]
+    model = {'datetime': 'year'}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A    |', \
+        '|------|', \
+        '| 2024 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_datetime_year')
 
 
 function testDataTableMarkdown_null():
@@ -147,6 +170,46 @@ function testDataTableMarkdown_noFields():
     unittestDeepEqual(dataTableMarkdown(data), null)
 endfunction
 unittestRunTest('testDataTableMarkdown_noFields')
+
+
+function testDataTableMarkdown_categories():
+    data = [ \
+        {'A': 1, 'B': 'abc', 'C': 5}, \
+        {'A': 1, 'B': 'def', 'C': 6}, \
+        {'C': 7}, \
+        {'A': 2, 'B': 'ghi'} \
+    ]
+    model = {'categories': ['A']}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A    | B    | C    |', \
+        '|------|------|------|', \
+        '| 1    | abc  | 5    |', \
+        '|      | def  | 6    |', \
+        '| null | null | 7    |', \
+        '| 2    | ghi  | null |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_categories')
+
+
+function testDataTableMarkdown_categoriesHierarchy():
+    data = [ \
+        {'A': 1, 'B': 1, 'C': 'x'}, \
+        {'A': 1, 'B': 1, 'C': 'y'}, \
+        {'A': 1, 'B': 2, 'C': 'z'}, \
+        {'A': 2, 'B': 1, 'C': 'w'} \
+    ]
+    model = {'categories': ['A', 'B']}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| A | B | C |', \
+        '|---|---|---|', \
+        '| 1 | 1 | x |', \
+        '|   |   | y |', \
+        '|   | 2 | z |', \
+        '| 2 | 1 | w |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_categoriesHierarchy')
 
 
 #
