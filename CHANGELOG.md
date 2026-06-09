@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.3 (2026-06-09)
+
+- [eb1d812](https://github.com/craigahobbs/bare-script/commit/eb1d812) - improve dataTableMarkdown to more-fully implement data table options
+
 ## 4.2.2 (2026-06-04)
 
 - [8ebc167](https://github.com/craigahobbs/bare-script/commit/8ebc167) - eliminate dataSort debug logging for field-only sort orders
