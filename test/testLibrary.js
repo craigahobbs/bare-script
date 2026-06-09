@@ -2069,6 +2069,8 @@ test('library, numberToFixed', () => {
 
 
 test('library, numberToString', () => {
+    assert.equal(scriptFunctions.numberToString([0], null), '0');
+    assert.equal(scriptFunctions.numberToString([0, 16], null), '0');
     assert.equal(scriptFunctions.numberToString([123], null), '123');
     assert.equal(scriptFunctions.numberToString([123, 2], null), '1111011');
     assert.equal(scriptFunctions.numberToString([123, 16], null), '7b');
