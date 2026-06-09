@@ -87,19 +87,26 @@ endfunction
 # $arg model: The [data table model](model.html#var.vName='DataTable')
 # $return: The array of Markdown table line strings
 function dataTableMarkdown(data, model):
-    # Determine the table fields
+    # Determine the table fields - categories first, then the value fields
     fields = []
     modelFields = if(model != null, objectGet(model, 'fields'))
     modelCategories = if(model != null, objectGet(model, 'categories'))
-    if modelFields != null || modelCategories != null:
-        if modelCategories != null:
-            arrayExtend(fields, modelCategories)
-        endif
-        if modelFields != null:
-            arrayExtend(fields, modelFields)
-        endif
-    elif arrayLength(data) > 0:
-        arrayExtend(fields, objectKeys(arrayGet(data, 0)))
+    if modelCategories != null:
+        arrayExtend(fields, modelCategories)
+    endif
+    if modelFields != null:
+        arrayExtend(fields, modelFields)
+    else:
+        # Compute the data's fields (union of all row keys), excluding category fields
+        fieldNames = {}
+        for row in data:
+            for field in objectKeys(row):
+                if modelCategories == null || arrayIndexOf(modelCategories, field) == -1:
+                    objectSet(fieldNames, field, null)
+                endif
+            endfor
+        endfor
+        arrayExtend(fields, objectKeys(fieldNames))
     endif
     if !arrayLength(fields):
         return null
@@ -118,7 +125,6 @@ function dataTableMarkdown(data, model):
     endfor
 
     # Compute the formatted field value strings and widths
-    hasDatetimeFormat = precisionDatetime != null
     dataFormat = []
     for row in data:
         rowFormat = {}
@@ -127,10 +133,8 @@ function dataTableMarkdown(data, model):
             # Format the value (newline regex only on string/other types - numbers and datetimes can't contain newlines)
             value = objectGet(row, field)
             valueType = systemType(value)
-            if valueType == 'number':
-                valueFormat = numberToFixed(value, precisionNumber, precisionTrim)
-            elif valueType == 'datetime':
-                valueFormat = datetimeISOFormat(value, hasDatetimeFormat)
+            if valueType == 'number' || valueType == 'datetime':
+                valueFormat = dataUtilFormatValue(value, precisionNumber, precisionDatetime, precisionTrim)
             else:
                 valueFormat = if(valueType == 'string', stringTrim(value), stringNew(value))
                 valueFormat = regexReplace(dataTableMarkdownRegexMultipleNewline, valueFormat, '<br><br>')
@@ -148,7 +152,7 @@ function dataTableMarkdown(data, model):
         endfor
     endfor
 
-    # Precompute per-field rendering metadata: [field, width, align, header]
+    # Precompute per-field rendering metadata: [field, width, align, header, isCategory]
     fieldMeta = []
     for field in fields:
         format = if(formats != null, objectGet(formats, field))
@@ -156,7 +160,8 @@ function dataTableMarkdown(data, model):
             field, \
             objectGet(widths, field), \
             if(format != null, objectGet(format, 'align')), \
-            if(format != null, objectGet(format, 'header', field), field) \
+            if(format != null, objectGet(format, 'header', field), field), \
+            modelCategories != null && arrayIndexOf(modelCategories, field) != -1 \
         ])
     endfor
 
@@ -186,14 +191,24 @@ function dataTableMarkdown(data, model):
     arrayPush(lines, headerFields)
     arrayPush(lines, headerSeparator)
 
-    # Output each row
-    for row in dataFormat:
+    # Output each row, blanking duplicate leading category cell values
+    for row, ixRow in dataFormat:
+        rowRaw = arrayGet(data, ixRow)
+        rowPrevRaw = if(ixRow > 0, arrayGet(data, ixRow - 1))
+        skip = rowPrevRaw != null
         parts = []
         for meta in fieldMeta:
             field = arrayGet(meta, 0)
             width = arrayGet(meta, 1)
             align = arrayGet(meta, 2)
-            arrayPush(parts, dataTableMarkdownField(objectGet(row, field), width, align, ' '))
+
+            # Skip this value? (blank a category cell matching the previous row)
+            if skip:
+                isCategory = arrayGet(meta, 4)
+                skip = isCategory && systemCompare(objectGet(rowRaw, field), objectGet(rowPrevRaw, field)) == 0
+            endif
+
+            arrayPush(parts, dataTableMarkdownField(if(skip, '', objectGet(row, field)), width, align, ' '))
         endfor
         arrayPush(lines, '| ' + arrayJoin(parts, ' | ') + ' |')
     endfor
