@@ -2073,6 +2073,10 @@ test('library, numberToString', () => {
     assert.equal(scriptFunctions.numberToString([123, 2], null), '1111011');
     assert.equal(scriptFunctions.numberToString([123, 16], null), '7b');
 
+    // Float values (as produced by the parser for numeric literals)
+    assert.equal(scriptFunctions.numberToString([1.0], null), '1');
+    assert.equal(scriptFunctions.numberToString([123.0, 16.0], null), '7b');
+
     // Non-integer value
     assert.throws(
         () => {
