@@ -39,6 +39,24 @@ test('executeScript, global override', () => {
 });
 
 
+test('executeScript, library function override', () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'mathSqrt', 'args': [{'number': 16}]}}
+            }}
+        ]
+    });
+    assert.equal(executeScript(script), 4);
+    const options = {
+        'globals': {
+            'mathSqrt': (args) => args[0] + 100
+        }
+    };
+    assert.equal(executeScript(script, options), 116);
+});
+
+
 test('executeScript, coverage', () => {
     const script = validateScript({
         'scriptName': 'test.bare',
@@ -668,6 +686,29 @@ test('executeScript, function native call', () => {
 });
 
 
+test('executeScript, function args model mutation', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'fn',
+                    'args': ['a'],
+                    'statements': [
+                        {'return': {'expr': {'variable': 'b'}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    executeScript(script, {'globals': globals});
+    const options = {'globals': globals};
+    assert.equal(globals.fn([1, 2], options), null);
+    script.statements[0].function.args.push('b');
+    assert.equal(globals.fn([1, 2], options), 2);
+});
+
+
 test('executeScript, jump', () => {
     const script = validateScript({
         'statements': [
@@ -844,6 +885,28 @@ test('executeScript, error maxStatements', () => {
     );
     assert.equal(executeScript(script, {'maxStatements': 4}), null);
     assert.equal(executeScript(script, {'maxStatements': 0}), null);
+});
+
+
+test('executeScript, error maxStatements library error', () => {
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'label': {'name': 'loop'}},
+            {'expr': {'name': 'x', 'expr': {'function': {'name': 'arrayLength', 'args': [{'number': 0}]}}}},
+            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'jump': {'label': 'loop', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 50}}}}},
+            {'return': {'expr': {'variable': 'i'}}}
+        ]
+    });
+    assert.equal(executeScript(script, {'globals': {}}), 50);
+    assert.throws(
+        () => executeScript(script, {'globals': {}, 'maxStatements': 100}),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Exceeded maximum script statements (100)'
+        }
+    );
 });
 
 
@@ -1202,6 +1265,34 @@ test('evaluateExpression, function unknown no globals', () => {
             'message': 'Undefined function "fnUnknown"'
         }
     );
+});
+
+
+test('evaluateExpression, script function no globals', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'fn',
+                    'statements': [
+                        {'return': {'expr': {'number': 5}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    executeScript(script, {'globals': globals});
+    const expr = validateExpression({'function': {'name': 'fn', 'args': []}});
+
+    // Options with globals - the script function call succeeds
+    assert.equal(evaluateExpression(expr, {'globals': globals}), 5);
+
+    // No options - the script function call fails internally and evaluates to null
+    assert.equal(evaluateExpression(expr, null, {'fn': globals.fn}), null);
+
+    // Options without globals - same
+    assert.equal(evaluateExpression(expr, {}, {'fn': globals.fn}), null);
 });
 
 

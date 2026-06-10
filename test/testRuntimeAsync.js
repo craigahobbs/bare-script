@@ -42,6 +42,24 @@ test('executeScriptAsync, global override', async () => {
 });
 
 
+test('executeScriptAsync, library function override', async () => {
+    const script = validateScript({
+        'statements': [
+            {'return': {
+                'expr': {'function': {'name': 'mathSqrt', 'args': [{'number': 16}]}}
+            }}
+        ]
+    });
+    assert.equal(await executeScriptAsync(script), 4);
+    const options = {
+        'globals': {
+            'mathSqrt': (args) => args[0] + 100
+        }
+    };
+    assert.equal(await executeScriptAsync(script, options), 116);
+});
+
+
 test('executeScriptAsync, coverage', async () => {
     const script = validateScript({
         'scriptName': 'test.bare',
@@ -780,6 +798,29 @@ test('executeScriptAsync, function native call', () => {
 });
 
 
+test('executeScriptAsync, function args model mutation', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'fn',
+                    'args': ['a'],
+                    'statements': [
+                        {'return': {'expr': {'variable': 'b'}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    await executeScriptAsync(script, {'globals': globals});
+    const options = {'globals': globals};
+    assert.equal(globals.fn([1, 2], options), null);
+    script.statements[0].function.args.push('b');
+    assert.equal(globals.fn([1, 2], options), 2);
+});
+
+
 test('executeScriptAsync, function async native call', async () => {
     const script = validateScript({
         'statements': [
@@ -1354,6 +1395,28 @@ test('executeScriptAsync, error maxStatements', async () => {
 });
 
 
+test('executeScriptAsync, error maxStatements library error', async () => {
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': 'i', 'expr': {'number': 0}}},
+            {'label': {'name': 'loop'}},
+            {'expr': {'name': 'x', 'expr': {'function': {'name': 'arrayLength', 'args': [{'number': 0}]}}}},
+            {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+            {'jump': {'label': 'loop', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'number': 50}}}}},
+            {'return': {'expr': {'variable': 'i'}}}
+        ]
+    });
+    assert.equal(await executeScriptAsync(script, {'globals': {}}), 50);
+    assert.rejects(
+        async () => executeScriptAsync(script, {'globals': {}, 'maxStatements': 100}),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Exceeded maximum script statements (100)'
+        }
+    );
+});
+
+
 test('evaluateExpressionAsync', async () => {
     const expr = validateExpression({
         'binary': {
@@ -1714,6 +1777,34 @@ test('evaluateExpressionAsync, function unknown no globals', async () => {
             'message': 'Undefined function "fnUnknown"'
         }
     );
+});
+
+
+test('evaluateExpressionAsync, script function no globals', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'fn',
+                    'statements': [
+                        {'return': {'expr': {'number': 5}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    await executeScriptAsync(script, {'globals': globals});
+    const expr = validateExpression({'function': {'name': 'fn', 'args': []}});
+
+    // Options with globals - the script function call succeeds
+    assert.equal(await evaluateExpressionAsync(expr, {'globals': globals}), 5);
+
+    // No options - the script function call fails internally and evaluates to null
+    assert.equal(await evaluateExpressionAsync(expr, null, {'fn': globals.fn}), null);
+
+    // Options without globals - same
+    assert.equal(await evaluateExpressionAsync(expr, {}, {'fn': globals.fn}), null);
 });
 
 
