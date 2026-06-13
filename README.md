@@ -79,11 +79,11 @@ import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
 const script = parseScript(`\
-# Fetch the BareScript library documentation JSON
-docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library.json'))
+# Fetch the BareScript builtin library documentation JSON
+docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library-builtin.json'))
 
-# Return the number of library functions
-return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions')) + ' functions'
+# Return the number of builtin functions
+return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions')) + ' builtin functions'
 `);
 
 // Execute the script
@@ -93,7 +93,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ```
-The BareScript Library has 209 functions
+The BareScript Library has 108 builtin functions
 ```
 
 

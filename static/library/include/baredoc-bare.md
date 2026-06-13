@@ -3,28 +3,45 @@ See baredoc in action by visiting the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
 
 To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#baredocmain)
-function with your [library model JSON](model.html#var.vName='BaredocLibrary') URL and library name:
+function with a [documentation configuration](model.html#var.vName='BaredocConfig') object (or the URL
+of its JSON resource). Each section's `url` is a
+[library model JSON](model.html#var.vName='BaredocLibrary') resource (for example, one produced by
+[baredocCLI](baredocCLI-bare.md)):
 
 ~~~ bare-script
 include <baredoc.bare>
 
-baredocMain('my-library.json', 'My Library')
+baredocMain({ \
+    'title': 'My Library', \
+    'sections': [ \
+        {'title': 'My Functions', 'url': 'my-library.json'} \
+    ] \
+})
 ~~~
 
-You can add menu links and group content URLs:
+You can add top-level content, multiple sections, and per-section group content:
 
 ~~~ bare-script
 include <baredoc.bare>
 
-menuLinks = [ \
-    ['Home', 'index.html'], \
-    ['GitHub', 'https://github.com/example/my-library'] \
-]
+baredocMain({ \
+    'title': 'My Library', \
+    'content': 'intro.md', \
+    'sections': [ \
+        { \
+            'title': 'Builtin Functions', \
+            'url': 'my-builtin.json', \
+            'groups': [{'name': 'myGroup', 'content': 'group-content.md'}] \
+        }, \
+        {'title': 'Include Functions', 'url': 'my-include.json'} \
+    ] \
+})
+~~~
 
-groupURLs = { \
-    '': 'intro.md', \
-    'myGroup': 'group-content.md' \
-}
+Instead of an inline object, you can pass the URL of a configuration JSON resource:
 
-baredocMain('my-library.json', 'My Library', menuLinks, groupURLs)
+~~~ bare-script
+include <baredoc.bare>
+
+baredocMain('my-library-config.json')
 ~~~

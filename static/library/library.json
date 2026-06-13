@@ -1,0 +1,173 @@
+{
+    "title": "The BareScript Library",
+    "content": "libraryIntro.md",
+    "sections": [
+        {
+            "title": "Builtin Functions",
+            "url": "library-builtin.json",
+            "groups": [
+                {
+                    "name": "array",
+                    "content": "builtin/array.md",
+                    "description": "Create, manipulate, and query arrays"
+                },
+                {
+                    "name": "barescript",
+                    "content": "builtin/barescript.md",
+                    "description": "Parse and evaluate BareScript expressions"
+                },
+                {
+                    "name": "datetime",
+                    "content": "builtin/datetime.md",
+                    "description": "Create and manipulate date/time values"
+                },
+                {
+                    "name": "json",
+                    "content": "builtin/json.md",
+                    "description": "Parse and serialize JSON"
+                },
+                {
+                    "name": "math",
+                    "content": "builtin/math.md",
+                    "description": "Mathematical operations and constants"
+                },
+                {
+                    "name": "number",
+                    "content": "builtin/number.md",
+                    "description": "Parse and format numbers"
+                },
+                {
+                    "name": "object",
+                    "content": "builtin/object.md",
+                    "description": "Create, manipulate, and query objects"
+                },
+                {
+                    "name": "regex",
+                    "content": "builtin/regex.md",
+                    "description": "Compile and apply regular expressions"
+                },
+                {
+                    "name": "schema",
+                    "content": "builtin/schema.md",
+                    "description": "Parse and validate Schema Markdown"
+                },
+                {
+                    "name": "string",
+                    "content": "builtin/string.md",
+                    "description": "Search, slice, and transform strings"
+                },
+                {
+                    "name": "system",
+                    "content": "builtin/system.md",
+                    "description": "Runtime, fetch, logging, and global functions"
+                },
+                {
+                    "name": "url",
+                    "content": "builtin/url.md",
+                    "description": "Encode URLs and URL components"
+                }
+            ]
+        },
+        {
+            "title": "Include Functions",
+            "url": "library-include.json",
+            "groups": [
+                {
+                    "name": "args.bare",
+                    "content": "include/args-bare.md",
+                    "description": "Parse global arguments and build application links"
+                },
+                {
+                    "name": "baredoc.bare",
+                    "content": "include/baredoc-bare.md",
+                    "description": "The BareScript library documentation application"
+                },
+                {
+                    "name": "baredocCLI.bare",
+                    "content": "include/baredocCLI-bare.md",
+                    "description": "Generate library documentation models from source files"
+                },
+                {
+                    "name": "data.bare",
+                    "content": "include/data-bare.md",
+                    "description": "Filter, sort, aggregate, and join tabular data"
+                },
+                {
+                    "name": "dataLineChart.bare",
+                    "content": "include/dataLineChart-bare.md",
+                    "description": "Render tabular data as line charts"
+                },
+                {
+                    "name": "dataTable.bare",
+                    "content": "include/dataTable-bare.md",
+                    "description": "Render tabular data as tables"
+                },
+                {
+                    "name": "diff.bare",
+                    "content": "include/diff-bare.md",
+                    "description": "Compute line diffs between strings or arrays"
+                },
+                {
+                    "name": "draw.bare",
+                    "content": "include/draw-bare.md",
+                    "description": "Draw SVG images"
+                },
+                {
+                    "name": "elementModel.bare",
+                    "content": "include/elementModel-bare.md",
+                    "description": "Render element model to the browser or HTML and SVG"
+                },
+                {
+                    "name": "forms.bare",
+                    "content": "include/forms-bare.md",
+                    "description": "Web forms and controls element model helpers"
+                },
+                {
+                    "name": "markdown.bare",
+                    "content": "include/markdown-bare.md",
+                    "description": "Markdown escaping, header IDs, and utilities"
+                },
+                {
+                    "name": "markdownElements.bare",
+                    "content": "include/markdownElements-bare.md",
+                    "description": "Convert a Markdown model to an element model"
+                },
+                {
+                    "name": "markdownParser.bare",
+                    "content": "include/markdownParser-bare.md",
+                    "description": "Parse Markdown text into a Markdown model"
+                },
+                {
+                    "name": "markdownUp.bare",
+                    "content": "include/markdownUp-bare.md",
+                    "description": "Stub implementations of the MarkdownUp runtime functions"
+                },
+                {
+                    "name": "pager.bare",
+                    "content": "include/pager-bare.md",
+                    "description": "Multi-page MarkdownUp application shell"
+                },
+                {
+                    "name": "qrcode.bare",
+                    "content": "include/qrcode-bare.md",
+                    "description": "Render QR codes"
+                },
+                {
+                    "name": "schemaDoc.bare",
+                    "content": "include/schemaDoc-bare.md",
+                    "description": "Schema Markdown documentation application"
+                },
+                {
+                    "name": "unittest.bare",
+                    "content": "include/unittest-bare.md",
+                    "description": "Unit test framework"
+                },
+                {
+                    "name": "unittestMock.bare",
+                    "content": "include/unittestMock-bare.md",
+                    "description": "Mock library functions during unit tests"
+                }
+            ]
+        }
+    ]
+}

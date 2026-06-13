@@ -1,0 +1,10 @@
+{
+    "title": "The BareScript Expression Library",
+    "content": "expressionIntro.md",
+    "sections": [
+        {
+            "title": "Expression Functions",
+            "url": "expression-builtin.json"
+        }
+    ]
+}

@@ -474,7 +474,7 @@ calling. Each is documented in detail at
 | `schemaDoc.bare` | Schema-markdown documentation app | `schemaDocMain`, `schemaDocMarkdown` |
 | `unittest.bare` | Unit-test framework | `unittestRunTest`, `unittestEqual`, `unittestDeepEqual`, `unittestCoverageStart`, `unittestCoverageStop`, `unittestReport` |
 | `unittestMock.bare` | Mock library functions during tests | `unittestMockAll`, `unittestMockOne`, `unittestMockOneGeneric`, `unittestMockEnd` |
-| `baredoc.bare` / `baredocCLI.bare` | Generate `library.json` from doc comments | `baredocMain`, `baredocCLIMain` |
+| `baredoc.bare` / `baredocCLI.bare` | Generate library model JSON from doc comments | `baredocMain`, `baredocCLIMain` |
 
 ### `data.bare` quick examples
 

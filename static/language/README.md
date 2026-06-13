@@ -165,10 +165,10 @@ A function that makes any **asynchronous** function call (e.g.,
 
 ~~~ barescript
 async function getLibraryCount(url):
-    return arrayLength(objectGet(systemFetch(url), 'functions'))
+    return arrayLength(objectGet(jsonParse(systemFetch(url)), 'functions'))
 endfunction
 
-return getLibraryCount('https://craigahobbs.github.io/bare-script/library/library.json')
+return getLibraryCount('https://craigahobbs.github.io/bare-script/library/library-builtin.json')
 ~~~
 
 

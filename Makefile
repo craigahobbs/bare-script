@@ -54,7 +54,21 @@ doc:
     # Generate the library documentation
 	$(NODE_SHELL) npx bare -m \
 		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/library.js lib/include/*.bare)'" \
-		-v 'vOutput' "'build/doc/library/library.json'" \
+		-v 'vOutput' "'build/doc/library/library-model.json'" \
+		-c 'include <baredocCLI.bare>' \
+		-c 'return baredocCLIMain()'
+
+    # Generate the builtin library documentation
+	$(NODE_SHELL) npx bare -m \
+		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/library.js)'" \
+		-v 'vOutput' "'build/doc/library/library-builtin.json'" \
+		-c 'include <baredocCLI.bare>' \
+		-c 'return baredocCLIMain()'
+
+    # Generate the include library documentation
+	$(NODE_SHELL) npx bare -m \
+		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/include/*.bare)'" \
+		-v 'vOutput' "'build/doc/library/library-include.json'" \
 		-c 'include <baredocCLI.bare>' \
 		-c 'return baredocCLIMain()'
 
@@ -64,11 +78,11 @@ doc:
 		-v 'vSingle' 'true' \
 		-v 'vPublish' 'true' \
 		-c 'include <baredoc.bare>' \
-		-c "baredocMain('library.json', 'The BareScript Library', null, 'libraryContent.json')" \
+		-c "baredocMain('library.json')" \
 		> barescript-library.md
 
     # Generate the expression library documentation
-	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library.json build/doc/library/expression.json
+	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library-model.json build/doc/library/expression-builtin.json
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
@@ -76,7 +90,7 @@ doc:
 		-v 'vSingle' 'true' \
 		-v 'vPublish' 'true' \
 		-c 'include <baredoc.bare>' \
-		-c "baredocMain('expression.json', 'The BareScript Expression Library', null, 'expressionContent.json')" \
+		-c "baredocMain('expression.json')" \
 		> barescript-expression-library.md
 
     # Generate the library model documentation
@@ -149,18 +163,26 @@ const types = {...regexMatchTypes, ...systemFetchTypes};
 // Create the include library type model
 const script = parseScript(`\
 include 'lib/include/args.bare'
+include 'lib/include/baredoc.bare'
 include 'lib/include/data.bare'
 include 'lib/include/dataLineChart.bare'
 include 'lib/include/dataTable.bare'
 include 'lib/include/diff.bare'
+include 'lib/include/markdown.bare'
+include 'lib/include/markdownElements.bare'
+include 'lib/include/markdownHighlight.bare'
 include 'lib/include/pager.bare'
 
 includeTypes = {}
 objectAssign(includeTypes, argsTypes)
+objectAssign(includeTypes, baredocTypes)
 objectAssign(includeTypes, dataAggregationTypes)
 objectAssign(includeTypes, dataLineChartTypes)
 objectAssign(includeTypes, dataTableTypes)
 objectAssign(includeTypes, diffTypes)
+objectAssign(includeTypes, markdownElementsTypes)
+objectAssign(includeTypes, markdownHighlightTypes)
+objectAssign(includeTypes, markdownTypes)
 objectAssign(includeTypes, pagerTypes)
 return includeTypes
 `);
