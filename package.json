@@ -1,7 +1,7 @@
 {
     "type": "module",
     "name": "bare-script",
-    "version": "4.2.3",
+    "version": "4.2.7",
     "description": "BareScript; a lightweight scripting and expression language",
     "keywords": [
         "expression",

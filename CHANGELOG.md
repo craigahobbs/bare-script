@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.2.7 (2026-06-12)
+
+- [5c0b548](https://github.com/craigahobbs/bare-script/commit/5c0b548) - update baredoc application to separate builtin and include functions
+
+- [e253461](https://github.com/craigahobbs/bare-script/commit/e253461) - sync tests with bare-script-py
+
+- [4c0b13e](https://github.com/craigahobbs/bare-script/commit/4c0b13e) - improve numberToString test
+
+- [256054d](https://github.com/craigahobbs/bare-script/commit/256054d) - update numberToString test
+
 ## 4.2.3 (2026-06-09)
 
 - [eb1d812](https://github.com/craigahobbs/bare-script/commit/eb1d812) - improve dataTableMarkdown to more-fully implement data table options
