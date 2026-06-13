@@ -54,7 +54,7 @@ Pure-BareScript libraries (args parsing, data aggregation/charts, markdown rende
 
 ### Library function documentation
 
-`lib/library.js` and `.bare` files use the `// $function:` / `# $function:` doc-comment convention. `baredoc` (CLI installed via `package.json` `bin`) reads these to generate the library documentation model JSON (e.g. `library-model.json`). To add a new built-in function:
+`lib/library.js` and `.bare` files use the `// $function:` / `# $function:` doc-comment convention. `baredoc` (CLI installed via `package.json` `bin`) reads these to generate the library documentation model JSON (e.g. `library-builtin.json`). To add a new built-in function:
 
 1. Implement in `lib/library.js`, register in `scriptFunctions` (and `expressionFunctions` if expression-callable, plus `expressionFunctionMap` if the expression-context name differs).
 2. Add the `$function: / $group: / $doc: / $arg:` doc block above it.

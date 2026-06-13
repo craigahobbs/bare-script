@@ -51,13 +51,6 @@ doc:
 	cp -R static/* build/doc/
 	cp -R lib/include build/doc/
 
-    # Generate the library documentation
-	$(NODE_SHELL) npx bare -m \
-		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/library.js lib/include/*.bare)'" \
-		-v 'vOutput' "'build/doc/library/library-model.json'" \
-		-c 'include <baredocCLI.bare>' \
-		-c 'return baredocCLIMain()'
-
     # Generate the builtin library documentation
 	$(NODE_SHELL) npx bare -m \
 		-v 'vFiles' "'$$($(NODE_SHELL) node --input-type=module -e 'console.log(JSON.stringify(process.argv.slice(1)));' lib/library.js)'" \
@@ -82,7 +75,7 @@ doc:
 		> barescript-library.md
 
     # Generate the expression library documentation
-	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library-model.json build/doc/library/expression-builtin.json
+	$(NODE_SHELL) node --input-type=module -e "$$DOC_EXPR_JS" build/doc/library/library-builtin.json build/doc/library/expression-builtin.json
 
     # Generate the single-page expression library documentation
 	cd build/doc/library/ && \
