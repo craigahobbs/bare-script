@@ -4,14 +4,16 @@ Welcome to the [BareScript](https://craigahobbs.github.io/bare-script/language/)
 documentation.
 
 
-## Table of Contents
+## Expression Functions
 
-- [array](#var.vPublish=true&var.vSingle=true&array)
-- [datetime](#var.vPublish=true&var.vSingle=true&datetime)
-- [math](#var.vPublish=true&var.vSingle=true&math)
-- [number](#var.vPublish=true&var.vSingle=true&number)
-- [object](#var.vPublish=true&var.vSingle=true&object)
-- [string](#var.vPublish=true&var.vSingle=true&string)
+|  |  |
+| --- | --- |
+| [array](#var.vPublish=true&var.vSingle=true&array) |  |
+| [datetime](#var.vPublish=true&var.vSingle=true&datetime) |  |
+| [math](#var.vPublish=true&var.vSingle=true&math) |  |
+| [number](#var.vPublish=true&var.vSingle=true&number) |  |
+| [object](#var.vPublish=true&var.vSingle=true&object) |  |
+| [string](#var.vPublish=true&var.vSingle=true&string) |  |
 
 ---
 

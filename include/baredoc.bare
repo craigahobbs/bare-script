@@ -11,113 +11,104 @@ include <schemaDoc.bare>
 # $function: baredocMain
 # $group: baredoc.bare
 # $doc: The BareScript library documentation application main entry point
-# $arg url: The library documentation JSON resource URL
-# $arg title: The library title
-# $arg menuLinks: Optional array of text/URL menu link tuples
-# $arg groupURLs: Optional map of group name to group Markdown content URL ('' is index) or JSON resource URL
-async function baredocMain(url, title, menuLinks, groupURLs):
+# $arg config: The [documentation configuration](model.html#var.vName='BaredocConfig') object or its JSON resource URL
+async function baredocMain(config):
     # Parse arguments
     args = argsParse(baredocArguments)
     group = objectGet(args, 'group')
     name = objectGet(args, 'name')
     single = objectGet(args, 'single')
-    url = objectGet(args, 'url', url)
 
-    # Render library JSON documentation page?
+    # Render the documentation model page?
     if objectGet(args, 'doc'):
         documentSetTitle('Library')
         markdownPrint(schemaDocMarkdown(baredocTypes, 'BaredocLibrary'))
         return
     endif
 
-    # Fetch and validate the library documentation resource
+    # Resolve and validate the configuration
+    if systemType(config) == 'string':
+        config = jsonParse(systemFetch(config))
+    endif
+    config = schemaValidate(baredocTypes, 'BaredocConfig', config)
+    if config == null:
+        markdownPrint('**Error:** Invalid baredoc configuration')
+        return
+    endif
+    sections = objectGet(config, 'sections')
+
+    # Fetch and validate the section library documentation resources
+    sectionURLs = []
+    for section in sections:
+        arrayPush(sectionURLs, objectGet(section, 'url'))
+    endfor
+    sectionJSONs = systemFetch(sectionURLs)
+
+    # Group each section's functions by name, with the config content and description
     groups = {}
-    urls = if(systemType(url) == 'array', url, [url])
-    for libraryJSON, ixLibrary in systemFetch(urls):
-        libraryPart = if(libraryJSON != null, jsonParse(libraryJSON))
+    sectionGroups = []
+    for section, ixSection in sections:
+        sectionJSON = arrayGet(sectionJSONs, ixSection)
+        libraryPart = if(sectionJSON != null, jsonParse(sectionJSON))
         libraryPart = if(libraryPart != null, schemaValidate(baredocTypes, 'BaredocLibrary', libraryPart))
         if libraryPart == null:
-            libraryURL = arrayGet(urls, ixLibrary)
-            markdownPrint('**Error:** Failed to fetch library documentation resource "' + markdownEscape(libraryURL) + '"')
+            markdownPrint( \
+                '**Error:** Failed to fetch library documentation resource "' + \
+                markdownEscape(objectGet(section, 'url')) + '"' \
+            )
             return
         endif
 
-        # Group the function documentation
+        # Group the section's functions
+        sectionGroupSet = {}
         for function_ in objectGet(libraryPart, 'functions'):
             groupName = objectGet(function_, 'group')
-            groupFunctions = objectGet(groups, groupName)
-            if groupFunctions == null:
-                groupFunctions = []
-                objectSet(groups, groupName, groupFunctions)
+            groupEntry = objectGet(groups, groupName)
+            if groupEntry == null:
+                groupEntry = {'functions': []}
+                objectSet(groups, groupName, groupEntry)
             endif
-            arrayPush(groupFunctions, function_)
+            arrayPush(objectGet(groupEntry, 'functions'), function_)
+            objectSet(sectionGroupSet, groupName, true)
+        endfor
+        arrayPush(sectionGroups, {'title': objectGet(section, 'title'), 'groupNames': arraySort(objectKeys(sectionGroupSet))})
+
+        # Attach the section's group content and description from the config
+        for group_ in objectGet(section, 'groups', []):
+            groupEntry = objectGet(groups, objectGet(group_, 'name'))
+            if groupEntry != null:
+                objectSet(groupEntry, 'content', objectGet(group_, 'content'))
+                objectSet(groupEntry, 'description', objectGet(group_, 'description'))
+            endif
         endfor
     endfor
 
-    # Group URLs?
-    if groupURLs != null:
-        # Fetch the group URLs, if necessary
-        if systemType(groupURLs) == 'string':
-            groupURLs = jsonParse(systemFetch(groupURLs))
-        endif
-
-        # Add an empty group for any missing group URLs
-        for groupName in objectKeys(groupURLs):
-            if groupName != '' && !objectHas(groups, groupName):
-                objectSet(groups, groupName, [])
-            endif
-        endfor
-    endif
-
-    # Sort the group functions
+    # Sort each group's functions by name
     for groupName in objectKeys(groups):
-        groupFunctions = objectGet(groups, groupName)
-        arraySort(groupFunctions, baredocFunctionCompare)
+        arraySort(objectGet(objectGet(groups, groupName), 'functions'), baredocFunctionCompare)
+    endfor
 
-        # Function requested by name?
-        if name != null:
-            for function_ in groupFunctions:
-                functionName = objectGet(function_, 'name')
-                if functionName == name:
-                    # Redirect to the actual URL
-                    windowSetLocation( \
-                        argsURL(baredocArguments, {'group': objectGet(function_, 'group'), 'name': null}, false, functionName) \
-                    )
+    # Function requested by name? Redirect to its group page anchor
+    if name != null:
+        for groupName in objectKeys(groups):
+            for function_ in objectGet(objectGet(groups, groupName), 'functions'):
+                if objectGet(function_, 'name') == name:
+                    windowSetLocation(argsURL(baredocArguments, {'group': groupName, 'name': null}, false, name))
                     return
                 endif
             endfor
-        endif
-    endfor
-    if name != null:
+        endfor
         markdownPrint('', '**Error:** Unknown function "' + markdownEscape(name) + '"')
         return
     endif
 
-    # Fetch the group content URLs
-    groupContent = {}
-    if groupURLs != null:
-        # Fetch the content URLs
-        groupURLArray = []
-        groupNames = arraySort(objectKeys(groupURLs))
-        for groupName in groupNames:
-            arrayPush(groupURLArray, objectGet(groupURLs, groupName))
-        endfor
-        groupContentArray = systemFetch(groupURLArray)
-
-        # Assign the group contents
-        for groupName, ixGroupName in groupNames:
-            objectSet(groupContent, groupName, arrayGet(groupContentArray, ixGroupName))
-        endfor
-    endif
-
-    # Render the page
-    title = if(title != null && !objectHas(args, 'url'), title, url)
+    # Render the requested page
     if group != null:
-        baredocGroupPage(args, title, groupURLs, groupContent, groups, group)
+        baredocGroupPage(config, args, groups, group)
     elif single:
-        baredocSinglePage(args, title, menuLinks, groupURLs, groupContent, groups)
+        baredocSinglePage(config, args, sectionGroups, groups)
     else:
-        baredocIndexPage(args, title, menuLinks, groupURLs, groupContent, groups)
+        baredocIndexPage(config, args, sectionGroups, groups)
     endif
 endfunction
 
@@ -128,8 +119,7 @@ baredocArguments = argsValidate([ \
     {'name': 'group'}, \
     {'name': 'name'}, \
     {'name': 'publish', 'type': 'bool', 'default': false}, \
-    {'name': 'single', 'type': 'bool', 'default': false}, \
-    {'name': 'url', 'global': 'vURL'} \
+    {'name': 'single', 'type': 'bool', 'default': false} \
 ])
 
 
@@ -141,125 +131,139 @@ function baredocFunctionCompare(f1, f2):
 endfunction
 
 
-# Render a library documentation index page
-function baredocIndexPage(args, title, menuLinks, groupURLs, groupContent, groups):
-    publish = objectGet(args, 'publish')
-
-    # Render the menu and title
+# Helper to render the title and top-level content
+async function baredocPageHeader(config):
+    title = objectGet(config, 'title')
     documentSetTitle(title)
-    if menuLinks != null && arrayLength(menuLinks) > 0 && !publish:
-        menuSpacer = '&nbsp;|&nbsp;'
-        for menuLink, ixMenuLink in menuLinks:
-            menuLinkText = arrayGet(menuLink, 0)
-            menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint(if(ixMenuLink == 0, '', menuSpacer) + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
-        endfor
-        markdownPrint('')
-    endif
     markdownPrint('# ' + markdownEscape(title))
-
-    # Render the index Markdown, if any
-    if objectHas(groupContent, ''):
-        rootURL = objectGet(groupURLs, '')
-        rootMarkdown = objectGet(groupContent, '')
-        markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
+    topContent = objectGet(config, 'content')
+    if topContent != null:
+        topText = systemFetch(topContent)
+        markdownPrint('', if(topText != null, topText, '**Error:** Failed to load "' + markdownEscape(topContent) + '"'))
     endif
+endfunction
 
-    # Render the single page toggle
-    if !publish:
-        markdownPrint('', argsLink(baredocArguments, 'Single Page', {'single': true}))
-    endif
 
-    # Render the library function index
-    markdownPrint('', '## Table of Contents', '')
-    for groupName in arraySort(objectKeys(groups)):
-        markdownPrint('- ' + argsLink(baredocArguments, groupName, {'group': groupName}, false, argsTopHeaderId))
+# Render the section group index tables (single uses in-page anchors, multi-page uses group pages)
+function baredocGroupTable(sectionGroups, groups, single):
+    for section in sectionGroups:
+        markdownPrint('', '## ' + markdownEscape(objectGet(section, 'title')), '')
+        markdownPrint('|  |  |', '| --- | --- |')
+        for groupName in objectGet(section, 'groupNames'):
+            groupLink = if(single, \
+                argsLink(baredocArguments, groupName, null, false, groupName), \
+                argsLink(baredocArguments, groupName, {'group': groupName}, false, argsTopHeaderId))
+            description = objectGet(objectGet(groups, groupName), 'description')
+            markdownPrint('| ' + groupLink + ' | ' + if(description != null, description, '') + ' |')
+        endfor
     endfor
 endfunction
 
 
-# Render the single-page library documentation
-function baredocSinglePage(args, title, menuLinks, groupURLs, groupContent, groups):
-    publish = objectGet(args, 'publish')
-
-    # Render the menu and title
-    documentSetTitle(title)
-    if menuLinks != null && arrayLength(menuLinks) > 0 && !publish:
-        menuSpacer = '&nbsp;|&nbsp;'
-        for menuLink, ixMenuLink in menuLinks:
-            menuLinkText = arrayGet(menuLink, 0)
-            menuLinkURL = arrayGet(menuLink, 1)
-            markdownPrint(if(ixMenuLink == 0, '', menuSpacer) + '[' + markdownEscape(menuLinkText) + '](' + urlEncode(menuLinkURL) + ')')
-        endfor
-        markdownPrint('')
-    endif
-    markdownPrint('# ' + markdownEscape(title))
-
-    # Render the index Markdown, if any
-    if objectHas(groupContent, ''):
-        rootURL = objectGet(groupURLs, '')
-        rootMarkdown = objectGet(groupContent, '')
-        markdownPrint('', if(rootMarkdown != null, rootMarkdown, '**Error:** Failed to load "' + markdownEscape(rootURL) + '"'))
-    endif
+# Render a library documentation index page
+async function baredocIndexPage(config, args, sectionGroups, groups):
+    # Render the title and top-level content
+    baredocPageHeader(config)
 
     # Render the single page toggle
-    if !publish:
+    if !objectGet(args, 'publish'):
+        markdownPrint('', argsLink(baredocArguments, 'Single Page', {'single': true}))
+    endif
+
+    # Render the section group index tables
+    baredocGroupTable(sectionGroups, groups, false)
+endfunction
+
+
+# Render the single-page library documentation
+async function baredocSinglePage(config, args, sectionGroups, groups):
+    # Render the title and top-level content
+    baredocPageHeader(config)
+
+    # Render the multi page toggle
+    if !objectGet(args, 'publish'):
         markdownPrint('', argsLink(baredocArguments, 'Multi Page', {'single': false}))
     endif
 
-    # The table of contents
-    markdownPrint('', '## Table of Contents', '')
-    for groupName in arraySort(objectKeys(groups)):
-        markdownPrint('- ' + argsLink(baredocArguments, groupName, null, false, groupName))
+    # Render the section group index tables
+    baredocGroupTable(sectionGroups, groups, true)
+
+    # Batch-fetch all group content, keyed by group name
+    contentNames = []
+    urls = []
+    for groupName in objectKeys(groups):
+        url = objectGet(objectGet(groups, groupName), 'content')
+        if url != null:
+            arrayPush(contentNames, groupName)
+            arrayPush(urls, url)
+        endif
+    endfor
+    texts = systemFetch(urls)
+    groupContent = {}
+    for groupName, ixName in contentNames:
+        text = arrayGet(texts, ixName)
+        objectSet(groupContent, groupName, if(text != null, text, '**Error:** Failed to load "' + markdownEscape(arrayGet(urls, ixName)) + '"'))
     endfor
 
-    # Render the library function index
-    for groupName in arraySort(objectKeys(groups)):
-        markdownPrint('', '---', '')
-        baredocGroupPage(args, title, groupURLs, groupContent, groups, groupName)
+    # Render each group, separated by a horizontal rule
+    for section in sectionGroups:
+        for groupName in objectGet(section, 'groupNames'):
+            markdownPrint('', '---', '')
+            baredocGroup(args, objectGet(groupContent, groupName), groups, groupName, '##')
+        endfor
     endfor
 endfunction
 
 
 # Render a library documentation group page
-function baredocGroupPage(args, title, groupURLs, groupContent, groups, groupName):
+async function baredocGroupPage(config, args, groups, groupName):
+    title = objectGet(config, 'title')
+
+    # Set the document title
+    documentSetTitle(title + ' - ' + groupName)
+
+    # Group exist?
+    if !objectHas(groups, groupName):
+        markdownPrint('', '**Error:** Unknown group "' + markdownEscape(groupName) + '"')
+        return
+    endif
+
+    # Fetch the group content
+    url = objectGet(objectGet(groups, groupName), 'content')
+    groupContent = null
+    if url != null:
+        text = systemFetch(url)
+        groupContent = if(text != null, text, '**Error:** Failed to load "' + markdownEscape(url) + '"')
+    endif
+
+    # Render the index link and the group
+    markdownPrint(argsLink(baredocArguments, 'Index', {'group': null}), '')
+    baredocGroup(args, groupContent, groups, groupName, '#')
+endfunction
+
+
+# Render a documentation group's content, function index, and function documentation
+function baredocGroup(args, groupContent, groups, groupName, baseHeader):
     publish = objectGet(args, 'publish')
     single = objectGet(args, 'single')
-    baseHeader = if(single, '##', '#')
+    groupEntry = objectGet(groups, groupName)
 
-    if !single:
-        # Set the document title
-        documentSetTitle(title + ' - ' + groupName)
-
-        # Group exist?
-        if !objectHas(groups, groupName):
-            markdownPrint('', '**Error:** Unknown group "' + markdownEscape(groupName) + '"')
-            return
-        endif
-    endif
-
-    # Render the menu and title
-    if !single:
-        markdownPrint(argsLink(baredocArguments, 'Index', {'group': null}), '')
-    endif
+    # Render the group header
     markdownPrint(baseHeader + ' ' + markdownEscape(groupName))
     if single && !publish:
-        markdownPrint('', argsLink(baredocArguments, 'Back to top', null, false, '_top'))
+        markdownPrint('', argsLink(baredocArguments, 'Back to top', null, false, argsTopHeaderId))
     endif
 
-    # Render the group Markdown, if any
-    if objectHas(groupContent, groupName):
-        groupURL = objectGet(groupURLs, groupName)
-        groupMarkdown = objectGet(groupContent, groupName)
-        markdownPrint('', if(groupMarkdown != null, groupMarkdown, '**Error:** Failed to load "' + markdownEscape(groupURL) + '"'))
+    # Render the group content (the fetched content or load error, else the description)
+    content = if(groupContent != null, groupContent, objectGet(groupEntry, 'description'))
+    if content != null:
+        markdownPrint('', content)
     endif
 
     # Render the group function index
-    groupFunctions = objectGet(groups, groupName)
-    if arrayLength(groupFunctions) != 0:
-        markdownPrint('', baseHeader + '# Function Index', '')
-    endif
-    for function_, ixFunction in groupFunctions:
+    groupFunctions = objectGet(groupEntry, 'functions')
+    markdownPrint('', baseHeader + '# Function Index', '')
+    for function_ in groupFunctions:
         functionName = objectGet(function_, 'name')
         markdownPrint('- ' + argsLink(baredocArguments, functionName, null, false, functionName))
     endfor
@@ -298,6 +302,45 @@ endfunction
 # The library documentation schema
 baredocTypes = schemaParse( \
     'group "baredoc.bare"', \
+    '', \
+    '', \
+    '# The baredoc documentation application configuration', \
+    'struct BaredocConfig', \
+    '', \
+    '    # The documentation title', \
+    '    string title', \
+    '', \
+    '    # The optional top-level Markdown content resource URL', \
+    '    optional string content', \
+    '', \
+    '    # The documentation sections', \
+    '    BaredocSection[] sections', \
+    '', \
+    '', \
+    '# A documentation section', \
+    'struct BaredocSection', \
+    '', \
+    '    # The section title', \
+    '    string title', \
+    '', \
+    "    # The section's library documentation JSON resource URL", \
+    '    string url', \
+    '', \
+    '    # Optional content and descriptions for the groups (groups are defined by the library functions)', \
+    '    optional BaredocGroup[] groups', \
+    '', \
+    '', \
+    "# A library function group's content and description (the group is defined by the library functions)", \
+    'struct BaredocGroup', \
+    '', \
+    '    # The group name (matches a library function group)', \
+    '    string name', \
+    '', \
+    '    # The optional group Markdown content resource URL (defaults to the description)', \
+    '    optional string content', \
+    '', \
+    '    # The optional brief group description Markdown for the index page', \
+    '    optional string description', \
     '', \
     '', \
     '# A library documentation model', \
