@@ -1863,6 +1863,141 @@ test('evaluateExpression, group', () => {
 
 
 //
+// Library intrinsic fast-path tests
+//
+
+
+function intrFn(name, ...args) {
+    return {'function': {'name': name, 'args': args}};
+}
+
+function intrNum(value) {
+    return {'number': value};
+}
+
+function intrStr(value) {
+    return {'string': value};
+}
+
+function intrArr(...values) {
+    return {'function': {'name': 'arrayNew', 'args': values.map(intrNum)}};
+}
+
+function intrCall(name, args, options = {}) {
+    return executeScript(validateScript({'statements': [{'return': {'expr': {'function': {'name': name, 'args': args}}}}]}), options);
+}
+
+
+test('executeScript, intrinsic arrayGet', () => {
+    assert.equal(intrCall('arrayGet', [intrArr(10, 20, 30), intrNum(1)]), 20);
+    assert.equal(intrCall('arrayGet', []), null); // array missing
+    assert.equal(intrCall('arrayGet', [intrNum(5), intrNum(0)]), null); // array not an array
+    assert.equal(intrCall('arrayGet', [intrArr(1)]), null); // index missing
+    assert.equal(intrCall('arrayGet', [intrArr(1, 2, 3), intrStr('x')]), null); // index not a number
+    assert.equal(intrCall('arrayGet', [intrArr(1, 2, 3), intrNum(1.5)]), null); // index not an integer
+    assert.equal(intrCall('arrayGet', [intrArr(1, 2, 3), intrNum(-1)]), null); // index negative
+    assert.equal(intrCall('arrayGet', [intrArr(1, 2, 3), intrNum(0), intrNum(9)]), null); // too many arguments
+    assert.equal(intrCall('arrayGet', [intrArr(1, 2, 3), intrNum(9)]), null); // index out of bounds
+});
+
+
+test('executeScript, intrinsic arrayPush', () => {
+    assert.deepEqual(intrCall('arrayPush', [intrArr(1), intrNum(2), intrNum(3)]), [1, 2, 3]);
+    assert.deepEqual(intrCall('arrayPush', [intrArr(5)]), [5]);
+    assert.equal(intrCall('arrayPush', []), null); // array missing
+    assert.equal(intrCall('arrayPush', [intrNum(5), intrNum(1)]), null); // array not an array
+});
+
+
+test('executeScript, intrinsic arraySet', () => {
+    assert.equal(intrCall('arraySet', [intrArr(1, 2), intrNum(1), intrNum(9)]), 9);
+    assert.equal(intrCall('arraySet', [intrArr(1, 2), intrNum(1)]), null); // value missing -> set null
+    assert.equal(intrCall('arraySet', []), null); // array missing
+    assert.equal(intrCall('arraySet', [intrNum(5), intrNum(0), intrNum(9)]), null); // array not an array
+    assert.equal(intrCall('arraySet', [intrArr(1)]), null); // index missing
+    assert.equal(intrCall('arraySet', [intrArr(1, 2, 3), intrStr('x'), intrNum(9)]), null); // index not a number
+    assert.equal(intrCall('arraySet', [intrArr(1, 2, 3), intrNum(1.5), intrNum(9)]), null); // index not an integer
+    assert.equal(intrCall('arraySet', [intrArr(1, 2, 3), intrNum(-1), intrNum(9)]), null); // index negative
+    assert.equal(intrCall('arraySet', [intrArr(1, 2), intrNum(0), intrNum(9), intrNum(9)]), null); // too many arguments
+    assert.equal(intrCall('arraySet', [intrArr(1), intrNum(5), intrNum(9)]), null); // index out of bounds
+});
+
+
+test('executeScript, intrinsic objectGet', () => {
+    const obj = intrFn('objectNew', intrStr('k'), intrStr('v'));
+    assert.equal(intrCall('objectGet', [obj, intrStr('k')]), 'v');
+    assert.equal(intrCall('objectGet', [obj, intrStr('z')]), null); // missing key -> null default
+    assert.equal(intrCall('objectGet', [intrFn('objectNew'), intrStr('z'), intrStr('D')]), 'D'); // explicit default
+    assert.equal(intrCall('objectGet', []), null); // object missing
+    assert.equal(intrCall('objectGet', [intrNum(5), intrStr('k')]), null); // object not an object
+    assert.equal(intrCall('objectGet', [{'variable': 'null'}, intrStr('k')]), null); // object null
+    assert.equal(intrCall('objectGet', [intrArr(), intrStr('k')]), null); // object is an array
+    assert.equal(intrCall('objectGet', [intrFn('objectNew')]), null); // key missing
+    assert.equal(intrCall('objectGet', [intrFn('objectNew'), intrNum(5)]), null); // key not a string
+    assert.equal(intrCall('objectGet', [obj, intrStr('k'), intrNum(9), intrNum(9)]), 9); // too many -> default-value arg
+});
+
+
+test('executeScript, intrinsic objectSet', () => {
+    assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrStr('k'), intrNum(5)]), 5);
+    assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrStr('k')]), null); // value missing -> set null
+    assert.equal(intrCall('objectSet', []), null); // object missing
+    assert.equal(intrCall('objectSet', [intrNum(5), intrStr('k'), intrNum(1)]), null); // object not an object
+    assert.equal(intrCall('objectSet', [{'variable': 'null'}, intrStr('k'), intrNum(1)]), null); // object null
+    assert.equal(intrCall('objectSet', [intrArr(), intrStr('k'), intrNum(1)]), null); // object is an array
+    assert.equal(intrCall('objectSet', [intrFn('objectNew')]), null); // key missing
+    assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrNum(5), intrNum(1)]), null); // key not a string
+    assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrStr('k'), intrNum(1), intrNum(9)]), null); // too many arguments
+});
+
+
+test('executeScript, intrinsic debug logging', () => {
+    const logs = [];
+    const options = {'logFn': (message) => logs.push(message), 'debug': true};
+    assert.equal(intrCall('arrayGet', [intrStr('x'), intrNum(0)], options), null);
+    assert.equal(intrCall('arrayGet', [intrArr(1), intrNum(0), intrNum(9)], options), null);
+    assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrNum(5), intrNum(1)], options), null);
+    assert.deepEqual(logs, [
+        'BareScript: Function "arrayGet" failed with error: Invalid "array" argument value, "x"',
+        'BareScript: Function "arrayGet" failed with error: Too many arguments (3)',
+        'BareScript: Function "objectSet" failed with error: Invalid "key" argument value, 5'
+    ]);
+});
+
+
+test('executeScript, intrinsic aliased name', () => {
+    // Aliasing an intrinsic to another name: funcValue is in the intrinsic set but the call name
+    // matches no inlined branch, so it falls through to the normal call path.
+    const script = validateScript({'statements': [
+        {'expr': {'name': 'myGet', 'expr': {'variable': 'arrayGet'}}},
+        {'return': {'expr': intrFn('myGet', intrArr(1, 2, 3), intrNum(1))}}
+    ]});
+    assert.equal(executeScript(script), 2);
+});
+
+
+test('executeScript, intrinsic systemGlobalGet', () => {
+    // systemGlobalGet returns the genuine library function; calling it indirectly falls through to
+    // the real function (with full argument validation).
+    const script = validateScript({'statements': [
+        {'expr': {'name': 'getObj', 'expr': intrFn('systemGlobalGet', intrStr('objectGet'))}},
+        {'return': {'expr': intrFn('getObj', intrFn('objectNew', intrStr('k'), intrStr('v')), intrStr('k'))}}
+    ]});
+    assert.equal(executeScript(script), 'v');
+});
+
+
+test('executeScript, intrinsic override', () => {
+    // A user/global override resolves to a different function object (not in the intrinsic set), so
+    // the override runs instead of the inlined fast path; without it the intrinsic runs.
+    const expr = intrFn('objectGet', intrFn('objectNew', intrStr('k'), intrStr('v')), intrStr('k'));
+    const script = validateScript({'statements': [{'return': {'expr': expr}}]});
+    assert.equal(executeScript(script, {'globals': {'objectGet': () => 'override'}}), 'override');
+    assert.equal(executeScript(script), 'v');
+});
+
+
+//
 // Helper functions to get test values of specific types
 //
 
