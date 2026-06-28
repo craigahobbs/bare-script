@@ -147,6 +147,7 @@ endfunction
 # $doc:
 # $doc: **Note:** Element model "callback" members are a map of event name (e.g., "click") to
 # $doc: event callback function. The following events have callback arguments:
+# $doc: - **click** - For an SVG element, the click's x and y coordinates and the SVG's width and height
 # $doc: - **keydown** - keyCode
 # $doc: - **keypress** - keyCode
 # $doc: - **keyup** - keyCode
