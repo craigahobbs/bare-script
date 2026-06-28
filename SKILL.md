@@ -395,7 +395,9 @@ greeting = 'Hello, ' + name + '! You are ' + age + ' years old.'
 `regexSplit(re, s)`
 
 Regex literals are not part of the syntax — always call `regexNew(...)`.
-`regexMatch` returns `null` on no match, otherwise `{'index': N, 'groups': {'0': '...', '1': '...'}}`.
+`regexMatch` returns `null` on no match, otherwise `{'index': N, 'input': s,
+'groups': {'0': '...', '1': '...'}}` — `groups` holds every capture by numeric
+string key, plus any `(?<name>...)` group under its name.
 
 ### JSON (`json*`)
 
@@ -542,6 +544,24 @@ Element models are plain BareScript objects shaped like:
 Render with `elementModelRender(model)` (MarkdownUp), or stringify with
 `elementModelToString(model)` for use as raw HTML/SVG.
 
+**Event callbacks receive event-specific arguments.** At event time MarkdownUp
+*appends* arguments to a `callback` handler, after any you bound with
+`systemPartial`:
+
+- **a click whose target is an SVG element** → four numbers `x, y, width,
+  height`: the click point *relative to the SVG's top-left corner*, plus the
+  SVG's rendered width and height. A plain HTML click appends nothing.
+- **`keydown` / `keypress` / `keyup`** → the numeric `keyCode`.
+
+Best practice: **`systemPartial`-bind every parameter the handler declares**, so
+the appended event args fall onto no parameter and are ignored — write
+`systemPartial(onClick, args, id, 'delete')` for `onClick(args, id, action)`, not
+`systemPartial(onClick, args, id)`, which lets the click's `x` arrive as
+`action` — a string parameter silently becomes an integer like `14`, or a flag
+parameter becomes truthy. The exception is a handler that *wants* the event arg:
+`forms.bare`'s `formsTextOnKeyup(onEnter, keyCode)` binds `onEnter` and leaves
+`keyCode` for the event.
+
 ---
 
 ## 4. MarkdownUp client-rendered applications
@@ -599,7 +619,8 @@ Notes on a few of these:
 
 - `documentSetKeyDown(fn)` — the event passed to `fn` carries `.key` (the
   logical key, e.g. `'r'` or `'ArrowLeft'`), `.code` (the physical key,
-  e.g. `'KeyR'` or `'ArrowLeft'`), and `.ctrlKey` / `.shiftKey` /
+  e.g. `'KeyR'` or `'ArrowLeft'`), `.keyCode` (legacy numeric code), `.repeat`
+  (true while the key auto-repeats), `.location`, and `.ctrlKey` / `.shiftKey` /
   `.altKey` / `.metaKey`.
 - `documentSetReset(id)` — tells the runtime to clear everything below the
   element with this id before the next re-render. Pair with an invisible
@@ -816,6 +837,11 @@ producing partial state.
    is to poll all input via `windowKeyState` **inside the tick** and skip
    `documentSetKeyDown` entirely — the tick is then the only invocation
    that runs, and it always reschedules itself.
+6. **Element-model event callbacks get extra trailing args** — SVG-element
+   clicks append `(x, y, width, height)` and key events append `keyCode` (see
+   Section 3). `systemPartial`-bind every parameter the handler declares so those args
+   land on none of them; an under-bound handler silently reads a coordinate (or
+   keyCode) as its own data.
 
 ### Real-world example applications
 
@@ -1080,6 +1106,10 @@ assertions tractable:
   sentinel, so the assertion proves a callback is *present*, not *which* one.
   (`jsonStringify(value, 4)` on its own is also handy for dumping a captured log
   into a stable, diffable literal.)
+- **To test a captured event callback, invoke it with the args the browser would
+  append** — `capturedFn(14, 7, 30, 30)` for an SVG-element click, `capturedFn(13)`
+  for a keyup. Calling it with no args passes whether or not the handler leaks an
+  event arg into a real parameter, so a no-arg call won't catch that bug.
 
 ---
 
@@ -1160,6 +1190,9 @@ most commonly produce when writing BareScript for the first time.
 - [ ] **Includes go at the top**, before any code that uses their functions.
 - [ ] **Never `include <markdownUp.bare>`** (see Section 4). Run/lint
       MarkdownUp apps with `bare -m -x app.bare`, not `bare -x app.bare`.
+- [ ] **Element-model callbacks `systemPartial`-bind all handler args** — event
+      callbacks get extra trailing args (SVG-click coords, `keyCode`); an unbound
+      param catches them (see Section 3).
 - [ ] **Use `for value, ixValue in items:`** to get both value and index;
       don't reinvent with `while`.
 
