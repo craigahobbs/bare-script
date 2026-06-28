@@ -4788,6 +4788,7 @@ Render an [element model](https://github.com/craigahobbs/element-model#readme)
 
 **Note:** Element model "callback" members are a map of event name (e.g., "click") to
 event callback function. The following events have callback arguments:
+- **click** - For an SVG element, the click's x and y coordinates and the SVG's width and height
 - **keydown** - keyCode
 - **keypress** - keyCode
 - **keyup** - keyCode
