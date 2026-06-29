@@ -226,6 +226,9 @@ include <unittest.bare>         # system include — resolved against the
 
 `include` evaluates the file's top-level statements in the global scope,
 making its functions available. The order matters: include before you call.
+**`include` is idempotent** — a file's top-level statements run only the *first*
+time it's included; re-`include`ing the same file is a safe no-op (it won't
+re-run initializers or reset state).
 
 In the CLI, non-URL paths read from the local filesystem; same for non-URL
 `systemFetch` calls.
@@ -331,10 +334,10 @@ sorted = arraySort(arrayCopy(nums))     # don't mutate the original
 first  = arrayGet(sorted, 0)
 ```
 
-**`arrayGet` out of bounds is not free.** Unlike `objectGet` (which takes a
-default and quietly returns it for a missing key), `arrayGet` with an index
-`>= arrayLength(arr)` is an *invalid argument*: it returns `null` but **emits a
-debug log** in debug mode — so you can't use it to "peek" at an optional
+**An out-of-range index to `arrayGet` / `arraySet` is an *invalid argument*, not
+a free `null`.** Unlike `objectGet` (which takes a default and quietly returns it
+for a missing key), an index `>= arrayLength(arr)` returns `null` and **emits a
+debug log** in debug mode — so you can't use `arrayGet` to "peek" at an optional
 trailing element. Guard the length, and let short-circuiting skip the read:
 
 ```barescript
@@ -637,6 +640,12 @@ Notes on a few of these:
   physical key (e.g. `'ArrowLeft'`, `'Space'`, `'KeyR'`). For game /
   animation loops, polling inside the tick is preferable to a
   `documentSetKeyDown` handler — see gotcha #5 below.
+- `windowWidth()` / `windowHeight()` return the **full window size** (not a
+  reduced content area). MarkdownUp's stylesheet puts a **1.5em border around the
+  document body**, so a drawing sized to the full window overflows it and the page
+  scrolls. To fit exactly, subtract the border — 1.5em each side, i.e.
+  `3 * documentFontSize()` — from each dimension:
+  `width = windowWidth() - 3 * documentFontSize()` (and likewise for height).
 - `windowPlaySound(name)` — built-in SFX, sourced from `markdownUp.bare`:
   - **UI:** `beep`, `click`, `error`, `success`, `warning`
   - **Arcade:** `coin`, `jump`, `laser`, `explosion`, `powerup`,
@@ -974,11 +983,27 @@ the floor**, separately from assertion failures — so "every assertion passed"
 and "the suite is green" are two different checks. A new branch (an added
 `if`/`elif`, a new `objectGet` default path) with no fixture that exercises it
 turns the suite red on coverage even when every test passes; new code paths
-need new tests.
+need new tests. (Pass `'coverageExclude': ['runTests.bare']` to drop the runner
+itself from the denominator.)
+
+Reaching a 100% floor, in practice:
+
+- **Coverage is statement-level, not branch-level.** A *line* that never runs is
+  missing; an unevaluated arm of an `if(test, a, b)` *expression* is not (both
+  arms are one statement). So you need a fixture per `if:` / `elif:` *body*, per
+  loop body, and per early `return` — but not per `if()` arm.
+- **The report gives per-file counts, not line numbers** (`unittestCoverageData()`
+  returns the same summary). Find the gaps by reasoning about which bodies no test
+  reaches, then add focused tests.
+- **Keep coverage deterministic** so the floor can't flake — pin anything random.
+  For an animation/game, one end-to-end playthrough with `mathRandom` mocked
+  (`unittestMockOne('mathRandom', …)`), a fixed seed, and scripted `windowKeyState`
+  input covers in-context paths that isolated unit tests miss, identically every run.
 
 ### `test/testApp.bare` — basic assertions
 
 ```barescript
+include <unittest.bare>          # so the file lints standalone (see below)
 include '../app.bare'
 
 function testAddNumbers():
@@ -1000,15 +1025,31 @@ Use `unittestEqual` for primitives and identity, `unittestDeepEqual` for
 arrays and objects. Both log a failure and continue; `unittestReport` totals
 them up.
 
+**Each test file must itself `include <unittest.bare>`** (and `<unittestMock.bare>`
+if it mocks) **plus the module(s) it tests** — even though the runner includes
+them too. The project lint `bare -x -m *.bare test/*.bare` static-analyzes *each
+file independently*, so a test file that relies on the runner for
+`unittestRunTest` / `unittestEqual` fails with `Undefined function`. Because
+`include` is idempotent (Section 1), the runner re-including them is harmless.
+
 ### Running tests
 
 ```sh
 bare -m test/runTests.bare        # exits non-zero on any failure
 bare -m -x test/runTests.bare     # lint + run (lint warnings printed alongside test results)
+bare -d -m test/runTests.bare     # debug mode — surfaces builtin debug logs (see below)
+bare -x -m *.bare test/*.bare     # the standard project lint: every file, standalone
 ```
 
 `-m` automatically prepends `include <markdownUp.bare>` — your test code must
 not include it itself (see Section 4).
+
+Tests usually run in **debug mode** (`bare -d -m …`, e.g. via `make test`), which
+prints a builtin's debug log whenever it's handed an invalid argument — most often
+an out-of-range `arrayGet` / `arraySet` index (Section 2). A clean suite has
+**zero** such lines, so a test that quietly triggers one is a defect to fix even
+though assertions pass. Check with
+`bare -d -m test/runTests.bare 2>&1 | grep "failed with error"`.
 
 ### Mocking the MarkdownUp runtime
 
@@ -1018,8 +1059,9 @@ all have side effects you don't want in unit tests.
 intercepts every library function and records calls.
 
 ```barescript
-include '../app.bare'
+include <unittest.bare>
 include <unittestMock.bare>
+include '../app.bare'
 
 function testAppMain():
     unittestMockAll()
@@ -1141,6 +1183,12 @@ Note: `-x` is *static analysis **with** execution* — it runs the script and
 also reports lint warnings. Use `-s` for parse/lint without execution. For
 MarkdownUp apps and their tests, always combine `-m` (or `-l`) with `-x` or
 `-s` so the runtime stubs are available (see Section 4).
+
+Note: under `-m` (Markdown text) only `markdownPrint` output is emitted —
+`elementModelRender`, and therefore `drawRender` (which calls it), render
+**nothing**. To actually see an element-model or `draw.bare` drawing from the
+CLI, use `-l` (HTML), which emits the `<svg>` / element markup. A canvas app
+that looks blank under `bare -m` is usually fine; check it with `bare -l`.
 
 In the CLI, `systemFetch('local/path.json')` reads a file; with a request
 body it *writes* the body to the file.

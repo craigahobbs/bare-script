@@ -318,7 +318,7 @@ test('library, arrayIndexOf', () => {
         }
     );
 
-    // Index outside valid range
+    // Negative start index is invalid
     assert.throws(
         () => {
             scriptFunctions.arrayIndexOf([array, 2, -1], null);
@@ -329,16 +329,11 @@ test('library, arrayIndexOf', () => {
             'returnValue': -1
         }
     );
-    assert.throws(
-        () => {
-            scriptFunctions.arrayIndexOf([array, 2, 4], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "index" argument value, 4',
-            'returnValue': -1
-        }
-    );
+
+    // A start index at/after the end (or an empty array) simply finds nothing
+    assert.equal(scriptFunctions.arrayIndexOf([array, 2, 4], null), -1);
+    assert.equal(scriptFunctions.arrayIndexOf([[], 2], null), -1);
+    assert.equal(scriptFunctions.arrayIndexOf([[], 2, 0], null), -1);
 
     // Non-number index
     assert.throws(
@@ -438,7 +433,7 @@ test('library, arrayLastIndexOf', () => {
         }
     );
 
-    // Index outside valid range
+    // Negative start index is invalid
     assert.throws(
         () => {
             scriptFunctions.arrayLastIndexOf([array, 2, -1], null);
@@ -449,16 +444,11 @@ test('library, arrayLastIndexOf', () => {
             'returnValue': -1
         }
     );
-    assert.throws(
-        () => {
-            scriptFunctions.arrayLastIndexOf([array, 2, 4], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "index" argument value, 4',
-            'returnValue': -1
-        }
-    );
+
+    // A start index at/after the end clamps to the end; an empty array finds nothing
+    assert.equal(scriptFunctions.arrayLastIndexOf([array, 2, 4], null), 3);
+    assert.equal(scriptFunctions.arrayLastIndexOf([[], 2], null), -1);
+    assert.equal(scriptFunctions.arrayLastIndexOf([[], 2, 0], null), -1);
 
     // Non-number index
     assert.throws(

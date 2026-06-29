@@ -2251,6 +2251,26 @@ test('parseExpression, unary', () => {
 });
 
 
+test('parseExpression, single-character function name', () => {
+    // Regression: a single-character function name must parse as a call (not fail)
+    let expr = parseExpression('f()');
+    assert.deepEqual(validateExpression(expr), {'function': {'name': 'f', 'args': []}});
+
+    // ...including immediately after a unary operator and as an operand
+    expr = parseExpression('-f()');
+    assert.deepEqual(validateExpression(expr), {'unary': {'op': '-', 'expr': {'function': {'name': 'f', 'args': []}}}});
+
+    expr = parseExpression('x + f(1)');
+    assert.deepEqual(validateExpression(expr), {
+        'binary': {
+            'op': '+',
+            'left': {'variable': 'x'},
+            'right': {'function': {'name': 'f', 'args': [{'number': 1}]}}
+        }
+    });
+});
+
+
 test('parseExpression, syntax error', () => {
     const exprText = ' @#$';
     assert.throws(
