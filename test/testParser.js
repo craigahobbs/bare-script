@@ -418,8 +418,9 @@ return  # Bye!
                     'lineNumber': 32
                 }
             },
-            {'jump': {'label': '__barescriptLoop3', 'lineNumber': 33}},
+            {'jump': {'label': '__barescriptContinue3', 'lineNumber': 33}},
             {'label':{'name':  '__barescriptDone5', 'lineNumber': 34}},
+            {'label':{'name':  '__barescriptContinue3', 'lineNumber': 35}},
             {'jump': {'label': '__barescriptLoop3', 'expr': {'variable': 'true'}, 'lineNumber': 35}},
             {'label':{'name':  '__barescriptDone3', 'lineNumber': 35}},
             {'return': {'lineNumber': 37}}
@@ -1339,7 +1340,8 @@ endwhile
         'statements': [
             {'jump': {'label': '__barescriptDone0', 'expr': {'unary': {'op': '!', 'expr': {'variable': 'true'}}}, 'lineNumber': 1}},
             {'label': {'name': '__barescriptLoop0', 'lineNumber': 1}},
-            {'jump': {'label': '__barescriptLoop0', 'lineNumber': 2}},
+            {'jump': {'label': '__barescriptContinue0', 'lineNumber': 2}},
+            {'label': {'name': '__barescriptContinue0', 'lineNumber': 3}},
             {'jump': {'label': '__barescriptLoop0', 'expr': {'variable': 'true'}, 'lineNumber': 3}},
             {'label': {'name': '__barescriptDone0', 'lineNumber': 3}}
         ]

@@ -992,9 +992,14 @@ Reaching a 100% floor, in practice:
   missing; an unevaluated arm of an `if(test, a, b)` *expression* is not (both
   arms are one statement). So you need a fixture per `if:` / `elif:` *body*, per
   loop body, and per early `return` — but not per `if()` arm.
-- **The report gives per-file counts, not line numbers** (`unittestCoverageData()`
-  returns the same summary). Find the gaps by reasoning about which bodies no test
-  reaches, then add focused tests.
+- **The summary table gives per-file counts, not line numbers** (`unittestCoverageData()`
+  returns the same summary) — but a per-script details page highlights the
+  *uncovered statements* in red, and you can render it straight from the CLI, no
+  browser: `bare -l test/runTests.bare -v vUnittestScript "'app.bare'"`, then read
+  (or `grep`) the HTML — uncovered lines are wrapped in a `background-color: #f08080`
+  span. Pass the script name **exactly as it appears in the coverage table** (e.g.
+  `app.bare`, not `../app.bare`); a mismatched name silently renders "No data".
+  Far faster than reasoning about which bodies no test reaches.
 - **Keep coverage deterministic** so the floor can't flake — pin anything random.
   For an animation/game, one end-to-end playthrough with `mathRandom` mocked
   (`unittestMockOne('mathRandom', …)`), a fixed seed, and scripted `windowKeyState`
@@ -1039,7 +1044,13 @@ bare -m test/runTests.bare        # exits non-zero on any failure
 bare -m -x test/runTests.bare     # lint + run (lint warnings printed alongside test results)
 bare -d -m test/runTests.bare     # debug mode — surfaces builtin debug logs (see below)
 bare -x -m *.bare test/*.bare     # the standard project lint: every file, standalone
+bare -m test/runTests.bare -v vUnittestTest "'testName'"   # run only one test by name
 ```
+
+Running a single test (`vUnittestTest`) is the way to **isolate a hang**: the
+report prints all results in one batch at the very end, so a suite that hangs
+shows *no test output at all* (it isn't "stuck before the first test" — it's stuck
+in some test). Re-run each suspect test by name to find the culprit.
 
 `-m` automatically prepends `include <markdownUp.bare>` — your test code must
 not include it itself (see Section 4).
@@ -1188,7 +1199,12 @@ Note: under `-m` (Markdown text) only `markdownPrint` output is emitted —
 `elementModelRender`, and therefore `drawRender` (which calls it), render
 **nothing**. To actually see an element-model or `draw.bare` drawing from the
 CLI, use `-l` (HTML), which emits the `<svg>` / element markup. A canvas app
-that looks blank under `bare -m` is usually fine; check it with `bare -l`.
+that looks blank under `bare -m` is usually fine; check it with `bare -l`. To
+*see* the rendered frame, save that HTML and open it in a browser — or rasterize
+it headless (e.g. `chrome --headless --screenshot=out.png --window-size=W,H frame.html`)
+to eyeball a `draw.bare` scene without a manual click. To capture a specific
+frame, point `-l` at a tiny driver script that sets up the state and calls your
+draw function (parameterize which frame with `-v`).
 
 In the CLI, `systemFetch('local/path.json')` reads a file; with a request
 body it *writes* the body to the file.
