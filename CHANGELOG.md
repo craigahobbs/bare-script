@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.10 (2026-06-29)
+
+- [0d393d3](https://github.com/craigahobbs/bare-script/commit/0d393d3) - fix while-continue hang
+
 ## 4.2.9 (2026-06-29)
 
 - [973dbb6](https://github.com/craigahobbs/bare-script/commit/973dbb6) - fix arrayIndexOf and arrayLastIndexOf empty array behavior, fix function expression parsing issue, and update skill
