@@ -288,8 +288,8 @@ before committing to it.
   earlier sibling matched.
 - **`regexMatchAll` + an `ixSearch` index beats `while + regexMatch +
   stringSlice`** for iterating matches — one scan with a pointer vs a fresh
-  re-scan each iteration — and it's the idiomatic form (see
-  `markdownParserParagraphSpans`, `markdownHighlightElements`). Caveat: with the
+  re-scan each iteration — and it's the idiomatic form across the markdown
+  includes. Caveat: with the
   `m` flag, `^` / `$` in inner patterns match true line boundaries in the
   `regexMatchAll` form (usually what you want).
 - **Don't assume "precompute into a lookup map" is free** — an `objectGet` into
@@ -308,8 +308,11 @@ mismatch** (with a debug log if debug mode is on).
 
 Full reference: <https://craigahobbs.github.io/bare-script/library/> — also
 published as a single-page Markdown document that can be fetched directly into
-context: <https://craigahobbs.github.io/bare-script/library/barescript-library.md>.
-What follows is what you need to *recall the right name* without searching.
+context: <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
+(that one page documents **both** the built-in library here and the include
+library in Section 3, with full signatures — fetch it whenever you need a
+signature this skill doesn't spell out). What follows is what you need to
+*recall the right name* without searching.
 
 ### Array (`array*`)
 
@@ -453,7 +456,11 @@ spreadsheet-style data filter).
 ## 3. The include library (`include <name.bare>`)
 
 Pure-BareScript libraries that ship with the package. Always include before
-calling. Each is documented in detail at
+calling. Every include function — full signatures and option shapes — is in the
+single-page Markdown reference
+(<https://craigahobbs.github.io/bare-script/library/barescript-library.md>);
+fetch it for any signature the table below doesn't spell out, rather than reading
+the `.bare` source. Each include is also documented at
 <https://craigahobbs.github.io/bare-script/include/>.
 
 | Include | Purpose | Key functions |
@@ -599,7 +606,7 @@ appMain()
 
 ### The runtime functions you have
 
-When code runs inside MarkdownUp (in the browser), these "document" / "window"
+When code runs inside MarkdownUp, these "document" / "window"
 / "storage" functions are provided by the runtime:
 
 - **Output:** `markdownPrint(line1, line2, ...)` — print Markdown lines
@@ -823,8 +830,8 @@ producing partial state.
 3. **`markdownPrint(a, b)` with no empty-string separator** prints `a` and `b`
    on consecutive lines — same paragraph in Markdown. Pass `''` between them
    to force a paragraph break.
-4. The MarkdownUp runtime is single-threaded JavaScript — there is no
-   coroutine cancellation. Long synchronous loops will freeze the browser.
+4. The MarkdownUp runtime is single-threaded — there is no
+   coroutine cancellation. Long synchronous loops will freeze the UI.
    For animation, schedule with `windowSetTimeout(fn, ms)`.
 5. **MarkdownUp cancels the pending `windowSetTimeout` at the end of every
    script invocation.** After a `documentSetKeyDown` handler, a
@@ -1106,8 +1113,8 @@ assertions tractable:
   sentinel, so the assertion proves a callback is *present*, not *which* one.
   (`jsonStringify(value, 4)` on its own is also handy for dumping a captured log
   into a stable, diffable literal.)
-- **To test a captured event callback, invoke it with the args the browser would
-  append** — `capturedFn(14, 7, 30, 30)` for an SVG-element click, `capturedFn(13)`
+- **To test a captured event callback, invoke it with the args MarkdownUp
+  appends at event time** — `capturedFn(14, 7, 30, 30)` for an SVG-element click, `capturedFn(13)`
   for a keyup. Calling it with no args passes whether or not the handler leaks an
   event arg into a real parameter, so a no-arg call won't catch that bug.
 
@@ -1203,12 +1210,16 @@ most commonly produce when writing BareScript for the first time.
 - **Examples beat prose.** Pattern-match on the concrete examples above, and
   match their style — 4-space indent, trailing `\` for continuation inside
   literals, `function` / `endfunction`, lowercase camelCase names.
-- **Recall names before inventing them; grep before guessing.** If you're
-  unsure of a name, recall its camelCase prefix (`array*`, `object*`,
+- **Recall names before inventing them; fetch the reference before guessing.**
+  If you're unsure of a name, recall its camelCase prefix (`array*`, `object*`,
   `string*`, `data*`, `draw*`, `markdown*`, `unittest*`, `systemFetch`, …) and
-  pick the function that literally describes the operation. If it isn't in
-  this file, search `lib/library.js` (built-ins) and `lib/include/*.bare`
-  (includes) — both stable and 100%-covered.
+  pick the function that literally describes the operation. If it isn't in this
+  file, fetch the single-page library reference
+  (<https://craigahobbs.github.io/bare-script/library/barescript-library.md>),
+  which documents every built-in *and* include function. Only read the
+  implementation source — the library module and the shared `.bare` include
+  files — as a last resort, and freely when you're working inside a BareScript
+  implementation repo itself.
 - **Don't translate from JavaScript or Python without re-checking.** The
   syntactic similarity hides three pitfalls — bracket access, augmented
   assignment, and exceptions — none of which exist here.
@@ -1225,7 +1236,7 @@ most commonly produce when writing BareScript for the first time.
 - Built-in library: <https://craigahobbs.github.io/bare-script/library/>
 - Include library: <https://craigahobbs.github.io/bare-script/include/>
 - Expression library: <https://craigahobbs.github.io/bare-script/library/expression.html>
-- Built-in library, single-page Markdown (fetch for the full reference): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
+- Built-in + include library, single-page Markdown (fetch for the full reference — both libraries, full signatures): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
 - Library models, single-page Markdown: <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>
 - MarkdownUp: <https://craigahobbs.github.io/markdown-up/>
 - MarkdownUp example applications (fetchable Markdown): <https://craigahobbs.github.io/MarkdownUpApplications.md>
