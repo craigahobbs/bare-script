@@ -893,7 +893,7 @@ function parseUnaryExpression(exprText, arrayLiterals) {
 // BareScript expression regex
 const rExprBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;&lt;|>>|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\||&amp;|\^|\|)/;
 const rExprUnaryOp = /^\s*(!|-|~)/;
-const rExprFunctionOpen = /^\s*([A-Za-z_]\w+)\s*\(/;
+const rExprFunctionOpen = /^\s*([A-Za-z_]\w*)\s*\(/;
 const rExprFunctionSeparator = /^\s*,/;
 const rExprFunctionClose = /^\s*\)/;
 const rExprGroupOpen = /^\s*\(/;
