@@ -607,6 +607,106 @@ endfunction
 appMain()
 ```
 
+### Scaffold a new app with tests, 100% coverage, and a Makefile
+
+A new MarkdownUp app isn't "done" when it renders — ship it as a project anyone
+can verify from a clean checkout. Always create three things alongside the app,
+not just the `.bare`/`.md`:
+
+1. **A unit-test suite** under `test/` (Section 5 has the layout and how to mock
+   the runtime). Test the app's logic, not just that it parses.
+2. **100% coverage, enforced.** The runner ends with
+   `return unittestReport({'coverageMin': 100})`, so the suite fails if any
+   statement goes untested. A new `if`/`elif` body, loop body, or early `return`
+   needs a new fixture — treat a coverage drop as a failing build, not a warning.
+3. **A `Makefile`** that builds a self-contained virtual environment with the
+   `bare` CLI and exposes `clean` / `lint` / `test` / `commit` (template below),
+   so `make commit` runs from a fresh clone with nothing pre-installed.
+
+Project layout:
+
+```
+myapp/
+├── Makefile
+├── app.md
+├── app.bare
+└── test/
+    ├── runTests.md
+    ├── runTests.bare
+    └── testApp.bare
+```
+
+For a tested app, call `appMain()` from **`app.md`** (`include 'app.bare'` then
+`appMain()`) rather than at the end of `app.bare`. Then `testApp.bare` can
+`include '../app.bare'` without executing the app, and a dedicated test calls
+`appMain()` under `unittestMockAll()` to cover it. (The bare "Minimum app" above
+self-invokes for brevity; a tested project shouldn't.)
+
+**Makefile** — builds `build/venv` once (installing `bare-script`), reuses it,
+and is the standard for a new app. Recipe lines must be indented with a real
+**TAB**, not spaces:
+
+```makefile
+# Dependencies installed into the build virtual environment
+TESTS_REQUIRE := bare-script
+
+# Python virtual environment paths
+VENV_DIR := build/venv
+VENV_BIN := $(VENV_DIR)/bin
+VENV_BUILD := $(VENV_DIR).build
+
+
+.DEFAULT_GOAL := help
+
+
+.PHONY: help
+help:
+	@echo "usage: make [clean|commit|lint|run|test]"
+
+
+# Run the tests then lint - the pre-commit gate
+.PHONY: commit
+commit: test lint
+
+
+# Run the unit tests (TEST="testName" runs one test); -d surfaces builtin debug logs
+.PHONY: test
+test: $(VENV_BUILD)
+	$(VENV_BIN)/bare -d -m test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+
+
+# Statically analyze (and execute) every script, standalone
+.PHONY: lint
+lint: $(VENV_BUILD)
+	$(VENV_BIN)/bare -x -m *.bare test/*.bare
+
+
+# View the app in a browser (MarkdownUp local server)
+.PHONY: run
+run: $(VENV_BUILD)
+	$(VENV_BIN)/pip install markdown-up
+	$(VENV_BIN)/markdown-up app.md
+
+
+# Remove the build directory (and the virtual environment)
+.PHONY: clean
+clean:
+	rm -rf build/
+
+
+# Build the virtual environment with the bare CLI, once
+$(VENV_BUILD):
+	mkdir -p $(VENV_DIR)
+	python3 -m venv --upgrade-deps $(VENV_DIR)
+	$(VENV_BIN)/pip install $(TESTS_REQUIRE)
+	touch $@
+```
+
+`make test` runs in debug mode so a stray invalid-builtin-arg debug log surfaces;
+`make lint` is the standalone static analysis of every file; `make commit` is the
+gate to run before committing. For a `draw.bare` canvas app, add a `screenshots`
+target that renders frames with `bare -l` and rasterizes them headless (Section 6).
+
 ### The runtime functions you have
 
 When code runs inside MarkdownUp, these "document" / "window"
