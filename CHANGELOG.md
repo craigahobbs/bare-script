@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.12 (2026-07-13)
+
+- [0ca4e00](https://github.com/craigahobbs/bare-script/commit/0ca4e00) - schema-markdown 1.3
+
 ## 4.2.10 (2026-06-29)
 
 - [0d393d3](https://github.com/craigahobbs/bare-script/commit/0d393d3) - fix while-continue hang
