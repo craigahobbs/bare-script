@@ -903,7 +903,7 @@ test('library, barescriptEvaluateExpression', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Unknown member 'foo'"
+            'message': 'Unknown member "foo"'
         }
     );
 });
@@ -3029,7 +3029,7 @@ test('script library, schemaValidate', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Invalid value {} (type 'object'), expected type 'Types' [len > 0]"
+            'message': 'Invalid value {} (type "object"), expected type "Types" [len > 0]'
         }
     );
 
@@ -3040,7 +3040,7 @@ test('script library, schemaValidate', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Required member 'a' missing"
+            'message': 'Required member "a" missing'
         }
     );
 
@@ -3081,7 +3081,7 @@ test('script library, schemaValidateTypeModel', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Invalid value {} (type 'object'), expected type 'Types' [len > 0]"
+            'message': 'Invalid value {} (type "object"), expected type "Types" [len > 0]'
         }
     );
 
@@ -4078,7 +4078,7 @@ test('library, systemFetch', async () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Required member 'url' missing"
+            'message': 'Required member "url" missing'
         }
     );
     assert.deepEqual(logs, []);
@@ -4092,7 +4092,7 @@ test('library, systemFetch', async () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Required member 'url' missing"
+            'message': 'Required member "url" missing'
         }
     );
     assert.deepEqual(logs, []);

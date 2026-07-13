@@ -28,7 +28,7 @@
         "test": "node --test test/"
     },
     "dependencies": {
-        "schema-markdown": "~1.2"
+        "schema-markdown": "~1.3"
     },
     "devDependencies": {
         "@eslint/js": "~10.0",

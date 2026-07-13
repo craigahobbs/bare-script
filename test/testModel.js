@@ -20,7 +20,7 @@ test('validateScript, error', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Required member 'statements' missing"
+            'message': 'Required member "statements" missing'
         }
     );
 });
@@ -40,7 +40,7 @@ test('validateExpression, error', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Invalid value {} (type 'object'), expected type 'Expression'"
+            'message': 'Invalid value {} (type "object"), expected type "Expression"'
         }
     );
 });

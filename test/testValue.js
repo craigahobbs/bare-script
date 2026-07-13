@@ -755,7 +755,7 @@ test('valueArgsModel', () => {
         },
         {
             'name': 'ValidationError',
-            'message': "Invalid value [] (type 'object'), expected type 'FunctionArguments' [len > 0]"
+            'message': 'Invalid value [] (type "object"), expected type "FunctionArguments" [len > 0]'
         }
     );
 
