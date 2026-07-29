@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.2 (2026-07-29)
+
+- [f9f7f25](https://github.com/craigahobbs/bare-script/commit/f9f7f25) - execute the include library script within the async runtime so that async stub functions run asynchronously
+
 ## 5.0.1 (2026-07-29)
 
 - [137a849](https://github.com/craigahobbs/bare-script/commit/137a849) - add markdownElementsAsync include stub
