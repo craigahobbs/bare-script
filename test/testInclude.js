@@ -4,8 +4,8 @@
 import {
     dataAggregate, dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort,
     dataTableElements, dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString, elementModelValidate,
-    includeSetLogFn, markdownElements, markdownEscape, markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle,
-    markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes,
+    includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape, markdownHeaderId, markdownParagraphText, markdownParse,
+    markdownTitle, markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes,
     schemaGetStructMembers, schemaParse, schemaTypeModel, schemaTypeModelValidate, schemaValidate, urlDecodeComponent,
     urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
@@ -221,6 +221,36 @@ test('markdown, markdownValidate error', () => {
 test('markdownElements, markdownElements', () => {
     const markdown = markdownParse('# Title');
     assert.deepEqual(markdownElements(markdown), [{'html': 'h1', 'attr': null, 'elem': [{'text': 'Title'}]}]);
+});
+
+
+test('markdownElements, markdownElementsAsync', () => {
+    const markdown = markdownParse('# Title');
+    assert.deepEqual(markdownElementsAsync(markdown), [{'html': 'h1', 'attr': null, 'elem': [{'text': 'Title'}]}]);
+});
+
+
+test('markdownElements, markdownElementsAsync code block', () => {
+    const markdown = markdownParse('~~~ fenced\nHello\n~~~');
+    const options = {'codeBlocks': {'fenced': ([codeBlock]) => ({'html': 'pre', 'elem': {'text': codeBlock.lines.join('\n')}})}};
+    assert.deepEqual(markdownElementsAsync(markdown, options), [{'html': 'pre', 'elem': {'text': 'Hello'}}]);
+});
+
+
+test('markdownElements, markdownElementsAsync async code block error', async () => {
+    const markdown = markdownParse('~~~ fenced\nHello\n~~~');
+    // eslint-disable-next-line require-await
+    const codeBlockFn = async ([codeBlock]) => ({'html': 'pre', 'elem': {'text': codeBlock.lines.join('\n')}});
+    assert.deepEqual(await codeBlockFn([{'lines': ['Hello']}]), {'html': 'pre', 'elem': {'text': 'Hello'}});
+    assert.throws(
+        () => {
+            markdownElementsAsync(markdown, {'codeBlocks': {'fenced': codeBlockFn}});
+        },
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'markdownHighlight.bare:98: Async function "renderFn" called within non-async scope'
+        }
+    );
 });
 
 
