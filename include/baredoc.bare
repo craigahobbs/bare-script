@@ -3,9 +3,9 @@
 
 include <args.bare>
 include <markdown.bare>
-include <dataUtil.bare>
-include <dataTable.bare>
+include <schema.bare>
 include <schemaDoc.bare>
+include <schemaParser.bare>
 
 
 # $function: baredocMain

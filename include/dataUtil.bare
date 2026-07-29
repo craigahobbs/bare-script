@@ -38,7 +38,7 @@ dataUtilDefaultTrim = true
 
 # Value formatting cleanup regex
 dataUtilRegexNumberCleanup = regexNew('\\.0*$')
-dataUtilRegexDateCleanup = regexNew('(?:(?:(?:-01)?T00:00)?:00)?(?:\\.\\d{1,6})?(?:Z|[+-]\\d\\d:\\d\\d)$')
+dataUtilRegexDateCleanup = regexNew('(?:(?:(?:-01)?T00:00)?:00)?(?:\\.[0-9]{1,6})?(?:Z|[+-][0-9][0-9]:[0-9][0-9])$')
 
 
 # Helper function to compute a value's parameter

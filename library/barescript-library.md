@@ -18,10 +18,8 @@ documentation. The **Builtin Functions** are global functions available to every
 | [number](#var.vPublish=true&var.vSingle=true&number) | Parse and format numbers |
 | [object](#var.vPublish=true&var.vSingle=true&object) | Create, manipulate, and query objects |
 | [regex](#var.vPublish=true&var.vSingle=true&regex) | Compile and apply regular expressions |
-| [schema](#var.vPublish=true&var.vSingle=true&schema) | Parse and validate Schema Markdown |
 | [string](#var.vPublish=true&var.vSingle=true&string) | Search, slice, and transform strings |
 | [system](#var.vPublish=true&var.vSingle=true&system) | Runtime, fetch, logging, and global functions |
-| [url](#var.vPublish=true&var.vSingle=true&url) | Encode URLs and URL components |
 
 ## Include Functions
 
@@ -43,9 +41,13 @@ documentation. The **Builtin Functions** are global functions available to every
 | [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare) | Stub implementations of the MarkdownUp runtime functions |
 | [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare) | Multi-page MarkdownUp application shell |
 | [qrcode.bare](#var.vPublish=true&var.vSingle=true&qrcode-bare) | Render QR codes |
+| [schema.bare](#var.vPublish=true&var.vSingle=true&schema-bare) | Validate values with Schema Markdown type models |
 | [schemaDoc.bare](#var.vPublish=true&var.vSingle=true&schemadoc-bare) | Schema Markdown documentation application |
+| [schemaParser.bare](#var.vPublish=true&var.vSingle=true&schemaparser-bare) | Parse Schema Markdown text into type models |
+| [schemaTypeModel.bare](#var.vPublish=true&var.vSingle=true&schematypemodel-bare) | The Schema Markdown type model and type model validation |
 | [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare) | Unit test framework |
 | [unittestMock.bare](#var.vPublish=true&var.vSingle=true&unittestmock-bare) | Mock library functions during unit tests |
+| [url.bare](#var.vPublish=true&var.vSingle=true&url-bare) | Encode and decode URL query strings |
 
 ---
 
@@ -1482,7 +1484,7 @@ The default value (optional)
 
 #### Returns
 
-The value or null if the key does not exist
+The value, or the default value if the key does not exist
 
 ---
 
@@ -1660,8 +1662,11 @@ The string
 
 #### Returns
 
-The [match object](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='RegexMatch'),
-or null if no matches are found
+The match object, or null if no matches are found.
+The match object contains the following members:
+- **index** - the zero-based index of the match in the input string
+- **input** - the input string
+- **groups** - the matched groups. The "0" key is the full match text. Ordered (non-named) groups use keys "1", "2", and so on.
 
 ---
 
@@ -1679,7 +1684,7 @@ The string
 
 #### Returns
 
-The array of [match objects](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='RegexMatch')
+The array of match objects (see the [regexMatch](#var.vName='regexMatch') function)
 
 ---
 
@@ -1740,157 +1745,6 @@ The string
 #### Returns
 
 The array of split parts
-
----
-
-## schema
-
-Schema functions provide operations for parsing, validating, and working with
-[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type definitions.
-Schema Markdown is a human-readable schema definition language.
-
-Parse Schema Markdown text:
-
-~~~ bare-script
-types = schemaParse( \
-    '# A person information struct', \
-    'struct Person', \
-    '', \
-    "    # The person's name", \
-    '    string name', \
-    '', \
-    "    # The person's age", \
-    '    int age', \
-    '', \
-    "    # The person's email address", \
-    '    optional string email' \
-)
-~~~
-
-Validate data against a schema type:
-
-~~~ bare-script
-person = {'name': 'Alice', 'age': 30}
-validated = schemaValidate(types, 'Person', person)
-if validated != null:
-    # Validation succeeded
-    markdownPrint('Valid person: ' + objectGet(validated, 'name'))
-endif
-~~~
-
-Validate a type model:
-
-~~~ bare-script
-# Validate that a types object conforms to the Schema Markdown type model
-validatedTypes = schemaValidateTypeModel(types)
-~~~
-
-Schema validation provides:
-- Type checking (strings, integers, floats, booleans, etc.)
-- Required vs. optional field validation
-- Array and object structure validation
-- Enumeration value validation
-- Custom validation constraints
-- Detailed error messages
-
-This makes it easy to define, validate, and document data structures in BareScript applications.
-
-
-### Function Index
-
-- [schemaParse](#var.vPublish=true&var.vSingle=true&schemaparse)
-- [schemaParseEx](#var.vPublish=true&var.vSingle=true&schemaparseex)
-- [schemaTypeModel](#var.vPublish=true&var.vSingle=true&schematypemodel)
-- [schemaValidate](#var.vPublish=true&var.vSingle=true&schemavalidate)
-- [schemaValidateTypeModel](#var.vPublish=true&var.vSingle=true&schemavalidatetypemodel)
-
----
-
-### schemaParse
-
-Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
-
-#### Arguments
-
-**lines... -**
-The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/)
-text lines (may contain nested arrays of un-split lines)
-
-#### Returns
-
-The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
----
-
-### schemaParseEx
-
-Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text with options
-
-#### Arguments
-
-**lines -**
-The array of [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/)
-text lines (may contain nested arrays of un-split lines)
-
-**types -**
-Optional. The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
-
-**filename -**
-Optional (default is ""). The file name.
-
-#### Returns
-
-The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
----
-
-### schemaTypeModel
-
-Get the [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
-#### Arguments
-
-None
-
-#### Returns
-
-The [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
----
-
-### schemaValidate
-
-Validate an object to a schema type
-
-#### Arguments
-
-**types -**
-The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
-**typeName -**
-The type name
-
-**value -**
-The object to validate
-
-#### Returns
-
-The validated object or null if validation fails
-
----
-
-### schemaValidateTypeModel
-
-Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
-
-#### Arguments
-
-**types -**
-The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
-
-#### Returns
-
-The validated [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 ---
 
@@ -2045,7 +1899,7 @@ The UTF-8 byte array
 
 #### Returns
 
-The string
+The string, or null if the byte array is not valid UTF-8
 
 ---
 
@@ -2462,10 +2316,11 @@ Retrieve a URL resource
 #### Arguments
 
 **url -**
-The resource URL,
-[request model](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='SystemFetchRequest'),
-or array of URL and
-[request model](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='SystemFetchRequest')
+The resource URL, request model, or array of URL and request model.
+The request model is an object with the following members:
+- **url** - the resource URL
+- **body** - the optional request body string
+- **headers** - the optional request headers (an object of string values)
 
 #### Returns
 
@@ -2487,7 +2342,7 @@ The default value (optional)
 
 #### Returns
 
-The global variable's value or null if it does not exist
+The global variable's value, or the default value if it does not exist
 
 ---
 
@@ -2589,65 +2444,6 @@ The value
 
 The type string of the value.
 Valid values are: 'array', 'boolean', 'datetime', 'function', 'null', 'number', 'object', 'regex', 'string'.
-
----
-
-## url
-
-URL functions provide operations for encoding URLs and URL components. These functions ensure that
-special characters in URLs are properly escaped for use in web requests and links.
-
-Encode a complete URL:
-
-~~~ bare-script
-url = 'path?param=value with spaces'
-encoded = urlEncode(url)
-~~~
-
-Encode a URL component (query parameter, path segment, etc.):
-
-~~~ bare-script
-# Build a URL with encoded parameters
-baseUrl = 'search'
-query = urlEncodeComponent('term with spaces')
-fullUrl = baseUrl + '?q=' + query
-~~~
-
-
-### Function Index
-
-- [urlEncode](#var.vPublish=true&var.vSingle=true&urlencode)
-- [urlEncodeComponent](#var.vPublish=true&var.vSingle=true&urlencodecomponent)
-
----
-
-### urlEncode
-
-Encode a URL
-
-#### Arguments
-
-**url -**
-The URL string
-
-#### Returns
-
-The encoded URL string
-
----
-
-### urlEncodeComponent
-
-Encode a URL component
-
-#### Arguments
-
-**url -**
-The URL component string
-
-#### Returns
-
-The encoded URL component string
 
 ---
 
@@ -3074,6 +2870,7 @@ data = dataParseCSV(csv)
 - [dataSort](#var.vPublish=true&var.vSingle=true&datasort)
 - [dataTop](#var.vPublish=true&var.vSingle=true&datatop)
 - [dataValidate](#var.vPublish=true&var.vSingle=true&datavalidate)
+- [dataValidateEx](#var.vPublish=true&var.vSingle=true&datavalidateex)
 
 ---
 
@@ -3246,6 +3043,25 @@ The map of field name to field type, or null if the data is invalid
 
 ---
 
+### dataValidateEx
+
+Validate a data array
+
+#### Arguments
+
+**data -**
+The data array
+
+**csv -**
+Optional (default is false). If true, parse value strings.
+
+#### Returns
+
+On success, an object with the "result" key set to the map of field name to field type.
+On failure, an object with the "error" key set to the validation error message.
+
+---
+
 ## dataLineChart.bare
 
 The "dataLineChart.bare" include library provides functions for rendering line charts from data arrays.
@@ -3320,6 +3136,7 @@ elementModelRender(dataLineChartElements(data, { \
 - [dataLineChart](#var.vPublish=true&var.vSingle=true&datalinechart)
 - [dataLineChartElements](#var.vPublish=true&var.vSingle=true&datalinechartelements)
 - [dataLineChartValidate](#var.vPublish=true&var.vSingle=true&datalinechartvalidate)
+- [dataLineChartValidateEx](#var.vPublish=true&var.vSingle=true&datalinechartvalidateex)
 
 ---
 
@@ -3382,6 +3199,23 @@ The validated [line chart model](model.html#var.vName='DataLineChart')
 
 ---
 
+### dataLineChartValidateEx
+
+Validate a line chart model
+
+#### Arguments
+
+**lineChart -**
+The [line chart model](model.html#var.vName='DataLineChart')
+
+#### Returns
+
+On success, an object with the "result" key set to the validated [line chart model](model.html#var.vName='DataLineChart').
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
+
+---
+
 ## dataTable.bare
 
 The "dataTable.bare" include library provides functions for rendering data arrays as formatted
@@ -3423,6 +3257,7 @@ markdownPrint(dataTableMarkdown(data))
 - [dataTableElements](#var.vPublish=true&var.vSingle=true&datatableelements)
 - [dataTableMarkdown](#var.vPublish=true&var.vSingle=true&datatablemarkdown)
 - [dataTableValidate](#var.vPublish=true&var.vSingle=true&datatablevalidate)
+- [dataTableValidateEx](#var.vPublish=true&var.vSingle=true&datatablevalidateex)
 
 ---
 
@@ -3492,6 +3327,23 @@ The [data table model](model.html#var.vName='DataTable')
 #### Returns
 
 The validated [data table model](model.html#var.vName='DataTable')
+
+---
+
+### dataTableValidateEx
+
+Validate a data table model
+
+#### Arguments
+
+**dataTable -**
+The [data table model](model.html#var.vName='DataTable')
+
+#### Returns
+
+On success, an object with the "result" key set to the validated [data table model](model.html#var.vName='DataTable').
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
 
 ---
 
@@ -4142,6 +3994,7 @@ functions for event handling (though callbacks are ignored during stringificatio
 
 - [elementModelToString](#var.vPublish=true&var.vSingle=true&elementmodeltostring)
 - [elementModelValidate](#var.vPublish=true&var.vSingle=true&elementmodelvalidate)
+- [elementModelValidateEx](#var.vPublish=true&var.vSingle=true&elementmodelvalidateex)
 
 ---
 
@@ -4177,6 +4030,23 @@ An element model is either null, an element object, or an array of any of these.
 #### Returns
 
 The element model if valid, null otherwise
+
+---
+
+### elementModelValidateEx
+
+Validate an element model
+
+#### Arguments
+
+**elements -**
+The element model.
+An element model is either null, an element object, or an array of any of these.
+
+#### Returns
+
+On success, an object with the "result" key set to the element model.
+On failure, an object with the "error" key set to the validation error message.
 
 ---
 
@@ -4339,6 +4209,7 @@ title = markdownTitle(markdown)
 - [markdownParagraphText](#var.vPublish=true&var.vSingle=true&markdownparagraphtext)
 - [markdownTitle](#var.vPublish=true&var.vSingle=true&markdowntitle)
 - [markdownValidate](#var.vPublish=true&var.vSingle=true&markdownvalidate)
+- [markdownValidateEx](#var.vPublish=true&var.vSingle=true&markdownvalidateex)
 
 ---
 
@@ -4414,6 +4285,23 @@ The [Markdown model](model.html#var.vName='Markdown')
 #### Returns
 
 The validated [Markdown model](model.html#var.vName='Markdown')
+
+---
+
+### markdownValidateEx
+
+Validate a Markdown model
+
+#### Arguments
+
+**markdown -**
+The [Markdown model](model.html#var.vName='Markdown')
+
+#### Returns
+
+On success, an object with the "result" key set to the validated [Markdown model](model.html#var.vName='Markdown').
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
 
 ---
 
@@ -5222,7 +5110,8 @@ The pager application options. The following options are available:
 - **hideMenu** - Hide the menu links
 - **hideNav** - Hide the navigation links
 - **start** - The start page name
-- **keyboard** - Enable keyboard commands ('n' for next, 'p' for previous, 's' for start, 'e' for end)
+- **keyboard** - Enable keyboard commands (right-arrow or 'n' for next, left-arrow or 'p' for previous,
+  's' for start, 'e' for end)
 
 #### Returns
 
@@ -5340,6 +5229,178 @@ The QR code pixel matrix
 
 ---
 
+## schema.bare
+
+The "schema.bare" include library provides functions for validating values using
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type models.
+Schema Markdown is a human-readable schema definition language.
+
+Validate a value against a schema type:
+
+~~~ bare-script
+include <schema.bare>
+include <schemaParser.bare>
+
+types = schemaParse( \
+    'struct Person', \
+    '    string name', \
+    '    int age', \
+    '    optional string email' \
+)
+
+person = {'name': 'Alice', 'age': 30}
+validated = schemaValidate(types, 'Person', person)
+if validated != null:
+    # Validation succeeded
+    markdownPrint('Valid person: ' + objectGet(validated, 'name'))
+endif
+~~~
+
+The [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function returns null if validation
+fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+For programmatic access to validation errors, use the
+[schemaValidateEx](#var.vGroup='schema.bare'&schemavalidateex) function:
+
+~~~ bare-script
+result = schemaValidateEx(types, 'Person', {'name': 'Alice'})
+if objectHas(result, 'error'):
+    markdownPrint('Error: ' + objectGet(result, 'error'))
+    markdownPrint('Member: ' + objectGet(result, 'memberFqn'))
+else:
+    person = objectGet(result, 'result')
+endif
+~~~
+
+Schema validation provides:
+
+- Type checking and string coercion (strings, integers, floats, booleans, dates, etc.)
+- Required vs. optional member validation
+- Array and object structure validation
+- Enumeration value validation
+- Value and length constraints
+- Detailed error messages
+
+
+### Function Index
+
+- [schemaGetEnumValues](#var.vPublish=true&var.vSingle=true&schemagetenumvalues)
+- [schemaGetReferencedTypes](#var.vPublish=true&var.vSingle=true&schemagetreferencedtypes)
+- [schemaGetStructMembers](#var.vPublish=true&var.vSingle=true&schemagetstructmembers)
+- [schemaValidate](#var.vPublish=true&var.vSingle=true&schemavalidate)
+- [schemaValidateEx](#var.vPublish=true&var.vSingle=true&schemavalidateex)
+
+---
+
+### schemaGetEnumValues
+
+Get an enum's values (inherited values first)
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+**enum -**
+The [enum model](https://craigahobbs.github.io/bare-script/model/#var.vName='Enum'&var.vURL='')
+
+#### Returns
+
+The array of [enum value models](https://craigahobbs.github.io/bare-script/model/#var.vName='EnumValue'&var.vURL='')
+
+---
+
+### schemaGetReferencedTypes
+
+Get a user type's referenced [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+**typeName -**
+The type name
+
+**referencedTypes -**
+Optional. A map of referenced user type name to user type model to update.
+
+#### Returns
+
+The referenced [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+---
+
+### schemaGetStructMembers
+
+Get a struct's members (inherited members first)
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+**struct -**
+The [struct model](https://craigahobbs.github.io/bare-script/model/#var.vName='Struct'&var.vURL='')
+
+#### Returns
+
+The array of [struct member models](https://craigahobbs.github.io/bare-script/model/#var.vName='StructMember'&var.vURL='')
+
+---
+
+### schemaValidate
+
+Validate a value using a schema [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
+Container values are duplicated since some member types are transformed during validation.
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+**typeName -**
+The type name
+
+**value -**
+The value to validate
+
+**memberFqn -**
+Optional (default is null). The fully-qualified member name (for error messages).
+
+#### Returns
+
+The validated, transformed value, or null if validation fails
+
+---
+
+### schemaValidateEx
+
+Validate a value using a schema [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+with programmatic error reporting. Container values are duplicated since some member types are
+transformed during validation.
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+**typeName -**
+The type name
+
+**value -**
+The value to validate
+
+**memberFqn -**
+Optional (default is null). The fully-qualified member name (for error messages).
+
+#### Returns
+
+On success, an object with the "result" key set to the validated, transformed value.
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
+
+---
+
 ## schemaDoc.bare
 
 The "schemaDoc.bare" include library provides functions for generating documentation for
@@ -5413,6 +5474,202 @@ Optional (default is null). The options object with optional members:
 #### Returns
 
 The array of Markdown text lines
+
+---
+
+## schemaParser.bare
+
+The "schemaParser.bare" include library provides functions for parsing
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text into
+[type models](model.html#var.vName='Types').
+
+Parse Schema Markdown text:
+
+~~~ bare-script
+include <schemaParser.bare>
+
+types = schemaParse( \
+    '# A person information struct', \
+    'struct Person', \
+    '', \
+    "    # The person's name", \
+    '    string name', \
+    '', \
+    "    # The person's age", \
+    '    int age' \
+)
+~~~
+
+The [schemaParse](#var.vGroup='schemaParser.bare'&schemaparse) function returns null if parsing
+fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+For programmatic access to parse errors, use the
+[schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function:
+
+~~~ bare-script
+result = schemaParseEx('struct Person', null, 'person.smd')
+if objectHas(result, 'errors'):
+    for error in objectGet(result, 'errors'):
+        markdownPrint('', 'Error: ' + markdownEscape(error))
+    endfor
+else:
+    types = objectGet(result, 'result')
+endif
+~~~
+
+The [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function can also accumulate
+multiple schemas into a single [type model](model.html#var.vName='Types') by passing the types
+argument.
+
+Use the [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function to validate a value
+using the parsed type model.
+
+
+### Function Index
+
+- [schemaParse](#var.vPublish=true&var.vSingle=true&schemaparse)
+- [schemaParseEx](#var.vPublish=true&var.vSingle=true&schemaparseex)
+
+---
+
+### schemaParse
+
+Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
+
+#### Arguments
+
+**lines... -**
+The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/)
+text lines (may contain nested arrays of un-split lines)
+
+#### Returns
+
+The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL=''),
+or null if parsing fails
+
+---
+
+### schemaParseEx
+
+Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
+with options and programmatic error reporting
+
+#### Arguments
+
+**lines -**
+The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
+string, or an array of strings (may contain nested arrays of un-split lines)
+
+**types -**
+Optional. The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to update.
+
+**filename -**
+Optional (default is ""). The file name (for error messages).
+
+**validate -**
+Optional (default is true). If true, validate the type model after parsing.
+
+#### Returns
+
+On success, an object with the "result" key set to the schema's
+[type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
+On failure, an object with the "errors" key set to the array of error message strings.
+
+---
+
+## schemaTypeModel.bare
+
+The "schemaTypeModel.bare" include library provides the
+[Schema Markdown Type Model](model.html#var.vName='Types') and type model validation functions.
+
+Get the Schema Markdown type model:
+
+~~~ bare-script
+include <schemaTypeModel.bare>
+
+typeModel = schemaTypeModel()
+~~~
+
+Validate a user type model (for example, one loaded from a JSON resource):
+
+~~~ bare-script
+typesJSON = jsonParse(systemFetch('model.json'))
+types = schemaTypeModelValidate(typesJSON)
+if types == null:
+    markdownPrint('Invalid type model!')
+endif
+~~~
+
+The [schemaTypeModelValidate](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidate) function
+returns null if validation fails and logs the validation errors in
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to
+validation errors, use the
+[schemaTypeModelValidateEx](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidateex) function:
+
+~~~ bare-script
+result = schemaTypeModelValidateEx(typesJSON)
+if objectHas(result, 'errors'):
+    for error in objectGet(result, 'errors'):
+        markdownPrint('', 'Error: ' + markdownEscape(error))
+    endfor
+else:
+    types = objectGet(result, 'result')
+endif
+~~~
+
+
+### Function Index
+
+- [schemaTypeModel](#var.vPublish=true&var.vSingle=true&schematypemodel)
+- [schemaTypeModelValidate](#var.vPublish=true&var.vSingle=true&schematypemodelvalidate)
+- [schemaTypeModelValidateEx](#var.vPublish=true&var.vSingle=true&schematypemodelvalidateex)
+
+---
+
+### schemaTypeModel
+
+Get the [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+#### Arguments
+
+None
+
+#### Returns
+
+The [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+---
+
+### schemaTypeModelValidate
+
+Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
+
+#### Returns
+
+The validated [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL=''),
+or null if validation fails
+
+---
+
+### schemaTypeModelValidateEx
+
+Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+with programmatic error reporting
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
+
+#### Returns
+
+On success, an object with the "result" key set to the validated
+[type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
+On failure, an object with the "errors" key set to the array of error message strings.
 
 ---
 
@@ -5766,3 +6023,134 @@ The name of the function to mock
 #### Returns
 
 Nothing
+
+---
+
+## url.bare
+
+The "url.bare" include library provides functions for encoding and decoding URLs, URL components,
+and URL query strings.
+
+Encode an object as a query string:
+
+~~~ bare-script
+include <url.bare>
+
+queryString = urlEncodeQueryString({'name': 'Alice', 'scores': [90, 85]})
+# name=Alice&scores.0=90&scores.1=85
+~~~
+
+Objects and arrays are recursed, with each member key expressed in fully-qualified form. Decode a
+query string back into an object:
+
+~~~ bare-script
+args = urlDecodeQueryString('name=Alice&scores.0=90&scores.1=85')
+# {'name': 'Alice', 'scores': ['90', '85']}
+~~~
+
+All decoded leaf values are strings. The
+[urlDecodeQueryString](#var.vGroup='url.bare'&urldecodequerystring) function returns null on
+invalid input (invalid key/value pairs, out-of-order array indices, or duplicate keys) and logs
+the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+
+To percent-encode a URL or URL component, use the
+[urlEncode](#var.vGroup='url.bare'&urlencode) and
+[urlEncodeComponent](#var.vGroup='url.bare'&urlencodecomponent) functions. To decode a
+percent-encoded string component, use the
+[urlDecodeComponent](#var.vGroup='url.bare'&urldecodecomponent) function:
+
+~~~ bare-script
+encoded = urlEncodeComponent('100% great')
+# 100%25%20great
+
+decoded = urlDecodeComponent('100%25%20great')
+# 100% great
+~~~
+
+
+### Function Index
+
+- [urlDecodeComponent](#var.vPublish=true&var.vSingle=true&urldecodecomponent)
+- [urlDecodeQueryString](#var.vPublish=true&var.vSingle=true&urldecodequerystring)
+- [urlEncode](#var.vPublish=true&var.vSingle=true&urlencode)
+- [urlEncodeComponent](#var.vPublish=true&var.vSingle=true&urlencodecomponent)
+- [urlEncodeQueryString](#var.vPublish=true&var.vSingle=true&urlencodequerystring)
+
+---
+
+### urlDecodeComponent
+
+Decode a percent-encoded string component. The plus character is not decoded to a space character.
+
+#### Arguments
+
+**string -**
+The percent-encoded string
+
+#### Returns
+
+The decoded string, or null if decoding fails
+
+---
+
+### urlDecodeQueryString
+
+Decode an object from a query string. Each member key of the query string is expressed in
+fully-qualified form. Array keys are the index into the array, and must be in order.
+
+#### Arguments
+
+**queryString -**
+The query string
+
+#### Returns
+
+The decoded object, or null if decoding fails
+
+---
+
+### urlEncode
+
+Encode a URL. Letters, digits, and the characters ";,/?:@&=+$-_.!~*'#" are not
+percent-encoded. Parentheses are percent-encoded (for Markdown links).
+
+#### Arguments
+
+**url -**
+The URL string
+
+#### Returns
+
+The encoded URL string
+
+---
+
+### urlEncodeComponent
+
+Encode a URL component. Letters, digits, and the characters "-_.!~*'" are not
+percent-encoded. Parentheses are percent-encoded (for Markdown links).
+
+#### Arguments
+
+**url -**
+The URL component string
+
+#### Returns
+
+The encoded URL component string
+
+---
+
+### urlEncodeQueryString
+
+Encode an object as a query string. Objects and arrays are recursed. Each member key is
+expressed in fully-qualified form. Array keys are the index into the array, and are in order.
+
+#### Arguments
+
+**obj -**
+The object to encode
+
+#### Returns
+
+The encoded query string

@@ -1,0 +1,376 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# Helper function to validate a user type model's types. Returns the array of
+# [typeName, memberName, message] error tuples.
+function schemaValidateTypeModelErrors(types):
+    errors = []
+
+    # Check each user type
+    for typeName in objectKeys(types):
+        userType = objectGet(types, typeName)
+
+        # Struct?
+        if objectHas(userType, 'struct'):
+            struct = objectGet(userType, 'struct')
+            structName = objectGet(struct, 'name')
+
+            # Inconsistent type name?
+            if typeName != structName:
+                arrayPush(errors, [typeName, null, 'Inconsistent type name "' + structName + '" for "' + typeName + '"'])
+            endif
+
+            # Check base types
+            if objectHas(struct, 'bases'):
+                isUnion = systemBoolean(objectGet(struct, 'union'))
+                for baseName in objectGet(struct, 'bases'):
+                    invalidBase = true
+                    baseUserType = schemaEffectiveUserType(types, baseName)
+                    if baseUserType != null && objectHas(baseUserType, 'struct'):
+                        if isUnion == systemBoolean(objectGet(objectGet(baseUserType, 'struct'), 'union')):
+                            invalidBase = false
+                        endif
+                    endif
+                    if invalidBase:
+                        arrayPush(errors, [typeName, null, 'Invalid struct base type "' + baseName + '"'])
+                    endif
+                endfor
+            endif
+
+            # Iterate the members - circular base types?
+            members = schemaTypeItems(types, struct, {}, 'struct', 'members')
+            if members == null:
+                arrayPush(errors, [typeName, null, 'Circular base type detected for type "' + typeName + '"'])
+            else:
+                memberSet = {}
+                for member in members:
+                    memberName = objectGet(member, 'name')
+
+                    # Duplicate member?
+                    if !objectHas(memberSet, memberName):
+                        objectSet(memberSet, memberName, true)
+                    else:
+                        arrayPush(errors, [typeName, memberName, 'Redefinition of "' + typeName + '" member "' + memberName + '"'])
+                    endif
+
+                    # Check member type and attributes
+                    schemaValidateTypeModelType(errors, types, objectGet(member, 'type'), objectGet(member, 'attr'), structName, memberName)
+                endfor
+            endif
+
+        # Enum?
+        elif objectHas(userType, 'enum'):
+            enum = objectGet(userType, 'enum')
+            enumName = objectGet(enum, 'name')
+
+            # Inconsistent type name?
+            if typeName != enumName:
+                arrayPush(errors, [typeName, null, 'Inconsistent type name "' + enumName + '" for "' + typeName + '"'])
+            endif
+
+            # Check base types
+            if objectHas(enum, 'bases'):
+                for baseName in objectGet(enum, 'bases'):
+                    baseUserType = schemaEffectiveUserType(types, baseName)
+                    if baseUserType == null || !objectHas(baseUserType, 'enum'):
+                        arrayPush(errors, [typeName, null, 'Invalid enum base type "' + baseName + '"'])
+                    endif
+                endfor
+            endif
+
+            # Get the enumeration values - circular base types?
+            values = schemaTypeItems(types, enum, {}, 'enum', 'values')
+            if values == null:
+                arrayPush(errors, [typeName, null, 'Circular base type detected for type "' + typeName + '"'])
+            else:
+                valueSet = {}
+                for value in values:
+                    valueName = objectGet(value, 'name')
+
+                    # Duplicate value?
+                    if !objectHas(valueSet, valueName):
+                        objectSet(valueSet, valueName, true)
+                    else:
+                        arrayPush(errors, [typeName, valueName, 'Redefinition of "' + typeName + '" value "' + valueName + '"'])
+                    endif
+                endfor
+            endif
+
+        # Typedef?
+        elif objectHas(userType, 'typedef'):
+            typedef = objectGet(userType, 'typedef')
+            typedefName = objectGet(typedef, 'name')
+
+            # Inconsistent type name?
+            if typeName != typedefName:
+                arrayPush(errors, [typeName, null, 'Inconsistent type name "' + typedefName + '" for "' + typeName + '"'])
+            endif
+
+            # Circular typedef?
+            visited = {}
+            objectSet(visited, typeName, true)
+            typedefType = objectGet(typedef, 'type')
+            while objectHas(typedefType, 'user'):
+                typedefUserName = objectGet(typedefType, 'user')
+                typedefUserType = objectGet(types, typedefUserName)
+                if typedefUserType == null || !objectHas(typedefUserType, 'typedef'):
+                    break
+                endif
+                if objectHas(visited, typedefUserName):
+                    arrayPush(errors, [typeName, null, 'Circular typedef detected for type "' + typeName + '"'])
+                    break
+                endif
+                objectSet(visited, typedefUserName, true)
+                typedefType = objectGet(objectGet(typedefUserType, 'typedef'), 'type')
+            endwhile
+
+            # Check the type and its attributes
+            schemaValidateTypeModelType(errors, types, objectGet(typedef, 'type'), objectGet(typedef, 'attr'), typeName, null)
+
+        # Action?
+        elif objectHas(userType, 'action'):
+            action = objectGet(userType, 'action')
+            actionName = objectGet(action, 'name')
+
+            # Inconsistent type name?
+            if typeName != actionName:
+                arrayPush(errors, [typeName, null, 'Inconsistent type name "' + actionName + '" for "' + typeName + '"'])
+            endif
+
+            # Check action section types
+            for section in schemaActionSections:
+                if objectHas(action, section):
+                    schemaValidateTypeModelType(errors, types, {'user': objectGet(action, section)}, null, typeName, null)
+                endif
+            endfor
+
+            # Compute effective input member counts
+            memberSections = {}
+            for section in schemaActionInputSections:
+                if objectHas(action, section):
+                    sectionTypeName = objectGet(action, section)
+                    if objectHas(types, sectionTypeName):
+                        sectionUserType = schemaEffectiveUserType(types, sectionTypeName)
+                        if sectionUserType != null && objectHas(sectionUserType, 'struct'):
+                            sectionStruct = objectGet(sectionUserType, 'struct')
+
+                            # Get the section struct's members and count member occurrences
+                            sectionMembers = schemaTypeItems(types, sectionStruct, {}, 'struct', 'members')
+                            if sectionMembers != null:
+                                for member in sectionMembers:
+                                    memberName = objectGet(member, 'name')
+                                    if !objectHas(memberSections, memberName):
+                                        objectSet(memberSections, memberName, [])
+                                    endif
+                                    arrayPush(objectGet(memberSections, memberName), objectGet(sectionStruct, 'name'))
+                                endfor
+                            endif
+                        endif
+                    endif
+                endif
+            endfor
+
+            # Check for duplicate input members
+            for memberName in objectKeys(memberSections):
+                memberSectionNames = objectGet(memberSections, memberName)
+                if arrayLength(memberSectionNames) > 1:
+                    for sectionType in arraySort(memberSectionNames):
+                        arrayPush(errors, [sectionType, memberName, 'Redefinition of "' + sectionType + '" member "' + memberName + '"'])
+                    endfor
+                endif
+            endfor
+        endif
+    endfor
+
+    return errors
+endfunction
+
+
+schemaActionSections = ['path', 'query', 'input', 'output', 'errors']
+
+
+schemaActionInputSections = ['path', 'query', 'input']
+
+
+# Helper function to resolve a type through typedefs to its effective type
+function schemaEffectiveType(types, type):
+    visited = {}
+    typeEffective = type
+    while objectHas(typeEffective, 'user'):
+        userName = objectGet(typeEffective, 'user')
+        if objectHas(visited, userName) || !objectHas(types, userName):
+            break
+        endif
+        userType = objectGet(types, userName)
+        if !objectHas(userType, 'typedef'):
+            break
+        endif
+        objectSet(visited, userName, true)
+        typeEffective = objectGet(objectGet(userType, 'typedef'), 'type')
+    endwhile
+    return typeEffective
+endfunction
+
+
+# Helper function to resolve a user type name through typedefs to its effective user type
+function schemaEffectiveUserType(types, userTypeName):
+    userType = objectGet(types, userTypeName)
+    if userType != null && objectHas(userType, 'typedef'):
+        typeEffective = schemaEffectiveType(types, objectGet(objectGet(userType, 'typedef'), 'type'))
+        if !objectHas(typeEffective, 'user'):
+            return null
+        endif
+        return objectGet(types, objectGet(typeEffective, 'user'))
+    endif
+    return userType
+endfunction
+
+
+# Helper function to get a struct's members or an enum's values, with inherited items first.
+# Unknown or non-matching base types are ignored. Returns null if a circular base type is detected.
+function schemaTypeItems(types, type, visited, defName, memberName):
+    # No base types?
+    if !objectHas(type, 'bases'):
+        return if(objectHas(type, memberName), objectGet(type, memberName), [])
+    endif
+
+    # Get the base type items
+    items = []
+    for base in objectGet(type, 'bases'):
+        userType = schemaEffectiveUserType(types, base)
+        if userType != null && objectHas(userType, defName):
+            userTypeName = objectGet(objectGet(userType, defName), 'name')
+
+            # Circular base type?
+            if objectHas(visited, userTypeName):
+                return null
+            endif
+            objectSet(visited, userTypeName, true)
+
+            baseItems = schemaTypeItems(types, objectGet(userType, defName), visited, defName, memberName)
+            if baseItems == null:
+                return null
+            endif
+            arrayExtend(items, baseItems)
+        endif
+    endfor
+
+    # Add the type's items
+    if objectHas(type, memberName):
+        arrayExtend(items, objectGet(type, memberName))
+    endif
+
+    return items
+endfunction
+
+
+# Map of attribute struct member name to attribute description
+schemaAttrToText = { \
+    'eq': '==', \
+    'lt': '<', \
+    'lte': '<=', \
+    'gt': '>', \
+    'gte': '>=', \
+    'lenEq': 'len ==', \
+    'lenLT': 'len <', \
+    'lenLTE': 'len <=', \
+    'lenGT': 'len >', \
+    'lenGTE': 'len >=' \
+}
+
+
+# Map of type name to valid attribute set
+schemaTypeToAllowedAttr = { \
+    'float': ['eq', 'lt', 'lte', 'gt', 'gte'], \
+    'int': ['eq', 'lt', 'lte', 'gt', 'gte'], \
+    'string': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'], \
+    'array': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'], \
+    'dict': ['lenEq', 'lenLT', 'lenLTE', 'lenGT', 'lenGTE'] \
+}
+
+
+# Helper function to check a type model type's type references and attributes
+function schemaValidateTypeModelType(errors, types, type, attr, typeName, memberName):
+    # Array?
+    if objectHas(type, 'array'):
+        array = objectGet(type, 'array')
+
+        # Check the type and its attributes
+        arrayType = schemaEffectiveType(types, objectGet(array, 'type'))
+        schemaValidateTypeModelType(errors, types, arrayType, objectGet(array, 'attr'), typeName, memberName)
+
+    # Dict?
+    elif objectHas(type, 'dict'):
+        dict = objectGet(type, 'dict')
+
+        # Check the type and its attributes
+        dictType = schemaEffectiveType(types, objectGet(dict, 'type'))
+        schemaValidateTypeModelType(errors, types, dictType, objectGet(dict, 'attr'), typeName, memberName)
+
+        # Check the dict key type and its attributes
+        if objectHas(dict, 'keyType'):
+            dictKeyType = schemaEffectiveType(types, objectGet(dict, 'keyType'))
+            schemaValidateTypeModelType(errors, types, dictKeyType, objectGet(dict, 'keyAttr'), typeName, memberName)
+
+            # Valid dict key type (string or enum)?
+            if !(objectHas(dictKeyType, 'builtin') && objectGet(dictKeyType, 'builtin') == 'string') && \
+                    !(objectHas(dictKeyType, 'user') && objectHas(types, objectGet(dictKeyType, 'user')) && \
+                      objectHas(objectGet(types, objectGet(dictKeyType, 'user')), 'enum')):
+                schemaValidateTypeModelTypeError(errors, 'Invalid dictionary key type', typeName, memberName)
+            endif
+        endif
+
+    # User type?
+    elif objectHas(type, 'user'):
+        userTypeName = objectGet(type, 'user')
+
+        # Unknown user type?
+        if !objectHas(types, userTypeName):
+            schemaValidateTypeModelTypeError(errors, 'Unknown type "' + userTypeName + '"', typeName, memberName)
+        else:
+            # Action type references not allowed
+            if objectHas(objectGet(types, userTypeName), 'action'):
+                schemaValidateTypeModelTypeError(errors, 'Invalid reference to action "' + userTypeName + '"', typeName, memberName)
+            endif
+        endif
+    endif
+
+    # Any not-allowed attributes?
+    if attr != null:
+        typeEffective = schemaEffectiveType(types, type)
+        typeKey = arrayGet(objectKeys(typeEffective), 0)
+        typeAttrKey = if(typeKey == 'builtin', objectGet(typeEffective, typeKey), typeKey)
+        allowedAttr = objectGet(schemaTypeToAllowedAttr, typeAttrKey)
+        disallowedAttr = {}
+        for attrKey in objectKeys(attr):
+            objectSet(disallowedAttr, attrKey, null)
+        endfor
+        objectDelete(disallowedAttr, 'nullable')
+        if allowedAttr != null:
+            for attrKey in allowedAttr:
+                objectDelete(disallowedAttr, attrKey)
+            endfor
+        endif
+        for attrKey in objectKeys(disallowedAttr):
+            attrText = objectGet(schemaAttrToText, attrKey) + ' ' + objectGet(attr, attrKey)
+            schemaValidateTypeModelTypeError(errors, 'Invalid attribute "' + attrText + '"', typeName, memberName)
+        endfor
+    endif
+endfunction
+
+
+# Helper function to push a type model type error tuple
+function schemaValidateTypeModelTypeError(errors, message, typeName, memberName):
+    if memberName != null:
+        arrayPush(errors, [typeName, memberName, message + ' from "' + typeName + '" member "' + memberName + '"'])
+    else:
+        arrayPush(errors, [typeName, null, message + ' from "' + typeName + '"'])
+    endif
+endfunction
+
+
+# Helper function to truncate an error message value
+function schemaUtilTruncate(string):
+    return stringSlice(string, 0, mathMin(100, stringLength(string)))
+endfunction

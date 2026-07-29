@@ -3,6 +3,7 @@
 
 include <markdown.bare>
 include <markdownHighlight.bare>
+include <schemaParser.bare>
 
 
 # $function: markdownElements

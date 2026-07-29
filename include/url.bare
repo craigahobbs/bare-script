@@ -1,0 +1,286 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: urlEncodeQueryString
+# $group: url.bare
+# $doc: Encode an object as a query string. Objects and arrays are recursed. Each member key is
+# $doc: expressed in fully-qualified form. Array keys are the index into the array, and are in order.
+# $arg obj: The object to encode
+# $return: The encoded query string
+function urlEncodeQueryString(obj):
+    return arrayJoin(urlEncodeQueryStringHelper(obj, null, []), '&')
+endfunction
+
+
+# Helper function for urlEncodeQueryString
+function urlEncodeQueryStringHelper(obj, memberFqn, keyValues):
+    objType = systemType(obj)
+    if objType == 'array':
+        if arrayLength(obj) == 0:
+            arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
+        else:
+            for value, ixValue in obj:
+                urlEncodeQueryStringHelper(value, if(memberFqn != null, memberFqn + '.' + ixValue, '' + ixValue), keyValues)
+            endfor
+        endif
+    elif objType == 'datetime':
+        objEncoded = urlEncodeComponent(datetimeISOFormat(obj))
+        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + objEncoded, objEncoded))
+    elif objType == 'object':
+        keys = arraySort(objectKeys(obj))
+        if arrayLength(keys) == 0:
+            arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
+        else:
+            for key in keys:
+                keyEncoded = urlEncodeComponent(key)
+                urlEncodeQueryStringHelper(objectGet(obj, key), if(memberFqn != null, memberFqn + '.' + keyEncoded, keyEncoded), keyValues)
+            endfor
+        endif
+    elif obj == null || objType == 'boolean' || objType == 'number':
+        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + obj, '' + obj))
+    else:
+        objEncoded = urlEncodeComponent(obj)
+        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + objEncoded, objEncoded))
+    endif
+    return keyValues
+endfunction
+
+
+# $function: urlDecodeQueryString
+# $group: url.bare
+# $doc: Decode an object from a query string. Each member key of the query string is expressed in
+# $doc: fully-qualified form. Array keys are the index into the array, and must be in order.
+# $arg queryString: The query string
+# $return: The decoded object, or null if decoding fails
+function urlDecodeQueryString(queryString):
+    # Decode the query string key/values
+    result = [null]
+    keyValues = stringSplit(queryString, '&')
+    ixKeyValueLast = arrayLength(keyValues) - 1
+    for keyValue, ixKeyValue in keyValues:
+        # Split the key/value pair
+        ixEqual = stringIndexOf(keyValue, '=')
+        if ixEqual == -1:
+            # Ignore hash IDs
+            if ixKeyValue == ixKeyValueLast:
+                continue
+            endif
+            systemLogDebug("url.bare: Invalid key/value pair '" + urlTruncate(keyValue) + "'")
+            return null
+        endif
+        keyFqn = stringSlice(keyValue, 0, ixEqual)
+        value = urlDecodeComponent(stringSlice(keyValue, ixEqual + 1))
+        if value == null:
+            return null
+        endif
+
+        # Find/create the object on which to set the value
+        parent = result
+        keyParent = 0
+        for keyEncoded in stringSplit(keyFqn, '.'):
+            key = urlDecodeComponent(keyEncoded)
+            if key == null:
+                return null
+            endif
+            obj = if(systemType(parent) == 'array', arrayGet(parent, keyParent), objectGet(parent, keyParent))
+
+            # Array key? The first "key" of an array must be "0".
+            if systemType(obj) == 'array' || (obj == null && key == '0'):
+                # Create this key's container, if necessary
+                if obj == null:
+                    obj = []
+                    if systemType(parent) == 'array':
+                        arraySet(parent, keyParent, obj)
+                    else:
+                        objectSet(parent, keyParent, obj)
+                    endif
+                endif
+
+                # Parse the key as an array index
+                keyOrig = key
+                key = if(regexMatch(urlDecodeQueryStringRegexIndex, key) != null, numberParseInt(key))
+
+                # Append the value placeholder null
+                if key != null && key == arrayLength(obj):
+                    arrayPush(obj, null)
+                elif key == null || key > arrayLength(obj):
+                    systemLogDebug("url.bare: Invalid array index '" + urlTruncate(keyOrig) + "' in key '" + urlTruncate(keyFqn) + "'")
+                    return null
+                endif
+            else:
+                # Create this key's container, if necessary
+                if obj == null:
+                    obj = {}
+                    if systemType(parent) == 'array':
+                        arraySet(parent, keyParent, obj)
+                    else:
+                        objectSet(parent, keyParent, obj)
+                    endif
+                elif systemType(obj) != 'object':
+                    systemLogDebug("url.bare: Invalid key '" + urlTruncate(keyFqn) + "'")
+                    return null
+                endif
+
+                # Create the index for this key
+                if !objectHas(obj, key):
+                    objectSet(obj, key, null)
+                endif
+            endif
+
+            # Update the parent object and key
+            parent = obj
+            keyParent = key
+        endfor
+
+        # Set the value
+        if systemType(parent) == 'array':
+            if arrayGet(parent, keyParent) != null:
+                systemLogDebug("url.bare: Duplicate key '" + urlTruncate(keyFqn) + "'")
+                return null
+            endif
+            arraySet(parent, keyParent, value)
+        else:
+            if objectGet(parent, keyParent) != null:
+                systemLogDebug("url.bare: Duplicate key '" + urlTruncate(keyFqn) + "'")
+                return null
+            endif
+            objectSet(parent, keyParent, value)
+        endif
+    endfor
+
+    # Return the top-level object
+    topValue = arrayGet(result, 0)
+    return if(topValue != null, topValue, {})
+endfunction
+
+urlDecodeQueryStringRegexIndex = regexNew('^[0-9]+$')
+
+
+# $function: urlEncode
+# $group: url.bare
+# $doc: Encode a URL. Letters, digits, and the characters ";,/?:@&=+$-_.!~*'#" are not
+# $doc: percent-encoded. Parentheses are percent-encoded (for Markdown links).
+# $arg url: The URL string
+# $return: The encoded URL string
+function urlEncode(url):
+    return urlEncodeHelper(url, urlEncodeRegexSafe, urlEncodeRegexUnsafe)
+endfunction
+
+urlEncodeRegexSafe = regexNew("^[A-Za-z0-9;,/?:@&=+$\\-_.!~*'#]*$")
+urlEncodeRegexUnsafe = regexNew("[^A-Za-z0-9;,/?:@&=+$\\-_.!~*'#]+")
+
+
+# $function: urlEncodeComponent
+# $group: url.bare
+# $doc: Encode a URL component. Letters, digits, and the characters "-_.!~*'" are not
+# $doc: percent-encoded. Parentheses are percent-encoded (for Markdown links).
+# $arg url: The URL component string
+# $return: The encoded URL component string
+function urlEncodeComponent(url):
+    return urlEncodeHelper(url, urlEncodeComponentRegexSafe, urlEncodeComponentRegexUnsafe)
+endfunction
+
+urlEncodeComponentRegexSafe = regexNew("^[A-Za-z0-9\\-_.!~*']*$")
+urlEncodeComponentRegexUnsafe = regexNew("[^A-Za-z0-9\\-_.!~*']+")
+
+
+# Helper function to percent-encode a string's unsafe characters as UTF-8 bytes
+function urlEncodeHelper(url, regexSafe, regexUnsafe):
+    # All characters safe?
+    if regexMatch(regexSafe, url) != null:
+        return url
+    endif
+
+    # Percent-encode each run of unsafe characters as UTF-8 bytes, copying the runs of safe
+    # characters between them - stringEncode fails on surrogate code points under the Python
+    # implementation, in which case null is returned below
+    parts = []
+    ixSafe = 0
+    for match in regexMatchAll(regexUnsafe, url):
+        ixUnsafe = objectGet(match, 'index')
+        unsafe = objectGet(objectGet(match, 'groups'), '0')
+
+        # Copy the preceding run of safe characters
+        if ixUnsafe != ixSafe:
+            arrayPush(parts, stringSlice(url, ixSafe, ixUnsafe))
+        endif
+        ixSafe = ixUnsafe + stringLength(unsafe)
+
+        # Percent-encode the run's unsafe UTF-8 bytes
+        bytes = stringEncode(unsafe)
+        for byte in if(bytes != null, bytes, []):
+            arrayPush(parts, arrayGet(urlEncodeBytes, byte))
+        endfor
+    endfor
+
+    # Copy the trailing run of safe characters
+    if ixSafe != stringLength(url):
+        arrayPush(parts, stringSlice(url, ixSafe))
+    endif
+
+    return if(bytes != null, arrayJoin(parts, ''))
+endfunction
+
+
+# Helper function to create the byte value to percent-encoding array
+function urlEncodeBytesNew():
+    hexDigits = '0123456789ABCDEF'
+    encodeBytes = []
+    byte = 0
+    while byte < 256:
+        arrayPush(encodeBytes, '%' + stringSlice(hexDigits, mathFloor(byte / 16), mathFloor(byte / 16) + 1) + \
+            stringSlice(hexDigits, byte % 16, byte % 16 + 1))
+        byte = byte + 1
+    endwhile
+    return encodeBytes
+endfunction
+
+urlEncodeBytes = urlEncodeBytesNew()
+
+
+# $function: urlDecodeComponent
+# $group: url.bare
+# $doc: Decode a percent-encoded string component. The plus character is not decoded to a space character.
+# $arg string: The percent-encoded string
+# $return: The decoded string, or null if decoding fails
+function urlDecodeComponent(string):
+    # No percent-encoding?
+    if stringIndexOf(string, '%') == -1:
+        return string
+    endif
+
+    # Compute the decoded UTF-8 byte array
+    parts = stringSplit(string, '%')
+    bytes = stringEncode(arrayGet(parts, 0))
+    for part, ixPart in parts:
+        if ixPart == 0:
+            continue
+        endif
+
+        # Decode the percent-encoded byte
+        if regexMatch(urlDecodeComponentRegexHex, part) == null:
+            systemLogDebug("url.bare: Invalid percent-encoding '" + urlTruncate(string) + "'")
+            return null
+        endif
+        arrayPush(bytes, numberParseInt(stringSlice(part, 0, 2), 16))
+        if stringLength(part) > 2:
+            arrayExtend(bytes, stringEncode(stringSlice(part, 2)))
+        endif
+    endfor
+
+    # Invalid UTF-8?
+    decoded = stringDecode(bytes)
+    if decoded == null:
+        systemLogDebug("url.bare: Invalid percent-encoding '" + urlTruncate(string) + "'")
+    endif
+    return decoded
+endfunction
+
+urlDecodeComponentRegexHex = regexNew('^[0-9A-Fa-f]{2}')
+
+
+# Helper function to truncate an error message value
+function urlTruncate(string):
+    return stringSlice(string, 0, mathMin(100, stringLength(string)))
+endfunction

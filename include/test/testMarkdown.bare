@@ -39,6 +39,22 @@ endfunction
 unittestRunTest('testMarkdownValidate')
 
 
+function testMarkdownValidateEx():
+    markdownModel = {'parts': [{'paragraph': {'spans': [{'text': 'Hello'}]}}]}
+    unittestDeepEqual(markdownValidateEx(markdownModel), {'result': markdownModel})
+endfunction
+unittestRunTest('testMarkdownValidateEx')
+
+
+function testMarkdownValidateEx_error():
+    unittestDeepEqual( \
+        markdownValidateEx({'parts': 1}), \
+        {'error': 'Invalid value 1 (type "number") for member "parts", expected type "array"', 'memberFqn': 'parts'} \
+    )
+endfunction
+unittestRunTest('testMarkdownValidateEx_error')
+
+
 #
 # markdownEscape tests
 #

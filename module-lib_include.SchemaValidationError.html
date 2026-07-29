@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: BareScriptRuntimeError</title>
+    <title>JSDoc: Class: SchemaValidationError</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: BareScriptRuntimeError</h1>
+    <h1 class="page-title">Class: SchemaValidationError</h1>
 
     
 
@@ -29,9 +29,9 @@
 <header>
     
         <h2><span class="attribs"><span class="type-signature"></span></span>
-            <span class="ancestors"><a href="module-lib_runtime.html">lib/runtime</a>.</span>BareScriptRuntimeError<span class="signature">(message)</span><span class="type-signature"></span></h2>
+            <span class="ancestors"><a href="module-lib_include.html">lib/include</a>.</span>SchemaValidationError<span class="signature">(message, memberFqn<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description"><p>A BareScript runtime error</p></div>
+            <div class="class-description"><p>A schema type model validation error</p></div>
         
     
 </header>
@@ -46,7 +46,7 @@
     
 
     
-    <h4 class="name" id="BareScriptRuntimeError"><span class="type-signature"></span>new BareScriptRuntimeError<span class="signature">(message)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="SchemaValidationError"><span class="type-signature"></span>new SchemaValidationError<span class="signature">(message, memberFqn<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -54,7 +54,7 @@
 
 
 <div class="description">
-    <p>Create a BareScript runtime error</p>
+    <p>Create a schema type model validation error</p>
 </div>
 
 
@@ -78,7 +78,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -103,10 +107,63 @@
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last"><p>The runtime error message</p></td>
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The validation error message</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>memberFqn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The fully-qualified member name</p></td>
         </tr>
 
     
@@ -114,6 +171,68 @@
 </table>
 
 
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>memberFqn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                    &lt;nullable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>The fully-qualified member name or null</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -147,7 +266,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="runtime.js.html">runtime.js</a>, <a href="runtime.js.html#line737">line 737</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line635">line 635</a>
     </li></ul></dd>
     
 

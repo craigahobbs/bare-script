@@ -1,6 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <schema.bare>
+include <schemaParser.bare>
+
 
 # $function: markdownEscape
 # $group: markdown.bare
@@ -94,6 +97,18 @@ endfunction
 # $return: The validated [Markdown model](model.html#var.vName='Markdown')
 function markdownValidate(markdown):
     return schemaValidate(markdownTypes, 'Markdown', markdown)
+endfunction
+
+
+# $function: markdownValidateEx
+# $group: markdown.bare
+# $doc: Validate a Markdown model
+# $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
+# $return: On success, an object with the "result" key set to the validated [Markdown model](model.html#var.vName='Markdown').
+# $return: On failure, an object with the "error" key set to the validation error message and the
+# $return: "memberFqn" key set to the fully-qualified member name (or null).
+function markdownValidateEx(markdown):
+    return schemaValidateEx(markdownTypes, 'Markdown', markdown)
 endfunction
 
 

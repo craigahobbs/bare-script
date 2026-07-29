@@ -567,17 +567,17 @@ export function parseScript(scriptText, startLineNumber = 1, scriptName = null) 
 // BareScript regex
 const rScriptLineSplit = /\r?\n/;
 const rScriptContinuation = /\\\s*$/;
-const rScriptKeyword = /^\s*([A-Za-z_]\w*)/;
-const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_]\w*)\s*=\s*(?&lt;expr>.+)$/;
+const rScriptKeyword = /^\s*([A-Za-z_][A-Za-z0-9_]*)/;
+const rScriptAssignment = /^\s*(?&lt;name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?&lt;expr>.+)$/;
 const rPartComment = '\\s*(#.*)?$';
 const rScriptFunctionBegin = new RegExp(
-    '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_]\\w*)\\s*\\(' +
-        `\\s*(?&lt;args>[A-Za-z_]\\w*(?:\\s*,\\s*[A-Za-z_]\\w*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:${rPartComment}`
+    '^(?&lt;async>\\s*async)?\\s*function\\s+(?&lt;name>[A-Za-z_][A-Za-z0-9_]*)\\s*\\(' +
+        `\\s*(?&lt;args>[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)?(?&lt;lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:${rPartComment}`
 );
 const rScriptFunctionArgSplit = /\s*,\s*/;
 const rScriptFunctionEnd = new RegExp(`^\\s*endfunction${rPartComment}`);
-const rScriptLabel = new RegExp(`^\\s*(?&lt;name>[A-Za-z_]\\w*)\\s*:${rPartComment}`);
-const rScriptJump = new RegExp(`^(?&lt;jump>\\s*(?:jump|jumpif\\s*\\((?&lt;expr>.+)\\)))\\s+(?&lt;name>[A-Za-z_]\\w*)${rPartComment}`);
+const rScriptLabel = new RegExp(`^\\s*(?&lt;name>[A-Za-z_][A-Za-z0-9_]*)\\s*:${rPartComment}`);
+const rScriptJump = new RegExp(`^(?&lt;jump>\\s*(?:jump|jumpif\\s*\\((?&lt;expr>.+)\\)))\\s+(?&lt;name>[A-Za-z_][A-Za-z0-9_]*)${rPartComment}`);
 const rScriptReturn = new RegExp(`^(?&lt;return>\\s*return(?:\\s+(?&lt;expr>[^#\\s].*))?)${rPartComment}`);
 const rScriptInclude = new RegExp(`^\\s*include\\s+(?&lt;delim>')(?&lt;url>(?:\\'|[^'])*)'${rPartComment}`);
 const rScriptIncludeSystem = new RegExp(`^\\s*include\\s+(?&lt;delim>&lt;)(?&lt;url>[^>]*)>${rPartComment}`);
@@ -586,7 +586,8 @@ const rScriptIfElseIf = new RegExp(`^(?&lt;elif>\\s*elif\\s+)(?&lt;expr>.+)\\s*:
 const rScriptIfElse = new RegExp(`^\\s*else\\s*:${rPartComment}`);
 const rScriptIfEnd = new RegExp(`^\\s*endif${rPartComment}`);
 const rScriptForBegin = new RegExp(
-    `^(?&lt;for>\\s*for\\s+(?&lt;value>[A-Za-z_]\\w*)(?:\\s*,\\s*(?&lt;index>[A-Za-z_]\\w*))?\\s+in\\s+)(?&lt;values>.+)\\s*:${rPartComment}`
+    '^(?&lt;for>\\s*for\\s+(?&lt;value>[A-Za-z_][A-Za-z0-9_]*)(?:\\s*,\\s*(?&lt;index>[A-Za-z_][A-Za-z0-9_]*))?\\s+in\\s+)' +
+        `(?&lt;values>.+)\\s*:${rPartComment}`
 );
 const rScriptForEnd = new RegExp(`^\\s*endfor${rPartComment}`);
 const rScriptWhileBegin = new RegExp(`^(?&lt;while>\\s*while\\s+)(?&lt;expr>.+)\\s*:${rPartComment}`);
@@ -896,12 +897,12 @@ function parseUnaryExpression(exprText, arrayLiterals) {
 // BareScript expression regex
 const rExprBinaryOp = /^\s*(\*\*|\*|\/|%|\+|-|&lt;&lt;|>>|&lt;=|&lt;|>=|>|==|!=|&amp;&amp;|\|\||&amp;|\^|\|)/;
 const rExprUnaryOp = /^\s*(!|-|~)/;
-const rExprFunctionOpen = /^\s*([A-Za-z_]\w*)\s*\(/;
+const rExprFunctionOpen = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(/;
 const rExprFunctionSeparator = /^\s*,/;
 const rExprFunctionClose = /^\s*\)/;
 const rExprGroupOpen = /^\s*\(/;
 const rExprGroupClose = /^\s*\)/;
-const rExprNumber = /^\s*(0x[A-Fa-f0-9]+|[+-]?\d+(?:\.\d*)?(?:e[+-]?\d+)?)/;
+const rExprNumber = /^\s*(0x[A-Fa-f0-9]+|[+-]?[0-9]+(?:\.[0-9]*)?(?:e[+-]?[0-9]+)?)/;
 const rExprArrayOpen = /^\s*\[/;
 const rExprArraySeparator = /^\s*,/;
 const rExprArrayClose = /^\s*\]/;
@@ -911,7 +912,7 @@ const rExprObjectSeparator = /^\s*,/;
 const rExprObjectClose = /^\s*\}/;
 const rExprString = /^\s*'((?:\\\\|\\'|[^'])*)'/;
 const rExprStringDouble = /^\s*"((?:\\\\|\\"|[^"])*)"/;
-const rExprVariable = /^\s*([A-Za-z_]\w*)/;
+const rExprVariable = /^\s*([A-Za-z_][A-Za-z0-9_]*)/;
 const rExprVariableEx = /^\s*\[\s*((?:\\\]|[^\]])+)\s*\]/;
 const rExprVariableExEscape = /\\([\\\]])/g;
 
@@ -1007,7 +1008,7 @@ ${' '.repeat(lineColumn - 1)}^
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

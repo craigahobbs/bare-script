@@ -4,6 +4,8 @@
 include <dataUtil.bare>
 include <markdownElements.bare>
 include <markdownParser.bare>
+include <schema.bare>
+include <schemaParser.bare>
 
 
 # The data table model's Schema Markdown
@@ -77,6 +79,18 @@ dataTableTypes = schemaParse( \
 # $return: The validated [data table model](model.html#var.vName='DataTable')
 function dataTableValidate(dataTable):
     return schemaValidate(dataTableTypes, 'DataTable', dataTable)
+endfunction
+
+
+# $function: dataTableValidateEx
+# $group: dataTable.bare
+# $doc: Validate a data table model
+# $arg dataTable: The [data table model](model.html#var.vName='DataTable')
+# $return: On success, an object with the "result" key set to the validated [data table model](model.html#var.vName='DataTable').
+# $return: On failure, an object with the "error" key set to the validation error message and the
+# $return: "memberFqn" key set to the fully-qualified member name (or null).
+function dataTableValidateEx(dataTable):
+    return schemaValidateEx(dataTableTypes, 'DataTable', dataTable)
 endfunction
 
 

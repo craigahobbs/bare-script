@@ -12,8 +12,6 @@
 - [markdownElements.bare](#var.vPublish=true&var.vSingle=true&markdownelements-bare)
 - [markdownHighlight.bare](#var.vPublish=true&var.vSingle=true&markdownhighlight-bare)
 - [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare)
-- [regex](#var.vPublish=true&var.vSingle=true&regex)
-- [system](#var.vPublish=true&var.vSingle=true&system)
 
 ---
 
@@ -566,31 +564,3 @@ The page type
 | function | [PagerPageFunction](#struct-pagerpagefunction) | A function page          |
 | markdown | [PagerPageMarkdown](#struct-pagerpagemarkdown) | A markdown resource page |
 | link     | [PagerPageLink](#struct-pagerpagelink)         | A navigation link        |
-
----
-
-## regex
-
-### struct RegexMatch
-
-A regex match model
-
-| Name   | Type      | Attributes | Description                                                                                                      |
-|--------|-----------|------------|------------------------------------------------------------------------------------------------------------------|
-| index  | int       | value >= 0 | The zero-based index of the match in the input string                                                            |
-| input  | string    |            | The input string                                                                                                 |
-| groups | string {} |            | The matched groups. The "0" key is the full match text. Ordered (non-named) groups use keys "1", "2", and so on. |
-
----
-
-## system
-
-### struct SystemFetchRequest
-
-A fetch request model
-
-| Name    | Type      | Attributes | Description         |
-|---------|-----------|------------|---------------------|
-| url     | string    |            | The resource URL    |
-| body    | string    | optional   | The request body    |
-| headers | string {} | optional   | The request headers |

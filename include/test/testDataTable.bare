@@ -19,11 +19,30 @@ unittestRunTest('testDataTableValidate')
 
 
 function testDataTableValidate_error():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestMockAll()
     dataTable = {'fields': 1}
     unittestEqual(dataTableValidate(dataTable), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Invalid value 1 (type "number") for member "fields", expected type "array"']] \
+    ])
 endfunction
 unittestRunTest('testDataTableValidate_error')
+
+
+function testDataTableValidateEx():
+    dataTable = {'fields': ['A', 'B']}
+    unittestDeepEqual(dataTableValidateEx(dataTable), {'result': dataTable})
+endfunction
+unittestRunTest('testDataTableValidateEx')
+
+
+function testDataTableValidateEx_error():
+    unittestDeepEqual( \
+        dataTableValidateEx({'fields': 1}), \
+        {'error': 'Invalid value 1 (type "number") for member "fields", expected type "array"', 'memberFqn': 'fields'} \
+    )
+endfunction
+unittestRunTest('testDataTableValidateEx_error')
 
 
 #

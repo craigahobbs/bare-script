@@ -1,6 +1,11 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <elementModel.bare>
+include <markdownElements.bare>
+include <markdownParser.bare>
+include <url.bare>
+
 #
 # Stub implementations of the MarkdownUp runtime functions (markdownPrint,
 # elementModelRender, document*, window*, *Storage*) for use under the plain
@@ -15,13 +20,6 @@
 #   - Under the `bare` CLI, the `-m` / `-l` flags prepend this include for
 #     you, so including it again is redundant.
 #
-
-
-include <elementModel.bare>
-include <markdown.bare>
-include <markdownHighlight.bare>
-include <markdownElements.bare>
-include <markdownParser.bare>
 
 
 # Constants

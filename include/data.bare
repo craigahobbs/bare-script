@@ -1,6 +1,9 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <schema.bare>
+include <schemaParser.bare>
+
 
 # $function: dataParseCSV
 # $group: data.bare
@@ -92,6 +95,23 @@ dataParseCSVQuotedField = regexNew('^"((?:""|[^"])*)"(,|\s*$)')
 # $arg csv: Optional (default is false). If true, parse value strings.
 # $return: The map of field name to field type, or null if the data is invalid
 function dataValidate(data, csv):
+    result = dataValidateEx(data, csv)
+    if objectHas(result, 'error'):
+        systemLogDebug('data.bare: dataValidate - ' + objectGet(result, 'error'))
+        return null
+    endif
+    return objectGet(result, 'result')
+endfunction
+
+
+# $function: dataValidateEx
+# $group: data.bare
+# $doc: Validate a data array
+# $arg data: The data array
+# $arg csv: Optional (default is false). If true, parse value strings.
+# $return: On success, an object with the "result" key set to the map of field name to field type.
+# $return: On failure, an object with the "error" key set to the validation error message.
+function dataValidateEx(data, csv):
     # Determine field types
     types = {}
     for row in data:
@@ -157,16 +177,14 @@ function dataValidate(data, csv):
                     else:
                         numberValue = numberParseFloat(value)
                         if numberValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType)
-                            return null
+                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType}
                         endif
                     endif
                     objectSet(row, field, numberValue)
                 elif value != null && valueType != 'number':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType)
-                    return null
+                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType}
                 endif
 
             # Datetime field?
@@ -177,16 +195,14 @@ function dataValidate(data, csv):
                     else:
                         datetimeValue = datetimeISOParse(value)
                         if datetimeValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType)
-                            return null
+                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType}
                         endif
                     endif
                     objectSet(row, field, datetimeValue)
                 elif value != null && valueType != 'datetime':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType)
-                    return null
+                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType}
                 endif
 
             # Boolean field?
@@ -197,30 +213,27 @@ function dataValidate(data, csv):
                     else:
                         booleanValue = if(value == 'true', true, if(value == 'false', false, null))
                         if booleanValue == null:
-                            systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType)
-                            return null
+                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                                ', expected type ' + fieldType}
                         endif
                     endif
                     objectSet(row, field, booleanValue)
                 elif value != null && valueType != 'boolean':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType)
-                    return null
+                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType}
                 endif
 
             # String field
             else:
                 if value != null && valueType != 'string':
-                    systemLogDebug('data.bare: dataValidate - Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType)
-                    return null
+                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
+                        ', expected type ' + fieldType}
                 endif
             endif
         endfor
     endfor
 
-    return types
+    return {'result': types}
 endfunction
 
 

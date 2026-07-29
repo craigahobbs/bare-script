@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: include.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: include.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// Licensed under the MIT License
+// https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+/** @module lib/include */
+
+import {executeScript} from './runtime.js';
+
+
+// The include library script globals - execute the include library script
+const includeGlobals = {};
+executeScript(
+    {
+        'statements': [
+            {'include': {'includes': [
+                {'url': 'data.bare', 'system': true},
+                {'url': 'dataLineChart.bare', 'system': true},
+                {'url': 'dataTable.bare', 'system': true},
+                {'url': 'elementModel.bare', 'system': true},
+                {'url': 'markdown.bare', 'system': true},
+                {'url': 'markdownElements.bare', 'system': true},
+                {'url': 'markdownParser.bare', 'system': true},
+                {'url': 'qrcode.bare', 'system': true},
+                {'url': 'schema.bare', 'system': true},
+                {'url': 'schemaDoc.bare', 'system': true},
+                {'url': 'schemaParser.bare', 'system': true},
+                {'url': 'schemaTypeModel.bare', 'system': true},
+                {'url': 'url.bare', 'system': true}
+            ]}}
+        ]
+    },
+    {
+        'globals': includeGlobals
+    }
+);
+
+
+// The include library log function
+let includeLogFn = null;
+
+
+/**
+ * Set the include library stub function log function. Include library logging is debug-level,
+ * so setting a log function also enables debug logging for the stub function calls.
+ *
+ * @param {?function} logFn - The [log function]{@link module:lib/options~LogFn}, or null to disable logging
+ */
+export function includeSetLogFn(logFn) {
+    includeLogFn = logFn;
+}
+
+
+// Create an include library stub function execute options object
+function includeOptions() {
+    if (includeLogFn !== null) {
+        return {'globals': includeGlobals, 'logFn': includeLogFn, 'debug': true};
+    }
+    return {'globals': includeGlobals};
+}
+
+
+//
+// data.bare
+//
+
+
+/**
+ * Aggregate a data array
+ *
+ * @param {Object[]} data - The data array
+ * @param {Object} aggregation - The aggregation model
+ * @returns {Object[]} The aggregated data array
+ */
+export function dataAggregate(data, aggregation) {
+    return includeGlobals.dataAggregate([data, aggregation], includeOptions());
+}
+
+
+/**
+ * Add a calculated field to a data array
+ *
+ * @param {Object[]} data - The data array
+ * @param {string} fieldName - The calculated field name
+ * @param {string} expr - The calculated field expression
+ * @param {?Object} [variables = null] - The expression variables object
+ * @returns {Object[]} The updated data array
+ */
+export function dataCalculatedField(data, fieldName, expr, variables = null) {
+    return includeGlobals.dataCalculatedField([data, fieldName, expr, variables], includeOptions());
+}
+
+
+/**
+ * Filter a data array
+ *
+ * @param {Object[]} data - The data array
+ * @param {string} expr - The filter expression
+ * @param {?Object} [variables = null] - The expression variables object
+ * @returns {Object[]} The filtered data array
+ */
+export function dataFilter(data, expr, variables = null) {
+    return includeGlobals.dataFilter([data, expr, variables], includeOptions());
+}
+
+
+/**
+ * Join two data arrays
+ *
+ * @param {Object[]} leftData - The left data array
+ * @param {Object[]} rightData - The right data array
+ * @param {string} joinExpr - The join expression
+ * @param {?string} [rightExpr = null] - The right join expression
+ * @param {?boolean} [isLeftJoin = null] - If true, perform a left join (always include left row)
+ * @param {?Object} [variables = null] - The join expression variables object
+ * @returns {Object[]} The joined data array
+ */
+export function dataJoin(leftData, rightData, joinExpr, rightExpr = null, isLeftJoin = null, variables = null) {
+    return includeGlobals.dataJoin([leftData, rightData, joinExpr, rightExpr, isLeftJoin, variables], includeOptions());
+}
+
+
+/**
+ * Parse CSV text to a data array
+ *
+ * @param {string} text - The CSV text
+ * @returns {Object[]} The data array
+ */
+export function dataParseCSV(text) {
+    return includeGlobals.dataParseCSV([text], includeOptions());
+}
+
+
+/**
+ * Sort a data array
+ *
+ * @param {Object[]} data - The data array
+ * @param {Array[]} sorts - The array of sort tuples, [field] or [field, descending]
+ * @returns {Object[]} The sorted data array
+ */
+export function dataSort(data, sorts) {
+    return includeGlobals.dataSort([data, sorts], includeOptions());
+}
+
+
+/**
+ * Keep the top rows for each category
+ *
+ * @param {Object[]} data - The data array
+ * @param {?number} [count = null] - The number of rows to keep (default is 1)
+ * @param {?string[]} [categoryFields = null] - The category fields
+ * @returns {Object[]} The top data array
+ */
+export function dataTop(data, count = null, categoryFields = null) {
+    return includeGlobals.dataTop([data, count, categoryFields], includeOptions());
+}
+
+
+/**
+ * Validate a data array
+ *
+ * @param {Object[]} data - The data array
+ * @param {?boolean} [csv = null] - If true, parse value strings
+ * @returns {Object} The map of field name to field type
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function dataValidate(data, csv = null) {
+    const result = includeGlobals.dataValidateEx([data, csv], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error);
+    }
+    return result.result;
+}
+
+
+//
+// dataLineChart.bare
+//
+
+
+/**
+ * Render a line chart as an element model
+ *
+ * @param {Object[]} data - The data array
+ * @param {Object} lineChart - The line chart model
+ * @param {?Object} [options = null] - The line chart options object
+ * @returns {Object} The line chart element model
+ */
+export function dataLineChartElements(data, lineChart, options = null) {
+    return includeGlobals.dataLineChartElements([data, lineChart, options], includeOptions());
+}
+
+
+/**
+ * Validate a line chart model
+ *
+ * @param {Object} lineChart - The line chart model
+ * @returns {Object} The validated line chart model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function dataLineChartValidate(lineChart) {
+    const result = includeGlobals.dataLineChartValidateEx([lineChart], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
+}
+
+
+//
+// dataTable.bare
+//
+
+
+/**
+ * Render a data table as an element model
+ *
+ * @param {Object[]} data - The data array
+ * @param {?Object} [dataTable = null] - The data table model
+ * @returns {Object} The data table element model
+ */
+export function dataTableElements(data, dataTable = null) {
+    return includeGlobals.dataTableElements([data, dataTable], includeOptions());
+}
+
+
+/**
+ * Create the array of Markdown table line strings
+ *
+ * @param {Object[]} data - The array of row objects
+ * @param {?Object} [model = null] - The data table model
+ * @returns {string[]} The array of Markdown table line strings
+ */
+export function dataTableMarkdown(data, model = null) {
+    return includeGlobals.dataTableMarkdown([data, model], includeOptions());
+}
+
+
+/**
+ * Validate a data table model
+ *
+ * @param {Object} dataTable - The data table model
+ * @returns {Object} The validated data table model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function dataTableValidate(dataTable) {
+    const result = includeGlobals.dataTableValidateEx([dataTable], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
+}
+
+
+//
+// elementModel.bare
+//
+
+
+/**
+ * Render an element model to an HTML or SVG string
+ *
+ * @param {?(Object|Array)} elements - The element model
+ * @param {?(string|number)} [indent = null] - The indentation string or number of spaces
+ * @returns {string} The HTML or SVG string
+ */
+export function elementModelToString(elements, indent = null) {
+    return includeGlobals.elementModelToString([elements, indent], includeOptions());
+}
+
+
+/**
+ * Validate an element model
+ *
+ * @param {?(Object|Array)} elements - The element model
+ * @returns {?(Object|Array)} The validated element model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function elementModelValidate(elements) {
+    const result = includeGlobals.elementModelValidateEx([elements], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error);
+    }
+    return result.result;
+}
+
+
+//
+// markdown.bare
+//
+
+
+/**
+ * Escape a string for inclusion in Markdown text
+ *
+ * @param {string} text - The text to escape
+ * @returns {string} The escaped text
+ */
+export function markdownEscape(text) {
+    return includeGlobals.markdownEscape([text], includeOptions());
+}
+
+
+/**
+ * Generate a Markdown header ID from text
+ *
+ * @param {string} text - The text
+ * @returns {string} The header element ID
+ */
+export function markdownHeaderId(text) {
+    return includeGlobals.markdownHeaderId([text], includeOptions());
+}
+
+
+/**
+ * Get a Markdown paragraph model's text
+ *
+ * @param {Object} paragraph - The Markdown paragraph model
+ * @returns {string} The paragraph text string
+ */
+export function markdownParagraphText(paragraph) {
+    return includeGlobals.markdownParagraphText([paragraph], includeOptions());
+}
+
+
+/**
+ * Get a Markdown model's title
+ *
+ * @param {Object} markdown - The Markdown model
+ * @returns {?string} The title string or null
+ */
+export function markdownTitle(markdown) {
+    return includeGlobals.markdownTitle([markdown], includeOptions());
+}
+
+
+/**
+ * Validate a Markdown model
+ *
+ * @param {Object} markdown - The Markdown model
+ * @returns {Object} The validated Markdown model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function markdownValidate(markdown) {
+    const result = includeGlobals.markdownValidateEx([markdown], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
+}
+
+
+//
+// markdownElements.bare
+//
+
+
+/**
+ * Generate an element model from a Markdown model
+ *
+ * @param {Object} markdown - The Markdown model
+ * @param {?Object} [options = null] - The Markdown elements options object
+ * @returns {Object[]} The Markdown's element model
+ */
+export function markdownElements(markdown, options = null) {
+    return includeGlobals.markdownElements([markdown, options], includeOptions());
+}
+
+
+//
+// markdownParser.bare
+//
+
+
+/**
+ * Parse Markdown text into a Markdown model
+ *
+ * @param {string|string[]} text - The Markdown text
+ * @returns {Object} The Markdown model
+ */
+export function markdownParse(text) {
+    return includeGlobals.markdownParse([text], includeOptions());
+}
+
+
+//
+// qrcode.bare
+//
+
+
+/**
+ * Generate the element model for a QR code
+ *
+ * @param {string|Array[]} message - The QR code message or the QR code matrix
+ * @param {number} size - The size of the QR code, in pixels
+ * @param {?string} [level = null] - The error correction level: 'low', 'medium', 'quartile', or 'high'
+ * @returns {Object} The QR code SVG element model
+ */
+export function qrcodeElements(message, size, level = null) {
+    return includeGlobals.qrcodeElements([message, size, level], includeOptions());
+}
+
+
+/**
+ * Generate a QR code pixel matrix
+ *
+ * @param {string} message - The QR code message
+ * @param {?string} [level = null] - The error correction level: 'low', 'medium', 'quartile', or 'high'
+ * @returns {Array[]} The QR code pixel matrix
+ */
+export function qrcodeMatrix(message, level = null) {
+    return includeGlobals.qrcodeMatrix([message, level], includeOptions());
+}
+
+
+//
+// schema.bare
+//
+
+
+/**
+ * Get an enum's values (inherited values first)
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} enumModel - The enum model
+ * @returns {Object[]} The array of enum value models
+ */
+export function schemaGetEnumValues(types, enumModel) {
+    return includeGlobals.schemaGetEnumValues([types, enumModel], includeOptions());
+}
+
+
+/**
+ * Get a user type's referenced type model
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {string} typeName - The type name
+ * @param {?Object} [referencedTypes = null] - A map of referenced user type name to user type model to update
+ * @returns {Object} The referenced type model
+ */
+export function schemaGetReferencedTypes(types, typeName, referencedTypes = null) {
+    return includeGlobals.schemaGetReferencedTypes([types, typeName, referencedTypes], includeOptions());
+}
+
+
+/**
+ * Get a struct's members (inherited members first)
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} struct - The struct model
+ * @returns {Object[]} The array of struct member models
+ */
+export function schemaGetStructMembers(types, struct) {
+    return includeGlobals.schemaGetStructMembers([types, struct], includeOptions());
+}
+
+
+/**
+ * Validate a value using a schema type model
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {string} typeName - The type name
+ * @param {*} value - The value to validate
+ * @returns {*} The validated, transformed value
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function schemaValidate(types, typeName, value) {
+    const result = includeGlobals.schemaValidateEx([types, typeName, value], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
+}
+
+
+//
+// schemaDoc.bare
+//
+
+
+/**
+ * Generate the Schema Markdown user type documentation as an array of Markdown text lines
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {string} typeName - The type name
+ * @param {?Object} [options = null] - The schema documentation options object
+ * @returns {string[]} The array of Markdown text lines
+ */
+export function schemaDocMarkdown(types, typeName, options = null) {
+    return includeGlobals.schemaDocMarkdown([types, typeName, options], includeOptions());
+}
+
+
+//
+// schemaParser.bare
+//
+
+
+/**
+ * Parse Schema Markdown text
+ *
+ * @param {string|string[]} text - The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
+ * @returns {Object} The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @throws [SchemaParserError]{@link module:lib/include.SchemaParserError}
+ */
+export function schemaParse(text) {
+    const result = includeGlobals.schemaParseEx([text], includeOptions());
+    if ('errors' in result) {
+        throw new SchemaParserError(result.errors);
+    }
+    return result.result;
+}
+
+
+//
+// schemaTypeModel.bare
+//
+
+
+/**
+ * Get the Schema Markdown type model
+ *
+ * @returns {Object} The Schema Markdown [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ */
+export function schemaTypeModel() {
+    return includeGlobals.schemaTypeModel([], includeOptions());
+}
+
+
+/**
+ * Validate a Schema Markdown type model
+ *
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types') to validate
+ * @returns {Object} The validated type model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function schemaTypeModelValidate(types) {
+    const result = includeGlobals.schemaTypeModelValidateEx([types], includeOptions());
+    if ('errors' in result) {
+        throw new SchemaValidationError(result.errors.join('\n'));
+    }
+    return result.result;
+}
+
+
+//
+// url.bare
+//
+
+
+/**
+ * Decode a percent-encoded string component
+ *
+ * @param {string} string - The string component to decode
+ * @returns {?string} The decoded string, or null on failure
+ */
+export function urlDecodeComponent(string) {
+    return includeGlobals.urlDecodeComponent([string], includeOptions());
+}
+
+
+/**
+ * Decode a URL query string to an object
+ *
+ * @param {string} queryString - The query string to decode
+ * @returns {?Object} The decoded query string object, or null on failure
+ */
+export function urlDecodeQueryString(queryString) {
+    return includeGlobals.urlDecodeQueryString([queryString], includeOptions());
+}
+
+
+/**
+ * Encode a URL
+ *
+ * @param {string} url - The URL to encode
+ * @returns {string} The encoded URL
+ */
+export function urlEncode(url) {
+    return includeGlobals.urlEncode([url], includeOptions());
+}
+
+
+/**
+ * Encode a URL component
+ *
+ * @param {string} url - The URL component to encode
+ * @returns {string} The encoded URL component
+ */
+export function urlEncodeComponent(url) {
+    return includeGlobals.urlEncodeComponent([url], includeOptions());
+}
+
+
+/**
+ * Encode an object as a URL query string
+ *
+ * @param {Object} obj - The object to encode
+ * @returns {string} The encoded query string
+ */
+export function urlEncodeQueryString(obj) {
+    return includeGlobals.urlEncodeQueryString([obj], includeOptions());
+}
+
+
+//
+// Errors
+//
+
+
+/**
+ * A Schema Markdown parser error
+ *
+ * @extends {Error}
+ * @property {string[]} errors - The list of error strings
+ */
+export class SchemaParserError extends Error {
+    /**
+     * Create a Schema Markdown parser error
+     *
+     * @param {string[]} errors - The list of error strings
+     */
+    constructor(errors) {
+        super(errors.join('\n'));
+        this.name = this.constructor.name;
+        this.errors = errors;
+    }
+}
+
+
+/**
+ * A schema type model validation error
+ *
+ * @extends {Error}
+ * @property {?string} memberFqn - The fully-qualified member name or null
+ */
+export class SchemaValidationError extends Error {
+    /**
+     * Create a schema type model validation error
+     *
+     * @param {string} message - The validation error message
+     * @param {?string} [memberFqn = null] - The fully-qualified member name
+     */
+    constructor(message, memberFqn = null) {
+        super(message);
+        this.name = this.constructor.name;
+        this.memberFqn = memberFqn;
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

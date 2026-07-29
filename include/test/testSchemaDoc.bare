@@ -466,6 +466,50 @@ endfunction
 unittestRunTest('testSchemaDocMarkdown_enumBases')
 
 
+function testSchemaDocMarkdown_enumBasesOnly():
+    types = { \
+        'MyEnum': { \
+            'enum': { \
+                'name': 'MyEnum', \
+                'bases': ['MyEnum2'] \
+            } \
+        }, \
+        'MyEnum2': { \
+            'enum': { \
+                'name': 'MyEnum2', \
+                'values': [ \
+                    {'name': 'A'} \
+                ] \
+            } \
+        } \
+    }
+
+    unittestDeepEqual( \
+        schemaDocMarkdown(types, 'MyEnum'), \
+        [ \
+            '# enum MyEnum', \
+            '', \
+            'Bases: [MyEnum2](#enum-myenum2)', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| A     |', \
+            '', \
+            '---', \
+            '', \
+            '## Referenced Types', \
+            '', \
+            '### enum MyEnum2', \
+            '', \
+            '| Value |', \
+            '|-------|', \
+            '| A     |' \
+        ] \
+    )
+endfunction
+unittestRunTest('testSchemaDocMarkdown_enumBasesOnly')
+
+
 function testSchemaDocMarkdown_typedef():
     types = { \
         'MyTypedef': { \

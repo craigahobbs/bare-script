@@ -1,6 +1,8 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <url.bare>
+
 
 # Constants
 unittestMockPixelsPerPoint = 4 / 3

@@ -9,24 +9,43 @@
 # $arg elements: An element model is either null, an element object, or an array of any of these.
 # $return: The element model if valid, null otherwise
 function elementModelValidate(elements):
+    result = elementModelValidateEx(elements)
+    if objectHas(result, 'error'):
+        return null
+    endif
+    return objectGet(result, 'result')
+endfunction
+
+
+# $function: elementModelValidateEx
+# $group: elementModel.bare
+# $doc: Validate an element model
+# $arg elements: The element model.
+# $arg elements: An element model is either null, an element object, or an array of any of these.
+# $return: On success, an object with the "result" key set to the element model.
+# $return: On failure, an object with the "error" key set to the validation error message.
+function elementModelValidateEx(elements):
     # Null?
     if elements == null:
-        return elements
+        return {'result': null}
     endif
 
     # Array?
     if systemType(elements) == 'array':
         for subElements in elements:
-            if subElements != null && elementModelValidate(subElements) == null:
-                return null
+            if subElements != null:
+                subElementsResult = elementModelValidateEx(subElements)
+                if objectHas(subElementsResult, 'error'):
+                    return subElementsResult
+                endif
             endif
         endfor
-        return elements
+        return {'result': elements}
     endif
 
     # Non-object?
     if systemType(elements) != 'object':
-        return null
+        return {'error': 'Invalid element ' + elementModelTruncate(jsonStringify(elements)) + ' (type "' + systemType(elements) + '")'}
     endif
 
     # Check for element tag members and unknown members
@@ -41,49 +60,59 @@ function elementModelValidate(elements):
             arrayPush(unknownMembers, elementMember)
         endif
     endfor
-    if arrayLength(tagMembers) != 1:
-        return null
+    if arrayLength(tagMembers) == 0:
+        return {'error': 'Missing element member ' + elementModelTruncate(jsonStringify(elements))}
+    endif
+    if arrayLength(tagMembers) > 1:
+        return {'error': 'Multiple element members ' + jsonStringify(tagMembers)}
     endif
     if arrayLength(unknownMembers) != 0:
-        return null
+        return {'error': 'Unknown element member "' + arrayGet(unknownMembers, 0) + '"'}
     endif
 
     # Validate the tag
     tagMember = arrayGet(tagMembers, 0)
     tag = objectGet(elements, tagMember)
     if tagMember != 'text' && (systemType(tag) != 'string' || stringLength(tag) == 0):
-        return null
+        return {'error': 'Invalid "' + tagMember + '" tag ' + elementModelTruncate(jsonStringify(tag)) + ' (type "' + systemType(tag) + '")'}
     endif
 
     # Validate attributes
     attr = objectGet(elements, 'attr')
     if objectHas(elements, 'attr') && tagMember == 'text':
-        return null
+        return {'error': 'Invalid member "attr" for text element ' + elementModelTruncate(jsonStringify(tag))}
     endif
     if attr != null:
         if systemType(attr) != 'object':
-            return null
+            return {'error': 'Invalid attributes ' + elementModelTruncate(jsonStringify(attr)) + ' (type "' + systemType(attr) + '")'}
         endif
     endif
 
     # Validate child elements
     elem = objectGet(elements, 'elem')
     if objectHas(elements, 'elem') && tagMember == 'text':
-        return null
+        return {'error': 'Invalid member "elem" for text element ' + elementModelTruncate(jsonStringify(tag))}
     endif
     if elem != null:
-        if elementModelValidate(elem) == null:
-            return null
+        elemResult = elementModelValidateEx(elem)
+        if objectHas(elemResult, 'error'):
+            return elemResult
         endif
     endif
 
     # Validate creation callback
     callback = objectGet(elements, 'callback')
     if callback != null && systemType(callback) != 'function':
-        return null
+        return {'error': 'Invalid element callback function ' + elementModelTruncate(jsonStringify(callback)) + ' (type "' + systemType(callback) + '")'}
     endif
 
-    return elements
+    return {'result': elements}
+endfunction
+
+
+# Helper function to truncate an error message value
+function elementModelTruncate(string):
+    return stringSlice(string, 0, mathMin(100, stringLength(string)))
 endfunction
 
 

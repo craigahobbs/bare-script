@@ -147,6 +147,33 @@ console.log(evaluateExpression(expr, null, variables))
 <p>This outputs:</p>
 <pre class="prettyprint source"><code>6
 </code></pre>
+<h2>The Include Library Stub Functions</h2>
+<p>BareScript include library functions are callable directly from JavaScript using the native stub functions
+exported by the
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html">include module</a> — for example,
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.dataAggregate">dataAggregate</a>,
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.markdownParse">markdownParse</a>,
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.qrcodeMatrix">qrcodeMatrix</a>,
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.schemaParse">schemaParse</a>,
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.schemaValidate">schemaValidate</a>, and
+<a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.urlEncode">urlEncode</a>.
+Each stub function executes its corresponding include library function using the BareScript
+runtime. For example:</p>
+<pre class="prettyprint source lang-javascript"><code>import {markdownParse, markdownTitle} from 'bare-script/lib/include.js';
+
+// Parse the Markdown text
+const markdown = markdownParse(`\
+# Hello, Markdown!
+
+This is some text.
+`);
+
+// Print the Markdown title
+console.log(markdownTitle(markdown));
+</code></pre>
+<p>This outputs:</p>
+<pre class="prettyprint source"><code>Hello, Markdown!
+</code></pre>
 <h2>The BareScript Command-Line Interface (CLI)</h2>
 <p>You can run BareScript from the command line using the BareScript CLI, &quot;bare&quot;. BareScript script
 files use the &quot;.bare&quot; file extension.</p>
@@ -171,6 +198,112 @@ This is a Markdown document with embedded BareScript:
 markdownPrint('Hello, Markdown!')
 ```
 </code></pre>
+<h2>Performance</h2>
+<p>The <code>make perf</code> target benchmarks the BareScript runtime with a suite of compute-intensive tests —
+Mandelbrot set computation, Markdown parsing and rendering, QR code generation, Schema Markdown
+parsing and validation, and URL encoding and decoding — and compares each test with an equivalent
+native JavaScript program (using the
+<a href="https://www.npmjs.com/package/markdown-model">markdown-model</a> and
+<a href="https://www.npmjs.com/package/schema-markdown">schema-markdown</a> packages).</p>
+<p>The following results are from <code>make perf PERF_MERGE=</code> (Node.js 24, Apple M-series). Times are the
+best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
+time. Tests without a native JavaScript equivalent are omitted.</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Language</th>
+<th style="text-align:right">Time (ms)</th>
+<th style="text-align:right">Multiple</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>markdownParse</td>
+<td>JavaScript</td>
+<td style="text-align:right">314.8</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">1628.0</td>
+<td style="text-align:right">5.2x</td>
+</tr>
+<tr>
+<td>markdownElements</td>
+<td>JavaScript</td>
+<td style="text-align:right">23.8</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">378.0</td>
+<td style="text-align:right">15.9x</td>
+</tr>
+<tr>
+<td>schemaParse</td>
+<td>JavaScript</td>
+<td style="text-align:right">72.0</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">1152.0</td>
+<td style="text-align:right">16.0x</td>
+</tr>
+<tr>
+<td>urlDecode</td>
+<td>JavaScript</td>
+<td style="text-align:right">5.0</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">86.0</td>
+<td style="text-align:right">17.1x</td>
+</tr>
+<tr>
+<td>urlEncode</td>
+<td>JavaScript</td>
+<td style="text-align:right">2.7</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">50.5</td>
+<td style="text-align:right">18.7x</td>
+</tr>
+<tr>
+<td>schemaValidate</td>
+<td>JavaScript</td>
+<td style="text-align:right">54.2</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">1796.0</td>
+<td style="text-align:right">33.1x</td>
+</tr>
+<tr>
+<td>mandelbrot</td>
+<td>JavaScript</td>
+<td style="text-align:right">2180.9</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">296000.0</td>
+<td style="text-align:right">135.7x</td>
+</tr>
+</tbody>
+</table>
 <h2>Using BareScript with an AI Assistant</h2>
 <p>This repository ships a
 <a href="https://github.com/craigahobbs/bare-script-py/blob/main/SKILL.md"><code>SKILL.md</code></a>
@@ -214,7 +347,7 @@ It was started using <a href="https://github.com/craigahobbs/javascript-template
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">
