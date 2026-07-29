@@ -393,6 +393,18 @@ export function markdownElements(markdown, options = null) {
 }
 
 
+/**
+ * Generate an element model from a Markdown model
+ *
+ * @param {Object} markdown - The Markdown model
+ * @param {?Object} [options = null] - The Markdown elements options object
+ * @returns {Object[]} The Markdown's element model
+ */
+export function markdownElementsAsync(markdown, options = null) {
+    return includeGlobals.markdownElementsAsync([markdown, options], includeOptions());
+}
+
+
 //
 // markdownParser.bare
 //
