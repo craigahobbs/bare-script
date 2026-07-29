@@ -186,8 +186,6 @@ unittestRunTest('testBaredocMain_index_configURL')
 
 
 async function testBaredocMain_config_invalid():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
-
     # Setup mocks
     unittestMockAll({'systemFetch': testBaredocBaseFetch})
 
@@ -195,7 +193,10 @@ async function testBaredocMain_config_invalid():
     baredocMain({'title': 'The Test Library'})
 
     # Reset mocks
-    unittestDeepEqual(unittestMockEnd(), [['markdownPrint', ['**Error:** Invalid baredoc configuration']]])
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Required member "sections" missing']], \
+        ['markdownPrint', ['**Error:** Invalid baredoc configuration']] \
+    ])
 endfunction
 unittestRunTest('testBaredocMain_config_invalid')
 
@@ -217,8 +218,6 @@ unittestRunTest('testBaredocMain_section_fetchError')
 
 
 async function testBaredocMain_section_invalid():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
-
     # Setup mocks
     unittestMockAll({'systemFetch': {'builtin.json': jsonStringify({'functions': [{'name': 'x', 'group': 'g'}]}), 'include.json': testBaredocIncludeJSON}})
 
@@ -228,6 +227,7 @@ async function testBaredocMain_section_invalid():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', [['builtin.json', 'include.json']]], \
+        ['systemLogDebug', ['schema.bare: Required member "functions.0.doc" missing']], \
         ['markdownPrint', ['**Error:** Failed to fetch library documentation resource "builtin.json"']] \
     ])
 endfunction

@@ -418,15 +418,9 @@ string key, plus any `(?<name>...)` group under its name.
 
 Add/subtract milliseconds: `tomorrow = today + 86400000`.
 
-### URL (`url*`)
-
-`urlEncode(s)` · `urlEncodeComponent(s)`
-
-### Schema (`schema*`) — Schema Markdown
-
-`schemaParse(line1, line2, ...)` · `schemaParseEx(lines, types?, filename?)` ·
-`schemaTypeModel()` · `schemaValidate(types, typeName, value)` ·
-`schemaValidateTypeModel(types)`
+(URL encode/decode and query-string encode/decode are not built-ins — they live in the
+`url.bare` include library, Section 3. Schema Markdown parse/validate functions are also
+include-library functions — `schema.bare`, `schemaParser.bare`, and `schemaTypeModel.bare`.)
 
 ### System (`system*`)
 
@@ -483,9 +477,13 @@ the `.bare` source. Each include is also documented at
 | `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
 | `pager.bare` | Multi-page MarkdownUp app shell | `pagerMain`, `pagerValidate` |
 | `qrcode.bare` | Render QR codes | `qrcodeDraw`, `qrcodeElements`, `qrcodeMatrix` |
+| `schema.bare` | Validate values with Schema Markdown type models | `schemaValidate`, `schemaValidateEx`, `schemaGetReferencedTypes`, `schemaGetStructMembers`, `schemaGetEnumValues` |
 | `schemaDoc.bare` | Schema-markdown documentation app | `schemaDocMain`, `schemaDocMarkdown` |
+| `schemaParser.bare` | Parse Schema Markdown text into type models | `schemaParse`, `schemaParseEx` |
+| `schemaTypeModel.bare` | The Schema Markdown type model + validation | `schemaTypeModel`, `schemaTypeModelValidate`, `schemaTypeModelValidateEx` |
 | `unittest.bare` | Unit-test framework | `unittestRunTest`, `unittestEqual`, `unittestDeepEqual`, `unittestCoverageStart`, `unittestCoverageStop`, `unittestReport` |
 | `unittestMock.bare` | Mock library functions during tests | `unittestMockAll`, `unittestMockOne`, `unittestMockOneGeneric`, `unittestMockEnd` |
+| `url.bare` | Encode/decode URLs and URL query strings | `urlEncode`, `urlEncodeComponent`, `urlEncodeQueryString`, `urlDecodeQueryString`, `urlDecodeComponent` |
 | `baredoc.bare` / `baredocCLI.bare` | Generate library model JSON from doc comments | `baredocMain`, `baredocCLIMain` |
 
 ### `data.bare` quick examples

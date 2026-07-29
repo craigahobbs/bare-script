@@ -8,6 +8,7 @@ import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.j
 import {validateExpression, validateScript} from '../lib/model.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
+import {systemIncludes} from '../lib/includeSource.js';
 import test from 'node:test';
 
 
@@ -291,9 +292,6 @@ test('executeScriptAsync, coverage', async () => {
 
 test('executeScript, coverage include', async () => {
     const fetchFn = (url) => {
-        if (url === 'system/sysutil.bare') {
-            return {'ok': true, 'text': () => 'a = 1'};
-        }
         assert.equal(url, 'util.bare');
         return {'ok': true, 'text': () => 'b = 2'};
     };
@@ -312,10 +310,14 @@ test('executeScript, coverage include', async () => {
     });
     const options = {
         'globals': {[systemGlobalCoverageName]: {'enabled': true}},
-        fetchFn,
-        'systemPrefix': 'system/'
+        fetchFn
     };
-    assert.equal(await executeScriptAsync(script, options), null);
+    systemIncludes['sysutil.bare'] = 'a = 1';
+    try {
+        assert.equal(await executeScriptAsync(script, options), null);
+    } finally {
+        delete systemIncludes['sysutil.bare'];
+    }
     assert.equal(options.globals.a, 1);
     assert.equal(options.globals.b, 2);
     assert.deepEqual(options.globals[systemGlobalCoverageName], {
@@ -357,11 +359,6 @@ test('executeScript, coverage include', async () => {
 
 
 test('executeScriptAsync, coverage disabled', async () => {
-    const fetchFn = (url) => {
-        assert.equal(url, 'system/sysutil.bare');
-        return {'ok': true, 'text': () => 'b = 7'};
-    };
-
     const script = validateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
@@ -377,11 +374,14 @@ test('executeScriptAsync, coverage disabled', async () => {
         ]
     });
     const options = {
-        'globals': {[systemGlobalCoverageName]: {'enabled': false}},
-        fetchFn,
-        'systemPrefix': 'system/'
+        'globals': {[systemGlobalCoverageName]: {'enabled': false}}
     };
-    assert.equal(await executeScriptAsync(script, options), 12);
+    systemIncludes['sysutil.bare'] = 'b = 7';
+    try {
+        assert.equal(await executeScriptAsync(script, options), 12);
+    } finally {
+        delete systemIncludes['sysutil.bare'];
+    }
     assert.deepEqual(options.globals[systemGlobalCoverageName], {'enabled': false});
 });
 
@@ -943,6 +943,63 @@ test('executeScriptAsync, jump error unknown label script name', async () => {
 });
 
 
+test('executeScriptAsync, jump label indexes cache', async () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'async': true,
+                    'name': 'countTo',
+                    'args': ['n'],
+                    'statements': [
+                        {'expr': {'name': 'i', 'expr': {'number': 0}}},
+                        {'label': {'name': 'loop'}},
+                        {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+                        {'jump': {'label': 'loop', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}}},
+                        {'return': {'expr': {'variable': 'i'}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    await executeScriptAsync(script, {'globals': globals});
+    const options = {'globals': globals};
+    assert.equal(await globals.countTo([3], options), 3);
+    assert.equal(await globals.countTo([5], options), 5);
+});
+
+
+test('executeScriptAsync, jump prototype label names', async () => {
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'jump': {'label': 'skip'}},
+            {'label': {'name': 'skip'}},
+            {'jump': {'label': 'constructor'}},
+            {'label': {'name': 'constructor'}},
+            {'jump': {'label': '__proto__'}},
+            {'label': {'name': '__proto__'}},
+            {'expr': {'name': 'a', 'expr': {'number': 2}}},
+            {'return': {'expr': {'variable': 'a'}}}
+        ]
+    });
+    assert.equal(await executeScriptAsync(script), 2);
+});
+
+
+test('executeScriptAsync, unknown statement no-op', async () => {
+    // An unvalidated, unknown statement kind executes as a no-op
+    const script = {
+        'statements': [
+            {'unknown': {}},
+            {'return': {'expr': {'number': 1}}}
+        ]
+    };
+    assert.equal(await executeScriptAsync(script), 1);
+});
+
+
 test('executeScriptAsync, return', async () => {
     const script = validateScript({
         'statements': [
@@ -1066,54 +1123,103 @@ test('executeScriptAsync, include system', async () => {
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
     });
-    const fetchFn = (url) => {
-        assert.equal(url, 'system/test.bare');
-        return {
-            'ok': true,
-            'text': () => 'a = 1'
-        };
-    };
-    const options = {'globals': {}, fetchFn, 'systemPrefix': 'system/'};
-    assert.equal(await executeScriptAsync(script, options), null);
-    assert.equal(options.globals.a, 1);
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const options = {'globals': {}};
+        assert.equal(await executeScriptAsync(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
 });
 
 
-test('executeScriptAsync, include system no system prefix', async () => {
+test('executeScriptAsync, include system and local same name', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}, {'url': 'test.bare'}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const fetchFn = (url) => {
+            assert.equal(url, 'test.bare');
+            return {
+                'ok': true,
+                'text': () => 'b = 2'
+            };
+        };
+        const options = {'globals': {}, fetchFn};
+        assert.equal(await executeScriptAsync(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.equal(options.globals.b, 2);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true, 'test.bare': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScriptAsync, include local and system same name', async () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare'}]}},
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const fetchFn = (url) => {
+            assert.equal(url, 'test.bare');
+            return {
+                'ok': true,
+                'text': () => 'b = 2'
+            };
+        };
+        const options = {'globals': {}, fetchFn};
+        assert.equal(await executeScriptAsync(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.equal(options.globals.b, 2);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true, 'test.bare': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScriptAsync, include system unknown', async () => {
     const script = validateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
     });
-    const fetchFn = (url) => {
-        assert.equal(url, 'test.bare');
-        return {
-            'ok': true,
-            'text': () => 'a = 1'
-        };
-    };
-    const options = {'globals': {}, fetchFn};
-    assert.equal(await executeScriptAsync(script, options), null);
-    assert.equal(options.globals.a, 1);
+    await assert.rejects(
+        async () => executeScriptAsync(script),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Include of "test.bare" failed'
+        }
+    );
 });
 
 
-test('executeScriptAsync, include system no system prefix with urlFn', async () => {
+test('executeScriptAsync, include system with urlFn', async () => {
     const script = validateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
     });
-    const fetchFn = (url) => {
-        assert.equal(url, '/base/test.bare');
-        return {
-            'ok': true,
-            'text': () => 'a = 1'
-        };
-    };
-    const options = {'globals': {}, fetchFn, 'urlFn': (url) => `/base/${url}`};
-    assert.equal(await executeScriptAsync(script, options), null);
-    assert.equal(options.globals.a, 1);
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        /* c8 ignore next */
+        const options = {'globals': {}, 'urlFn': (url) => `/base/${url}`};
+        assert.equal(await executeScriptAsync(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
 });
 
 
@@ -1124,16 +1230,21 @@ test('executeScriptAsync, include multiple', async () => {
         ]
     });
     const fetchFn = (url) => {
-        assert(url === 'test.bare' || url === 'test2.bare');
+        assert.equal(url, 'test2.bare');
         return {
             'ok': true,
-            'text': () => (url.endsWith('test2.bare') ? 'b = a + 1' : 'a = 1')
+            'text': () => 'b = a + 1'
         };
     };
-    const options = {'globals': {}, fetchFn};
-    assert.equal(await executeScriptAsync(script, options), null);
-    assert.equal(options.globals.a, 1);
-    assert.equal(options.globals.b, 2);
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const options = {'globals': {}, fetchFn};
+        assert.equal(await executeScriptAsync(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.equal(options.globals.b, 2);
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
 });
 
 
@@ -1482,6 +1593,61 @@ test('evaluateExpressionAsync, variable unknown', async () => {
 });
 
 
+test('evaluateExpressionAsync, variable inherited property name', async () => {
+    // Inherited property names must not resolve as global variables
+    const options = {'globals': {}};
+    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': '__proto__'}), options), null);
+    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': 'constructor'}), options), null);
+});
+
+
+test('evaluateExpressionAsync, variable undefined value', async () => {
+    // A host-provided global whose own-property value is undefined resolves to null
+    const options = {'globals': {'varName': undefined}};
+    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': 'varName'}), options), null);
+});
+
+
+test('executeScriptAsync, variable __proto__', async () => {
+    // Assigning a "__proto__" variable sets an own global, not the object prototype
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': '__proto__', 'expr': {'function': {'name': 'objectNew', 'args': [{'string': 'x'}, {'number': 99}]}}}},
+            {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
+                {'variable': 'x'},
+                {'function': {'name': 'systemType', 'args': [{'variable': '__proto__'}]}}
+            ]}}}}
+        ]
+    });
+    const options = {};
+    assert.deepEqual(await executeScriptAsync(script, options), [null, 'object']);
+    assert.equal(Object.getPrototypeOf(options.globals), Object.prototype);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(options.globals, '__proto__').value, {'x': 99});
+});
+
+
+test('executeScriptAsync, function local __proto__', async () => {
+    // A "__proto__" function argument is an own local, not the prototype; an unassigned local
+    // (an inherited property name) does not resolve
+    const script = validateScript({
+        'statements': [
+            {'function': {
+                'name': 'testFn',
+                'args': ['__proto__'],
+                'statements': [
+                    {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
+                        {'variable': '__proto__'},
+                        {'function': {'name': 'systemType', 'args': [{'variable': 'constructor'}]}}
+                    ]}}}}
+                ]
+            }},
+            {'return': {'expr': {'function': {'name': 'testFn', 'args': [{'number': 5}]}}}}
+        ]
+    });
+    assert.deepEqual(await executeScriptAsync(script, {}), [5, 'null']);
+});
+
+
 test('evaluateExpressionAsync, variable literal null', async () => {
     const expr = validateExpression({'variable': 'null'});
     assert.equal(await evaluateExpressionAsync(expr), null);
@@ -1736,6 +1902,20 @@ test('evaluateExpressionAsync, function non-function logFn', async () => {
     const options = {'globals': {testString, 'fnLocal': 'abc'}, logFn, 'debug': true};
     assert.equal(await evaluateExpressionAsync(expr, options, null, options), null);
     assert.deepEqual(logs, ['BareScript: Function "fnLocal" failed with error: funcValue is not a function']);
+});
+
+
+test('evaluateExpressionAsync, function inherited property name', async () => {
+    // Inherited property names must not resolve as callable global functions
+    const expr = validateExpression({'function': {'name': 'constructor'}});
+    const options = {'globals': {}};
+    await assert.rejects(
+        async () => await evaluateExpressionAsync(expr, options),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Undefined function "constructor"'
+        }
+    );
 });
 
 
@@ -2110,6 +2290,46 @@ test('evaluateExpressionAsync, binary exponentiation', async () => {
 
     // Invalid
     expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+});
+
+
+test('evaluateExpressionAsync, binary non-finite result', async () => {
+    // Non-finite arithmetic results are invalid operation values - the async operand
+    // routes evaluation through the async expression evaluator
+    const options = {'globals': {'testValue': async ([value]) => value, 'testDatetime': new Date(2024, 0, 1)}};
+    for (const [binOp, left, right] of [
+        ['/', 1, 0],
+        ['/', 0, 0],
+        ['%', 5, 0],
+        ['**', 10, 1000],
+        ['**', 10.5, 1000.5],
+        ['**', -8, 0.5],
+        ['**', 0, -1],
+        ['*', 1e308, 10],
+        ['+', 1e308, 1e308],
+        ['-', -1e308, 1e308]
+    ]) {
+        const expr = validateExpression({'binary': {
+            'op': binOp,
+            'left': {'function': {'name': 'testValue', 'args': [{'number': left}]}},
+            'right': {'number': right}
+        }});
+        assert.equal(await evaluateExpressionAsync(expr, options), null, `${left} ${binOp} ${right}`);
+    }
+
+    // Datetime addition overflow
+    let expr = validateExpression({'binary': {
+        'op': '+',
+        'left': {'function': {'name': 'testValue', 'args': [{'variable': 'testDatetime'}]}},
+        'right': {'number': 1e308}
+    }});
+    assert.equal(await evaluateExpressionAsync(expr, options), null);
+    expr = validateExpression({'binary': {
+        'op': '+',
+        'left': {'number': 1e308},
+        'right': {'function': {'name': 'testValue', 'args': [{'variable': 'testDatetime'}]}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 

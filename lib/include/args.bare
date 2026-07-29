@@ -1,7 +1,11 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <dataTable.bare>
 include <markdown.bare>
+include <schema.bare>
+include <schemaParser.bare>
+include <url.bare>
 
 
 # The URL arguments model
@@ -183,7 +187,7 @@ endfunction
 # $doc: Generate the [arguments model's](model.html#var.vName='ArgsArguments') help content
 # $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $return: The array of help Markdown line strings
-async function argsHelp(arguments):
+function argsHelp(arguments):
     # Create the help data
     helpData = []
     anyDefault = false
@@ -209,10 +213,6 @@ async function argsHelp(arguments):
         anyExplicit = anyExplicit || explicit
         anyDescription = anyDescription || (description != null)
     endfor
-
-    # Dynamically include dataTable.bare
-    include <dataTable.bare>
-    dataTableMarkdown = systemGlobalGet('dataTableMarkdown')
 
     # Render the help table
     helpFields = ['Variable', 'Type']

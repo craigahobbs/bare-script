@@ -1,10 +1,13 @@
 // Licensed under the MIT License
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-import {BareScriptRuntimeError, evaluateExpression, executeScript, systemGlobalCoverageName} from '../lib/runtime.js';
+import {
+    BareScriptRuntimeError, evaluateExpression, executeScript, systemGlobalCoverageName, systemGlobalIncludesName
+} from '../lib/runtime.js';
 import {validateExpression, validateScript} from '../lib/model.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
+import {systemIncludes} from '../lib/includeSource.js';
 import test from 'node:test';
 
 
@@ -805,6 +808,62 @@ test('executeScript, jump error unknown label script name', () => {
 });
 
 
+test('executeScript, jump label indexes cache', () => {
+    const script = validateScript({
+        'statements': [
+            {
+                'function': {
+                    'name': 'countTo',
+                    'args': ['n'],
+                    'statements': [
+                        {'expr': {'name': 'i', 'expr': {'number': 0}}},
+                        {'label': {'name': 'loop'}},
+                        {'expr': {'name': 'i', 'expr': {'binary': {'op': '+', 'left': {'variable': 'i'}, 'right': {'number': 1}}}}},
+                        {'jump': {'label': 'loop', 'expr': {'binary': {'op': '<', 'left': {'variable': 'i'}, 'right': {'variable': 'n'}}}}},
+                        {'return': {'expr': {'variable': 'i'}}}
+                    ]
+                }
+            }
+        ]
+    });
+    const globals = {};
+    executeScript(script, {'globals': globals});
+    const options = {'globals': globals};
+    assert.equal(globals.countTo([3], options), 3);
+    assert.equal(globals.countTo([5], options), 5);
+});
+
+
+test('executeScript, jump prototype label names', () => {
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': 'a', 'expr': {'number': 1}}},
+            {'jump': {'label': 'skip'}},
+            {'label': {'name': 'skip'}},
+            {'jump': {'label': 'constructor'}},
+            {'label': {'name': 'constructor'}},
+            {'jump': {'label': '__proto__'}},
+            {'label': {'name': '__proto__'}},
+            {'expr': {'name': 'a', 'expr': {'number': 2}}},
+            {'return': {'expr': {'variable': 'a'}}}
+        ]
+    });
+    assert.equal(executeScript(script), 2);
+});
+
+
+test('executeScript, unknown statement no-op', () => {
+    // An unvalidated, unknown statement kind executes as a no-op
+    const script = {
+        'statements': [
+            {'unknown': {}},
+            {'return': {'expr': {'number': 1}}}
+        ]
+    };
+    assert.equal(executeScript(script), 1);
+});
+
+
 test('executeScript, return', () => {
     const script = validateScript({
         'statements': [
@@ -858,6 +917,157 @@ test('executeScript, include no fetchFn', () => {
             'message': 'Include of "test.bare" within non-async scope'
         }
     );
+});
+
+
+test('executeScript, include system', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const options = {'globals': {}};
+        assert.equal(executeScript(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScript, include system twice', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}},
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = 'a = if(a != null, a + 1, 1)';
+    try {
+        const options = {'globals': {}};
+        assert.equal(executeScript(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScript, include system includes non-object', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = 'a = 1';
+    try {
+        const options = {'globals': {[systemGlobalIncludesName]: 42}};
+        assert.equal(executeScript(script, options), null);
+        assert.equal(options.globals.a, 1);
+        assert.deepEqual(options.globals[systemGlobalIncludesName], {'<test.bare>': true});
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScript, include system unknown', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'unknown.bare', 'system': true}]}}
+        ]
+    });
+    assert.throws(
+        () => executeScript(script, {}),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Include of "unknown.bare" failed'
+        }
+    );
+});
+
+
+test('executeScript, include system lint', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = `\
+function test(a):
+endfunction
+`;
+    try {
+        const logs = [];
+        const logFn = (message) => {
+            logs.push(message);
+        };
+        const options = {'globals': {}, logFn, 'debug': true};
+        assert.equal(executeScript(script, options), null);
+        assert.deepEqual(logs, [
+            'BareScript: Include "test.bare" static analysis... 1 warning:',
+            'BareScript: test.bare:1: Unused argument "a" of function "test"'
+        ]);
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScript, include system lint multiple', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = `\
+function test(a, b):
+endfunction
+`;
+    try {
+        const logs = [];
+        const logFn = (message) => {
+            logs.push(message);
+        };
+        const options = {'globals': {}, logFn, 'debug': true};
+        assert.equal(executeScript(script, options), null);
+        assert.deepEqual(logs, [
+            'BareScript: Include "test.bare" static analysis... 2 warnings:',
+            'BareScript: test.bare:1: Unused argument "a" of function "test"',
+            'BareScript: test.bare:1: Unused argument "b" of function "test"'
+        ]);
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
+});
+
+
+test('executeScript, include system lint OK', () => {
+    const script = validateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
+        ]
+    });
+    systemIncludes['test.bare'] = `\
+function test():
+endfunction
+`;
+    try {
+        const logs = [];
+        /* c8 ignore next 2 */
+        const logFn = (message) => {
+            logs.push(message);
+        };
+        const options = {'globals': {}, logFn, 'debug': true};
+        assert.equal(executeScript(script, options), null);
+        assert.deepEqual(logs, []);
+    } finally {
+        delete systemIncludes['test.bare'];
+    }
 });
 
 
@@ -975,6 +1185,61 @@ test('evaluateExpression, variable unknown', () => {
 });
 
 
+test('evaluateExpression, variable inherited property name', () => {
+    // Inherited property names must not resolve as global variables
+    const options = {'globals': {}};
+    assert.equal(evaluateExpression(validateExpression({'variable': '__proto__'}), options), null);
+    assert.equal(evaluateExpression(validateExpression({'variable': 'constructor'}), options), null);
+});
+
+
+test('evaluateExpression, variable undefined value', () => {
+    // A host-provided global whose own-property value is undefined resolves to null
+    const options = {'globals': {'varName': undefined}};
+    assert.equal(evaluateExpression(validateExpression({'variable': 'varName'}), options), null);
+});
+
+
+test('executeScript, variable __proto__', () => {
+    // Assigning a "__proto__" variable sets an own global, not the object prototype
+    const script = validateScript({
+        'statements': [
+            {'expr': {'name': '__proto__', 'expr': {'function': {'name': 'objectNew', 'args': [{'string': 'x'}, {'number': 99}]}}}},
+            {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
+                {'variable': 'x'},
+                {'function': {'name': 'systemType', 'args': [{'variable': '__proto__'}]}}
+            ]}}}}
+        ]
+    });
+    const options = {};
+    assert.deepEqual(executeScript(script, options), [null, 'object']);
+    assert.equal(Object.getPrototypeOf(options.globals), Object.prototype);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(options.globals, '__proto__').value, {'x': 99});
+});
+
+
+test('executeScript, function local __proto__', () => {
+    // A "__proto__" function argument is an own local, not the prototype; an unassigned local
+    // (an inherited property name) does not resolve
+    const script = validateScript({
+        'statements': [
+            {'function': {
+                'name': 'testFn',
+                'args': ['__proto__'],
+                'statements': [
+                    {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
+                        {'variable': '__proto__'},
+                        {'function': {'name': 'systemType', 'args': [{'variable': 'constructor'}]}}
+                    ]}}}}
+                ]
+            }},
+            {'return': {'expr': {'function': {'name': 'testFn', 'args': [{'number': 5}]}}}}
+        ]
+    });
+    assert.deepEqual(executeScript(script, {}), [5, 'null']);
+});
+
+
 test('evaluateExpression, variable literal null', () => {
     const expr = validateExpression({'variable': 'null'});
     assert.equal(evaluateExpression(expr), null);
@@ -990,6 +1255,39 @@ test('evaluateExpression, variable literal true', () => {
 test('evaluateExpression, variable literal false', () => {
     const expr = validateExpression({'variable': 'false'});
     assert.equal(evaluateExpression(expr), false);
+});
+
+
+test('evaluateExpression, variable literal binary operands', () => {
+    // Keyword literals as binary expression operands
+    for (const keyword of ['null', 'false', 'true']) {
+        const expr = validateExpression({
+            'binary': {
+                'op': '==',
+                'left': {'variable': keyword},
+                'right': {'variable': keyword}
+            }
+        });
+        assert.equal(evaluateExpression(expr), true, keyword);
+    }
+});
+
+
+test('evaluateExpression, variable null binary operands', () => {
+    // Null-valued globals as binary expression operands and function arguments
+    const options = {'globals': {'varNull': null, 'myFunc': (args) => args[0]}};
+    const exprBinary = validateExpression({
+        'binary': {
+            'op': '==',
+            'left': {'variable': 'varNull'},
+            'right': {'variable': 'varNull'}
+        }
+    });
+    assert.equal(evaluateExpression(exprBinary, options), true);
+    const exprFunction = validateExpression({
+        'function': {'name': 'myFunc', 'args': [{'variable': 'varNull'}]}
+    });
+    assert.equal(evaluateExpression(exprFunction, options), null);
 });
 
 
@@ -1224,6 +1522,20 @@ test('evaluateExpression, function non-function logFn', () => {
     const options = {'globals': {testString, 'fnLocal': 'abc'}, logFn, 'debug': true};
     assert.equal(evaluateExpression(expr, options), null);
     assert.deepEqual(logs, ['BareScript: Function "fnLocal" failed with error: funcValue is not a function']);
+});
+
+
+test('evaluateExpression, function inherited property name', () => {
+    // Inherited property names must not resolve as callable global functions
+    const expr = validateExpression({'function': {'name': 'constructor'}});
+    const options = {'globals': {}};
+    assert.throws(
+        () => evaluateExpression(expr, options),
+        {
+            'name': 'BareScriptRuntimeError',
+            'message': 'Undefined function "constructor"'
+        }
+    );
 });
 
 
@@ -1609,6 +1921,51 @@ test('evaluateExpression, binary exponentiation', () => {
 });
 
 
+test('executeScript, function library error message', () => {
+    // Library function error messages must match the reference implementation exactly
+    const script = validateScript({
+        'statements': [
+            {'return': {'expr': {'function': {'name': 'stringFromCharCode', 'args': [
+                {'binary': {'op': '*', 'left': {'number': 1e308}, 'right': {'number': 10}}}
+            ]}}}}
+        ]
+    });
+    const logs = [];
+    const options = {'debug': true, 'logFn': (message) => logs.push(message)};
+    assert.equal(executeScript(script, options), null);
+    assert.deepEqual(logs, [
+        'BareScript: Function "stringFromCharCode" failed with error: Invalid "charCodes" argument value, null'
+    ]);
+});
+
+
+test('evaluateExpression, binary non-finite result', () => {
+    // Non-finite arithmetic results are invalid operation values
+    for (const [binOp, left, right] of [
+        ['/', 1, 0],
+        ['/', 0, 0],
+        ['%', 5, 0],
+        ['**', 10, 1000],
+        ['**', 10.5, 1000.5],
+        ['**', -8, 0.5],
+        ['**', 0, -1],
+        ['*', 1e308, 10],
+        ['+', 1e308, 1e308],
+        ['-', -1e308, 1e308]
+    ]) {
+        const expr = validateExpression({'binary': {'op': binOp, 'left': {'number': left}, 'right': {'number': right}}});
+        assert.equal(evaluateExpression(expr), null, `${left} ${binOp} ${right}`);
+    }
+
+    // Datetime addition overflow
+    const options = {'globals': {'testDatetime': new Date(2024, 0, 1)}};
+    let expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'testDatetime'}, 'right': {'number': 1e308}}});
+    assert.equal(evaluateExpression(expr, options), null);
+    expr = validateExpression({'binary': {'op': '+', 'left': {'number': 1e308}, 'right': {'variable': 'testDatetime'}}});
+    assert.equal(evaluateExpression(expr, options), null);
+});
+
+
 test('evaluateExpression, binary bitwise and', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
@@ -1901,6 +2258,23 @@ test('executeScript, intrinsic arrayGet', () => {
 });
 
 
+test('executeScript, intrinsic arrayLength', () => {
+    assert.equal(intrCall('arrayLength', [intrArr(1, 2, 3)]), 3);
+    assert.equal(intrCall('arrayLength', []), 0); // array missing
+    assert.equal(intrCall('arrayLength', [intrNum(5)]), 0); // array not an array
+    assert.equal(intrCall('arrayLength', [intrArr(1), intrNum(9)]), 0); // too many arguments
+});
+
+
+test('executeScript, intrinsic arrayNew', () => {
+    assert.deepEqual(intrCall('arrayNew', [intrNum(1), intrNum(2)]), [1, 2]);
+    assert.deepEqual(intrCall('arrayNew', []), []);
+
+    // No arguments at all - the function expression "args" member is absent
+    assert.equal(executeScript(validateScript({'statements': [{'return': {'expr': {'function': {'name': 'arrayNew'}}}}]})), null);
+});
+
+
 test('executeScript, intrinsic arrayPush', () => {
     assert.deepEqual(intrCall('arrayPush', [intrArr(1), intrNum(2), intrNum(3)]), [1, 2, 3]);
     assert.deepEqual(intrCall('arrayPush', [intrArr(5)]), [5]);
@@ -1923,11 +2297,22 @@ test('executeScript, intrinsic arraySet', () => {
 });
 
 
+test('executeScript, intrinsic mathSqrt', () => {
+    assert.equal(intrCall('mathSqrt', [intrNum(9)]), 3);
+    assert.equal(intrCall('mathSqrt', []), null); // x missing
+    assert.equal(intrCall('mathSqrt', [intrStr('x')]), null); // x not a number
+    assert.equal(intrCall('mathSqrt', [intrNum(-1)]), null); // x negative
+    assert.equal(intrCall('mathSqrt', [intrNum(9), intrNum(9)]), null); // too many arguments
+});
+
+
 test('executeScript, intrinsic objectGet', () => {
     const obj = intrFn('objectNew', intrStr('k'), intrStr('v'));
     assert.equal(intrCall('objectGet', [obj, intrStr('k')]), 'v');
     assert.equal(intrCall('objectGet', [obj, intrStr('z')]), null); // missing key -> null default
     assert.equal(intrCall('objectGet', [intrFn('objectNew'), intrStr('z'), intrStr('D')]), 'D'); // explicit default
+    const objNull = intrFn('objectNew', intrStr('k'), {'variable': 'null'});
+    assert.equal(intrCall('objectGet', [objNull, intrStr('k'), intrStr('D')]), null); // null value -> not the default
     assert.equal(intrCall('objectGet', []), null); // object missing
     assert.equal(intrCall('objectGet', [intrNum(5), intrStr('k')]), null); // object not an object
     assert.equal(intrCall('objectGet', [{'variable': 'null'}, intrStr('k')]), null); // object null
@@ -1935,6 +2320,33 @@ test('executeScript, intrinsic objectGet', () => {
     assert.equal(intrCall('objectGet', [intrFn('objectNew')]), null); // key missing
     assert.equal(intrCall('objectGet', [intrFn('objectNew'), intrNum(5)]), null); // key not a string
     assert.equal(intrCall('objectGet', [obj, intrStr('k'), intrNum(9), intrNum(9)]), 9); // too many -> default-value arg
+});
+
+
+test('executeScript, intrinsic objectHas', () => {
+    const obj = intrFn('objectNew', intrStr('k'), intrStr('v'));
+    assert.equal(intrCall('objectHas', [obj, intrStr('k')]), true);
+    assert.equal(intrCall('objectHas', [obj, intrStr('z')]), false);
+    const objNull = intrFn('objectNew', intrStr('k'), {'variable': 'null'});
+    assert.equal(intrCall('objectHas', [objNull, intrStr('k')]), true); // null value -> key exists
+    assert.equal(intrCall('objectHas', []), false); // object missing
+    assert.equal(intrCall('objectHas', [intrNum(5), intrStr('k')]), false); // object not an object
+    assert.equal(intrCall('objectHas', [{'variable': 'null'}, intrStr('k')]), false); // object null
+    assert.equal(intrCall('objectHas', [intrArr(), intrStr('k')]), false); // object is an array
+    assert.equal(intrCall('objectHas', [obj]), false); // key missing
+    assert.equal(intrCall('objectHas', [obj, intrNum(5)]), false); // key not a string
+    assert.equal(intrCall('objectHas', [obj, intrStr('k'), intrNum(9)]), false); // too many arguments
+});
+
+
+test('executeScript, intrinsic objectKeys', () => {
+    const obj = intrFn('objectNew', intrStr('k'), intrStr('v'));
+    assert.deepEqual(intrCall('objectKeys', [obj]), ['k']);
+    assert.equal(intrCall('objectKeys', []), null); // object missing
+    assert.equal(intrCall('objectKeys', [intrNum(5)]), null); // object not an object
+    assert.equal(intrCall('objectKeys', [{'variable': 'null'}]), null); // object null
+    assert.equal(intrCall('objectKeys', [intrArr()]), null); // object is an array
+    assert.equal(intrCall('objectKeys', [obj, intrNum(9)]), null); // too many arguments
 });
 
 
@@ -1948,6 +2360,14 @@ test('executeScript, intrinsic objectSet', () => {
     assert.equal(intrCall('objectSet', [intrFn('objectNew')]), null); // key missing
     assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrNum(5), intrNum(1)]), null); // key not a string
     assert.equal(intrCall('objectSet', [intrFn('objectNew'), intrStr('k'), intrNum(1), intrNum(9)]), null); // too many arguments
+});
+
+
+test('executeScript, intrinsic stringLength', () => {
+    assert.equal(intrCall('stringLength', [intrStr('abc')]), 3);
+    assert.equal(intrCall('stringLength', []), 0); // string missing
+    assert.equal(intrCall('stringLength', [intrNum(5)]), 0); // string not a string
+    assert.equal(intrCall('stringLength', [intrStr('a'), intrStr('b')]), 0); // too many arguments
 });
 
 

@@ -47,11 +47,6 @@
                     "description": "Compile and apply regular expressions"
                 },
                 {
-                    "name": "schema",
-                    "content": "builtin/schema.md",
-                    "description": "Parse and validate Schema Markdown"
-                },
-                {
                     "name": "string",
                     "content": "builtin/string.md",
                     "description": "Search, slice, and transform strings"
@@ -60,11 +55,6 @@
                     "name": "system",
                     "content": "builtin/system.md",
                     "description": "Runtime, fetch, logging, and global functions"
-                },
-                {
-                    "name": "url",
-                    "content": "builtin/url.md",
-                    "description": "Encode URLs and URL components"
                 }
             ]
         },
@@ -153,9 +143,24 @@
                     "description": "Render QR codes"
                 },
                 {
+                    "name": "schema.bare",
+                    "content": "include/schema-bare.md",
+                    "description": "Validate values with Schema Markdown type models"
+                },
+                {
                     "name": "schemaDoc.bare",
                     "content": "include/schemaDoc-bare.md",
                     "description": "Schema Markdown documentation application"
+                },
+                {
+                    "name": "schemaParser.bare",
+                    "content": "include/schemaParser-bare.md",
+                    "description": "Parse Schema Markdown text into type models"
+                },
+                {
+                    "name": "schemaTypeModel.bare",
+                    "content": "include/schemaTypeModel-bare.md",
+                    "description": "The Schema Markdown type model and type model validation"
                 },
                 {
                     "name": "unittest.bare",
@@ -166,6 +171,11 @@
                     "name": "unittestMock.bare",
                     "content": "include/unittestMock-bare.md",
                     "description": "Mock library functions during unit tests"
+                },
+                {
+                    "name": "url.bare",
+                    "content": "include/url-bare.md",
+                    "description": "Encode and decode URL query strings"
                 }
             ]
         }

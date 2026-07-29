@@ -895,17 +895,6 @@ test('library, barescriptEvaluateExpression', () => {
             'message': 'Undefined function "pi"'
         }
     );
-
-    // Invalid expression
-    assert.throws(
-        () => {
-            scriptFunctions.barescriptEvaluateExpression([{'foo': 'bar'}], null);
-        },
-        {
-            'name': 'ValidationError',
-            'message': 'Unknown member "foo"'
-        }
-    );
 });
 
 
@@ -1023,6 +1012,27 @@ test('library, datetimeISOParse', () => {
         scriptFunctions.datetimeISOParse(['2022-08-29T15:08:00-08:00'], null),
         new Date('2022-08-29T15:08:00-08:00')
     );
+
+    // Date
+    assert.deepEqual(scriptFunctions.datetimeISOParse(['2022-08-29'], null), new Date(2022, 7, 29));
+
+    // Date year less than 100
+    const dateYear50 = new Date(50, 0, 1);
+    dateYear50.setFullYear(50);
+    assert.deepEqual(scriptFunctions.datetimeISOParse(['0050-01-01'], null), dateYear50);
+
+    // Hour 24 - the ISO 8601 special case for midnight at the end of the day
+    assert.deepEqual(
+        scriptFunctions.datetimeISOParse(['2020-01-01T24:00:00Z'], null),
+        new Date('2020-01-02T00:00:00+00:00')
+    );
+
+    // Rolled-over date components
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-02-30'], null), null);
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-13-01'], null), null);
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-02-30T00:00:00Z'], null), null);
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-04-31T00:00:00Z'], null), null);
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-01-01T24:30:00Z'], null), null);
 
     // Invalid datetime string
     assert.equal(scriptFunctions.datetimeISOParse(['invalid'], null), null);
@@ -1918,6 +1928,10 @@ test('library, numberParseFloat', () => {
     assert.equal(scriptFunctions.numberParseFloat(['1234.45asdf'], null), null);
     assert.equal(scriptFunctions.numberParseFloat(['1234.45 asdf'], null), null);
 
+    // Non-ASCII digits and digit separators
+    assert.equal(scriptFunctions.numberParseFloat(['١٢٣'], null), null);
+    assert.equal(scriptFunctions.numberParseFloat(['1_000'], null), null);
+
     // Non-string value
     assert.throws(
         () => {
@@ -1943,6 +1957,10 @@ test('library, numberParseInt', () => {
     assert.equal(scriptFunctions.numberParseInt(['asdf'], null), null);
     assert.equal(scriptFunctions.numberParseInt(['1234asdf'], null), null);
     assert.equal(scriptFunctions.numberParseInt(['1234.45 asdf'], null), null);
+
+    // Non-ASCII digits and digit separators
+    assert.equal(scriptFunctions.numberParseInt(['١٢٣'], null), null);
+    assert.equal(scriptFunctions.numberParseInt(['1_000'], null), null);
 
     // Non-string value
     assert.throws(
@@ -2326,6 +2344,47 @@ test('library, objectDelete', () => {
 });
 
 
+test('library, objectAssign, proto key', () => {
+    const object = {'a': 1};
+    const object2 = JSON.parse('{"__proto__": {"b": 2}, "c": 3}');
+    assert.equal(scriptFunctions.objectAssign([object, object2], null), object);
+    assert.deepEqual(Object.keys(object), ['a', '__proto__', 'c']);
+    assert.deepEqual(Object.getOwnPropertyDescriptor(object, '__proto__').value, {'b': 2});
+    assert.equal(Object.getPrototypeOf(object), Object.prototype);
+});
+
+
+test('library, objectGet, inherited property name', () => {
+    assert.equal(scriptFunctions.objectGet([{}, 'constructor'], null), null);
+    assert.equal(scriptFunctions.objectGet([{}, '__proto__', 'default'], null), 'default');
+    assert.equal(scriptFunctions.objectGet([JSON.parse('{"__proto__": 5}'), '__proto__'], null), 5);
+});
+
+
+test('library, objectHas, inherited property name', () => {
+    assert.equal(scriptFunctions.objectHas([{}, 'constructor'], null), false);
+    assert.equal(scriptFunctions.objectHas([{}, '__proto__'], null), false);
+    assert.equal(scriptFunctions.objectHas([JSON.parse('{"__proto__": 5}'), '__proto__'], null), true);
+});
+
+
+test('library, objectNew, proto key', () => {
+    const object = scriptFunctions.objectNew(['__proto__', 5], null);
+    assert.deepEqual(Object.keys(object), ['__proto__']);
+    assert.equal(Object.getOwnPropertyDescriptor(object, '__proto__').value, 5);
+    assert.equal(Object.getPrototypeOf(object), Object.prototype);
+});
+
+
+test('library, objectSet, proto key', () => {
+    const object = {};
+    assert.equal(scriptFunctions.objectSet([object, '__proto__', 5], null), 5);
+    assert.deepEqual(Object.keys(object), ['__proto__']);
+    assert.equal(Object.getOwnPropertyDescriptor(object, '__proto__').value, 5);
+    assert.equal(Object.getPrototypeOf(object), Object.prototype);
+});
+
+
 test('library, objectGet', () => {
     let obj = {'a': 1, 'b': 2};
     assert.equal(scriptFunctions.objectGet([obj, 'a'], null), 1);
@@ -2334,6 +2393,11 @@ test('library, objectGet', () => {
     obj = {};
     assert.equal(scriptFunctions.objectGet([obj, 'a'], null), null);
     assert.equal(scriptFunctions.objectGet([obj, 'a', 1], null), 1);
+
+    // Null value with/without default - the default is only for missing keys
+    obj = {'a': null};
+    assert.equal(scriptFunctions.objectGet([obj, 'a'], null), null);
+    assert.equal(scriptFunctions.objectGet([obj, 'a', 1], null), null);
 
     // Null input
     assert.throws(
@@ -2633,13 +2697,19 @@ test('library, regexMatch', () => {
 
     // Named groups
     assert.deepEqual(
-        scriptFunctions.regexMatch([/(?<first>\w+)(\s+)(?<last>\w+)/, 'foo bar thud'], null),
+        scriptFunctions.regexMatch([/(?<first>[A-Za-z0-9_]+)(\s+)(?<last>[A-Za-z0-9_]+)/, 'foo bar thud'], null),
         {
             'index': 0,
             'input': 'foo bar thud',
             'groups': {'0': 'foo bar', '1': 'foo', '2': ' ', '3': 'bar', 'first': 'foo', 'last': 'bar'}
         }
     );
+
+    // Named group with an inherited-property name
+    const protoMatch = scriptFunctions.regexMatch([/(?<__proto__>[0-9]+)/, 'abc123'], null);
+    assert.deepEqual(Object.keys(protoMatch.groups), ['0', '1', '__proto__']);
+    assert.equal(Object.getOwnPropertyDescriptor(protoMatch.groups, '__proto__').value, '123');
+    assert.equal(Object.getPrototypeOf(protoMatch.groups), Object.prototype);
 
     // No match
     assert.equal(scriptFunctions.regexMatch([/foo/, 'boo bar'], null), null);
@@ -2743,9 +2813,9 @@ test('library, regexNew', () => {
     assert.equal(regex.flags, '');
 
     // Named groups
-    regex = scriptFunctions.regexNew(['(?<first>\\w+)(\\s+)(?<last>\\w+)'], null);
+    regex = scriptFunctions.regexNew(['(?<first>[A-Za-z0-9_]+)(\\s+)(?<last>[A-Za-z0-9_]+)'], null);
     assert.equal(regex instanceof RegExp, true);
-    assert.equal(regex.source, '(?<first>\\w+)(\\s+)(?<last>\\w+)');
+    assert.equal(regex.source, '(?<first>[A-Za-z0-9_]+)(\\s+)(?<last>[A-Za-z0-9_]+)');
     assert.equal(regex.flags, '');
 
     // Backreferences
@@ -2804,11 +2874,14 @@ test('library, regexNew', () => {
 
 
 test('library, regexReplace', () => {
-    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2$1'], null), 'ba');
+    assert.equal(scriptFunctions.regexReplace([/^([A-Za-z0-9_])([A-Za-z0-9_])$/, 'ab', '$2$1'], null), 'ba');
+
+    // Non-ASCII digit after "$" is not a group index
+    assert.equal(scriptFunctions.regexReplace([/x/, 'axb', '$١'], null), 'a$١b');
 
     // Named groups
     assert.equal(
-        scriptFunctions.regexReplace([/^(?<first>\w+)\s+(?<last>\w+)/, 'foo bar', '$2, $1'], null),
+        scriptFunctions.regexReplace([/^(?<first>[A-Za-z0-9_]+)\s+(?<last>[A-Za-z0-9_]+)/, 'foo bar', '$2, $1'], null),
         'bar, foo'
     );
 
@@ -2825,10 +2898,10 @@ test('library, regexReplace', () => {
     );
 
     // JavaScript escape
-    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2$$$1'], null), 'b$a');
+    assert.equal(scriptFunctions.regexReplace([/^([A-Za-z0-9_])([A-Za-z0-9_])$/, 'ab', '$2$$$1'], null), 'b$a');
 
     // Python escape
-    assert.equal(scriptFunctions.regexReplace([/^(\w)(\w)$/, 'ab', '$2\\$1'], null), 'b\\a');
+    assert.equal(scriptFunctions.regexReplace([/^([A-Za-z0-9_])([A-Za-z0-9_])$/, 'ab', '$2\\$1'], null), 'b\\a');
 
     // Non-regex
     assert.throws(
@@ -2891,208 +2964,6 @@ test('library, regexSplit', () => {
         {
             'name': 'ValueArgsError',
             'message': 'Invalid "string" argument value, null',
-            'returnValue': null
-        }
-    );
-});
-
-
-//
-// Schema functions
-//
-
-
-test('script library, schemaParse', () => {
-    const types = scriptFunctions.schemaParse(['typedef int MyType', 'typedef MyType MyType2'], null);
-    assert.deepEqual(types, {
-        'MyType': {'typedef': {'name': 'MyType', 'type': {'builtin': 'int'}}},
-        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
-    });
-
-    // Syntax error
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParse(['asdf'], null);
-        },
-        {
-            'name': 'SchemaMarkdownParserError',
-            'message': ':1: error: Syntax error'
-        }
-    );
-});
-
-
-test('script library, schemaParseEx', () => {
-    // Array input
-    let types = scriptFunctions.schemaParseEx([['typedef int MyType', 'typedef MyType MyType2']], null);
-    assert.deepEqual(types, {
-        'MyType': {'typedef': {'name': 'MyType', 'type': {'builtin': 'int'}}},
-        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
-    });
-
-    // String input
-    types = scriptFunctions.schemaParseEx(['typedef int MyType'], null);
-    assert.deepEqual(types, {
-        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}
-    });
-
-    // Types provided
-    types = scriptFunctions.schemaParseEx(['typedef int MyType'], null);
-    const types2 = scriptFunctions.schemaParseEx(['typedef MyType MyType2', types], null);
-    assert.deepEqual(types, {
-        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}},
-        'MyType2': {'typedef': {'name': 'MyType2','type': {'user': 'MyType'}}}
-    });
-    assert.equal(types, types2);
-
-    // Filename provided
-    types = scriptFunctions.schemaParseEx(['typedef int MyType', {}, 'test.smd'], null);
-    assert.deepEqual(types, {
-        'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}
-    });
-
-    // Syntax error
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParseEx(['asdf'], null);
-        },
-        {
-            'name': 'SchemaMarkdownParserError',
-            'message': ':1: error: Syntax error'
-        }
-    );
-
-    // Syntax error with filename
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParseEx(['asdf', {}, 'test.smd'], null);
-        },
-        {
-            'name': 'SchemaMarkdownParserError',
-            'message': 'test.smd:1: error: Syntax error'
-        }
-    );
-
-    // Non-array/string input
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParseEx([null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "lines" argument value, null',
-            'returnValue': null
-        }
-    );
-
-    // Non-object types
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParseEx(['', 'abc'], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "types" argument value, "abc"',
-            'returnValue': null
-        }
-    );
-
-    // Non-string filename
-    assert.throws(
-        () => {
-            scriptFunctions.schemaParseEx(['', {}, null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "filename" argument value, null',
-            'returnValue': null
-        }
-    );
-});
-
-
-test('script library, schemaTypeModel', () => {
-    const typeModel = scriptFunctions.schemaTypeModel([], null);
-    assert.equal('Types' in typeModel, true);
-    assert.deepEqual(scriptFunctions.schemaValidateTypeModel([typeModel], null), typeModel);
-});
-
-
-test('script library, schemaValidate', () => {
-    const types = scriptFunctions.schemaParse(['# My struct', 'struct MyStruct', '', '  # An integer\n  int a'], null);
-    assert.deepEqual(scriptFunctions.schemaValidate([types, 'MyStruct', {'a': 5}], null), {'a': 5});
-
-    // Invalid types
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidate([{}, 'MyStruct', {}], null);
-        },
-        {
-            'name': 'ValidationError',
-            'message': 'Invalid value {} (type "object"), expected type "Types" [len > 0]'
-        }
-    );
-
-    // Invalid value
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidate([types, 'MyStruct', {}], null);
-        },
-        {
-            'name': 'ValidationError',
-            'message': 'Required member "a" missing'
-        }
-    );
-
-    // Non-object types
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidate([null, 'MyStruct', null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "types" argument value, null',
-            'returnValue': null
-        }
-    );
-
-    // Non-string type
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidate([{}, null, null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "typeName" argument value, null',
-            'returnValue': null
-        }
-    );
-});
-
-
-test('script library, schemaValidateTypeModel', () => {
-    const types = {'MyType': {'typedef': {'name': 'MyType','type': {'builtin': 'int'}}}};
-    assert.deepEqual(scriptFunctions.schemaValidateTypeModel([types], null), types);
-
-    // Invalid types
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidateTypeModel([{}], null);
-        },
-        {
-            'name': 'ValidationError',
-            'message': 'Invalid value {} (type "object"), expected type "Types" [len > 0]'
-        }
-    );
-
-    // Non-object types
-    assert.throws(
-        () => {
-            scriptFunctions.schemaValidateTypeModel([null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "types" argument value, null',
             'returnValue': null
         }
     );
@@ -3238,6 +3109,13 @@ test('library, stringCharCodeAt', () => {
 
 test('library, stringDecode', () => {
     assert.deepEqual(scriptFunctions.stringDecode([[102, 111, 111]], null), 'foo');
+
+    // Non-integer byte values
+    assert.deepEqual(scriptFunctions.stringDecode([[102.0, 111.0, 111.0]], null), 'foo');
+
+    // Invalid UTF-8
+    assert.equal(scriptFunctions.stringDecode([[255]], null), null);
+    assert.equal(scriptFunctions.stringDecode([[0xED, 0xA0, 0x80]], null), null);
 
     // Non-string value
     assert.throws(
@@ -4077,8 +3955,9 @@ test('library, systemFetch', async () => {
             /* c8 ignore next */
         },
         {
-            'name': 'ValidationError',
-            'message': 'Required member "url" missing'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {}',
+            'returnValue': null
         }
     );
     assert.deepEqual(logs, []);
@@ -4091,8 +3970,54 @@ test('library, systemFetch', async () => {
             /* c8 ignore next */
         },
         {
-            'name': 'ValidationError',
-            'message': 'Required member "url" missing'
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {}',
+            'returnValue': null
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Invalid request model body
+    logs = [];
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{'url': 'test.txt', 'body': 7}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {"body":7,"url":"test.txt"}',
+            'returnValue': null
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Invalid request model headers
+    logs = [];
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{'url': 'test.txt', 'headers': 7}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {"headers":7,"url":"test.txt"}',
+            'returnValue': null
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Invalid request model header value
+    logs = [];
+    assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{'url': 'test.txt', 'headers': {'HEADER': 7}}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {"headers":{"HEADER":7},"url":"test.txt"}',
+            'returnValue': null
         }
     );
     assert.deepEqual(logs, []);
@@ -4127,6 +4052,16 @@ test('library, systemGlobalGet', () => {
     assert.equal(scriptFunctions.systemGlobalGet(['a', 2], options), 1);
     assert.equal(scriptFunctions.systemGlobalGet(['b', 2], options), 2);
 
+    // Null value with/without default - the default is only for missing globals
+    options = {'globals': {'a': null}};
+    assert.equal(scriptFunctions.systemGlobalGet(['a'], options), null);
+    assert.equal(scriptFunctions.systemGlobalGet(['a', 2], options), null);
+
+    // Inherited property names must not resolve
+    options = {'globals': {}};
+    assert.equal(scriptFunctions.systemGlobalGet(['constructor'], options), null);
+    assert.equal(scriptFunctions.systemGlobalGet(['constructor', 2], options), 2);
+
     // No globals
     options = {};
     assert.equal(scriptFunctions.systemGlobalGet(['a'], options), null);
@@ -4157,6 +4092,12 @@ test('library, systemGlobalSet', () => {
     assert.deepEqual(options.globals, {'a': 1});
     assert.equal(scriptFunctions.systemGlobalSet(['a', 2], options), 2);
     assert.deepEqual(options.globals, {'a': 2});
+
+    // Proto name - sets an own key, not the object prototype
+    options = {'globals': {}};
+    assert.equal(scriptFunctions.systemGlobalSet(['__proto__', 5], options), 5);
+    assert.equal(scriptFunctions.systemGlobalGet(['__proto__'], options), 5);
+    assert.equal(Object.getPrototypeOf(options.globals), Object.prototype);
 
     // No globals
     options = {};
@@ -4352,60 +4293,3 @@ test('library, systemType', () => {
 });
 
 
-//
-// URL functions
-//
-
-
-test('script library, urlEncode', () => {
-    assert.equal(
-        scriptFunctions.urlEncode(["https://foo.com/this & 'that' + 2!"], null),
-        "https://foo.com/this%20&%20'that'%20+%202!"
-    );
-    assert.equal(
-        scriptFunctions.urlEncode(['https://foo.com/this (& that) + 2'], null),
-        'https://foo.com/this%20%28&%20that%29%20+%202'
-    );
-
-    // Hash param URL
-    assert.equal(
-        scriptFunctions.urlEncode(['#url=other.md'], null),
-        '#url=other.md'
-    );
-
-    // Non-string URL
-    assert.throws(
-        () => {
-            scriptFunctions.urlEncode([null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "url" argument value, null',
-            'returnValue': null
-        }
-    );
-});
-
-
-test('script library, urlEncodeComponent', () => {
-    assert.equal(
-        scriptFunctions.urlEncodeComponent(["https://foo.com/this & 'that' + 2"], null),
-        "https%3A%2F%2Ffoo.com%2Fthis%20%26%20'that'%20%2B%202"
-    );
-    assert.equal(
-        scriptFunctions.urlEncodeComponent(['https://foo.com/this (& that) + 2'], null),
-        'https%3A%2F%2Ffoo.com%2Fthis%20%28%26%20that%29%20%2B%202'
-    );
-
-    // Non-string URL
-    assert.throws(
-        () => {
-            scriptFunctions.urlEncodeComponent([null], null);
-        },
-        {
-            'name': 'ValueArgsError',
-            'message': 'Invalid "url" argument value, null',
-            'returnValue': null
-        }
-    );
-});

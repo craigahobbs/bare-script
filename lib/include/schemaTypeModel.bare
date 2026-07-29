@@ -1,205 +1,13 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
-include <markdownElements.bare>
-include <markdownParser.bare>
-include <qrcode.bare>
 include <schema.bare>
 include <schemaParser.bare>
-include <url.bare>
+include <schemaUtil.bare>
 
 
-# The performance tests and their iteration counts - tuned so the fastest runtime's measurement stays well above
-# millisecond timer resolution while the slowest runtime's measurement doesn't run excessively long
-perfTests = { \
-    'mandelbrot': 1, \
-    'schemaParse': 250, \
-    'schemaValidate': 250, \
-    'markdownParse': 250, \
-    'markdownElements': 1000, \
-    'qrcodeMatrix': 30, \
-    'urlEncode': 2000, \
-    'urlDecode': 2000 \
-}
-
-async function main():
-    language = systemGlobalGet('vLanguage', 'BareScript')
-    testArg = systemGlobalGet('vTest')
-    for test in if(testArg != null, [testArg], objectKeys(perfTests)):
-        runs = objectGet(perfTests, test)
-        if runs == null:
-            systemLog('Unknown test "' + test + '"')
-            return 1
-        endif
-        timeMs = perfRun(test, runs)
-        systemLog(language + ',' + test + ',' + runs + ',' + timeMs)
-    endfor
-endfunction
-
-
-async function perfRun(test, iterations):
-    # mandelbrot?
-    if test == 'mandelbrot':
-        # Compute the "seahorse valley", a computationally dense region on the Mandelbrot set boundary
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            mandelbrotSet(120, 80, -0.75, 0.1, 0.05, 60)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # schemaParse?
-    elif test == 'schemaParse':
-        # Warmup
-        schemaParse(perfSchemaText)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            schemaParse(perfSchemaText)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # schemaValidate?
-    elif test == 'schemaValidate':
-        # Warmup
-        types = schemaParse(perfSchemaText)
-        schemaValidate(types, 'Types', types)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            schemaValidate(types, 'Types', types)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # markdownParse?
-    elif test == 'markdownParse':
-        # Warmup
-        markdownText = systemFetch('../README.md')
-        markdownParse(markdownText)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            markdownParse(markdownText)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # markdownElements?
-    elif test == 'markdownElements':
-        # Warmup
-        markdownText = systemFetch('../README.md')
-        markdownModel = markdownParse(markdownText)
-        markdownElements(markdownModel)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            markdownElements(markdownModel)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # qrcodeMatrix?
-    elif test == 'qrcodeMatrix':
-        # Warmup
-        qrcodeMatrix('https://craigahobbs.github.io/bare-script/')
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            qrcodeMatrix('https://craigahobbs.github.io/bare-script/')
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # urlEncode?
-    elif test == 'urlEncode':
-        # Warmup
-        urlEncodeQueryString(perfURLArgs)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            urlEncodeQueryString(perfURLArgs)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-
-    # urlDecode?
-    elif test == 'urlDecode':
-        # Warmup
-        urlDecodeQueryString(perfURLHash)
-
-        timeBegin = datetimeNow()
-        ix = 0
-        while ix < iterations:
-            urlDecodeQueryString(perfURLHash)
-            ix = ix + 1
-        endwhile
-        timeEnd = datetimeNow()
-    endif
-
-    return timeEnd - timeBegin
-endfunction
-
-
-function mandelbrotSet(width, height, xCoord, yCoord, xRange, maxIter):
-    # Compute the set extents
-    yRange = (height / width) * xRange
-    xMin = xCoord - 0.5 * xRange
-    yMin = yCoord - 0.5 * yRange
-
-    # Compute each pixel in the set
-    ix = 0
-    while ix < width:
-        iy = 0
-        while iy < height:
-            xValue = xMin + (ix / (width - 1)) * xRange
-            yValue = yMin + (iy / (height - 1)) * yRange
-            mandelbrotValue(xValue, yValue, maxIter)
-            iy = iy + 1
-        endwhile
-        ix = ix + 1
-    endwhile
-endfunction
-
-
-function mandelbrotValue(xValue, yValue, maxIter):
-    # c1 = complex(x, y)
-    # c2 = complex(0, 0)
-    c1r = xValue
-    c1i = yValue
-    c2r = 0
-    c2i = 0
-
-    # Iteratively compute the next c2 value
-    iter = 1
-    while iter <= maxIter:
-        # Done?
-        if mathSqrt(c2r * c2r + c2i * c2i) > 2:
-            return iter
-        endif
-
-        # c2 = c2 * c2 + c1
-        c2rNew = c2r * c2r - c2i * c2i + c1r
-        c2i = 2 * c2r * c2i + c1i
-        c2r = c2rNew
-
-        iter = iter + 1
-    endwhile
-
-    # Hit max iterations - the point is in the Mandelbrot set
-    return 0
-endfunction
-
-
-perfSchemaText = arrayJoin([ \
+# The Schema Markdown type model
+schemaTypeModelTypes = objectGet(schemaParseEx([ \
     '# Map of user type name to user type model', \
     'typedef UserType{len > 0} Types', \
     '', \
@@ -432,26 +240,76 @@ perfSchemaText = arrayJoin([ \
     '', \
     '    # The URL path. If not provided, uses the default URL path of "/<actionName>".', \
     '    optional string path' \
-], stringFromCharCode(10))
+]), 'result')
 
 
-# An arguments object to encode as a query string - the same shape a MarkdownUp application passes
-# to urlEncodeQueryString when building a link's URL variables
-perfURLArgs = { \
-    'url': 'doc/index.md', \
-    'name': 'Getting Started', \
-    'count': 17, \
-    'show': true, \
-    'filter': 'a & b', \
-    'rows': [1, 2, 3], \
-    'nested': {'alpha': 'one', 'beta': 'two 2', 'gamma': [10, 20]} \
-}
+# $function: schemaTypeModel
+# $group: schemaTypeModel.bare
+# $doc: Get the [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+# $return: The [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+function schemaTypeModel():
+    return schemaTypeModelTypes
+endfunction
 
 
-# A query string to decode - the application hash a MarkdownUp application decodes on page load
-perfURLHash = 'url=doc%2Findex.md&var.vGroup=%27url.bare%27&var.vName=%27Getting%20Started%27&' + \
-    'var.vCount=17&var.vShow=true&var.vFilter=%27a%20%26%20b%27&var.vRows.0=1&var.vRows.1=2&var.vRows.2=3'
+# $function: schemaTypeModelValidate
+# $group: schemaTypeModel.bare
+# $doc: Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
+# $return: The validated [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL=''),
+# $return: or null if validation fails
+function schemaTypeModelValidate(types):
+    result = schemaTypeModelValidateEx(types)
+    if objectHas(result, 'errors'):
+        for error in objectGet(result, 'errors'):
+            systemLogDebug('schemaTypeModel.bare: ' + error)
+        endfor
+        return null
+    endif
+    return objectGet(result, 'result')
+endfunction
 
 
-# Execute main
-return main()
+# $function: schemaTypeModelValidateEx
+# $group: schemaTypeModel.bare
+# $doc: Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+# $doc: with programmatic error reporting
+# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to validate
+# $return: On success, an object with the "result" key set to the validated
+# $return: [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
+# $return: On failure, an object with the "errors" key set to the array of error message strings.
+function schemaTypeModelValidateEx(types):
+    # Validate with the type model
+    validatedResult = schemaValidateEx(schemaTypeModelTypes, 'Types', types)
+    if objectHas(validatedResult, 'error'):
+        return {'errors': [objectGet(validatedResult, 'error')]}
+    endif
+    validatedTypes = objectGet(validatedResult, 'result')
+
+    # Do additional type model validation
+    errors = schemaValidateTypeModelErrors(validatedTypes)
+    if arrayLength(errors):
+        # Sort by type name, member name, and message; a null member name sorts as ""
+        arraySort(errors, schemaTypeModelErrorCompare)
+        errorMessages = []
+        for validationError in errors:
+            arrayPush(errorMessages, arrayGet(validationError, 2))
+        endfor
+        return {'errors': errorMessages}
+    endif
+
+    return {'result': validatedTypes}
+endfunction
+
+
+# Helper function to compare [typeName, memberName, message] error tuples - null parts sort as ""
+function schemaTypeModelErrorCompare(errorA, errorB):
+    for valueA, ixValue in errorA:
+        valueB = arrayGet(errorB, ixValue)
+        compare = systemCompare(if(valueA != null, valueA, ''), if(valueB != null, valueB, ''))
+        if compare != 0:
+            return compare
+        endif
+    endfor
+    return 0
+endfunction

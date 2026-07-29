@@ -3,6 +3,10 @@
 
 include <args.bare>
 include <markdown.bare>
+include <markdownParser.bare>
+include <schema.bare>
+include <schemaParser.bare>
+include <url.bare>
 
 
 # The pager model
@@ -88,7 +92,8 @@ endfunction
 # $arg options: - **hideMenu** - Hide the menu links
 # $arg options: - **hideNav** - Hide the navigation links
 # $arg options: - **start** - The start page name
-# $arg options: - **keyboard** - Enable keyboard commands ('n' for next, 'p' for previous, 's' for start, 'e' for end)
+# $arg options: - **keyboard** - Enable keyboard commands (right-arrow or 'n' for next, left-arrow or 'p' for previous,
+# $arg options:   's' for start, 'e' for end)
 async function pagerMain(pagerModel, options):
     options = if(options != null, options, {})
     optionArguments = objectGet(options, 'arguments')
@@ -285,17 +290,17 @@ endfunction
 
 function pagerKeyDown(arguments, curPageName, startPageName, endPageName, nextPageName, prevPageName, event):
     key = objectGet(event, 'key')
-    if key == 's' && startPageName != curPageName:
-        # Start slide
-        windowSetLocation(argsURL(arguments, {'page': startPageName}))
-    elif key == 'e' && endPageName != curPageName:
-        # End slide
-        windowSetLocation(argsURL(arguments, {'page': endPageName}))
-    elif key == 'n' && nextPageName:
+    if (key == 'ArrowRight' || key == 'n') && nextPageName:
         # Next page
         windowSetLocation(argsURL(arguments, {'page': nextPageName}))
-    elif key == 'p' && prevPageName:
+    elif (key == 'ArrowLeft' || key == 'p') && prevPageName:
         # Previous page
         windowSetLocation(argsURL(arguments, {'page': prevPageName}))
+    elif key == 's' && startPageName != curPageName:
+        # Start page
+        windowSetLocation(argsURL(arguments, {'page': startPageName}))
+    elif key == 'e' && endPageName != curPageName:
+        # End page
+        windowSetLocation(argsURL(arguments, {'page': endPageName}))
     endif
 endfunction

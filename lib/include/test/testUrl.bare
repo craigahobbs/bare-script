@@ -1,0 +1,472 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../url.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+#
+# urlDecodeQueryString tests
+#
+
+
+function testUrlDecodeQueryString():
+    unittestMockAll()
+    unittestDeepEqual( \
+        urlDecodeQueryString('_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6'), \
+        {'a': '7', '_a': '7', 'b': {'c': '+x y + z', 'd': ['2', '-4', '6']}} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryString')
+
+
+function testUrlDecodeQueryStringArrayOfObjects():
+    unittestMockAll()
+    unittestDeepEqual( \
+        urlDecodeQueryString('foo.0.bar=17&foo.0.thud=blue&foo.1.boo=bear'), \
+        {'foo': [{'bar': '17', 'thud': 'blue'}, {'boo': 'bear'}]} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringArrayOfObjects')
+
+
+function testUrlDecodeQueryStringTopLevelArray():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('0=1&1=2&2=3'), ['1', '2', '3'])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringTopLevelArray')
+
+
+function testUrlDecodeQueryStringEmpty():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString(''), {})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringEmpty')
+
+
+function testUrlDecodeQueryStringEmptyValues():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('b='), {'b': ''})
+    unittestDeepEqual(urlDecodeQueryString('a=7&b='), {'a': '7', 'b': ''})
+    unittestDeepEqual(urlDecodeQueryString('b=&a=7'), {'a': '7', 'b': ''})
+    unittestDeepEqual(urlDecodeQueryString('a=7&b=&c=9'), {'a': '7', 'b': '', 'c': '9'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringEmptyValues')
+
+
+function testUrlDecodeQueryStringKeysValues():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a%2eb.c=7%20+%207%20%3d%2014'), {'a.b': {'c': '7 + 7 = 14'}})
+    unittestDeepEqual(urlDecodeQueryString('a%26b%3Dc%2ed=a%26b%3Dc.d'), {'a&b=c.d': 'a&b=c.d'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringKeysValues')
+
+
+function testUrlDecodeQueryStringUnicode():
+    unittestMockAll()
+    unittestDeepEqual( \
+        urlDecodeQueryString('a=abc%EA%80%80&b.0=c&b.1=d'), \
+        {'a': 'abc' + stringFromCharCode(40960), 'b': ['c', 'd']} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringUnicode')
+
+
+function testUrlDecodeQueryStringObjectPropertyNames():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('constructor.a=1&b=2'), {'b': '2', 'constructor': {'a': '1'}})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringObjectPropertyNames')
+
+
+function testUrlDecodeQueryStringProtoKey():
+    unittestMockAll()
+    obj = urlDecodeQueryString('__proto__.a=1')
+    unittestDeepEqual(objectKeys(obj), ['__proto__'])
+    unittestDeepEqual(objectGet(obj, '__proto__'), {'a': '1'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringProtoKey')
+
+
+function testUrlDecodeQueryStringEqualInValue():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a=b=c'), {'a': 'b=c'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringEqualInValue')
+
+
+function testUrlDecodeQueryStringNonInitialZeroIndex():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a.1=0'), {'a': {'1': '0'}})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringNonInitialZeroIndex')
+
+
+function testUrlDecodeQueryStringObjectThenZeroKey():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a.b=0&a.0=0'), {'a': {'b': '0', '0': '0'}})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringObjectThenZeroKey')
+
+
+function testUrlDecodeQueryStringEmptyKeys():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a=7&=b'), {'a': '7', '': 'b'})
+    unittestDeepEqual(urlDecodeQueryString('a=7&='), {'a': '7', '': ''})
+    unittestDeepEqual(urlDecodeQueryString('a=7& = '), {'a': '7', ' ': ' '})
+    unittestDeepEqual(urlDecodeQueryString('a.=5'), {'a': {'': '5'}})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringEmptyKeys')
+
+
+function testUrlDecodeQueryStringAnchorTag():
+    unittestMockAll()
+    unittestDeepEqual(urlDecodeQueryString('a=7&'), {'a': '7'})
+    unittestDeepEqual(urlDecodeQueryString('a=7&b'), {'a': '7'})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringAnchorTag')
+
+
+function testUrlDecodeQueryStringInvalidKeyValuePair():
+    unittestMockAll()
+    unittestEqual(urlDecodeQueryString('&'), null)
+    unittestEqual(urlDecodeQueryString('&&'), null)
+    unittestEqual(urlDecodeQueryString('a=7&b&c=11'), null)
+    unittestEqual(urlDecodeQueryString('a=7&' + stringRepeat('b', 2000) + '&c=11'), null)
+    unittestEqual(urlDecodeQueryString('a&b'), null)
+    unittestEqual(urlDecodeQueryString('a&b&c'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair ''"]], \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair ''"]], \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair 'b'"]], \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair '" + stringRepeat('b', 100) + "'"]], \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair 'a'"]], \
+        ['systemLogDebug', ["url.bare: Invalid key/value pair 'a'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringInvalidKeyValuePair')
+
+
+function testUrlDecodeQueryStringDuplicateKey():
+    unittestMockAll()
+    unittestEqual(urlDecodeQueryString('abc=21&ab=19&abc=17'), null)
+    unittestEqual(urlDecodeQueryString(stringRepeat('a', 2000) + '=21&ab=19&' + stringRepeat('a', 2000) + '=17'), null)
+    unittestEqual(urlDecodeQueryString('a.0=0&a.1=1&a.0=2'), null)
+    unittestEqual(urlDecodeQueryString('a.b=1&a=2'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Duplicate key 'abc'"]], \
+        ['systemLogDebug', ["url.bare: Duplicate key '" + stringRepeat('a', 100) + "'"]], \
+        ['systemLogDebug', ["url.bare: Duplicate key 'a.0'"]], \
+        ['systemLogDebug', ["url.bare: Duplicate key 'a'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringDuplicateKey')
+
+
+function testUrlDecodeQueryStringInvalidArrayIndex():
+    unittestMockAll()
+    unittestEqual(urlDecodeQueryString('a.0=0&a.1=1&a.3=3'), null)
+    unittestEqual( \
+        urlDecodeQueryString(stringRepeat('a', 2000) + '.0=0&' + stringRepeat('a', 2000) + '.1=1&' + stringRepeat('a', 2000) + '.3=3'), \
+        null \
+    )
+    unittestEqual(urlDecodeQueryString('a.0=0&a.1=1&a.-3=3'), null)
+    unittestEqual(urlDecodeQueryString('a.0=0&a.1asdf=1'), null)
+    unittestEqual(urlDecodeQueryString('a.0=0&a.b=0'), null)
+    unittestEqual(urlDecodeQueryString(stringRepeat('a', 2000) + '.0=0&' + stringRepeat('a', 2000) + '.b=0'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid array index '3' in key 'a.3'"]], \
+        ['systemLogDebug', ["url.bare: Invalid array index '3' in key '" + stringRepeat('a', 100) + "'"]], \
+        ['systemLogDebug', ["url.bare: Invalid array index '-3' in key 'a.-3'"]], \
+        ['systemLogDebug', ["url.bare: Invalid array index '1asdf' in key 'a.1asdf'"]], \
+        ['systemLogDebug', ["url.bare: Invalid array index 'b' in key 'a.b'"]], \
+        ['systemLogDebug', ["url.bare: Invalid array index 'b' in key '" + stringRepeat('a', 100) + "'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringInvalidArrayIndex')
+
+
+function testUrlDecodeQueryStringInvalidKeyPath():
+    unittestMockAll()
+    unittestEqual(urlDecodeQueryString('a=5&a.b=7'), null)
+    unittestEqual(urlDecodeQueryString(stringRepeat('a', 2000) + '=5&' + stringRepeat('a', 2000) + '.b=7'), null)
+    unittestEqual(urlDecodeQueryString('a.0=1&a.0.b=2'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid key 'a.b'"]], \
+        ['systemLogDebug', ["url.bare: Invalid key '" + stringRepeat('a', 100) + "'"]], \
+        ['systemLogDebug', ["url.bare: Invalid key 'a.0.b'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringInvalidKeyPath')
+
+
+function testUrlDecodeQueryStringInvalidPercentEncoding():
+    unittestMockAll()
+    unittestEqual(urlDecodeQueryString('a=%GG'), null)
+    unittestEqual(urlDecodeQueryString('%GG=1'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%GG'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%GG'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeQueryStringInvalidPercentEncoding')
+
+
+#
+# urlEncodeQueryString tests
+#
+
+
+function testUrlEncodeQueryString():
+    unittestMockAll()
+    blue = datetimeNew(2020, 6, 24)
+    unittestEqual( \
+        urlEncodeQueryString({ \
+            'foo': 17, \
+            'bar': 19.33, \
+            'bonk': 'abc', \
+            ' th&ud ': ' ou&ch ', \
+            'blue': blue, \
+            'fever': null, \
+            'zap': [{'a': 5}, {'b': 7}] \
+        }), \
+        '%20th%26ud%20=%20ou%26ch%20&bar=19.33&blue=' + urlEncodeComponent(datetimeISOFormat(blue)) + \
+            '&bonk=abc&fever=null&foo=17&zap.0.a=5&zap.1.b=7' \
+    )
+    unittestEqual( \
+        urlEncodeQueryString({'a': 7, '_a': '7', 'b': {'c': '+x y + z', 'd': [2, -4, 6]}}), \
+        '_a=7&a=7&b.c=%2Bx%20y%20%2B%20z&b.d.0=2&b.d.1=-4&b.d.2=6' \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryString')
+
+
+function testUrlEncodeQueryStringNull():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString(null), 'null')
+    unittestEqual(urlEncodeQueryString({'a': null, 'b': 'abc'}), 'a=null&b=abc')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringNull')
+
+
+function testUrlEncodeQueryStringBool():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString(true), 'true')
+    unittestEqual(urlEncodeQueryString(false), 'false')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringBool')
+
+
+function testUrlEncodeQueryStringNumber():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString(5.1), '5.1')
+    unittestEqual(urlEncodeQueryString(5), '5')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringNumber')
+
+
+function testUrlEncodeQueryStringString():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString('abc'), 'abc')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringString')
+
+
+function testUrlEncodeQueryStringDatetime():
+    unittestMockAll()
+    blue = datetimeNew(2020, 6, 24)
+    unittestEqual(urlEncodeQueryString(blue), urlEncodeComponent(datetimeISOFormat(blue)))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringDatetime')
+
+
+function testUrlEncodeQueryStringArray():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString([1, 2, []]), '0=1&1=2&2=')
+    unittestEqual(urlEncodeQueryString([]), '')
+    unittestEqual(urlEncodeQueryString([[]]), '0=')
+    unittestEqual(urlEncodeQueryString([{}]), '0=')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringArray')
+
+
+function testUrlEncodeQueryStringObject():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString({'a': 5, 'b': 'a&b', 'c': {}}), 'a=5&b=a%26b&c=')
+    unittestEqual(urlEncodeQueryString({}), '')
+    unittestEqual(urlEncodeQueryString({'a': {}}), 'a=')
+    unittestEqual(urlEncodeQueryString({'foo': []}), 'foo=')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringObject')
+
+
+function testUrlEncodeQueryStringKeysValues():
+    unittestMockAll()
+    unittestEqual(urlEncodeQueryString({'a&b=c.d': 'a&b=c.d'}), 'a%26b%3Dc.d=a%26b%3Dc.d')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringKeysValues')
+
+
+function testUrlEncodeQueryStringUnicode():
+    unittestMockAll()
+    euro = stringFromCharCode(8364)
+    unittestEqual(urlEncodeQueryString({'a': euro}), 'a=%E2%82%AC')
+    unittestDeepEqual(urlDecodeQueryString(urlEncodeQueryString({'a': euro})), {'a': euro})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeQueryStringUnicode')
+
+
+#
+# urlEncode, urlEncodeComponent, and urlDecodeComponent tests
+#
+
+
+function testUrlEncode():
+    unittestMockAll()
+    unittestEqual(urlEncode("https://foo.com/this & 'that' + 2!"), "https://foo.com/this%20&%20'that'%20+%202!")
+    unittestEqual(urlEncode('https://foo.com/this (& that) + 2'), 'https://foo.com/this%20%28&%20that%29%20+%202')
+    unittestEqual(urlEncode('#url=other.md&var.vName=1'), '#url=other.md&var.vName=1')
+    unittestEqual(urlEncode('h\u00e9llo\u2603'), 'h%C3%A9llo%E2%98%83')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncode')
+
+
+function testUrlEncodeComponent():
+    unittestMockAll()
+    unittestEqual(urlEncodeComponent("https://foo.com/this & 'that' + 2!"), "https%3A%2F%2Ffoo.com%2Fthis%20%26%20'that'%20%2B%202!")
+    unittestEqual(urlEncodeComponent('abc123-_.!~*()'), 'abc123-_.!~*%28%29')
+    unittestEqual(urlEncodeComponent('h\u00e9llo\u2603'), 'h%C3%A9llo%E2%98%83')
+    unittestEqual(urlEncodeComponent(jsonParse('"\\uD83D\\uDE00"')), '%F0%9F%98%80')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlEncodeComponent')
+
+
+function testUrlDecodeComponent():
+    unittestMockAll()
+    unittestEqual(urlDecodeComponent('abc'), 'abc')
+    unittestEqual(urlDecodeComponent(''), '')
+    unittestEqual(urlDecodeComponent('a%20b'), 'a b')
+    unittestEqual(urlDecodeComponent('%2520'), '%20')
+    unittestEqual(urlDecodeComponent('a%2Bb%2bc'), 'a+b+c')
+    unittestEqual(urlDecodeComponent('%C3%A9'), stringFromCharCode(233))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeComponent')
+
+
+function testUrlDecodeComponentUnicode():
+    unittestMockAll()
+    unittestEqual(urlDecodeComponent('%E2%82%AC'), stringFromCharCode(8364))
+    unittestEqual(urlDecodeComponent('abc%EA%80%80def'), 'abc' + stringFromCharCode(40960) + 'def')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeComponentUnicode')
+
+
+function testUrlDecodeComponentUTF8():
+    unittestMockAll()
+
+    # Two-byte sequence
+    unittestEqual(urlDecodeComponent('%C2%A0'), stringFromCharCode(160))
+
+    # Three-byte sequences - 0xE0, 0xED, and general lead bytes
+    unittestEqual(urlDecodeComponent('%E0%A4%B9'), stringFromCharCode(2361))
+    unittestEqual(urlDecodeComponent('%ED%9F%BF'), stringFromCharCode(55295))
+    unittestEqual(urlDecodeComponent('%EF%BF%BD'), stringFromCharCode(65533))
+
+    # Four-byte sequences - 0xF0, general, and 0xF4 lead bytes
+    unittestEqual(urlDecodeComponent('%F0%9F%98%80'), jsonParse('"\\uD83D\\uDE00"'))
+    unittestEqual(urlDecodeComponent('%F1%80%80%80'), jsonParse('"\\uD8C0\\uDC00"'))
+    unittestEqual(urlDecodeComponent('%F4%8F%BF%BF'), jsonParse('"\\uDBFF\\uDFFF"'))
+
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeComponentUTF8')
+
+
+function testUrlDecodeComponentUTF8Invalid():
+    unittestMockAll()
+
+    # Invalid lead byte
+    unittestEqual(urlDecodeComponent('%FF'), null)
+
+    # Truncated sequence
+    unittestEqual(urlDecodeComponent('%C3'), null)
+
+    # Invalid second byte
+    unittestEqual(urlDecodeComponent('%C3%C3'), null)
+
+    # Overlong encoding
+    unittestEqual(urlDecodeComponent('%E0%80%80'), null)
+
+    # Surrogate code point
+    unittestEqual(urlDecodeComponent('%ED%A0%80'), null)
+
+    # Code point beyond U+10FFFF
+    unittestEqual(urlDecodeComponent('%F4%90%80%80'), null)
+
+    # Invalid continuation byte
+    unittestEqual(urlDecodeComponent('%F0%9F%98%20'), null)
+
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%FF'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%C3'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%C3%C3'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%E0%80%80'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%ED%A0%80'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%F4%90%80%80'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%F0%9F%98%20'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeComponentUTF8Invalid')
+
+
+function testUrlDecodeComponentPlus():
+    unittestMockAll()
+    unittestEqual(urlDecodeComponent('a+b'), 'a+b')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testUrlDecodeComponentPlus')
+
+
+function testUrlDecodeComponentInvalid():
+    unittestMockAll()
+    unittestEqual(urlDecodeComponent('%G1'), null)
+    unittestEqual(urlDecodeComponent('%2'), null)
+    unittestEqual(urlDecodeComponent('%'), null)
+    unittestEqual(urlDecodeComponent('a%'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%G1'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%2'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding '%'"]], \
+        ['systemLogDebug', ["url.bare: Invalid percent-encoding 'a%'"]] \
+    ])
+endfunction
+unittestRunTest('testUrlDecodeComponentInvalid')

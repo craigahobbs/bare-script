@@ -335,6 +335,16 @@ async function testPagerKeyboard():
     ])
 
     unittestMockAll()
+    keyDown({'key': 'ArrowLeft'})
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    unittestMockAll()
+    keyDown({'key': 'ArrowRight'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ["#var.vPage='Page2'"]] \
+    ])
+
+    unittestMockAll()
     keyDown({'key': 's'})
     unittestDeepEqual(unittestMockEnd(), [])
 
@@ -383,6 +393,16 @@ async function testPagerKeyboardNonStart():
 
     unittestMockAll()
     keyDown({'key': 'n'})
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    unittestMockAll()
+    keyDown({'key': 'ArrowLeft'})
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['windowSetLocation', ['#var=']] \
+    ])
+
+    unittestMockAll()
+    keyDown({'key': 'ArrowRight'})
     unittestDeepEqual(unittestMockEnd(), [])
 
     unittestMockAll()
@@ -462,7 +482,6 @@ unittestRunTest('testPagerNoLinks')
 
 
 async function testPagerInvalidPagerModel():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
     unittestMockAll()
 
     pagerModel = { \
@@ -474,14 +493,15 @@ async function testPagerInvalidPagerModel():
 
     unittestDeepEqual( \
         unittestMockEnd(), \
-        [] \
+        [ \
+            ['systemLogDebug', ['schema.bare: Required member "pages.0.type" missing']] \
+        ] \
     )
 endfunction
 unittestRunTest('testPagerInvalidPagerModel')
 
 
 async function testPagerInvalidArgumentsModel():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
     unittestMockAll()
 
     arguments = [{}]
@@ -489,7 +509,9 @@ async function testPagerInvalidArgumentsModel():
 
     unittestDeepEqual( \
         unittestMockEnd(), \
-        [] \
+        [ \
+            ['systemLogDebug', ['schema.bare: Required member "0.name" missing']] \
+        ] \
     )
 endfunction
 unittestRunTest('testPagerInvalidArgumentsModel')

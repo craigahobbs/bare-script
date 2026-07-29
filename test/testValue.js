@@ -126,6 +126,9 @@ test('valueJSON', () => {
     assert.equal(valueJSON({'value': 4, 'c': 3, 'a': 1, 'b': 2}), '{"a":1,"b":2,"c":3,"value":4}');
     assert.equal(valueJSON([1, 2, 3]), '[1,2,3]');
 
+    // Non-ASCII characters are not escaped
+    assert.equal(valueJSON({'café': '٥'}), '{"café":"٥"}');
+
     // Indent
     assert.equal(valueJSON({'value': 1}, 2), '{\n  "value": 1\n}');
 
@@ -162,6 +165,11 @@ test('valueJSON', () => {
     // Invalid
     assert.equal(valueJSON({'A': 1, 'B': /^$/}), '{"A":1,"B":null}');
     assert.equal(valueJSON(/^$/), 'null');
+});
+
+
+test('valueJSON, proto key', () => {
+    assert.equal(valueJSON(JSON.parse('{"__proto__": {"b": 2}, "a": 1}')), '{"__proto__":{"b":2},"a":1}');
 });
 
 
@@ -748,17 +756,6 @@ test('valueArgsModel', () => {
     ];
     assert.equal(valueArgsModel(fnArgs), fnArgs);
 
-    // Invalid function arguments model
-    assert.throws(
-        () => {
-            valueArgsModel([]);
-        },
-        {
-            'name': 'ValidationError',
-            'message': 'Invalid value [] (type "object"), expected type "FunctionArguments" [len > 0]'
-        }
-    );
-
     // Null default argument value error
     assert.throws(
         () => {
@@ -806,6 +803,10 @@ test('valueParseNumber', () => {
     assert.equal(valueParseNumber('invalid'), null);
     assert.equal(valueParseNumber('1234.45asdf'), null);
     assert.equal(valueParseNumber('1234.45 asdf'), null);
+
+    // Non-finite
+    assert.equal(valueParseNumber('1e400'), null);
+    assert.equal(valueParseNumber('-1e400'), null);
 });
 
 

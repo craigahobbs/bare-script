@@ -134,6 +134,41 @@ This outputs:
 ```
 
 
+## The Include Library Stub Functions
+
+BareScript include library functions are callable directly from JavaScript using the native stub functions
+exported by the
+[include module](https://craigahobbs.github.io/bare-script/module-lib_include.html) — for example,
+[dataAggregate](https://craigahobbs.github.io/bare-script/module-lib_include.html#.dataAggregate),
+[markdownParse](https://craigahobbs.github.io/bare-script/module-lib_include.html#.markdownParse),
+[qrcodeMatrix](https://craigahobbs.github.io/bare-script/module-lib_include.html#.qrcodeMatrix),
+[schemaParse](https://craigahobbs.github.io/bare-script/module-lib_include.html#.schemaParse),
+[schemaValidate](https://craigahobbs.github.io/bare-script/module-lib_include.html#.schemaValidate), and
+[urlEncode](https://craigahobbs.github.io/bare-script/module-lib_include.html#.urlEncode).
+Each stub function executes its corresponding include library function using the BareScript
+runtime. For example:
+
+``` javascript
+import {markdownParse, markdownTitle} from 'bare-script/lib/include.js';
+
+// Parse the Markdown text
+const markdown = markdownParse(`\
+# Hello, Markdown!
+
+This is some text.
+`);
+
+// Print the Markdown title
+console.log(markdownTitle(markdown));
+```
+
+This outputs:
+
+```
+Hello, Markdown!
+```
+
+
 ## The BareScript Command-Line Interface (CLI)
 
 You can run BareScript from the command line using the BareScript CLI, "bare". BareScript script
@@ -167,6 +202,37 @@ This is a Markdown document with embedded BareScript:
 markdownPrint('Hello, Markdown!')
 ```
 ~~~
+
+
+## Performance
+
+The `make perf` target benchmarks the BareScript runtime with a suite of compute-intensive tests —
+Mandelbrot set computation, Markdown parsing and rendering, QR code generation, Schema Markdown
+parsing and validation, and URL encoding and decoding — and compares each test with an equivalent
+native JavaScript program (using the
+[markdown-model](https://www.npmjs.com/package/markdown-model) and
+[schema-markdown](https://www.npmjs.com/package/schema-markdown) packages).
+
+The following results are from `make perf PERF_MERGE=` (Node.js 24, Apple M-series). Times are the
+best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
+time. Tests without a native JavaScript equivalent are omitted.
+
+| Test             | Language        | Time (ms) | Multiple |
+| ---------------- | --------------- | --------: | -------: |
+| markdownParse    | JavaScript      |     314.8 |          |
+|                  | BareScript (JS) |    1628.0 |     5.2x |
+| markdownElements | JavaScript      |      23.8 |          |
+|                  | BareScript (JS) |     378.0 |    15.9x |
+| schemaParse      | JavaScript      |      72.0 |          |
+|                  | BareScript (JS) |    1152.0 |    16.0x |
+| urlDecode        | JavaScript      |       5.0 |          |
+|                  | BareScript (JS) |      86.0 |    17.1x |
+| urlEncode        | JavaScript      |       2.7 |          |
+|                  | BareScript (JS) |      50.5 |    18.7x |
+| schemaValidate   | JavaScript      |      54.2 |          |
+|                  | BareScript (JS) |    1796.0 |    33.1x |
+| mandelbrot       | JavaScript      |    2180.9 |          |
+|                  | BareScript (JS) |  296000.0 |   135.7x |
 
 
 ## Using BareScript with an AI Assistant

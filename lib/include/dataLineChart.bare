@@ -2,6 +2,8 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <dataUtil.bare>
+include <schema.bare>
+include <schemaParser.bare>
 
 
 # The line chart model
@@ -99,6 +101,18 @@ dataLineChartTypes = schemaParse( \
 # $return: The validated [line chart model](model.html#var.vName='DataLineChart')
 function dataLineChartValidate(lineChart):
     return schemaValidate(dataLineChartTypes, 'DataLineChart', lineChart)
+endfunction
+
+
+# $function: dataLineChartValidateEx
+# $group: dataLineChart.bare
+# $doc: Validate a line chart model
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $return: On success, an object with the "result" key set to the validated [line chart model](model.html#var.vName='DataLineChart').
+# $return: On failure, an object with the "error" key set to the validation error message and the
+# $return: "memberFqn" key set to the fully-qualified member name (or null).
+function dataLineChartValidateEx(lineChart):
+    return schemaValidateEx(dataLineChartTypes, 'DataLineChart', lineChart)
 endfunction
 
 

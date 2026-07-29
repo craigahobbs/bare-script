@@ -460,8 +460,6 @@ unittestRunTest('testSchemaDocMain_index_urlTextError')
 
 
 async function testSchemaDocMain_index_urlTextInvalid():
-    systemLogDebug('NOTICE: The following "schemaParse" error is expected:')
-
     # Setup mocks
     unittestMockAll({ \
         'systemFetch': { \
@@ -475,6 +473,7 @@ async function testSchemaDocMain_index_urlTextInvalid():
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemFetch', ['model.smd']], \
+        ['systemLogDebug', ['schemaParser.bare: :1: error: Syntax error']], \
         ['markdownPrint', ['**Error:** Failed to fetch Schema Markdown resource "model.smd"']] \
     ])
 endfunction

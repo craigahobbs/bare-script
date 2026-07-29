@@ -19,11 +19,30 @@ unittestRunTest('testDataLineChartValidate')
 
 
 function testDataLineChartValidate_error():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
+    unittestMockAll()
     lineChart = {'x': 1, 'y': ['B']}
     unittestEqual(dataLineChartValidate(lineChart), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Invalid value 1 (type "number") for member "x", expected type "string"']] \
+    ])
 endfunction
 unittestRunTest('testDataLineChartValidate_error')
+
+
+function testDataLineChartValidateEx():
+    lineChart = {'x': 'A', 'y': ['B']}
+    unittestDeepEqual(dataLineChartValidateEx(lineChart), {'result': lineChart})
+endfunction
+unittestRunTest('testDataLineChartValidateEx')
+
+
+function testDataLineChartValidateEx_error():
+    unittestDeepEqual( \
+        dataLineChartValidateEx({'x': 1, 'y': ['B']}), \
+        {'error': 'Invalid value 1 (type "number") for member "x", expected type "string"', 'memberFqn': 'x'} \
+    )
+endfunction
+unittestRunTest('testDataLineChartValidateEx_error')
 
 
 #

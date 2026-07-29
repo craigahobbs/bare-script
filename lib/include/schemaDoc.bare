@@ -2,9 +2,12 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <args.bare>
-include <dataUtil.bare>
 include <dataTable.bare>
 include <markdown.bare>
+include <schema.bare>
+include <schemaParser.bare>
+include <schemaTypeModel.bare>
+include <url.bare>
 
 
 # $function: schemaDocMain
@@ -34,7 +37,7 @@ async function schemaDocMain(url, title, hideNoGroup):
             if stringEndsWith(url, '.json'):
                 schemaJSON = jsonParse(schemaText)
                 if schemaJSON != null:
-                    types = schemaValidateTypeModel(schemaJSON)
+                    types = schemaTypeModelValidate(schemaJSON)
                 endif
             else:
                 types = schemaParse(schemaText)
@@ -163,7 +166,7 @@ function schemaDocMarkdown(types, typeName, options):
     action = objectGet(userType, 'action')
 
     # Compute the referenced types
-    referencedTypes = schemaDocGetReferencedTypes(types, typeName)
+    referencedTypes = schemaGetReferencedTypes(types, typeName)
     if action != null:
         typesFilter = [ \
             typeName, objectGet(action, 'path'), objectGet(action, 'query'), objectGet(action, 'input'), \
@@ -231,7 +234,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
         endif
 
         # Members table
-        members = schemaDocGetStructMembers(types, struct)
+        members = schemaGetStructMembers(types, struct)
         if !members:
             arrayPush(lines, '')
             arrayPush(lines, 'The struct is empty.')
@@ -303,8 +306,8 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
         endif
 
         # Values table
-        values = if(objectHas(enum, 'values'), schemaDocGetEnumValues(types, enum), null)
-        if values == null || !values:
+        values = schemaGetEnumValues(types, enum)
+        if !values:
             arrayPush(lines, '')
             arrayPush(lines, 'The enum is empty.')
         else:
@@ -427,7 +430,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
             # Add "UnexpectedError" to the action's errors
             if objectHas(action, 'errors'):
                 actionErrorTypeName = objectGet(action, 'errors')
-                actionErrorTypes = schemaDocGetReferencedTypes(types, actionErrorTypeName)
+                actionErrorTypes = schemaGetReferencedTypes(types, actionErrorTypeName)
                 actionErrorEnum = objectCopy(objectGet(objectGet(types, actionErrorTypeName), 'enum'))
                 if objectHas(actionErrorEnum, 'values'):
                     objectSet(actionErrorEnum, 'values', arrayCopy(objectGet(actionErrorEnum, 'values')))
@@ -596,140 +599,4 @@ function schemaDocAttrParts(parts, noun, attr, optional):
             arrayPush(parts, 'len(' + noun + ')' + ' == ' + objectGet(attr, 'lenEq'))
         endif
     endif
-endfunction
-
-
-# Helper function to get struct members (with base members)
-function schemaDocGetStructMembers(types, struct):
-    members = []
-
-    # Add base members first
-    if objectHas(struct, 'bases'):
-        for baseName in objectGet(struct, 'bases'):
-            if objectHas(types, baseName):
-                baseType = objectGet(types, baseName)
-                if objectHas(baseType, 'struct'):
-                    baseMembers = schemaDocGetStructMembers(types, objectGet(baseType, 'struct'))
-                    arrayExtend(members, baseMembers)
-                endif
-            endif
-        endfor
-    endif
-
-    # Add this struct's members
-    if objectHas(struct, 'members'):
-        arrayExtend(members, objectGet(struct, 'members'))
-    endif
-
-    return members
-endfunction
-
-
-# Helper function to get enum values (with base values)
-function schemaDocGetEnumValues(types, enum):
-    values = []
-
-    # Add base values first
-    if objectHas(enum, 'bases'):
-        for baseName in objectGet(enum, 'bases'):
-            if objectHas(types, baseName):
-                baseType = objectGet(types, baseName)
-                if objectHas(baseType, 'enum'):
-                    baseValues = schemaDocGetEnumValues(types, objectGet(baseType, 'enum'))
-                    if baseValues != null:
-                        arrayExtend(values, baseValues)
-                    endif
-                endif
-            endif
-        endfor
-    endif
-
-    # Add this enum's values
-    if objectHas(enum, 'values'):
-        arrayExtend(values, objectGet(enum, 'values'))
-    endif
-
-    return values
-endfunction
-
-
-# Helper function to get a user type's referenced type model
-function schemaDocGetReferencedTypes(types, typeName, referencedTypes):
-    referencedTypes = if(referencedTypes, referencedTypes, {})
-    return schemaDocGetReferencedTypesHelper(types, {'user': typeName}, referencedTypes)
-endfunction
-
-
-function schemaDocGetReferencedTypesHelper(types, type, referencedTypes):
-    # Array?
-    if objectHas(type, 'array'):
-        array = objectGet(type, 'array')
-        schemaDocGetReferencedTypesHelper(types, objectGet(array, 'type'), referencedTypes)
-
-    # Dict?
-    elif objectHas(type, 'dict'):
-        dict = objectGet(type, 'dict')
-        schemaDocGetReferencedTypesHelper(types, objectGet(dict, 'type'), referencedTypes)
-        if objectHas(dict, 'keyType'):
-            schemaDocGetReferencedTypesHelper(types, objectGet(dict, 'keyType'), referencedTypes)
-        endif
-
-    # User type?
-    elif objectHas(type, 'user'):
-        typeName = objectGet(type, 'user')
-
-        # Already encountered?
-        if !objectHas(referencedTypes, typeName):
-            userType = objectGet(types, typeName)
-            objectSet(referencedTypes, typeName, userType)
-
-            # Struct?
-            if objectHas(userType, 'struct'):
-                struct = objectGet(userType, 'struct')
-                if objectHas(struct, 'bases'):
-                    for base in objectGet(struct, 'bases'):
-                        schemaDocGetReferencedTypesHelper(types, {'user': base}, referencedTypes)
-                    endfor
-                endif
-                for member in schemaDocGetStructMembers(types, struct):
-                    schemaDocGetReferencedTypesHelper(types, objectGet(member, 'type'), referencedTypes)
-                endfor
-
-            # Enum?
-            elif objectHas(userType, 'enum'):
-                enum = objectGet(userType, 'enum')
-                if objectHas(enum, 'bases'):
-                    for base in objectGet(enum, 'bases'):
-                        schemaDocGetReferencedTypesHelper(types, {'user': base}, referencedTypes)
-                    endfor
-                endif
-
-            # Typedef?
-            elif objectHas(userType, 'typedef'):
-                typedef = objectGet(userType, 'typedef')
-                schemaDocGetReferencedTypesHelper(types, objectGet(typedef, 'type'), referencedTypes)
-
-            # Action?
-            elif objectHas(userType, 'action'):
-                action = objectGet(userType, 'action')
-                if objectHas(action, 'path'):
-                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'path')}, referencedTypes)
-                endif
-                if objectHas(action, 'query'):
-                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'query')}, referencedTypes)
-                endif
-                if objectHas(action, 'input'):
-                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'input')}, referencedTypes)
-                endif
-                if objectHas(action, 'output'):
-                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'output')}, referencedTypes)
-                endif
-                if objectHas(action, 'errors'):
-                    schemaDocGetReferencedTypesHelper(types, {'user': objectGet(action, 'errors')}, referencedTypes)
-                endif
-            endif
-        endif
-    endif
-
-    return referencedTypes
 endfunction

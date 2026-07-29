@@ -143,6 +143,129 @@ unittestRunTest('testElementModelValidate_errorCallbackInvalidValue')
 
 
 #
+# elementModelValidateEx tests
+#
+
+
+function testElementModelValidateEx():
+    element = {'html': 'p', 'attr': {'style': 'color: red;'}, 'elem': [{'text': 'Hello'}]}
+    unittestDeepEqual(elementModelValidateEx(element), {'result': element})
+endfunction
+unittestRunTest('testElementModelValidateEx')
+
+
+function testElementModelValidateEx_null():
+    unittestDeepEqual(elementModelValidateEx(null), {'result': null})
+endfunction
+unittestRunTest('testElementModelValidateEx_null')
+
+
+function testElementModelValidateEx_errorArrayElement():
+    unittestDeepEqual( \
+        elementModelValidateEx([{'html': 'p'}, 0]), \
+        {'error': 'Invalid element 0 (type "number")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorArrayElement')
+
+
+function testElementModelValidateEx_errorNonObject():
+    unittestDeepEqual(elementModelValidateEx('abc'), {'error': 'Invalid element "abc" (type "string")'})
+endfunction
+unittestRunTest('testElementModelValidateEx_errorNonObject')
+
+
+function testElementModelValidateEx_errorNoTag():
+    unittestDeepEqual(elementModelValidateEx({}), {'error': 'Missing element member {}'})
+endfunction
+unittestRunTest('testElementModelValidateEx_errorNoTag')
+
+
+function testElementModelValidateEx_errorMultipleTags():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'svg': 'svg'}), \
+        {'error': 'Multiple element members ["html","svg"]'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorMultipleTags')
+
+
+function testElementModelValidateEx_errorUnknownMember():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'unknown': 'abc'}), \
+        {'error': 'Unknown element member "unknown"'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorUnknownMember')
+
+
+function testElementModelValidateEx_errorTagEmpty():
+    unittestDeepEqual(elementModelValidateEx({'html': ''}), {'error': 'Invalid "html" tag "" (type "string")'})
+endfunction
+unittestRunTest('testElementModelValidateEx_errorTagEmpty')
+
+
+function testElementModelValidateEx_errorTagInvalid():
+    unittestDeepEqual(elementModelValidateEx({'html': 0}), {'error': 'Invalid "html" tag 0 (type "number")'})
+endfunction
+unittestRunTest('testElementModelValidateEx_errorTagInvalid')
+
+
+function testElementModelValidateEx_errorTextAttr():
+    unittestDeepEqual( \
+        elementModelValidateEx({'text': 'abc', 'attr': null}), \
+        {'error': 'Invalid member "attr" for text element "abc"'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorTextAttr')
+
+
+function testElementModelValidateEx_errorTruncated():
+    unittestDeepEqual( \
+        elementModelValidateEx({'text': stringRepeat('x', 200), 'attr': null}), \
+        {'error': 'Invalid member "attr" for text element "' + stringRepeat('x', 99)} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorTruncated')
+
+
+function testElementModelValidateEx_errorAttrInvalid():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'attr': 0}), \
+        {'error': 'Invalid attributes 0 (type "number")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorAttrInvalid')
+
+
+function testElementModelValidateEx_errorTextElem():
+    unittestDeepEqual( \
+        elementModelValidateEx({'text': 'abc', 'elem': null}), \
+        {'error': 'Invalid member "elem" for text element "abc"'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorTextElem')
+
+
+function testElementModelValidateEx_errorElemInvalid():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'elem': [0]}), \
+        {'error': 'Invalid element 0 (type "number")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorElemInvalid')
+
+
+function testElementModelValidateEx_errorCallbackInvalid():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'callback': 0}), \
+        {'error': 'Invalid element callback function 0 (type "number")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorCallbackInvalid')
+
+
+#
 # elementModelToString tests
 #
 

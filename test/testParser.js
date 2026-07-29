@@ -2086,6 +2086,48 @@ foo bar
 });
 
 
+test('parseScript, non-ascii identifier syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript('café = 1\n');
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+café = 1
+   ^
+`,
+            'error': 'Syntax error',
+            'line': 'café = 1',
+            'columnNumber': 4,
+            'lineNumber': 1
+        }
+    );
+});
+
+
+test('parseScript, non-ascii number syntax error', () => {
+    assert.throws(
+        () => {
+            parseScript('x = ٥\n');
+        },
+        {
+            'name': 'BareScriptParserError',
+            'message': `\
+:1: Syntax error
+x = ٥
+    ^
+`,
+            'error': 'Syntax error',
+            'line': 'x = ٥',
+            'columnNumber': 5,
+            'lineNumber': 1
+        }
+    );
+});
+
+
 test('parseScript, assignment statement expression syntax error', () => {
     assert.throws(
         () => {

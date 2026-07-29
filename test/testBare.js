@@ -438,7 +438,7 @@ test('bare.main, debug', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 0);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+    assert.deepEqual(output.map((line) => line.replace(/[.0-9]+( milliseconds)$/, 'X$1')), [
         'Hello',
         'BareScript executed in X milliseconds',
         'Goodbye',
@@ -513,7 +513,7 @@ test('bare.main, static analysis include', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+    assert.deepEqual(output.map((line) => line.replace(/[.0-9]+( milliseconds)$/, 'X$1')), [
         'BareScript static analysis "<string>" ... OK',
         'BareScript static analysis "<string2>" ... 1 warning:',
         '<string2>:1: Unknown global variable "a"'
@@ -528,7 +528,7 @@ test('bare.main, static analysis execute', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+    assert.deepEqual(output.map((line) => line.replace(/[.0-9]+( milliseconds)$/, 'X$1')), [
         'BareScript static analysis "<string>" ... 1 warning:',
         '<string>:2: Unknown global variable "b"'
     ]);
@@ -542,7 +542,7 @@ test('bare.main, static analysis execute error no-clear', async () => {
         'logFn': (message) => output.push(message)
     });
     assert.equal(exitCode, 1);
-    assert.deepEqual(output.map((line) => line.replace(/[.\d]+( milliseconds)$/, 'X$1')), [
+    assert.deepEqual(output.map((line) => line.replace(/[.0-9]+( milliseconds)$/, 'X$1')), [
         'BareScript static analysis "<string>" ... 1 warning:',
         '<string>:2: Unknown global variable "b"',
         'BareScript static analysis "<string2>" ... OK'

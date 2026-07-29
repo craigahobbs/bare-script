@@ -431,6 +431,30 @@ unittestRunTest('testDataValidate_stringError')
 
 
 #
+# dataValidateEx tests
+#
+
+
+function testDataValidateEx():
+    data = [ \
+        {'A': 1, 'B': 'abc'} \
+    ]
+    unittestDeepEqual(dataValidateEx(data), {'result': {'A': 'number', 'B': 'string'}})
+endfunction
+unittestRunTest('testDataValidateEx')
+
+
+function testDataValidateEx_error():
+    data = [ \
+        {'A': 1}, \
+        {'A': '2'} \
+    ]
+    unittestDeepEqual(dataValidateEx(data), {'error': 'Invalid "A" field value "2", expected type number'})
+endfunction
+unittestRunTest('testDataValidateEx_error')
+
+
+#
 # dataJoin tests
 #
 
@@ -789,11 +813,11 @@ unittestRunTest('testDataAggregate_sum')
 
 
 function testDataAggregate_invalidModel():
-    systemLogDebug('NOTICE: The following "schemaValidate" error is expected:')
     unittestMockAll()
     result = dataAggregate([], {})
     unittestEqual(result, null)
     unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Required member "measures" missing']], \
         ['systemLogDebug', ['data.bare: dataAggregate - invalid aggregation model']] \
     ])
 endfunction
