@@ -224,33 +224,25 @@ test('markdownElements, markdownElements', () => {
 });
 
 
-test('markdownElements, markdownElementsAsync', () => {
+test('markdownElements, markdownElementsAsync', async () => {
     const markdown = markdownParse('# Title');
-    assert.deepEqual(markdownElementsAsync(markdown), [{'html': 'h1', 'attr': null, 'elem': [{'text': 'Title'}]}]);
+    assert.deepEqual(await markdownElementsAsync(markdown), [{'html': 'h1', 'attr': null, 'elem': [{'text': 'Title'}]}]);
 });
 
 
-test('markdownElements, markdownElementsAsync code block', () => {
+test('markdownElements, markdownElementsAsync code block', async () => {
     const markdown = markdownParse('~~~ fenced\nHello\n~~~');
     const options = {'codeBlocks': {'fenced': ([codeBlock]) => ({'html': 'pre', 'elem': {'text': codeBlock.lines.join('\n')}})}};
-    assert.deepEqual(markdownElementsAsync(markdown, options), [{'html': 'pre', 'elem': {'text': 'Hello'}}]);
+    assert.deepEqual(await markdownElementsAsync(markdown, options), [{'html': 'pre', 'elem': {'text': 'Hello'}}]);
 });
 
 
-test('markdownElements, markdownElementsAsync async code block error', async () => {
+test('markdownElements, markdownElementsAsync async code block', async () => {
     const markdown = markdownParse('~~~ fenced\nHello\n~~~');
     // eslint-disable-next-line require-await
     const codeBlockFn = async ([codeBlock]) => ({'html': 'pre', 'elem': {'text': codeBlock.lines.join('\n')}});
-    assert.deepEqual(await codeBlockFn([{'lines': ['Hello']}]), {'html': 'pre', 'elem': {'text': 'Hello'}});
-    assert.throws(
-        () => {
-            markdownElementsAsync(markdown, {'codeBlocks': {'fenced': codeBlockFn}});
-        },
-        {
-            'name': 'BareScriptRuntimeError',
-            'message': 'markdownHighlight.bare:98: Async function "renderFn" called within non-async scope'
-        }
-    );
+    const options = {'codeBlocks': {'fenced': codeBlockFn}};
+    assert.deepEqual(await markdownElementsAsync(markdown, options), [{'html': 'pre', 'elem': {'text': 'Hello'}}]);
 });
 
 
