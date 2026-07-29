@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.1 (2026-07-29)
+
+- [137a849](https://github.com/craigahobbs/bare-script/commit/137a849) - add markdownElementsAsync include stub
+
 ## 5.0.0 (2026-07-29)
 
 - [aaf2a4c](https://github.com/craigahobbs/bare-script/commit/aaf2a4c) - port schema-markdown to the include library, embed the include library source, and optimize the runtime
