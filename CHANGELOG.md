@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.0 (2026-07-29)
+
+- [aaf2a4c](https://github.com/craigahobbs/bare-script/commit/aaf2a4c) - port schema-markdown to the include library, embed the include library source, and optimize the runtime
+
 ## 4.2.12 (2026-07-13)
 
 - [0ca4e00](https://github.com/craigahobbs/bare-script/commit/0ca4e00) - schema-markdown 1.3
