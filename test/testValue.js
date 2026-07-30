@@ -874,6 +874,28 @@ test('valueParseDatetime', () => {
         new Date(2022, 7, 29)
     );
 
+    // Date year less than 100
+    const dateYear50 = new Date(50, 0, 1);
+    dateYear50.setFullYear(50);
+    assert.deepEqual(valueParseDatetime('0050-01-01'), dateYear50);
+
+    // Hour 24 - the ISO 8601 special case for midnight at the end of the day
+    assert.deepEqual(
+        valueParseDatetime('2020-01-01T24:00:00Z'),
+        new Date('2020-01-02T00:00:00+00:00')
+    );
+    assert.deepEqual(
+        valueParseDatetime('2020-01-01T24:00:00.000000Z'),
+        new Date('2020-01-02T00:00:00+00:00')
+    );
+    assert.equal(valueParseDatetime('2020-01-01T24:00:00.5Z'), null);
+
+    // Rolled-over date components
+    assert.equal(valueParseDatetime('2020-02-30'), null);
+    assert.equal(valueParseDatetime('2020-13-01'), null);
+    assert.equal(valueParseDatetime('2020-02-30T00:00:00Z'), null);
+    assert.equal(valueParseDatetime('2020-01-01T24:30:00Z'), null);
+
     // Parse failure
     assert.equal(valueParseDatetime('2022-08-29T15:08:00'), null);
     assert.equal(valueParseDatetime('invalid'), null);

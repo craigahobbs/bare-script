@@ -1026,6 +1026,7 @@ test('library, datetimeISOParse', () => {
         scriptFunctions.datetimeISOParse(['2020-01-01T24:00:00Z'], null),
         new Date('2020-01-02T00:00:00+00:00')
     );
+    assert.equal(scriptFunctions.datetimeISOParse(['2020-01-01T24:00:00.5Z'], null), null);
 
     // Rolled-over date components
     assert.equal(scriptFunctions.datetimeISOParse(['2020-02-30'], null), null);
