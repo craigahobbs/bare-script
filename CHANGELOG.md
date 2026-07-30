@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.3 (2026-07-30)
+
+- [014d1fb](https://github.com/craigahobbs/bare-script/commit/014d1fb) - add unittest report summary section with coverage percentage
+
+- [c0f8bfa](https://github.com/craigahobbs/bare-script/commit/c0f8bfa) - fix and cleanup barescript includes
+
+- [9be642e](https://github.com/craigahobbs/bare-script/commit/9be642e) - cleanup barescript includes
+
 ## 5.0.2 (2026-07-29)
 
 - [f9f7f25](https://github.com/craigahobbs/bare-script/commit/f9f7f25) - execute the include library script within the async runtime so that async stub functions run asynchronously
