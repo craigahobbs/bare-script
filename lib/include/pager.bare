@@ -118,17 +118,16 @@ async function pagerMain(pagerModel, options):
     for page, ixPage in pages:
         pageName = objectGet(page, 'name')
         pageHidden = objectGet(page, 'hidden')
-        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
-        pageNavigable = pageTypeKey != 'link'
+        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
 
         # Start page?
-        if pageNavigable && !pageHidden && startPageName == null:
-            startPageName = pageName
-            startPageIndex = ixPage
-        elif !startPageExplicit && pageName == optionStart:
+        if !startPageExplicit && pageName == optionStart:
             startPageName = pageName
             startPageIndex = ixPage
             startPageExplicit = true
+        elif pageNavigable && !pageHidden && startPageName == null:
+            startPageName = pageName
+            startPageIndex = ixPage
         endif
 
         # Update the end page
@@ -163,8 +162,7 @@ async function pagerMain(pagerModel, options):
     curPageIndex = startPageIndex
     for page, ixPage in pages:
         pageName = objectGet(page, 'name')
-        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
-        pageNavigable = pageTypeKey != 'link'
+        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
 
         # Current page?
         if pageNavigable && pageName == argPage:
@@ -182,8 +180,7 @@ async function pagerMain(pagerModel, options):
         page = arrayGet(pages, ixPage)
         pageName = objectGet(page, 'name')
         pageHidden = objectGet(page, 'hidden')
-        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
-        pageNavigable = pageTypeKey != 'link'
+        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
         if !pageHidden && pageNavigable:
             nextPageName = pageName
             break
@@ -198,8 +195,7 @@ async function pagerMain(pagerModel, options):
         page = arrayGet(pages, ixPage)
         pageName = objectGet(page, 'name')
         pageHidden = objectGet(page, 'hidden')
-        pageTypeKey = arrayGet(objectKeys(objectGet(page, 'type')), 0)
-        pageNavigable = pageTypeKey != 'link'
+        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
         if !pageHidden && pageNavigable:
             prevPageName = pageName
             break
@@ -214,8 +210,7 @@ async function pagerMain(pagerModel, options):
             pageName = objectGet(page, 'name')
             pageHidden = objectGet(page, 'hidden')
             pageType = objectGet(page, 'type')
-            pageTypeKey = arrayGet(objectKeys(pageType), 0)
-            pageNavigable = pageTypeKey != 'link'
+            pageLink = objectGet(pageType, 'link')
 
             # Hidden page?
             if pageHidden:
@@ -223,10 +218,10 @@ async function pagerMain(pagerModel, options):
             endif
 
             # Render the menu link
-            if pageTypeKey == 'link':
-                pageLinkURL = objectGet(objectGet(pageType, 'link'), 'url')
+            if pageLink != null:
+                pageLinkURL = objectGet(pageLink, 'url')
                 arrayPush(menuItems, '[' + markdownEscape(pageName) + '](' + urlEncode(pageLinkURL) + ')')
-            elif pageName == objectGet(curPage, 'name'):
+            elif pageName == curPageName:
                 arrayPush(menuItems, markdownEscape(pageName))
             else:
                 arrayPush(menuItems, argsLink(arguments, pageName, {'page': pageName}))
@@ -249,8 +244,7 @@ async function pagerMain(pagerModel, options):
 
     # Function page?
     curPageType = objectGet(curPage, 'type')
-    curPageTypeKey = arrayGet(objectKeys(curPageType), 0)
-    if curPageTypeKey == 'function':
+    if objectHas(curPageType, 'function'):
         # Set the title
         title = objectGet(objectGet(curPageType, 'function'), 'title')
         if title != null:
@@ -261,7 +255,7 @@ async function pagerMain(pagerModel, options):
         # Call the page function
         pageFn = objectGet(objectGet(curPageType, 'function'), 'function')
         pageFn(args)
-    elif curPageTypeKey == 'markdown':
+    elif objectHas(curPageType, 'markdown'):
         # Fetch the Markdown text
         url = objectGet(objectGet(curPageType, 'markdown'), 'url')
         markdownText = systemFetch(url)

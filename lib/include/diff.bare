@@ -56,17 +56,13 @@ function diffLines(left, right):
     leftLength = arrayLength(leftLines)
     rightLength = arrayLength(rightLines)
     while ixLeft < leftLength || ixRight < rightLength:
-        # If we've run out of lines on either side
+        # If we've run out of lines on either side (the loop condition ensures lines remain on the other)
         if ixLeft >= leftLength:
-            if ixRight < rightLength:
-                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
-            endif
+            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
             break
         endif
         if ixRight >= rightLength:
-            if ixLeft < leftLength:
-                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
-            endif
+            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
             break
         endif
 
@@ -98,16 +94,12 @@ function diffLines(left, right):
             ixLeftTmp = ixLeftTmp + 1
         endwhile
 
-        # If no match found, use remaining lines
+        # If no match found, use remaining lines (lines remain on both sides or we'd have broken above)
         if matchIxLeft == null:
-            if ixLeft < leftLength:
-                arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
-                ixLeft = leftLength
-            endif
-            if ixRight < rightLength:
-                arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
-                ixRight = rightLength
-            endif
+            arrayPush(diffs, {'type': 'Remove', 'lines': arraySlice(leftLines, ixLeft)})
+            arrayPush(diffs, {'type': 'Add', 'lines': arraySlice(rightLines, ixRight)})
+            ixLeft = leftLength
+            ixRight = rightLength
             continue
         endif
 

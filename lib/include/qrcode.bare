@@ -15,6 +15,9 @@ include <draw.bare>
 function qrcodeDraw(message, x, y, size, level):
     # Get the QR code pixel matrix
     matrix = if(systemType(message) == 'string', qrcodeMatrix(message, level), message)
+    if matrix == null:
+        return
+    endif
     qrcodeSize = arrayLength(matrix)
 
     # Draw the white background
@@ -55,6 +58,9 @@ endfunction
 function qrcodeElements(message, size, level):
     # Get the QR code pixel matrix
     matrix = if(systemType(message) == 'string', qrcodeMatrix(message, level), message)
+    if matrix == null:
+        return null
+    endif
     qrcodeSize = arrayLength(matrix)
 
     # Compute the black pixel paths
@@ -462,15 +468,15 @@ function qrcodeDataBits(qrcode, level, message):
     # Compute the message bits
     messageBits = qrcodeMessageBits(qrcode, level, message)
 
-    # Padding bits
+    # Padding bits - the pad bytes 236 and 17 alternate
     paddingBits = []
     remainingBitCount = totalMessageCodewords * 8 - arrayLength(messageBits)
     byteCount = mathFloor(remainingBitCount / 8)
+    padBits236 = qrcodeBytesToBits([236])
+    padBits17 = qrcodeBytesToBits([17])
     ix = 0
     while ix < byteCount:
-        padValue = if(ix % 2, 17, 236)
-        padBits = qrcodeBytesToBits([padValue])
-        arrayExtend(paddingBits, padBits)
+        arrayExtend(paddingBits, if(ix % 2, padBits17, padBits236))
         ix = ix + 1
     endwhile
 
@@ -584,7 +590,7 @@ endfunction
 
 # Mode determination regex
 qrcodeModeNumericRegex = regexNew('^[0-9]+$')
-qrcodeModeAlphanumericRegex = regexNew('^[0-9A-Z $%*+-./:]+$')
+qrcodeModeAlphanumericRegex = regexNew('^[0-9A-Z $%*+\\-./:]+$')
 qrcodeModeAlphanumericStr = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
 
 

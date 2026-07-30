@@ -147,3 +147,19 @@ async function testUnittestMockAll_systemFetch_request_model():
     ])
 endfunction
 unittestRunTest('testUnittestMockAll_systemFetch_request_model')
+
+
+function testUnittestMockAll_stateIsolation():
+    # Mock-session state must not leak into the next mock session
+    unittestMockAll()
+    localStorageSet('leakKey', 'leakValue')
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['localStorageSet', ['leakKey', 'leakValue']] \
+    ])
+
+    unittestMockAll()
+    leakValue = localStorageGet('leakKey')
+    unittestDeepEqual(unittestMockEnd(), [])
+    unittestEqual(leakValue, null)
+endfunction
+unittestRunTest('testUnittestMockAll_stateIsolation')

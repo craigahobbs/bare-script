@@ -77,27 +77,27 @@ async function schemaDocMain(url, title, hideNoGroup):
         markdownPrint('', argsLink(schemaDocArguments, if(single, 'Multi Page', 'Single Page'), {'single': !single}))
     endif
 
-    # Group the types
+    # Group the type names
     groups = {}
     typeNames = arraySort(objectKeys(types))
-    typeGroups = {'action': 'Actions', 'enum': 'Enums', 'struct': 'Structs', 'typedef': 'Typedefs'}
     for typeName in typeNames:
         type = objectGet(types, typeName)
-        group = objectGet(objectGet(type, arrayGet(objectKeys(type), 0)), 'docGroup')
+        typeKey = arrayGet(objectKeys(type), 0)
+        group = objectGet(objectGet(type, typeKey), 'docGroup')
 
         # No group? Use the type's default group.
         if group == null:
             if hideNoGroup:
                 continue
             endif
-            group = objectGet(typeGroups, arrayGet(objectKeys(type), 0))
+            group = objectGet(schemaDocTypeGroups, typeKey)
         endif
 
-        # Add the type to the group
+        # Add the type name to the group
         if !objectHas(groups, group):
             objectSet(groups, group, [])
         endif
-        arrayPush(objectGet(groups, group), type)
+        arrayPush(objectGet(groups, group), typeName)
     endfor
     groupNames = arraySort(objectKeys(groups))
 
@@ -120,9 +120,7 @@ async function schemaDocMain(url, title, hideNoGroup):
         endif
 
         # Render the group type links
-        groupTypes = objectGet(groups, groupName)
-        for groupType in groupTypes:
-            groupTypeName = objectGet(objectGet(groupType, arrayGet(objectKeys(groupType), 0)), 'name')
+        for groupTypeName in objectGet(groups, groupName):
             if single:
                 markdownPrint('', schemaDocMarkdown(types, groupTypeName, {'headerPrefix': '###', 'hideReferenced': true}))
             else:
@@ -131,6 +129,10 @@ async function schemaDocMain(url, title, hideNoGroup):
         endfor
     endfor
 endfunction
+
+
+# The map of type key to default documentation group name
+schemaDocTypeGroups = {'action': 'Actions', 'enum': 'Enums', 'struct': 'Structs', 'typedef': 'Typedefs'}
 
 
 # The Schema Markdown documentation viewer arguments
@@ -165,31 +167,31 @@ function schemaDocMarkdown(types, typeName, options):
     userType = objectGet(types, typeName)
     action = objectGet(userType, 'action')
 
-    # Compute the referenced types
-    referencedTypes = schemaGetReferencedTypes(types, typeName)
-    if action != null:
-        typesFilter = [ \
-            typeName, objectGet(action, 'path'), objectGet(action, 'query'), objectGet(action, 'input'), \
-            objectGet(action, 'output'), objectGet(action, 'errors') \
-        ]
-    else:
-        typesFilter = [typeName]
-    endif
-
-    # Filter and sort referenced types
+    # Compute, filter, and sort the referenced types (not needed when referenced types are hidden)
     filteredTypeNames = []
-    for refTypeName in arraySort(objectKeys(referencedTypes)):
-        if arrayIndexOf(typesFilter, refTypeName) == -1:
-            arrayPush(filteredTypeNames, refTypeName)
+    if !hideReferenced:
+        referencedTypes = schemaGetReferencedTypes(types, typeName)
+        if action != null:
+            typesFilter = [ \
+                typeName, objectGet(action, 'path'), objectGet(action, 'query'), objectGet(action, 'input'), \
+                objectGet(action, 'output'), objectGet(action, 'errors') \
+            ]
+        else:
+            typesFilter = [typeName]
         endif
-    endfor
+        for refTypeName in arraySort(objectKeys(referencedTypes)):
+            if arrayIndexOf(typesFilter, refTypeName) == -1:
+                arrayPush(filteredTypeNames, refTypeName)
+            endif
+        endfor
+    endif
 
     # The user type documentation
     lines = []
     arrayExtend(lines, schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix))
 
     # Referenced type documentation
-    if filteredTypeNames && !hideReferenced:
+    if filteredTypeNames:
         arrayPush(lines, '')
         arrayPush(lines, '---')
         arrayPush(lines, '')
@@ -350,7 +352,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
         endif
 
         # Type table data
-        attrText = if(objectHas(typedef, 'attr'), schemaDocAttrText(typedef))
+        attrText = schemaDocAttrText(typedef)
         tableData = [{'Type': schemaDocTypeText(types, objectGet(typedef, 'type'))}]
         if attrText != null:
             objectSet(arrayGet(tableData, 0), 'Attributes', attrText)
@@ -575,7 +577,7 @@ function schemaDocAttrParts(parts, noun, attr, optional):
             arrayPush(parts, noun + ' >= ' + objectGet(attr, 'gte'))
         endif
         if objectHas(attr, 'lt'):
-            arrayPush(parts, noun + ' < '+ objectGet(attr, 'lt'))
+            arrayPush(parts, noun + ' < ' + objectGet(attr, 'lt'))
         endif
         if objectHas(attr, 'lte'):
             arrayPush(parts, noun + ' <= ' + objectGet(attr, 'lte'))

@@ -236,7 +236,7 @@ function unittestReport(options):
     testFailCount = 0
     for testName in testNames:
         testFailures = objectGet(unittestTests, testName)
-        if arrayLength(testFailures):
+        if testFailures:
             testFailCount = testFailCount + 1
         endif
     endfor
@@ -280,7 +280,7 @@ function unittestReport(options):
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
-                if arrayLength(testFailures):
+                if testFailures:
                     failureLink = if(isReport, testName, \
                         argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
                     failureLines = ['', failureLink + ' - FAIL']
@@ -309,7 +309,7 @@ function unittestReport(options):
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
-                if !arrayLength(testFailures):
+                if !testFailures:
                     testLink = if(isReport, testName, \
                         argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
                     markdownPrint('', testLink + ' - OK')
@@ -456,7 +456,7 @@ function unittestReportScriptLines(codeLineElements, lines, color, noNewline):
 endfunction
 
 
-# Get the coverage data table - columns are "Script", "Statement", "Covered", and "Percent"
+# Get the coverage data table - columns are "Script", "Statements", "Missing", and "Coverage"
 function unittestCoverageData(coverageExclude):
     data = []
 
@@ -511,8 +511,7 @@ function unittestCoverageData(coverageExclude):
                 'Script': scriptName, \
                 'Statements': statementCount, \
                 'Missing': missingCount, \
-                'Coverage':  coveragePercent, \
-                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+                'Coverage':  coveragePercent \
             })
         endfor
 
@@ -523,8 +522,7 @@ function unittestCoverageData(coverageExclude):
                 'Script': '**Total**', \
                 'Statements': totalStatements, \
                 'Missing': totalMissing, \
-                'Coverage': coveragePercent, \
-                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+                'Coverage': coveragePercent \
             })
         endif
     endif
@@ -542,9 +540,9 @@ function unittestScriptStatements(script):
         arrayPush(statements, statement)
 
         # Add function statements
-        statementKey = arrayGet(objectKeys(statement), 0)
-        if statementKey == 'function':
-            for funcStatement in objectGet(objectGet(statement, statementKey), 'statements'):
+        statementFunction = objectGet(statement, 'function')
+        if statementFunction != null:
+            for funcStatement in objectGet(statementFunction, 'statements'):
                 arrayPush(statements, funcStatement)
             endfor
         endif

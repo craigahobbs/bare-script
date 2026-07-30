@@ -89,7 +89,7 @@ function testMarkdownUp_html():
     unittestMockOneGeneric('systemLog')
     markdownUpHTMLBegin()
     unittestEqual(markdownPrintStub('Hello'), null)
-    unittestEqual(elementModelRender({'html': 'p', 'elem': {'text': 'Goodbye'}}))
+    unittestEqual(elementModelRender({'html': 'p', 'elem': {'text': 'Goodbye'}}), null)
     markdownUpHTMLEnd()
     unittestDeepEqual(unittestMockEnd(), [ \
         ['systemLog', ['<!DOCTYPE html>']], \
@@ -125,6 +125,7 @@ unittestRunTest('testMarkdownUp_sessionStorage')
 function testMarkdownUp_windowURLObject():
     unittestEqual(windowURLObject('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
     unittestEqual(windowURLObject('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+    unittestEqual(windowURLObject('Hello!'), 'blob:text/plain-Hello!')
 endfunction
 unittestRunTest('testMarkdownUp_windowURLObject')
 
@@ -138,7 +139,7 @@ unittestRunTest('testMarkdownUp_windowClipboardRead')
 
 
 function testMarkdownUp_windowClipboardWrite():
-    windowClipboardWrite('Hello!')
+    unittestEqual(windowClipboardWrite('Hello!'), null)
     unittestEqual(windowClipboardRead(), 'Hello!')
 endfunction
 unittestRunTest('testMarkdownUp_windowClipboardWrite')

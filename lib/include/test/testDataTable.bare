@@ -184,6 +184,36 @@ endfunction
 unittestRunTest('testDataTableMarkdown_formats')
 
 
+function testDataTableMarkdown_formatsHeaderLong():
+    data = [ \
+        {'A': 1}, \
+        {'A': 2} \
+    ]
+    model = {'formats': {'A': {'header': 'Long Header'}}}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '| Long Header |', \
+        '|-------------|', \
+        '| 1           |', \
+        '| 2           |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_formatsHeaderLong')
+
+
+function testDataTableMarkdown_formatsHeaderEmpty():
+    data = [ \
+        {'A': 'a1'} \
+    ]
+    model = {'formats': {'A': {'header': ''}}}
+    unittestDeepEqual(dataTableMarkdown(data, model), [ \
+        '|    |', \
+        '|----|', \
+        '| a1 |' \
+    ])
+endfunction
+unittestRunTest('testDataTableMarkdown_formatsHeaderEmpty')
+
+
 function testDataTableMarkdown_noFields():
     data = []
     unittestDeepEqual(dataTableMarkdown(data), null)
@@ -646,3 +676,29 @@ function testDataTableElements_formatHeader():
     })
 endfunction
 unittestRunTest('testDataTableElements_formatHeader')
+
+
+function testDataTableElements_formatHeaderEmpty():
+    data = [ \
+        {'A': 'a'} \
+    ]
+    dataTable = dataTableValidate({'formats': {'A': {'header': ''}}})
+    unittestDeepEqual(dataTableElements(data, dataTable), { \
+        'html': 'table', \
+        'elem': [ \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'th', 'attr': null, 'elem': {'text': ''}} \
+                ] \
+            }, \
+            { \
+                'html': 'tr', \
+                'elem': [ \
+                    {'html': 'td', 'attr': null, 'elem': {'text': 'a'}} \
+                ] \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDataTableElements_formatHeaderEmpty')

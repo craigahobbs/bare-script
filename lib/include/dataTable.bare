@@ -122,20 +122,30 @@ function dataTableMarkdown(data, model):
         endfor
         arrayExtend(fields, objectKeys(fieldNames))
     endif
-    if !arrayLength(fields):
+    if !fields:
         return null
     endif
 
     # Get precision and formatting
-    precisionDatetime = if(model != null, objectGet(model, 'datetime'))
-    precisionNumber = if(model != null, objectGet(model, 'precision', 2), 2)
-    precisionTrim = if(model != null, objectGet(model, 'trim', true), true)
+    formatDatetime = if(model != null, objectGet(model, 'datetime'))
+    formatPrecision = if(model != null, objectGet(model, 'precision'))
+    formatTrim = if(model != null, objectGet(model, 'trim'))
     formats = if(model != null, objectGet(model, 'formats'))
 
-    # Initialize widths to the field header width
+    # Precompute per-field rendering metadata, [field, align, header, isCategory], and
+    # initialize widths to the field header width
+    fieldMeta = []
     widths = {}
     for field in fields:
-        objectSet(widths, field, stringLength(field))
+        format = if(formats != null, objectGet(formats, field))
+        header = if(format != null, objectGet(format, 'header', field), field)
+        arrayPush(fieldMeta, [ \
+            field, \
+            if(format != null, objectGet(format, 'align')), \
+            header, \
+            modelCategories != null && arrayIndexOf(modelCategories, field) != -1 \
+        ])
+        objectSet(widths, field, stringLength(header))
     endfor
 
     # Compute the formatted field value strings and widths
@@ -148,7 +158,7 @@ function dataTableMarkdown(data, model):
             value = objectGet(row, field)
             valueType = systemType(value)
             if valueType == 'number' || valueType == 'datetime':
-                valueFormat = dataUtilFormatValue(value, precisionNumber, precisionDatetime, precisionTrim)
+                valueFormat = dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim)
             else:
                 valueFormat = if(valueType == 'string', stringTrim(value), stringNew(value))
                 valueFormat = regexReplace(dataTableMarkdownRegexMultipleNewline, valueFormat, '<br><br>')
@@ -166,24 +176,16 @@ function dataTableMarkdown(data, model):
         endfor
     endfor
 
-    # Precompute per-field rendering metadata: [field, width, align, header, isCategory]
-    fieldMeta = []
-    for field in fields:
-        format = if(formats != null, objectGet(formats, field))
-        arrayPush(fieldMeta, [ \
-            field, \
-            objectGet(widths, field), \
-            if(format != null, objectGet(format, 'align')), \
-            if(format != null, objectGet(format, 'header', field), field), \
-            modelCategories != null && arrayIndexOf(modelCategories, field) != -1 \
-        ])
+    # Add each field's computed width to its metadata, [field, align, header, isCategory, width]
+    for meta in fieldMeta:
+        arrayPush(meta, objectGet(widths, arrayGet(meta, 0)))
     endfor
 
     # Compute the field header separator
     headerSeparator = ''
     for meta in fieldMeta:
-        width = arrayGet(meta, 1)
-        align = arrayGet(meta, 2)
+        align = arrayGet(meta, 1)
+        width = arrayGet(meta, 4)
         alignLeft = if(align == 'center', ':', '-')
         alignRight = if(align == 'center' || align == 'right', ':', '-')
         headerSeparator = headerSeparator + '|' + alignLeft + dataTableMarkdownField('', width, align, '-') + alignRight
@@ -193,9 +195,9 @@ function dataTableMarkdown(data, model):
     # Compute the table header fields
     headerFields = ''
     for meta in fieldMeta:
-        width = arrayGet(meta, 1)
-        align = arrayGet(meta, 2)
-        header = arrayGet(meta, 3)
+        align = arrayGet(meta, 1)
+        header = arrayGet(meta, 2)
+        width = arrayGet(meta, 4)
         headerFields = headerFields + '| ' + dataTableMarkdownField(header, width, align, ' ') + ' '
     endfor
     headerFields = headerFields + '|'
@@ -213,12 +215,12 @@ function dataTableMarkdown(data, model):
         parts = []
         for meta in fieldMeta:
             field = arrayGet(meta, 0)
-            width = arrayGet(meta, 1)
-            align = arrayGet(meta, 2)
+            align = arrayGet(meta, 1)
+            width = arrayGet(meta, 4)
 
             # Skip this value? (blank a category cell matching the previous row)
             if skip:
-                isCategory = arrayGet(meta, 4)
+                isCategory = arrayGet(meta, 3)
                 skip = isCategory && systemCompare(objectGet(rowRaw, field), objectGet(rowPrevRaw, field)) == 0
             endif
 
@@ -315,7 +317,7 @@ function dataTableElements(data, dataTable):
                 isCategory, \
                 dataTableElementsFieldAttr(fieldFormat), \
                 fieldFormat != null && objectGet(fieldFormat, 'markdown'), \
-                if(fieldFormat != null, objectGet(fieldFormat, 'header')) || field \
+                if(fieldFormat != null, objectGet(fieldFormat, 'header', field), field) \
             ])
         endfor
     endfor
@@ -350,14 +352,12 @@ function dataTableElements(data, dataTable):
                 skip = isCategory && systemCompare(value, objectGet(rowPrev, field)) == 0
             endif
 
-            fieldElements = if(isMarkdown, \
-                markdownElements(markdownParse(stringNew(value))), \
-                {'text': dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim)} \
-            )
             arrayPush(fieldRowElements, { \
                 'html': 'td', \
                 'attr': fieldAttr, \
-                'elem': if(skip, null, fieldElements) \
+                'elem': if(skip, null, if(isMarkdown, \
+                    markdownElements(markdownParse(stringNew(value))), \
+                    {'text': dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim)})) \
             })
         endfor
         arrayPush(resultRows, {'html': 'tr', 'elem': fieldRowElements})

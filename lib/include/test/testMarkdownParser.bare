@@ -245,7 +245,7 @@ unittestRunTest('testMarkdownParse_horizontalRuleBeyondCodeBlock')
 
 function testMarkdownParse_horizontalRuleFollowingCodeBlock():
     markdown = markdownParse([ \
-        'This is a horizontal fule immediately following a code block:', \
+        'This is a horizontal rule immediately following a code block:', \
         '', \
         '    code', \
         '', \
@@ -255,7 +255,7 @@ function testMarkdownParse_horizontalRuleFollowingCodeBlock():
         markdownValidate(markdown), \
         { \
             'parts': [ \
-                {'paragraph': {'spans': [{'text': 'This is a horizontal fule immediately following a code block:'}]}}, \
+                {'paragraph': {'spans': [{'text': 'This is a horizontal rule immediately following a code block:'}]}}, \
                 {'codeBlock': {'lines': ['code'], 'startLineNumber': 3}}, \
                 {'hr': 1} \
             ] \
@@ -1072,8 +1072,8 @@ endfunction
 unittestRunTest('testMarkdownParse_listMixed')
 
 
-function testMarkdownParse_listParagraphAdjascent():
-   markdown = markdownParse([ \
+function testMarkdownParse_listParagraphAdjacent():
+    markdown = markdownParse([ \
         'Foo', \
         '- bar', \
         '- baz' \
@@ -1099,10 +1099,10 @@ function testMarkdownParse_listParagraphAdjascent():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_listParagraphAdjascent')
+unittestRunTest('testMarkdownParse_listParagraphAdjacent')
 
 
-function testMarkdownParse_listNumberedParagraphAdjascent():
+function testMarkdownParse_listNumberedParagraphAdjacent():
     markdown = markdownParse([ \
         'Foo', \
         '1. bar', \
@@ -1130,7 +1130,7 @@ function testMarkdownParse_listNumberedParagraphAdjascent():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_listNumberedParagraphAdjascent')
+unittestRunTest('testMarkdownParse_listNumberedParagraphAdjacent')
 
 
 function testMarkdownParse_listNested():
@@ -1591,7 +1591,7 @@ unittestRunTest('testMarkdownParse_blockQuote')
 
 
 function testMarkdownParse_blockQuoteNested():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '> Quote text', \
         '>', \
         '> > Inner text', \
@@ -1819,7 +1819,7 @@ unittestRunTest('testMarkdownParse_blockQuoteTerminatesCodeBlock')
 
 
 function testMarkdownParse_blockQuoteTerminatesList():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '- item 1', \
         '', \
         '> quote' \
@@ -1860,7 +1860,7 @@ unittestRunTest('testMarkdownParse_blockQuoteEmpty')
 
 
 function testMarkdownParse_codeBlock():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         'This is some code:', \
         '', \
         '    code 1', \
@@ -1975,7 +1975,7 @@ unittestRunTest('testMarkdownParse_codeBlockActuallyListItemText2')
 
 
 function testMarkdownParse_codeBlockBlanks():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '    chunk1', \
         '', \
         '    chunk2', \
@@ -2300,7 +2300,7 @@ unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFirstLine')
 
 
 function testMarkdownParse_fencedCodeBlockIndentedFence():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         ' ~~~', \
         ' aaa', \
         'aaa', \
@@ -2396,7 +2396,7 @@ unittestRunTest('testMarkdownParse_fencedCodeBlockIndentedFenceTooMuch2')
 
 
 function testMarkdownParse_fencedCodeBlockSeparatesParagraphs():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         'foo', \
         '~~~', \
         'bar', \
@@ -2418,7 +2418,7 @@ unittestRunTest('testMarkdownParse_fencedCodeBlockSeparatesParagraphs')
 
 
 function testMarkdownParse_fencedCodeBlockSeparatesHeaders():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         'foo', \
         '---', \
         '~~~', \
@@ -2459,7 +2459,7 @@ unittestRunTest('testMarkdownParse_fencedCodeBlockCloseNoLanguage')
 
 
 function testMarkdownParse_table():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         'This is a table:', \
         '', \
         '| Column A | Column B | Column C | Column D |', \
@@ -2565,7 +2565,7 @@ unittestRunTest('testMarkdownParse_tableIndentedRow')
 
 
 function testMarkdownParse_tableNaked():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '| abc | defghi |', \
         ':-: | -----------:', \
         'bar | baz' \

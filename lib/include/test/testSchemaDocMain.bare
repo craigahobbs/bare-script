@@ -370,7 +370,7 @@ endfunction
 unittestRunTest('testSchemaDocMain_index_urlNull')
 
 
-async function testSchemaDocMain_index_urlNullTitle():
+async function testSchemaDocMain_index_urlEmptyTitle():
     # Setup mocks
     unittestMockAll()
 
@@ -402,7 +402,7 @@ async function testSchemaDocMain_index_urlNullTitle():
         ['markdownPrint', ['', "[Types](#var.vName='Types'&_top)"]] \
     ])
 endfunction
-unittestRunTest('testSchemaDocMain_index_urlNullTitle')
+unittestRunTest('testSchemaDocMain_index_urlEmptyTitle')
 
 
 async function testSchemaDocMain_index_urlError():

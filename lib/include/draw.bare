@@ -268,7 +268,7 @@ endfunction
 # $function: drawOnClick
 # $group: draw.bare
 # $doc: Set the most recent drawing object's on-click event handler
-# $arg callback: The on-click event callback function (x, y)
+# $arg callback: The on-click event callback function (x, y, width, height)
 function drawOnClick(callback):
     drawing = drawGetCurrentDrawing()
     svg = objectGet(drawing, 'svg')
@@ -338,13 +338,19 @@ endfunction
 # $arg strokeDashArray: [dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
 function drawStyle(stroke, strokeWidth, fill, strokeDashArray):
     drawing = drawGetCurrentDrawing()
+
+    # Apply the style defaults and compare with the current styles - an unchanged style continues the current path
+    stroke = if(stroke != null, stroke, 'black')
+    strokeWidth = if(strokeWidth != null, strokeWidth, 1)
+    fill = if(fill != null, fill, 'none')
+    strokeDashArray = if(strokeDashArray != null, strokeDashArray, 'none')
     if stroke != objectGet(drawing, 'stroke') || strokeWidth != objectGet(drawing, 'strokeWidth') || \
        strokeDashArray != objectGet(drawing, 'strokeDashArray') || fill != objectGet(drawing, 'fill'):
         drawFinishDrawingPath(drawing)
-        objectSet(drawing, 'stroke', if(stroke != null, stroke, 'black'))
-        objectSet(drawing, 'strokeWidth', if(strokeWidth != null, strokeWidth, 1))
-        objectSet(drawing, 'strokeDashArray', if(strokeDashArray != null, strokeDashArray, 'none'))
-        objectSet(drawing, 'fill', if(fill != null, fill, 'none'))
+        objectSet(drawing, 'stroke', stroke)
+        objectSet(drawing, 'strokeWidth', strokeWidth)
+        objectSet(drawing, 'strokeDashArray', strokeDashArray)
+        objectSet(drawing, 'fill', fill)
     endif
 endfunction
 

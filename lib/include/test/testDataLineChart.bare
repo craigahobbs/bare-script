@@ -555,7 +555,7 @@ endfunction
 unittestRunTest('testDataLineChartElements')
 
 
-function testDataLineChartChartElements_colorField():
+function testDataLineChartElements_colorField():
     data = [ \
         {'A': 1, 'B': 1, 'C': 'abc'}, \
         {'B': 3, 'C': 'abc'}, \
@@ -929,7 +929,618 @@ function testDataLineChartChartElements_colorField():
         ] \
     })
 endfunction
-unittestRunTest('testDataLineChartChartElements_colorField')
+unittestRunTest('testDataLineChartElements_colorField')
+
+
+function testDataLineChartElements_colorFieldEmptyValue():
+    # A color value with no valid points is excluded from the chart and legend
+    data = [ \
+        {'A': 1, 'B': 2, 'C': 'u'}, \
+        {'A': 2, 'B': 4, 'C': 'u'}, \
+        {'A': 1, 'B': null, 'C': 'v'}, \
+        {'A': 2, 'B': null, 'C': 'v'} \
+    ]
+    dataExpected = [ \
+        {'A': 1, 'B': 2, 'C': 'u'}, \
+        {'A': 2, 'B': 4, 'C': 'u'} \
+    ]
+    lineChart = dataLineChartValidate({'x': 'A', 'y': ['B'], 'color': 'C'})
+    unittestDeepEqual( \
+        dataLineChartElements(data, lineChart), \
+        dataLineChartElements(dataExpected, lineChart) \
+    )
+endfunction
+unittestRunTest('testDataLineChartElements_colorFieldEmptyValue')
+
+
+function testDataLineChartElements_emptyYField():
+    # A y-field with no valid points is excluded from the chart and legend
+    data = [ \
+        {'A': 1, 'B': 2}, \
+        {'A': 2, 'B': 4} \
+    ]
+    lineChart = dataLineChartValidate({'x': 'A', 'y': ['B', 'C'], 'width': 120, 'height': 90})
+    unittestDeepEqual(dataLineChartElements(data, lineChart), { \
+        "attr": { \
+            "height": 90, \
+            "width": 120 \
+        }, \
+        "elem": [ \
+            { \
+                "attr": { \
+                    "fill": "white", \
+                    "height": 90, \
+                    "width": 120 \
+                }, \
+                "svg": "rect" \
+            }, \
+            null, \
+            null, \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 25.950 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 21.725 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 17.500 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ] \
+            ], \
+            [ \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "auto", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "25.950" \
+                    }, \
+                    "elem": { \
+                        "text": "2" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "auto", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "21.725" \
+                    }, \
+                    "elem": { \
+                        "text": "3" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "17.500" \
+                    }, \
+                    "elem": { \
+                        "text": "4" \
+                    }, \
+                    "svg": "text" \
+                } \
+            ], \
+            { \
+                "attr": { \
+                    "dominant-baseline": "auto", \
+                    "fill": "black", \
+                    "font-family": "Arial, Helvetica, sans-serif", \
+                    "font-size": "16.000px", \
+                    "style": "font-weight: bold", \
+                    "text-anchor": "middle", \
+                    "x": "50.575", \
+                    "y": "74.000" \
+                }, \
+                "elem": { \
+                    "text": "A" \
+                }, \
+                "svg": "text" \
+            }, \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 36.350 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 50.575 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    { \
+                        "attr": { \
+                            "d": "M 50.575 27.950 V 17.500", \
+                            "fill": "none", \
+                            "stroke": "lightgray", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    } \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 64.800 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ] \
+            ], \
+            [ \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "start", \
+                        "x": "36.350", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "1" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "middle", \
+                        "x": "50.575", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "1.50" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "64.800", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "2" \
+                    }, \
+                    "svg": "text" \
+                } \
+            ], \
+            { \
+                "attr": { \
+                    "d": "M 34.350 17.000 V 27.950 H 65.300", \
+                    "fill": "none", \
+                    "stroke": "black", \
+                    "stroke-width": "1.000" \
+                }, \
+                "svg": "path" \
+            }, \
+            [ \
+                { \
+                    "attr": { \
+                        "d": "M 36.350 25.950 L 64.800 17.500", \
+                        "fill": "none", \
+                        "stroke": "#1f77b4", \
+                        "stroke-width": "3.000" \
+                    }, \
+                    "svg": "path" \
+                } \
+            ], \
+            [], \
+            [], \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "fill": "#1f77b4", \
+                            "height": "16.000", \
+                            "stroke": "none", \
+                            "width": "16.000", \
+                            "x": "72.800", \
+                            "y": "17.500" \
+                        }, \
+                        "svg": "rect" \
+                    }, \
+                    { \
+                        "attr": { \
+                            "dominant-baseline": "middle", \
+                            "fill": "black", \
+                            "font-family": "Arial, Helvetica, sans-serif", \
+                            "font-size": "16.000px", \
+                            "text-anchor": "start", \
+                            "x": "94.400", \
+                            "y": "25.500" \
+                        }, \
+                        "elem": { \
+                            "text": "B" \
+                        }, \
+                        "svg": "text" \
+                    } \
+                ] \
+            ] \
+        ], \
+        "svg": "svg" \
+    })
+endfunction
+unittestRunTest('testDataLineChartElements_emptyYField')
+
+
+function testDataLineChartElements_multipleYNulls():
+    # The X-axis range spans all y-fields' points - a y-field with trailing nulls must not clamp the maximum
+    data = [ \
+        {'A': 1, 'B': 2, 'C': 5}, \
+        {'A': 2, 'B': 4, 'C': null}, \
+        {'A': 3, 'B': 6, 'C': null} \
+    ]
+    lineChart = dataLineChartValidate({'x': 'A', 'y': ['B', 'C'], 'width': 120, 'height': 90})
+    unittestDeepEqual(dataLineChartElements(data, lineChart), { \
+        "attr": { \
+            "height": 90, \
+            "width": 120 \
+        }, \
+        "elem": [ \
+            { \
+                "attr": { \
+                    "fill": "white", \
+                    "height": 90, \
+                    "width": 120 \
+                }, \
+                "svg": "rect" \
+            }, \
+            null, \
+            null, \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 25.950 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 21.725 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 34.350 17.500 H 29.350", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ] \
+            ], \
+            [ \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "auto", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "25.950" \
+                    }, \
+                    "elem": { \
+                        "text": "2" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "auto", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "21.725" \
+                    }, \
+                    "elem": { \
+                        "text": "4" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "25.600", \
+                        "y": "17.500" \
+                    }, \
+                    "elem": { \
+                        "text": "6" \
+                    }, \
+                    "svg": "text" \
+                } \
+            ], \
+            { \
+                "attr": { \
+                    "dominant-baseline": "auto", \
+                    "fill": "black", \
+                    "font-family": "Arial, Helvetica, sans-serif", \
+                    "font-size": "16.000px", \
+                    "style": "font-weight: bold", \
+                    "text-anchor": "middle", \
+                    "x": "50.575", \
+                    "y": "74.000" \
+                }, \
+                "elem": { \
+                    "text": "A" \
+                }, \
+                "svg": "text" \
+            }, \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 36.350 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 50.575 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    { \
+                        "attr": { \
+                            "d": "M 50.575 27.950 V 17.500", \
+                            "fill": "none", \
+                            "stroke": "lightgray", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    } \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "d": "M 64.800 27.950 V 32.950", \
+                            "fill": "none", \
+                            "stroke": "black", \
+                            "stroke-width": "1.000" \
+                        }, \
+                        "svg": "path" \
+                    }, \
+                    null \
+                ] \
+            ], \
+            [ \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "start", \
+                        "x": "36.350", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "1" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "middle", \
+                        "x": "50.575", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "2" \
+                    }, \
+                    "svg": "text" \
+                }, \
+                { \
+                    "attr": { \
+                        "dominant-baseline": "hanging", \
+                        "fill": "black", \
+                        "font-family": "Arial, Helvetica, sans-serif", \
+                        "font-size": "16.000px", \
+                        "text-anchor": "end", \
+                        "x": "64.800", \
+                        "y": "36.700" \
+                    }, \
+                    "elem": { \
+                        "text": "3" \
+                    }, \
+                    "svg": "text" \
+                } \
+            ], \
+            { \
+                "attr": { \
+                    "d": "M 34.350 17.000 V 27.950 H 65.300", \
+                    "fill": "none", \
+                    "stroke": "black", \
+                    "stroke-width": "1.000" \
+                }, \
+                "svg": "path" \
+            }, \
+            [ \
+                { \
+                    "attr": { \
+                        "d": "M 34.850 19.613 L 37.850 19.613", \
+                        "fill": "none", \
+                        "stroke": "#ff7f0e", \
+                        "stroke-width": "3.000" \
+                    }, \
+                    "svg": "path" \
+                }, \
+                { \
+                    "attr": { \
+                        "d": "M 36.350 25.950 L 50.575 21.725 L 64.800 17.500", \
+                        "fill": "none", \
+                        "stroke": "#1f77b4", \
+                        "stroke-width": "3.000" \
+                    }, \
+                    "svg": "path" \
+                } \
+            ], \
+            [], \
+            [], \
+            [ \
+                [ \
+                    { \
+                        "attr": { \
+                            "fill": "#1f77b4", \
+                            "height": "16.000", \
+                            "stroke": "none", \
+                            "width": "16.000", \
+                            "x": "72.800", \
+                            "y": "17.500" \
+                        }, \
+                        "svg": "rect" \
+                    }, \
+                    { \
+                        "attr": { \
+                            "dominant-baseline": "middle", \
+                            "fill": "black", \
+                            "font-family": "Arial, Helvetica, sans-serif", \
+                            "font-size": "16.000px", \
+                            "text-anchor": "start", \
+                            "x": "94.400", \
+                            "y": "25.500" \
+                        }, \
+                        "elem": { \
+                            "text": "B" \
+                        }, \
+                        "svg": "text" \
+                    } \
+                ], \
+                [ \
+                    { \
+                        "attr": { \
+                            "fill": "#ff7f0e", \
+                            "height": "16.000", \
+                            "stroke": "none", \
+                            "width": "16.000", \
+                            "x": "72.800", \
+                            "y": "39.100" \
+                        }, \
+                        "svg": "rect" \
+                    }, \
+                    { \
+                        "attr": { \
+                            "dominant-baseline": "middle", \
+                            "fill": "black", \
+                            "font-family": "Arial, Helvetica, sans-serif", \
+                            "font-size": "16.000px", \
+                            "text-anchor": "start", \
+                            "x": "94.400", \
+                            "y": "47.100" \
+                        }, \
+                        "elem": { \
+                            "text": "C" \
+                        }, \
+                        "svg": "text" \
+                    } \
+                ] \
+            ] \
+        ], \
+        "svg": "svg" \
+    })
+endfunction
+unittestRunTest('testDataLineChartElements_multipleYNulls')
 
 
 function testDataLineChartElements_colorFieldMultipleFields():

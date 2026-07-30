@@ -127,7 +127,7 @@ function argsURL(arguments, args, explicit, headerText, url):
         default = objectGet(argument, 'default')
 
         # Add the argument name (for unknown argument check below)
-        objectSet(argNames, name, null)
+        objectSet(argNames, name, true)
 
         # Add the URL variable, if any
         value = null
@@ -157,7 +157,7 @@ function argsURL(arguments, args, explicit, headerText, url):
 
     # Create the URL
     return '#' + if(url != null, 'url=' + urlEncodeComponent(url) + '&', '') + \
-        if(arrayLength(urlVars), arrayJoin(urlVars, '&'), 'var=') + \
+        if(urlVars, arrayJoin(urlVars, '&'), 'var=') + \
         if(headerText != null, '&' + if(headerText == argsTopHeaderId, argsTopHeaderId, markdownHeaderId(headerText)), '')
 endfunction
 
@@ -254,14 +254,12 @@ function argsFormatValue(value, type):
         return "'" + datetimeISOFormat(value, true) + "'"
     elif type == 'datetime':
         return "'" + datetimeISOFormat(value) + "'"
-    elif type == 'float':
-        return stringNew(value)
-    elif type == 'int':
+    elif type == 'float' || type == 'int':
         return stringNew(value)
     endif
 
-    # type == 'string'
-    return "'" + value + "'"
+    # type == 'string' - escape backslashes and single-quotes for the URL argument expression
+    return "'" + stringReplace(stringReplace(value, '\\', '\\\\'), "'", "\\'") + "'"
 endfunction
 
 
@@ -289,7 +287,8 @@ function argsValidateValue(value, type, global, warn):
             value = datetimeISOParse(value)
             valueType = systemType(value)
         endif
-        if valueType != 'datetime' || datetimeHour(value) != 0 || datetimeMinute(value) != 0 || datetimeSecond(value) != 0:
+        if valueType != 'datetime' || datetimeHour(value) != 0 || datetimeMinute(value) != 0 || datetimeSecond(value) != 0 || \
+                datetimeMillisecond(value) != 0:
             if warn != false:
                 systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
             endif

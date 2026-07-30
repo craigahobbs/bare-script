@@ -89,11 +89,14 @@ baredocCLIMainArguments = argsValidate([ \
 function baredocCLIParse(functions, source, filename):
     errors = []
 
+    # Note the previously-parsed functions - only functions added by this call are validated below
+    functionsPrev = objectCopy(functions)
+
     # Process documentation comments line-by-line
     func = null
     for line, ixLine in stringSplitLines(source):
         # function/group/doc/return documentation keywords?
-        matchKey = regexMatch(baredocCLIMainRegexKey, line)
+        matchKey = regexMatch(baredocCLIParseRegexKey, line)
         if matchKey != null:
             groupsKey = objectGet(matchKey, 'groups')
             key = objectGet(groupsKey, 'key')
@@ -137,7 +140,7 @@ function baredocCLIParse(functions, source, filename):
                     arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid ignore value "' + textTrim + '"')
                     continue
                 endif
-                objectSet(func, key, text == 'true')
+                objectSet(func, key, textTrim == 'true')
 
             else:
                 # key == 'function'
@@ -159,7 +162,7 @@ function baredocCLIParse(functions, source, filename):
         endif
 
         # arg keyword?
-        matchArg = regexMatch(baredocCLIMainRegexArg, line)
+        matchArg = regexMatch(baredocCLIParseRegexArg, line)
         if matchArg != null:
             groupsArg = objectGet(matchArg, 'groups')
             name = objectGet(groupsArg, 'name')
@@ -207,7 +210,7 @@ function baredocCLIParse(functions, source, filename):
         endif
 
         # Unknown documentation comment?
-        matchUnknown = regexMatch(baredocCLIMainRegexUnknown, line)
+        matchUnknown = regexMatch(baredocCLIParseRegexUnknown, line)
         if matchUnknown != null:
             groupsUnknown = objectGet(matchUnknown, 'groups')
             unknown = objectGet(groupsUnknown, 'unknown')
@@ -216,15 +219,12 @@ function baredocCLIParse(functions, source, filename):
         endif
     endfor
 
-    # Create the sorted function model array
-    libraryFunctions = []
+    # Validate the function documentation models added by this call
     for funcName in arraySort(objectKeys(functions)):
-        arrayPush(libraryFunctions, objectGet(functions, funcName))
-    endfor
-
-    # Validate the library documentation model
-    for funcObj in libraryFunctions:
-        funcName = objectGet(funcObj, 'name')
+        if objectHas(functionsPrev, funcName):
+            continue
+        endif
+        funcObj = objectGet(functions, funcName)
         if !objectHas(funcObj, 'group'):
             arrayPush(errors, 'error: Function "' + funcName + '" missing group')
         endif
@@ -241,6 +241,6 @@ endfunction
 
 
 # baredocCLIParse regular expressions
-baredocCLIMainRegexKey = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<key>function|group|doc|return|ignore):\\s?(?<text>.*)$')
-baredocCLIMainRegexArg = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$arg\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?):\\s?(?<text>.*)$')
-baredocCLIMainRegexUnknown = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<unknown>[^:]+):')
+baredocCLIParseRegexKey = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<key>function|group|doc|return|ignore):\\s?(?<text>.*)$')
+baredocCLIParseRegexArg = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$arg\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?):\\s?(?<text>.*)$')
+baredocCLIParseRegexUnknown = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<unknown>[^:]+):')

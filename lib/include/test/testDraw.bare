@@ -162,7 +162,7 @@ function testDrawHeight():
     drawNew()
     unittestEqual(drawHeight(), 200)
 endfunction
-unittestRunTest('testDrawHeight', 200)
+unittestRunTest('testDrawHeight')
 
 
 function testDrawImage():
@@ -515,6 +515,35 @@ function testDrawStyle():
     })
 endfunction
 unittestRunTest('testDrawStyle')
+
+
+function testDrawStyle_unchanged():
+    # Setting an identical style does not split the current path
+    drawNew(50, 50)
+    drawStyle('red')
+    drawMove(0, 0)
+    drawLine(10, 10)
+    drawStyle('red')
+    drawMove(20, 20)
+    drawLine(30, 30)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'path', \
+                'attr': { \
+                    'd': 'M 0.00000000 0.00000000 L 10.00000000 10.00000000 M 20.00000000 20.00000000 L 30.00000000 30.00000000', \
+                    'fill': 'none', \
+                    'stroke': 'red', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 1 \
+                } \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawStyle_unchanged')
 
 
 function testDrawStyle_noDrawing():

@@ -3,6 +3,7 @@
 
 include '../forms.bare'
 include '../unittest.bare'
+include '../unittestMock.bare'
 
 
 function testFormsTextElements():
@@ -59,13 +60,15 @@ endfunction
 unittestRunTest('testFormsTextElements_onEnter')
 
 
-function testFormsTextElements_onEnterCallbackAsync():
+async function testFormsTextElements_onEnterCallbackAsync():
     clickCount = systemGlobalGet('testFormsTextElements_onEnterCount')
     systemGlobalSet('testFormsTextElements_onEnterCount', clickCount + 1)
+    systemFetch('onEnterAsync.json')
 endfunction
 
 
 async function testFormsTextElements_onEnterAsync():
+    unittestMockAll()
     systemGlobalSet('testFormsTextElements_onEnterCount', 0)
     elements = formsTextElements('testId', 'Hello', 30, testFormsTextElements_onEnterCallbackAsync)
     unittestDeepEqual( \
@@ -89,6 +92,9 @@ async function testFormsTextElements_onEnterAsync():
     unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 0)
     onKeyup(13)
     unittestEqual(systemGlobalGet('testFormsTextElements_onEnterCount'), 1)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['onEnterAsync.json']] \
+    ])
 endfunction
 unittestRunTest('testFormsTextElements_onEnterAsync')
 

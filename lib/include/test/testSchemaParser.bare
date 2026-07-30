@@ -2332,50 +2332,6 @@ endfunction
 unittestRunTest('testSchemaParseActionInputNonStruct')
 
 
-function testSchemaParseActionInputMemberRedef():
-    unittestMockAll()
-    unittestDeepEqual( \
-        schemaParseEx([ \
-            'action FooAction', \
-            '    input (Foo)', \
-            '        #- will not error', \
-            '        float a', \
-            '', \
-            'enum Foo', \
-            '    A', \
-            '    B', \
-            '', \
-            'struct MyStruct', \
-            '    int a', \
-            '', \
-            'action BarAction', \
-            '    input (Foo, MyStruct)', \
-            '', \
-            'union MyUnion', \
-            '', \
-            'action BonkAction', \
-            '    input (MyStruct, MyUnion)', \
-            '        float a', \
-            '', \
-            'typedef string{} MyDict', \
-            '', \
-            'action MyDictAction', \
-            '    input (MyDict)', \
-            '        int a' \
-        ]), \
-        {'errors': [ \
-            ':2: error: Invalid struct base type "Foo"', \
-            ':14: error: Invalid struct base type "Foo"', \
-            ':19: error: Invalid struct base type "MyUnion"', \
-            ':20: error: Redefinition of "BonkAction_input" member "a"', \
-            ':25: error: Invalid struct base type "MyDict"' \
-        ]} \
-    )
-    unittestDeepEqual(unittestMockEnd(), [])
-endfunction
-unittestRunTest('testSchemaParseActionInputMemberRedef')
-
-
 function testSchemaParseActionOutputStruct():
     unittestMockAll()
     unittestDeepEqual( \

@@ -100,10 +100,22 @@ function elementModelValidateEx(elements):
         endif
     endif
 
-    # Validate creation callback
+    # Validate the element callback - a map of event name to event callback function
     callback = objectGet(elements, 'callback')
-    if callback != null && systemType(callback) != 'function':
-        return {'error': 'Invalid element callback function ' + elementModelTruncate(jsonStringify(callback)) + ' (type "' + systemType(callback) + '")'}
+    if callback != null:
+        callbackType = systemType(callback)
+        if callbackType != 'object':
+            return {'error': 'Invalid element callback function ' + elementModelTruncate(jsonStringify(callback)) + ' (type "' + callbackType + '")'}
+        endif
+
+        # Validate the map's event callback functions
+        for callbackEvent in objectKeys(callback):
+            eventCallback = objectGet(callback, callbackEvent)
+            if systemType(eventCallback) != 'function':
+                return {'error': 'Invalid element event callback function ' + elementModelTruncate(jsonStringify(eventCallback)) + \
+                    ' (type "' + systemType(eventCallback) + '")'}
+            endif
+        endfor
     endif
 
     return {'result': elements}
@@ -175,9 +187,8 @@ function elementModelToStringHelper(elements, indentStr, level):
     attrStr = ''
     attr = objectGet(elements, 'attr')
     if tag == 'svg':
-        if attr == null:
-            attr = {}
-        endif
+        # Add the SVG namespace attribute (copy the attributes - the caller's model is not modified)
+        attr = if(attr != null, objectCopy(attr), {})
         objectSet(attr, 'xmlns', 'http://www.w3.org/2000/svg')
     endif
     if attr != null:

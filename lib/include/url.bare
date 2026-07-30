@@ -17,7 +17,7 @@ endfunction
 function urlEncodeQueryStringHelper(obj, memberFqn, keyValues):
     objType = systemType(obj)
     if objType == 'array':
-        if arrayLength(obj) == 0:
+        if !obj:
             arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
         else:
             for value, ixValue in obj:
@@ -29,7 +29,7 @@ function urlEncodeQueryStringHelper(obj, memberFqn, keyValues):
         arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + objEncoded, objEncoded))
     elif objType == 'object':
         keys = arraySort(objectKeys(obj))
-        if arrayLength(keys) == 0:
+        if !keys:
             arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
         else:
             for key in keys:
@@ -197,6 +197,7 @@ function urlEncodeHelper(url, regexSafe, regexUnsafe):
     # implementation, in which case null is returned below
     parts = []
     ixSafe = 0
+    encodeFailed = false
     for match in regexMatchAll(regexUnsafe, url):
         ixUnsafe = objectGet(match, 'index')
         unsafe = objectGet(objectGet(match, 'groups'), '0')
@@ -209,6 +210,7 @@ function urlEncodeHelper(url, regexSafe, regexUnsafe):
 
         # Percent-encode the run's unsafe UTF-8 bytes
         bytes = stringEncode(unsafe)
+        encodeFailed = encodeFailed || bytes == null
         for byte in if(bytes != null, bytes, []):
             arrayPush(parts, arrayGet(urlEncodeBytes, byte))
         endfor
@@ -219,7 +221,7 @@ function urlEncodeHelper(url, regexSafe, regexUnsafe):
         arrayPush(parts, stringSlice(url, ixSafe))
     endif
 
-    return if(bytes != null, arrayJoin(parts, ''))
+    return if(!encodeFailed, arrayJoin(parts, ''))
 endfunction
 
 
@@ -250,9 +252,12 @@ function urlDecodeComponent(string):
         return string
     endif
 
-    # Compute the decoded UTF-8 byte array
+    # Compute the decoded UTF-8 byte array - stringEncode fails on surrogate code points under
+    # the Python implementation, in which case null is returned below
     parts = stringSplit(string, '%')
-    bytes = stringEncode(arrayGet(parts, 0))
+    partBytes = stringEncode(arrayGet(parts, 0))
+    encodeFailed = partBytes == null
+    bytes = if(partBytes != null, partBytes, [])
     for part, ixPart in parts:
         if ixPart == 0:
             continue
@@ -265,12 +270,14 @@ function urlDecodeComponent(string):
         endif
         arrayPush(bytes, numberParseInt(stringSlice(part, 0, 2), 16))
         if stringLength(part) > 2:
-            arrayExtend(bytes, stringEncode(stringSlice(part, 2)))
+            partBytes = stringEncode(stringSlice(part, 2))
+            encodeFailed = encodeFailed || partBytes == null
+            arrayExtend(bytes, if(partBytes != null, partBytes, []))
         endif
     endfor
 
-    # Invalid UTF-8?
-    decoded = stringDecode(bytes)
+    # Invalid UTF-8 or unencodable input?
+    decoded = if(!encodeFailed, stringDecode(bytes))
     if decoded == null:
         systemLogDebug("url.bare: Invalid percent-encoding '" + urlTruncate(string) + "'")
     endif

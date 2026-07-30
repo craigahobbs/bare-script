@@ -86,7 +86,7 @@ function markdownParserGetSpanText(span):
         endfor
         return arrayJoin(parts, '')
     endif
-    return objectGet(span, 'text')
+    return objectGet(span, 'text', '')
 endfunction
 
 

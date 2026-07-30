@@ -221,15 +221,17 @@ function dataLineChartElements(data, lineChart, options):
             colorValue = dataUtilFormatValue(objectGet(row, colorField), chartPrecision, chartDatetime)
             for yField in yFields:
                 rowKey = if(isSingleY, colorValue, yField + ', ' + colorValue)
-                objectSet(colorValueSet, rowKey, true)
                 yRow = objectGet(row, yField)
                 if xRow != null && yRow != null:
+                    objectSet(colorValueSet, rowKey, true)
                     rowPoints = objectGet(pointsMap, rowKey)
                     if rowPoints == null:
                         rowPoints = []
                         objectSet(pointsMap, rowKey, rowPoints)
                     endif
                     arrayPush(rowPoints, [xRow, yRow])
+
+                    # The rows are sorted by the X field, so the first X value is the min and the last is the max
                     xMin = if(xMin == null, xRow, xMin)
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
                     xMax = xRow
@@ -255,10 +257,9 @@ function dataLineChartElements(data, lineChart, options):
         # Create a line for each y-field
         for yField, ixField in yFields:
             color = arrayGet(dataLineChartCategoricalColors, ixField % arrayLength(dataLineChartCategoricalColors))
-            points = []
-            arrayPush(linePoints, {'label': yField, 'color': color, 'points': points})
 
-            # Add the points
+            # Add the points - each y-field iterates the sorted rows separately, so compare in full for min/max
+            points = []
             for row in data:
                 xRow = objectGet(row, xField)
                 yRow = objectGet(row, yField)
@@ -266,10 +267,15 @@ function dataLineChartElements(data, lineChart, options):
                     arrayPush(points, [xRow, yRow])
                     xMin = if(xMin == null, xRow, if(xRow < xMin, xRow, xMin))
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
-                    xMax = xRow
+                    xMax = if(xMax == null, xRow, if(xRow > xMax, xRow, xMax))
                     yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
                 endif
             endfor
+
+            # Skip y-fields with no points
+            if points:
+                arrayPush(linePoints, {'label': yField, 'color': color, 'points': points})
+            endif
         endfor
     endif
     linePointsReversed = arrayReverse(arrayCopy(linePoints))
