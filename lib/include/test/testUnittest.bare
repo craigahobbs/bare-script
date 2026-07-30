@@ -313,7 +313,8 @@ async function testUnittestRunTest():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 1 tests - 1 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest')
@@ -348,7 +349,8 @@ async function testUnittestRunTestAsync():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 1 tests - 1 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTestAsync')
@@ -436,7 +438,8 @@ async function testUnittestRunTest_failure():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 2 tests - 1 passed, 1 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_failure')
@@ -474,7 +477,8 @@ async function testUnittestRunTest_hideTests():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', '[Show](#var=)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 2 tests - 1 passed, 1 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_hideTests')
@@ -509,7 +513,8 @@ async function testUnittestRunTest_testName():
         ['markdownPrint', ['# unittestReport', '', 'Ran 1 tests - 1 passed, 0 failed']], \
         ['markdownPrint', ['', '[All tests](#var=)']], \
         ['markdownPrint', ['', '## Passing Tests']], \
-        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]] \
+        ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 1 tests - 1 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_testName')
@@ -575,7 +580,8 @@ async function testUnittestRunTest_multiple():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', "[testUnittest\\_testPass](#var.vUnittestTest='testUnittest_testPass'&_top) - OK"]], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 1 tests - 1 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_multiple')
@@ -609,7 +615,8 @@ async function testUnittestRunTest_unknown():
         ['markdownPrint', ['', '## Warnings']], \
         ['markdownPrint', ['', '- Test \\"testUnittest\\_testUnknown\\" not found']], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_unknown')
@@ -643,16 +650,19 @@ async function testUnittestRunTest_noLinks():
         ['markdownPrint', ['', '## Passing Tests']], \
         ['markdownPrint', ['', 'testUnittest_testPass - OK']], \
         ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']], \
         ['markdownPrint', [ \
             '', \
             [ \
                 '| Script        | Statements | Missing | Coverage |', \
                 '|---------------|-----------:|--------:|---------:|', \
-                '| test.bare     |          5 |       1 |    80.0% |', \
-                '| testTest.bare |          4 |       0 |   100.0% |', \
-                '| **Total**     |          9 |       1 |    88.9% |' \
+                '| test.bare     |          5 |       1 |   80.00% |', \
+                '| testTest.bare |          4 |       0 |  100.00% |', \
+                '| **Total**     |          9 |       1 |   88.89% |' \
             ] \
-        ]] \
+        ]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 1 tests - 1 passed, 0 failed']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_noLinks')
@@ -683,16 +693,19 @@ function testUnittestRunTest_coverage():
         ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
         ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']], \
         ['markdownPrint', [ \
             '', \
             [ \
                 '| Script                                                     | Statements | Missing | Coverage |', \
                 '|------------------------------------------------------------|-----------:|--------:|---------:|', \
-                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
-                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
-                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |   80.00% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |  100.00% |", \
+                '| **Total**                                                  |          9 |       1 |   88.89% |' \
             ] \
-        ]] \
+        ]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage')
@@ -724,16 +737,19 @@ function testUnittestRunTest_coverage_links():
         ['markdownPrint', ['# My Title', '', 'Ran 0 tests - 0 passed, 0 failed']], \
         ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']], \
         ['markdownPrint', [ \
             '', \
             [ \
                 '| Script                                                     | Statements | Missing | Coverage |', \
                 '|------------------------------------------------------------|-----------:|--------:|---------:|', \
-                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
-                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
-                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |   80.00% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |  100.00% |", \
+                '| **Total**                                                  |          9 |       1 |   88.89% |' \
             ] \
-        ]] \
+        ]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', 'Coverage: 88.89%']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage_links')
@@ -764,15 +780,18 @@ function testUnittestRunTest_coverage_exclude():
         ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
         ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', 'Coverage: 80.00%']], \
         ['markdownPrint', [ \
             '', \
             [ \
                 '| Script                                             | Statements | Missing | Coverage |', \
                 '|----------------------------------------------------|-----------:|--------:|---------:|', \
-                "| [test.bare](#var.vUnittestScript='test.bare'&_top) |          5 |       1 |    80.0% |", \
-                '| **Total**                                          |          5 |       1 |    80.0% |' \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top) |          5 |       1 |   80.00% |", \
+                '| **Total**                                          |          5 |       1 |   80.00% |' \
             ] \
-        ]] \
+        ]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', 'Coverage: 80.00%']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage_exclude')
@@ -803,20 +822,24 @@ function testUnittestRunTest_coverage_min():
         ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
         ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
+        ['markdownPrint', ['', 'Coverage: 88.89% (minimum 100.00%)']], \
         ['markdownPrint', [ \
             '', \
-            '**Error**: Coverage percentage, 88.9%, is below the minimum coverage percentage of 100%.' \
+            '**Error**: Coverage percentage, 88.89%, is below the minimum coverage percentage of 100.00%.' \
         ]], \
         ['markdownPrint', [ \
             '', \
             [ \
                 '| Script                                                     | Statements | Missing | Coverage |', \
                 '|------------------------------------------------------------|-----------:|--------:|---------:|', \
-                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |    80.0% |", \
-                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |   100.0% |", \
-                '| **Total**                                                  |          9 |       1 |    88.9% |' \
+                "| [test.bare](#var.vUnittestScript='test.bare'&_top)         |          5 |       1 |   80.00% |", \
+                "| [testTest.bare](#var.vUnittestScript='testTest.bare'&_top) |          4 |       0 |  100.00% |", \
+                '| **Total**                                                  |          9 |       1 |   88.89% |' \
             ] \
-        ]] \
+        ]], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']], \
+        ['markdownPrint', ['', 'Coverage: 88.89% (minimum 100.00%)']], \
+        ['markdownPrint', ['', '**Error**: Coverage percentage, 88.89%, is below the minimum coverage percentage of 100.00%.']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage_min')
@@ -847,7 +870,8 @@ function testUnittestRunTest_coverage_noData():
         ['markdownPrint', ['# unittestReport', '', 'Ran 0 tests - 0 passed, 0 failed']], \
         ['markdownPrint', ['', '[Hide tests](#var.vUnittestHideTests=true)']], \
         ['markdownPrint', ['', '## Coverage Report']], \
-        ['markdownPrint', ['', '*No data.*']] \
+        ['markdownPrint', ['', '*No data.*']], \
+        ['markdownPrint', ['', '## Summary', '', 'Ran 0 tests - 0 passed, 0 failed']] \
     ])
 endfunction
 unittestRunTest('testUnittestRunTest_coverage_noData')
