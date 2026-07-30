@@ -2908,7 +2908,7 @@ The calculated field name
 The calculated field expression
 
 **variables -**
-Optional (default is null). A variables object the expression evaluation.
+Optional (default is null). A variables object for the expression evaluation.
 
 #### Returns
 
@@ -2929,7 +2929,7 @@ The data array
 The filter expression
 
 **variables -**
-Optional (default is null). A variables object the expression evaluation.
+Optional (default is null). A variables object for the expression evaluation.
 
 #### Returns
 
@@ -2957,7 +2957,8 @@ Optional (default is null).
 The right join expression
 
 **isLeftJoin -**
-Optional (default is false). If true, perform a left join (always include left row).
+Optional (default is false). By default, all left rows are included in the result.
+If true, left rows with no matching right row are excluded.
 
 **variables -**
 Optional (default is null). A variables object for join expression evaluation.
@@ -2975,11 +2976,12 @@ Parse CSV text to a data array
 #### Arguments
 
 **text -**
-The CSV text
+The CSV text or array of CSV text
 
 #### Returns
 
-The data array
+The data array. String values are parsed into typed values; if a value fails to parse as its
+column's type, a debug message is logged and the remaining column values are left as strings.
 
 ---
 
@@ -3718,7 +3720,7 @@ Set the most recent drawing object's on-click event handler
 #### Arguments
 
 **callback -**
-The on-click event callback function (x, y)
+The on-click event callback function (x, y, width, height)
 
 #### Returns
 

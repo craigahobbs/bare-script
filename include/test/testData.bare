@@ -98,6 +98,20 @@ endfunction
 unittestRunTest('testDataParseCSV_quotesEscaped')
 
 
+function testDataParseCSV_quotesLineEnd():
+    data = dataParseCSV( \
+        'A,"B"\n' + \
+        '1,"b1"\n' + \
+        '2,b2\n' \
+    )
+    unittestDeepEqual(data, [ \
+        {'A': 1, 'B': 'b1'}, \
+        {'A': 2, 'B': 'b2'} \
+    ])
+endfunction
+unittestRunTest('testDataParseCSV_quotesLineEnd')
+
+
 function testDataParseCSV_spaces():
     data = dataParseCSV([ \
         'A,B', \
@@ -551,6 +565,26 @@ endfunction
 unittestRunTest('testDataJoin_unique')
 
 
+function testDataJoin_uniqueCollision():
+    # Force the unique names generated for right fields "b" and "b2" to both be candidates for "b22" -
+    # "b" exhausts candidates "b2" through "b21" against the right field names
+    leftData = [{'id': 1, 'b': 'left-b', 'b2': 'left-b2'}]
+    rightRow = {'id': 1, 'b': 'right-b', 'b2': 'right-b2'}
+    ixField = 3
+    while ixField <= 21:
+        objectSet(rightRow, 'b' + ixField, 'right-b' + ixField)
+        ixField = ixField + 1
+    endwhile
+
+    result = dataJoin(leftData, [rightRow], 'id')
+    row = arrayGet(result, 0)
+    unittestEqual(objectGet(row, 'b'), 'left-b')
+    unittestEqual(objectGet(row, 'b22'), 'right-b')
+    unittestEqual(objectGet(row, 'b23'), 'right-b2')
+endfunction
+unittestRunTest('testDataJoin_uniqueCollision')
+
+
 #
 # dataCalculatedField tests
 #
@@ -923,6 +957,14 @@ function testDataTop():
         {'A': 'abc', 'B': 1, 'C': 1}, \
         {'A': 'abc', 'B': 1, 'C': 2}, \
         {'A': 'abc', 'B': 1, 'C': 3} \
+    ])
+
+    # Default count is 1
+    result4 = dataTop(data, null, ['A'])
+    unittestDeepEqual(result4, [ \
+        {'A': 'abc', 'B': 1, 'C': 1}, \
+        {'A': 'def', 'B': 1, 'C': 1}, \
+        {'A': 'ghi', 'C': 1} \
     ])
 endfunction
 unittestRunTest('testDataTop')

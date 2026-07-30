@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../markdown.bare'
 include '../markdownParser.bare'
 include '../unittest.bare'
 
@@ -62,8 +63,8 @@ unittestRunTest('testMarkdownValidateEx_error')
 
 function testMarkdownEscape():
     unittestEqual( \
-        markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # | -'), \
-        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\| \\-' \
+        markdownEscape('Escape me: \\ [ ] ( ) < > " \' * _ ~ ` # = + | -'), \
+        'Escape me: \\\\ \\[ \\] \\( \\) \\< \\> \\" \\\' \\* \\_ \\~ \\` \\# \\= \\+ \\| \\-' \
     )
 endfunction
 unittestRunTest('testMarkdownEscape')
@@ -105,6 +106,26 @@ function testMarkdownTitle_image():
     unittestEqual(markdownTitle(markdownModel), 'This is the title')
 endfunction
 unittestRunTest('testMarkdownTitle_image')
+
+
+function testMarkdownTitle_code():
+    # Code spans have no title text
+    markdownModel = markdownParse( \
+        '# The `foo` function\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), 'The  function')
+endfunction
+unittestRunTest('testMarkdownTitle_code')
+
+
+function testMarkdownTitle_break():
+    # Line break spans have no title text
+    markdownModel = markdownParse( \
+        '# Foo <br> Bar\n' \
+    )
+    unittestEqual(markdownTitle(markdownModel), 'Foo  Bar')
+endfunction
+unittestRunTest('testMarkdownTitle_break')
 
 
 function testMarkdownTitle_noTitle():

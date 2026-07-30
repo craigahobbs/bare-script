@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../draw.bare'
 include '../qrcode.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
@@ -111,6 +112,42 @@ endfunction
 unittestRunTest('testQrcodeBinary')
 
 
+function testQrcodeBinaryComma():
+    # The comma character is not an alphanumeric-mode character - binary mode is used
+    unittestDeepEqual( \
+        qrcodeMatrix('A,B'), \
+        [ \
+        [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1], \
+        [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1], \
+        [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1], \
+        [1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1], \
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], \
+        [1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1], \
+        [1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1], \
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0], \
+        [1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0], \
+        [0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0], \
+        [0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1], \
+        [0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0], \
+        [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1], \
+        [0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0], \
+        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0], \
+        [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1], \
+        [1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1], \
+        [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0], \
+        [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0], \
+        [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1] \
+        ] \
+    )
+endfunction
+unittestRunTest('testQrcodeBinaryComma')
+
+
 function testQrcodeVersion():
     unittestDeepEqual( \
         qrcodeMatrix(stringRepeat('abcdefghij', 5), 'high'), \
@@ -177,6 +214,32 @@ function testQrcodeMessageTooLong():
     )
 endfunction
 unittestRunTest('testQrcodeMessageTooLong')
+
+
+function testQrcodeDrawTooLong():
+    unittestMockAll()
+    unittestEqual(qrcodeDraw(stringRepeat('abcdefghij', 70), 0, 0, 100), null)
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['systemLogDebug', ['qrcode.bare: qrcodeMatrix - Message too long (700)']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testQrcodeDrawTooLong')
+
+
+function testQrcodeElementsTooLong():
+    unittestMockAll()
+    unittestEqual(qrcodeElements(stringRepeat('abcdefghij', 70), 100), null)
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['systemLogDebug', ['qrcode.bare: qrcodeMatrix - Message too long (700)']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testQrcodeElementsTooLong')
 
 
 function testQrcodeModeNumericBits():

@@ -4,6 +4,7 @@
 include '../args.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
+include '../url.bare'
 
 
 # Test arguments array
@@ -216,6 +217,26 @@ endfunction
 unittestRunTest('testArgsParseInvalidDate2')
 
 
+function testArgsParseInvalidDate3():
+    # Set argument globals - a date with non-zero milliseconds is invalid
+    systemGlobalSet('vBegin', datetimeNew(2023, 11, 1, 0, 0, 0, 500))
+
+    unittestMockAll()
+    unittestDeepEqual( \
+        argsParse(testArgsArguments), \
+        {'count': 3} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['args.bare: Invalid value ' + jsonStringify(datetimeNew(2023, 11, 1, 0, 0, 0, 500)) + \
+            ' for URL argument "vBegin"']] \
+    ])
+
+    # Clear argument globals
+    systemGlobalSet('vBegin', null)
+endfunction
+unittestRunTest('testArgsParseInvalidDate3')
+
+
 function testArgsParseInvalidDatetime():
     # Set argument globals
     systemGlobalSet('vEnd', 1)
@@ -263,6 +284,17 @@ function testArgsURL():
     unittestDeepEqual(unittestMockEnd(), [])
 endfunction
 unittestRunTest('testArgsURL')
+
+
+function testArgsURL_stringEscape():
+    unittestMockAll()
+    unittestEqual( \
+        argsURL(testArgsArguments, {'name': "it's a \\ backslash"}), \
+        "#var.vName='it%5C's%20a%20%5C%5C%20backslash'" \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testArgsURL_stringEscape')
 
 
 function testArgsURLObjectSome():

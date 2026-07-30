@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../args.bare'
 include '../pager.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
@@ -36,7 +37,7 @@ testPagerModel = { \
 async function testPagerMarkdown():
     unittestMockAll({ \
         'systemFetch': { \
-            'README.md': 'Hello!' \
+            'README.md': '# Hello\n\nHello!' \
         } \
     })
 
@@ -48,8 +49,8 @@ async function testPagerMarkdown():
             ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
             ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
             ['systemFetch', ['README.md']], \
-            ['documentSetTitle', ['No Title']], \
-            ['markdownPrint', ['', 'Hello!']] \
+            ['documentSetTitle', ['Hello']], \
+            ['markdownPrint', ['', '# Hello\n\nHello!']] \
         ] \
     )
 endfunction
@@ -120,6 +121,30 @@ async function testPagerFunction():
     )
 endfunction
 unittestRunTest('testPagerFunction')
+
+
+async function testPagerStartFirst():
+    # The start option may name the first visible and navigable page (the default start page)
+    unittestMockAll({ \
+        'systemFetch': { \
+            'README.md': 'Hello!' \
+        } \
+    })
+
+    pagerMain(testPagerModel, {'start': 'Page 1'})
+
+    unittestDeepEqual( \
+        unittestMockEnd(), \
+        [ \
+            ['markdownPrint', ["Page 1&nbsp;|&nbsp;[Page2](#var.vPage='Page2')&nbsp;|&nbsp;[Page3](#url=other.md)", '']], \
+            ['markdownPrint', ["(&nbsp;Start&nbsp;|&nbsp;Previous&nbsp;|&nbsp;[Next](#var.vPage='Page2')&nbsp;)", '']], \
+            ['systemFetch', ['README.md']], \
+            ['documentSetTitle', ['No Title']], \
+            ['markdownPrint', ['', 'Hello!']] \
+        ] \
+    )
+endfunction
+unittestRunTest('testPagerStartFirst')
 
 
 async function testPagerLink():

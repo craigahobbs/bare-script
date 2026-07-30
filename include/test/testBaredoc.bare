@@ -256,7 +256,6 @@ async function testBaredocMain_single():
         ['markdownPrint', ['', '## Include Functions', '']], \
         ['markdownPrint', ['|  |  |', '| --- | --- |']], \
         ['markdownPrint', ['| [lib.bare](#var.vSingle=true&lib-bare) |  |']], \
-        ['systemFetch', [[]]], \
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## A Group']], \
         ['markdownPrint', ['', '[Back to top](#var.vSingle=true&_top)']], \
@@ -391,7 +390,6 @@ async function testBaredocMain_single_publish():
         ['markdownPrint', ['', '## Include Functions', '']], \
         ['markdownPrint', ['|  |  |', '| --- | --- |']], \
         ['markdownPrint', ['| [lib.bare](#var.vPublish=true&var.vSingle=true&lib-bare) |  |']], \
-        ['systemFetch', [[]]], \
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## A Group']], \
         ['markdownPrint', ['', '### Function Index', '']], \

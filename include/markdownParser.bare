@@ -3,7 +3,6 @@
 
 
 # Markdown regex
-markdownParserRegexLineSplit = regexNew('\r?\n')
 markdownParserRegexParagraphEmpty = regexNew('^\\s*$')
 markdownParserRegexIndent = regexNew('^(?<indent> *)(?<notIndent>.*)$')
 markdownParserRegexHeading = regexNew('^ {0,3}(?<heading>#{1,6})\\s+(?<text>.*?)(?:\\s+#+)?\\s*$')
@@ -167,9 +166,6 @@ function markdownParseInternal(markdown, startLineNumber, linkRefsRaw):
                 markdownParserCloseParagraph( \
                     markdownParts, paragraphLines, paragraphPart, paragraphLineNumber, fencedMark, linkRefs, null \
                 )
-                paragraphPart = null
-                paragraphLineNumber = null
-                tablePart = null
                 matchHeadingGroups = objectGet(matchHeading, 'groups')
                 paragraphLines = [objectGet(matchHeadingGroups, 'text')]
                 headingStyle = 'h' + stringLength(objectGet(matchHeadingGroups, 'heading'))
@@ -424,7 +420,7 @@ function markdownParserCloseParagraph(markdownParts, paragraphLines, paragraphPa
             endif
 
             # Check for more link reference definitions
-            text = stringSlice(text, stringLength(objectGet(objectGet(matchLinkDef, 'groups'), '0')))
+            text = stringSlice(text, stringLength(objectGet(matchLinkDefGroups, '0')))
             matchLinkDef = regexMatch(markdownParserRegexLinkDef, text)
         endwhile
 
@@ -720,7 +716,8 @@ function markdownParserCreateLinkRefSpan(refText, optText, fullText, linkRefs, t
     arrayPush(objectGet(linkRefs, 'links'), { \
         'refKey': markdownParserGetLinkRefKey(refText), \
         'linkSpan': {'link': { \
-            'spans': if(systemType(optText) == 'array', optText, markdownParserParagraphSpans(optText || refText, linkRefs)) \
+            'spans': if(systemType(optText) == 'array', optText, \
+                markdownParserParagraphSpans(if(optText != null, optText, refText), linkRefs)) \
         }}, \
         'linkRefSpan': linkRefSpan \
     })
@@ -733,7 +730,7 @@ function markdownParserCreateImageRefSpan(refText, optText, fullText, linkRefs, 
     linkRefSpan = {'linkRef': {'spans': markdownParserCreateFallbackSpan(fullText, linkRefs, textFallback)}}
     arrayPush(objectGet(linkRefs, 'links'), { \
         'refKey': markdownParserGetLinkRefKey(refText), \
-        'imageSpan': {'image': {'alt': markdownParserGetImageAltText(optText || refText)}}, \
+        'imageSpan': {'image': {'alt': markdownParserGetImageAltText(if(optText != null, optText, refText))}}, \
         'linkRefSpan': linkRefSpan \
     })
     return linkRefSpan

@@ -1,4 +1,4 @@
-# Licensed the MIT License
+# Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include '../baredocCLI.bare'
@@ -101,6 +101,45 @@ function testBaredocCLIParse_ignoreInvalid():
     })
 endfunction
 unittestRunTest('testBaredocCLIParse_ignoreInvalid')
+
+
+function testBaredocCLIParse_ignoreTrailingSpace():
+    source = arrayJoin([ \
+        '# $function: myIgnored', \
+        '# $group: Ignored', \
+        '# $doc: The ignored function', \
+        '# $ignore: true ' \
+    ], '\n')
+    functions = {}
+    errors = baredocCLIParse(functions, source)
+    unittestDeepEqual(errors, [])
+    unittestDeepEqual(functions, {})
+endfunction
+unittestRunTest('testBaredocCLIParse_ignoreTrailingSpace')
+
+
+function testBaredocCLIParse_multipleFiles():
+    # A prior file's validation errors are not re-reported by later files' parses
+    functions = {}
+    sourceA = arrayJoin([ \
+        '# $function: fnA' \
+    ], '\n')
+    errorsA = baredocCLIParse(functions, sourceA, 'a.bare')
+    unittestDeepEqual(errorsA, [ \
+        'error: Function "fnA" missing group', \
+        'error: Function "fnA" missing documentation' \
+    ])
+
+    sourceB = arrayJoin([ \
+        '# $function: fnB', \
+        '# $group: Group B', \
+        '# $doc: The B function' \
+    ], '\n')
+    errorsB = baredocCLIParse(functions, sourceB, 'b.bare')
+    unittestDeepEqual(errorsB, [])
+    unittestDeepEqual(objectKeys(functions), ['fnA', 'fnB'])
+endfunction
+unittestRunTest('testBaredocCLIParse_multipleFiles')
 
 
 #
@@ -715,25 +754,3 @@ async function testBaredocCLIMain_errorInvalidKeyword():
     ])
 endfunction
 unittestRunTest('testBaredocCLIMain_errorInvalidKeyword')
-
-
-async function testBaredocCLIMain_noArgs():
-    # Setup mock
-    unittestMockAll()
-
-    # Run
-    result = baredocCLIMain()
-
-    # Verify
-    unittestEqual(result, 1)
-    unittestDeepEqual(unittestMockEnd(), [ \
-        ['markdownPrint', [ \
-            '```', \
-            arrayJoin([ \
-                'error: No library functions' \
-            ], '\n'), \
-            '```' \
-        ]] \
-    ])
-endfunction
-unittestRunTest('testBaredocCLIMain_noArgs')

@@ -8,8 +8,9 @@ include <schemaParser.bare>
 # $function: dataParseCSV
 # $group: data.bare
 # $doc: Parse CSV text to a data array
-# $arg text: The CSV text
-# $return: The data array
+# $arg text: The CSV text or array of CSV text
+# $return: The data array. String values are parsed into typed values; if a value fails to parse as its
+# $return: column's type, a debug message is logged and the remaining column values are left as strings.
 function dataParseCSV(text):
     # Collect all lines from variadic text arguments
     if systemType(text) == 'array':
@@ -40,7 +41,9 @@ function dataParseCSV(text):
             if mQuoted:
                 groups = objectGet(mQuoted, 'groups')
                 arrayPush(row, stringReplace(objectGet(groups, '1'), '""', '"'))
-                linePart = stringSlice(linePart, stringLength(objectGet(groups, '0')))
+
+                # Continue parsing fields only on a comma delimiter - at end-of-line the field is the last
+                linePart = if(objectGet(groups, '2') == ',', stringSlice(linePart, stringLength(objectGet(groups, '0'))))
                 continue
             endif
 
@@ -245,7 +248,8 @@ endfunction
 # $arg joinExpr: The join expression
 # $arg rightExpr: Optional (default is null).
 # $arg rightExpr: The right join expression
-# $arg isLeftJoin: Optional (default is false). If true, perform a left join (always include left row).
+# $arg isLeftJoin: Optional (default is false). By default, all left rows are included in the result.
+# $arg isLeftJoin: If true, left rows with no matching right row are excluded.
 # $arg variables: Optional (default is null). A variables object for join expression evaluation.
 # $return: The joined data array
 function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variables):
@@ -253,32 +257,30 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     leftNames = {}
     for leftRow in leftData:
         for fieldName in objectKeys(leftRow):
-            if !objectHas(leftNames, fieldName):
-                objectSet(leftNames, fieldName, fieldName)
-            endif
+            objectSet(leftNames, fieldName, fieldName)
         endfor
     endfor
 
     rightNamesRaw = {}
     for rightRow in rightData:
         for fieldName in objectKeys(rightRow):
-            if !objectHas(rightNamesRaw, fieldName):
-                objectSet(rightNamesRaw, fieldName, fieldName)
-            endif
+            objectSet(rightNamesRaw, fieldName, fieldName)
         endfor
     endfor
 
     rightNames = {}
+    rightNamesUsed = {}
     for fieldName in objectKeys(rightNamesRaw):
         if !objectHas(leftNames, fieldName):
             objectSet(rightNames, fieldName, fieldName)
         else:
             ixUnique = 2
             uniqueName = fieldName + ixUnique
-            while objectHas(leftNames, uniqueName) || objectHas(rightNames, uniqueName) || objectHas(rightNamesRaw, uniqueName):
+            while objectHas(leftNames, uniqueName) || objectHas(rightNamesUsed, uniqueName) || objectHas(rightNamesRaw, uniqueName):
                 ixUnique = ixUnique + 1
                 uniqueName = fieldName + ixUnique
             endwhile
+            objectSet(rightNamesUsed, uniqueName, uniqueName)
             objectSet(rightNames, fieldName, uniqueName)
         endif
     endfor
@@ -292,12 +294,12 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     for rightRow in rightData:
         rightRowVars = if(variables != null, objectAssign(objectCopy(rightRow), variables), rightRow)
         categoryKey = jsonStringify(barescriptEvaluateExpression(rightExprParsed, rightRowVars))
-        rightCategoryKeys = objectGet(rightCategoryRows, categoryKey)
-        if rightCategoryKeys == null:
-            rightCategoryKeys = []
-            objectSet(rightCategoryRows, categoryKey, rightCategoryKeys)
+        rightRows = objectGet(rightCategoryRows, categoryKey)
+        if rightRows == null:
+            rightRows = []
+            objectSet(rightCategoryRows, categoryKey, rightRows)
         endif
-        arrayPush(rightCategoryKeys, rightRow)
+        arrayPush(rightRows, rightRow)
     endfor
 
     # Join the left with the right
@@ -328,7 +330,7 @@ endfunction
 # $arg data: The data array
 # $arg fieldName: The calculated field name
 # $arg expr: The calculated field expression
-# $arg variables: Optional (default is null). A variables object the expression evaluation.
+# $arg variables: Optional (default is null). A variables object for the expression evaluation.
 # $return: The updated data array
 function dataCalculatedField(data, fieldName, expr, variables):
     # Parse the calculation expression
@@ -354,7 +356,7 @@ endfunction
 # $doc: Filter a data array
 # $arg data: The data array
 # $arg expr: The filter expression
-# $arg variables: Optional (default is null). A variables object the expression evaluation.
+# $arg variables: Optional (default is null). A variables object for the expression evaluation.
 # $return: The filtered data array
 function dataFilter(data, expr, variables):
     result = []
@@ -605,7 +607,7 @@ function dataTop(data, count, categoryFields):
         if categoryFields != null:
             categoryValues = []
             for field in categoryFields:
-                arrayPush(categoryValues, if(objectHas(row, field), objectGet(row, field), null))
+                arrayPush(categoryValues, objectGet(row, field))
             endfor
             categoryKey = jsonStringify(categoryValues)
         else:
@@ -622,16 +624,16 @@ function dataTop(data, count, categoryFields):
     endfor
 
     # Take only the top rows per category
-    dataTop = []
+    result = []
     for categoryKey in categoryOrder:
         categoryKeyRows = objectGet(categoryRows, categoryKey)
         categoryKeyLength = arrayLength(categoryKeyRows)
         ixRow = 0
         while ixRow < count && ixRow < categoryKeyLength:
-            arrayPush(dataTop, arrayGet(categoryKeyRows, ixRow))
+            arrayPush(result, arrayGet(categoryKeyRows, ixRow))
             ixRow = ixRow + 1
         endwhile
     endfor
 
-    return dataTop
+    return result
 endfunction

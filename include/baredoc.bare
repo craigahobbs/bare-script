@@ -198,7 +198,7 @@ async function baredocSinglePage(config, args, sectionGroups, groups):
             arrayPush(urls, url)
         endif
     endfor
-    texts = systemFetch(urls)
+    texts = if(urls, systemFetch(urls), [])
     groupContent = {}
     for groupName, ixName in contentNames:
         text = arrayGet(texts, ixName)

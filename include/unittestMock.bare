@@ -12,15 +12,20 @@ unittestMockWindowHeight = 768
 unittestMockWindowWidth = 1024
 
 
+# Create a new mocked MarkdownUp state
+function unittestMockStateNew():
+    return { \
+        'localStorage': {}, \
+        'sessionStorage': {}, \
+        'windowClipboard': '' \
+    }
+endfunction
+
+
 # The mocked MarkdownUp state
 unittestMockCalls = []
 unittestMockFunctions = {}
-unittestMockStateDefault = { \
-    'localStorage': {}, \
-    'sessionStorage': {}, \
-    'windowClipboard': '' \
-}
-unittestMockState = objectCopy(unittestMockStateDefault)
+unittestMockState = unittestMockStateNew()
 
 
 # $function: unittestMockAll
@@ -83,7 +88,7 @@ endfunction
 # $arg funcName: The name of the function to mock
 # $arg mockFunc: The mock function
 function unittestMockOne(funcName, mockFunc):
-    # Replace the function withi the mocked function
+    # Replace the function with the mocked function
     objectSet(unittestMockFunctions, funcName, systemGlobalGet(funcName))
     systemGlobalSet(funcName, mockFunc)
 endfunction
@@ -118,7 +123,7 @@ function unittestMockEnd():
     mockCalls = unittestMockCalls
     systemGlobalSet('unittestMockCalls', [])
     systemGlobalSet('unittestMockFunctions', {})
-    systemGlobalSet('unittestMockState', objectCopy(unittestMockStateDefault))
+    systemGlobalSet('unittestMockState', unittestMockStateNew())
 
     return mockCalls
 endfunction
@@ -268,6 +273,7 @@ endfunction
 
 
 function unittestMock_windowURLObject(data, contentType):
+    contentType = if(contentType != null, contentType, 'text/plain')
     return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
 endfunction
 

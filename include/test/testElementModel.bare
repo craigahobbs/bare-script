@@ -106,10 +106,10 @@ endfunction
 unittestRunTest('testElementModelValidate_errorSvgType')
 
 
-function testElementModelValidate_errorTextType():
+function testElementModelValidate_textNonString():
     unittestEqual(elementModelValidate({'text': 0}), {'text': 0})
 endfunction
-unittestRunTest('testElementModelValidate_errorTextType')
+unittestRunTest('testElementModelValidate_textNonString')
 
 
 function testElementModelValidate_errorAttrType():
@@ -142,9 +142,40 @@ endfunction
 unittestRunTest('testElementModelValidate_errorCallbackInvalidValue')
 
 
+# Test click handler for testElementModelValidate_callbackEventMap
+function testElementModelValidate_callbackEventMapClick():
+endfunction
+
+
+function testElementModelValidate_callbackEventMap():
+    model = {'html': 'html', 'callback': {'click': testElementModelValidate_callbackEventMapClick}}
+    unittestDeepEqual(elementModelValidate(model), model)
+endfunction
+unittestRunTest('testElementModelValidate_callbackEventMap')
+
+
 #
 # elementModelValidateEx tests
 #
+
+
+function testElementModelValidateEx_errorCallbackEventInvalid():
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'callback': {'click': 0}}), \
+        {'error': 'Invalid element event callback function 0 (type "number")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorCallbackEventInvalid')
+
+
+function testElementModelValidateEx_errorCallbackFunction():
+    # A bare callback function is invalid - the callback must be a map of event name to event callback function
+    unittestDeepEqual( \
+        elementModelValidateEx({'html': 'html', 'callback': testElementModelValidate_callbackEventMapClick}), \
+        {'error': 'Invalid element callback function "<function>" (type "function")'} \
+    )
+endfunction
+unittestRunTest('testElementModelValidateEx_errorCallbackFunction')
 
 
 function testElementModelValidateEx():
@@ -346,6 +377,15 @@ function testElementModelToString_svg():
     unittestEqual(elementModelToString({'svg': 'svg'}), '<svg xmlns="http://www.w3.org/2000/svg"></svg>')
 endfunction
 unittestRunTest('testElementModelToString_svg')
+
+
+function testElementModelToString_svgNoModify():
+    # The caller's element model is not modified by SVG namespace attribute handling
+    model = {'svg': 'svg', 'attr': {'width': 10}}
+    unittestEqual(elementModelToString(model), '<svg width="10" xmlns="http://www.w3.org/2000/svg"></svg>')
+    unittestDeepEqual(model, {'svg': 'svg', 'attr': {'width': 10}})
+endfunction
+unittestRunTest('testElementModelToString_svgNoModify')
 
 
 function testElementModelToString_void():

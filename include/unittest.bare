@@ -236,7 +236,7 @@ function unittestReport(options):
     testFailCount = 0
     for testName in testNames:
         testFailures = objectGet(unittestTests, testName)
-        if arrayLength(testFailures):
+        if testFailures:
             testFailCount = testFailCount + 1
         endif
     endfor
@@ -249,10 +249,11 @@ function unittestReport(options):
 
     # Render the page title
     documentSetTitle(title)
+    testSummary = 'Ran ' + testCount + ' tests - ' + testPassCount + ' passed, ' + testFailCount + ' failed'
     markdownPrint( \
         '# ' + markdownEscape(title), \
         '', \
-        'Ran ' + testCount + ' tests - ' + testPassCount + ' passed, ' + testFailCount + ' failed' \
+        testSummary \
     )
     if !isReport:
         if testNameArg:
@@ -280,7 +281,7 @@ function unittestReport(options):
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
-                if arrayLength(testFailures):
+                if testFailures:
                     failureLink = if(isReport, testName, \
                         argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
                     failureLines = ['', failureLink + ' - FAIL']
@@ -309,7 +310,7 @@ function unittestReport(options):
         if !hideTests || testNameArg:
             for testName in testNames:
                 testFailures = objectGet(unittestTests, testName)
-                if !arrayLength(testFailures):
+                if !testFailures:
                     testLink = if(isReport, testName, \
                         argsLink(unittestReportArguments, testName, {'test': testName}, false, '_top'))
                     markdownPrint('', testLink + ' - OK')
@@ -318,23 +319,26 @@ function unittestReport(options):
         endif
     endif
 
-    # Coverage report
+    # Compute the coverage data, the total coverage percentage, and the coverage error, if any
     coverage = unittestCoverageGlobal()
+    coverageData = if(!testNameArg && coverage, unittestCoverageData(coverageExclude))
+    coveragePercent = if(coverageData, objectGet(arrayGet(coverageData, arrayLength(coverageData) - 1), 'Coverage'))
+    coverageSummary = if(coveragePercent != null, 'Coverage: ' + numberToFixed(coveragePercent, 2) + '%' + \
+        if(coverageMin, ' (minimum ' + numberToFixed(coverageMin, 2) + '%)', ''))
+    coverageError = if(coveragePercent != null && coveragePercent < coverageMin, \
+        '**Error**: Coverage percentage, ' + numberToFixed(coveragePercent, 2) + \
+            '%, is below the minimum coverage percentage of ' + numberToFixed(coverageMin, 2) + '%.')
+
+    # Coverage report
     coverageFailCount = 0
     if !testNameArg && coverage:
         markdownPrint('', '## Coverage Report')
-
-        # Compute the coverage data table
-        coverageData = unittestCoverageData(coverageExclude)
         if coverageData:
+            markdownPrint('', coverageSummary)
+
             # Verify the coverage percent
-            coveragePercent = objectGet(arrayGet(coverageData, arrayLength(coverageData) - 1), 'Coverage')
-            if coveragePercent < coverageMin:
-                markdownPrint( \
-                    '', \
-                    '**Error**: Coverage percentage, ' + numberToFixed(coveragePercent, 1, true) + \
-                        '%, is below the minimum coverage percentage of ' + numberToFixed(coverageMin, 1, true) + '%.' \
-                )
+            if coverageError != null:
+                markdownPrint('', coverageError)
                 coverageFailCount = coverageFailCount + 1
             endif
 
@@ -344,7 +348,7 @@ function unittestReport(options):
                 if !isReport && !stringStartsWith(scriptName, '**'):
                     objectSet(row, 'Script', argsLink(unittestReportArguments, scriptName, {"script": scriptName}, false, "_top"))
                 endif
-                objectSet(row, 'Coverage', numberToFixed(objectGet(row, 'Coverage'), 1) + '%')
+                objectSet(row, 'Coverage', numberToFixed(objectGet(row, 'Coverage'), 2) + '%')
             endfor
             markdownPrint('', dataTableMarkdown(coverageData, { \
                 'fields': ['Script', 'Statements', 'Missing', 'Coverage'], \
@@ -357,6 +361,15 @@ function unittestReport(options):
         else:
             markdownPrint('', '*No data.*')
         endif
+    endif
+
+    # Render the summary section
+    markdownPrint('', '## Summary', '', testSummary)
+    if coverageSummary != null:
+        markdownPrint('', coverageSummary)
+    endif
+    if coverageError != null:
+        markdownPrint('', coverageError)
     endif
 
     # Return status code
@@ -456,7 +469,7 @@ function unittestReportScriptLines(codeLineElements, lines, color, noNewline):
 endfunction
 
 
-# Get the coverage data table - columns are "Script", "Statement", "Covered", and "Percent"
+# Get the coverage data table - columns are "Script", "Statements", "Missing", and "Coverage"
 function unittestCoverageData(coverageExclude):
     data = []
 
@@ -511,8 +524,7 @@ function unittestCoverageData(coverageExclude):
                 'Script': scriptName, \
                 'Statements': statementCount, \
                 'Missing': missingCount, \
-                'Coverage':  coveragePercent, \
-                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+                'Coverage':  coveragePercent \
             })
         endfor
 
@@ -523,8 +535,7 @@ function unittestCoverageData(coverageExclude):
                 'Script': '**Total**', \
                 'Statements': totalStatements, \
                 'Missing': totalMissing, \
-                'Coverage': coveragePercent, \
-                'CoverageStr': numberToFixed(coveragePercent, 1) + '%'  \
+                'Coverage': coveragePercent \
             })
         endif
     endif
@@ -542,9 +553,9 @@ function unittestScriptStatements(script):
         arrayPush(statements, statement)
 
         # Add function statements
-        statementKey = arrayGet(objectKeys(statement), 0)
-        if statementKey == 'function':
-            for funcStatement in objectGet(objectGet(statement, statementKey), 'statements'):
+        statementFunction = objectGet(statement, 'function')
+        if statementFunction != null:
+            for funcStatement in objectGet(statementFunction, 'statements'):
                 arrayPush(statements, funcStatement)
             endfor
         endif

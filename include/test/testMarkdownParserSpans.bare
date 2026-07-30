@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../markdown.bare'
 include '../markdownParser.bare'
 include '../unittest.bare'
 
@@ -239,7 +240,7 @@ unittestRunTest('testMarkdownParse_entityNonEntities')
 
 
 function testMarkdownParse_italic():
-   markdown = markdownParse('*foo bar*')
+    markdown = markdownParse('*foo bar*')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -311,7 +312,7 @@ unittestRunTest('testMarkdownParse_italicEscapeEnd')
 
 
 function testMarkdownParse_italicMismatched():
-   markdown = markdownParse('*foo_')
+    markdown = markdownParse('*foo_')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -568,7 +569,7 @@ unittestRunTest('testMarkdownParse_underscoreItalicEscapeEnd')
 
 
 function testMarkdownParse_underscoreItalicMismatched():
-   markdown = markdownParse('_foo*')
+    markdown = markdownParse('_foo*')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -676,7 +677,7 @@ endfunction
 unittestRunTest('testMarkdownParse_underscoreItalicCharacter')
 
 
-function testMarkdownParse_uderscoreItalicWhitespace():
+function testMarkdownParse_underscoreItalicWhitespace():
     markdown = markdownParse('a _ foo bar_')
     unittestDeepEqual( \
         markdownValidate(markdown), \
@@ -691,10 +692,10 @@ function testMarkdownParse_uderscoreItalicWhitespace():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace')
+unittestRunTest('testMarkdownParse_underscoreItalicWhitespace')
 
 
-function testMarkdownParse_uderscoreItalicWhitespace2():
+function testMarkdownParse_underscoreItalicWhitespace2():
     markdown = markdownParse('a _foo bar _')
     unittestDeepEqual( \
         markdownValidate(markdown), \
@@ -709,10 +710,10 @@ function testMarkdownParse_uderscoreItalicWhitespace2():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace2')
+unittestRunTest('testMarkdownParse_underscoreItalicWhitespace2')
 
 
-function testMarkdownParse_uderscoreItalicWhitespace3():
+function testMarkdownParse_underscoreItalicWhitespace3():
     markdown = markdownParse('a _foo bar\n_')
     unittestDeepEqual( \
         markdownValidate(markdown), \
@@ -727,7 +728,7 @@ function testMarkdownParse_uderscoreItalicWhitespace3():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_uderscoreItalicWhitespace3')
+unittestRunTest('testMarkdownParse_underscoreItalicWhitespace3')
 
 
 function testMarkdownParse_underscoreItalicNonBreakingSpace():
@@ -749,7 +750,7 @@ unittestRunTest('testMarkdownParse_underscoreItalicNonBreakingSpace')
 
 
 function testMarkdownParse_bold():
-   markdown = markdownParse('**foo bar**')
+    markdown = markdownParse('**foo bar**')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -821,7 +822,7 @@ unittestRunTest('testMarkdownParse_boldEscapeEnd')
 
 
 function testMarkdownParse_boldMismatched():
-   markdown = markdownParse('**foo bar__')
+    markdown = markdownParse('**foo bar__')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1155,7 +1156,7 @@ unittestRunTest('testMarkdownParse_underscoreBoldInternalStart')
 
 
 function testMarkdownParse_underscoreBoldInternalEnd():
-   markdown = markdownParse('foo__bar__')
+    markdown = markdownParse('foo__bar__')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1287,7 +1288,7 @@ unittestRunTest('testMarkdownParse_underscoreBoldWhitespace3')
 
 
 function testMarkdownParse_boldItalic():
-   markdown = markdownParse('***foo***')
+    markdown = markdownParse('***foo***')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1375,7 +1376,7 @@ unittestRunTest('testMarkdownParse_underscoreBoldItalicMultiline')
 
 
 function testMarkdownParse_boldInItalic():
-   markdown = markdownParse('***strong** in emph*')
+    markdown = markdownParse('***strong** in emph*')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1608,7 +1609,7 @@ unittestRunTest('testMarkdownParse_strikethroughNot3')
 
 
 function testMarkdownParse_strikethroughWhitespace():
-   markdown = markdownParse('~~ foo bar~~')
+    markdown = markdownParse('~~ foo bar~~')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1716,7 +1717,7 @@ unittestRunTest('testMarkdownParse_strikethroughSingleWhitespace3')
 
 
 function testMarkdownParse_strikethroughInternal():
-   markdown = markdownParse('~~foo~bar~~~baz~~')
+    markdown = markdownParse('~~foo~bar~~~baz~~')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -1918,7 +1919,7 @@ unittestRunTest('testMarkdownParse_codeSpanEscapeEnd2')
 
 
 function testMarkdownParse_codeSpanMultiple():
-   markdown = markdownParse('This is code: ``foo ` bar``')
+    markdown = markdownParse('This is code: ``foo ` bar``')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -2027,7 +2028,7 @@ unittestRunTest('testMarkdownParse_codeSpanTabPadding')
 
 
 function testMarkdownParse_codeSpanOnlySpaces():
-   markdown = markdownParse('` `\n`  `')
+    markdown = markdownParse('` `\n`  `')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -2047,7 +2048,7 @@ unittestRunTest('testMarkdownParse_codeSpanOnlySpaces')
 
 
 function testMarkdownParse_codeSpanMultilineText():
-   markdown = markdownParse('`foo\nbar  \nbaz\n`')
+    markdown = markdownParse('`foo\nbar  \nbaz\n`')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -2137,7 +2138,7 @@ endfunction
 unittestRunTest('testMarkdownParse_codeSpanBackslash')
 
 
-function testMarkdownParse_codeSpanLargeDelimeter():
+function testMarkdownParse_codeSpanLargeDelimiter():
     markdown = markdownParse('``foo`bar``')
     unittestDeepEqual( \
         markdownValidate(markdown), \
@@ -2152,10 +2153,10 @@ function testMarkdownParse_codeSpanLargeDelimeter():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_codeSpanLargeDelimeter')
+unittestRunTest('testMarkdownParse_codeSpanLargeDelimiter')
 
 
-function testMarkdownParse_codeSpanSmallDelimeter():
+function testMarkdownParse_codeSpanSmallDelimiter():
     markdown = markdownParse('`foo``bar`')
     unittestDeepEqual( \
         markdownValidate(markdown), \
@@ -2170,7 +2171,7 @@ function testMarkdownParse_codeSpanSmallDelimeter():
         } \
     )
 endfunction
-unittestRunTest('testMarkdownParse_codeSpanSmallDelimeter')
+unittestRunTest('testMarkdownParse_codeSpanSmallDelimiter')
 
 
 function testMarkdownParse_codeSpanOrder():
@@ -2273,7 +2274,7 @@ unittestRunTest('testMarkdownParse_codeSpanMismatched4')
 
 
 function testMarkdownParse_lineBreak():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         'This is a line break  ', \
         '  this is not', \
         'and this is not  ', \
@@ -2754,7 +2755,7 @@ unittestRunTest('testMarkdownParse_escapesNotInAutolinks')
 
 
 function testMarkdownParse_link():
-   markdown = markdownParse('[link](/uri "title")')
+    markdown = markdownParse('[link](/uri "title")')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -2809,7 +2810,7 @@ unittestRunTest('testMarkdownParse_linkNoTitle')
 
 
 function testMarkdownParse_linkEmpty():
-   markdown = markdownParse('[link]()')
+    markdown = markdownParse('[link]()')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -3129,7 +3130,7 @@ unittestRunTest('testMarkdownParse_linkTitleWithNoHref')
 
 
 function testMarkdownParse_linkTitleVariations():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '[link](/url "title")', \
         "[link](/url 'title')", \
         '[link](/url (title))' \
@@ -3356,7 +3357,7 @@ unittestRunTest('testMarkdownParse_linkTextSpansEmpty')
 
 
 function testMarkdownParse_image():
-   markdown = markdownParse('![foo](/url "title")')
+    markdown = markdownParse('![foo](/url "title")')
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -3546,7 +3547,10 @@ unittestRunTest('testMarkdownParse_linkImageSpaces')
 
 
 function testMarkdownParse_linkImageSpacesMultiline():
-    markdown = markdownParse('[  ![alt](src)  ](url)')
+    markdown = markdownParse([ \
+        '[  ![alt](src)', \
+        '](url)' \
+    ])
     unittestDeepEqual( \
         markdownValidate(markdown), \
         { \
@@ -4440,7 +4444,7 @@ unittestRunTest('testMarkdownParse_linkDefinitionTitleEscapes')
 
 
 function testMarkdownParse_linkReference():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '[foo][bar]', \
         '', \
         '[bar]: /url "title"' \
@@ -4570,6 +4574,54 @@ endfunction
 unittestRunTest('testMarkdownParse_linkAndImageReference')
 
 
+function testMarkdownParse_linkReferenceEmptyText():
+    # Full reference with empty link text - the link resolves with no text spans
+    markdown = markdownParse([ \
+        '[][ref]', \
+        '', \
+        '[ref]: /url' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'link': {'href': '/url', 'spans': []}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_linkReferenceEmptyText')
+
+
+function testMarkdownParse_imageReferenceEmptyText():
+    # Full reference with empty image text - the image resolves with empty alt text
+    markdown = markdownParse([ \
+        '![][ref]', \
+        '', \
+        '[ref]: /url' \
+    ])
+    unittestDeepEqual(markdownValidate(markdown), { \
+        'parts': [ \
+            {'paragraph': { \
+                'spans': [ \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'image': {'alt': '', 'src': '/url'}} \
+                        ] \
+                    }} \
+                ] \
+            }} \
+        ] \
+    })
+endfunction
+unittestRunTest('testMarkdownParse_imageReferenceEmptyText')
+
+
 function testMarkdownParse_linkAndImageReferenceEscapeStart():
     markdown = markdownParse([ \
         '\\[![img]](/url)', \
@@ -4628,7 +4680,7 @@ unittestRunTest('testMarkdownParse_linkAndImageReferenceMinimal')
 
 
 function testMarkdownParse_linkAndImageReferenceMultiline():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '[', \
         ' ![', \
         '  moon', \
@@ -5196,7 +5248,7 @@ unittestRunTest('testMarkdownParse_linkReferenceEmptyRef')
 
 
 function testMarkdownParse_imageReference():
-   markdown = markdownParse([ \
+    markdown = markdownParse([ \
         '![foo *bar*]', \
         '', \
         '[foo *bar*]: train.jpg "train & tracks"' \
