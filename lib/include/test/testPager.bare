@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../args.bare'
 include '../pager.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'

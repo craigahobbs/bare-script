@@ -4,6 +4,7 @@
 include '../args.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
+include '../url.bare'
 
 
 # Test arguments array

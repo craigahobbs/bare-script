@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../draw.bare'
 include '../qrcode.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'

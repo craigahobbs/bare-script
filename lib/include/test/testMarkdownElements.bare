@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include '../elementModel.bare'
+include '../markdown.bare'
 include '../markdownElements.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'

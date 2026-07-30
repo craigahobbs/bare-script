@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include '../markdown.bare'
 include '../markdownParser.bare'
 include '../unittest.bare'
 
