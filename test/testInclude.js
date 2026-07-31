@@ -386,6 +386,69 @@ test('schema, schemaParse error', () => {
 });
 
 
+test('schema, schemaParse types', () => {
+    const types = schemaParse('struct S1\n    int a');
+    const types2 = schemaParse('struct S2\n    S1 s1', types);
+    assert.equal(types2, types);
+    assert.deepEqual(types, {
+        'S1': {
+            'struct': {
+                'name': 'S1',
+                'members': [
+                    {'name': 'a', 'type': {'builtin': 'int'}}
+                ]
+            }
+        },
+        'S2': {
+            'struct': {
+                'name': 'S2',
+                'members': [
+                    {'name': 's1', 'type': {'user': 'S1'}}
+                ]
+            }
+        }
+    });
+});
+
+
+test('schema, schemaParse filename', () => {
+    assert.throws(
+        () => {
+            schemaParse('asdf asdf', null, 'test.smd');
+        },
+        {
+            'name': 'SchemaParserError',
+            'message': 'test.smd:1: error: Syntax error',
+            'errors': ['test.smd:1: error: Syntax error']
+        }
+    );
+});
+
+
+test('schema, schemaParse validate', () => {
+    assert.throws(
+        () => {
+            schemaParse('struct S\n    Unknown a');
+        },
+        {
+            'name': 'SchemaParserError',
+            'message': ':2: error: Unknown type "Unknown" from "S" member "a"',
+            'errors': [':2: error: Unknown type "Unknown" from "S" member "a"']
+        }
+    );
+    assert.deepEqual(schemaParse('struct S\n    Unknown a', null, null, false), {
+        'S': {
+            'struct': {
+                'name': 'S',
+                'members': [
+                    {'name': 'a', 'type': {'user': 'Unknown'}}
+                ]
+            }
+        }
+    });
+});
+
+
 test('schema, schemaValidate', () => {
     const types = schemaParse(`\
 # A test struct
@@ -414,6 +477,27 @@ struct TestStruct
             'name': 'SchemaValidationError',
             'message': 'Invalid value "abc" (type "string") for member "a", expected type "int"',
             'memberFqn': 'a'
+        }
+    );
+});
+
+
+test('schema, schemaValidate error memberFqn', () => {
+    const types = schemaParse(`\
+# A test struct
+struct TestStruct
+
+    # The test member
+    int a
+`);
+    assert.throws(
+        () => {
+            schemaValidate(types, 'TestStruct', {'a': 'abc'}, 'test');
+        },
+        {
+            'name': 'SchemaValidationError',
+            'message': 'Invalid value "abc" (type "string") for member "test.a", expected type "int"',
+            'memberFqn': 'test.a'
         }
     );
 });
