@@ -1634,6 +1634,9 @@
             
                 
 <span class="param-type">string</span>
+|
+
+<span class="param-type">Array.&lt;string></span>
 
 
             
@@ -1643,7 +1646,7 @@
 
             
 
-            <td class="description last"><p>The CSV text</p></td>
+            <td class="description last"><p>The CSV text or array of CSV text</p></td>
         </tr>
 
     
@@ -5639,7 +5642,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line501">line 501</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line502">line 502</a>
     </li></ul></dd>
     
 
@@ -6312,7 +6315,7 @@ so setting a log function also enables debug logging for the stub function calls
     
 
     
-    <h4 class="name" id=".schemaParse"><span class="type-signature">(static) </span>schemaParse<span class="signature">(text)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id=".schemaParse"><span class="type-signature">(static) </span>schemaParse<span class="signature">(text, types<span class="signature-attributes">opt, nullable</span>, filename<span class="signature-attributes">opt, nullable</span>, validate<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
@@ -6344,7 +6347,11 @@ so setting a log function also enables debug logging for the stub function calls
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -6372,10 +6379,145 @@ so setting a log function also enables debug logging for the stub function calls
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>The <a href="https://craigahobbs.github.io/schema-markdown-js/language/">Schema Markdown</a> text</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>types</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The schema's <a href="https://craigahobbs.github.io/bare-script/model/#var.vName='Types'">type model</a> to update</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>filename</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The file name (for error messages)</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>validate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>If true (the default), validate the type model after parsing</p></td>
         </tr>
 
     
@@ -6416,7 +6558,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line518">line 518</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line522">line 522</a>
     </li></ul></dd>
     
 
@@ -6538,7 +6680,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line537">line 537</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line541">line 541</a>
     </li></ul></dd>
     
 
@@ -6697,7 +6839,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line549">line 549</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line553">line 553</a>
     </li></ul></dd>
     
 
@@ -6767,7 +6909,7 @@ so setting a log function also enables debug logging for the stub function calls
     
 
     
-    <h4 class="name" id=".schemaValidate"><span class="type-signature">(static) </span>schemaValidate<span class="signature">(types, typeName, value)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    <h4 class="name" id=".schemaValidate"><span class="type-signature">(static) </span>schemaValidate<span class="signature">(types, typeName, value, memberFqn<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {*}</span></h4>
     
 
     
@@ -6799,7 +6941,11 @@ so setting a log function also enables debug logging for the stub function calls
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -6824,7 +6970,19 @@ so setting a log function also enables debug logging for the stub function calls
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>The schema's <a href="https://craigahobbs.github.io/bare-script/model/#var.vName='Types'">type model</a></p></td>
@@ -6847,7 +7005,19 @@ so setting a log function also enables debug logging for the stub function calls
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>The type name</p></td>
@@ -6870,10 +7040,63 @@ so setting a log function also enables debug logging for the stub function calls
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>The value to validate</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>memberFqn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The fully-qualified member name (for error messages)</p></td>
         </tr>
 
     
@@ -6914,7 +7137,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line479">line 479</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line480">line 480</a>
     </li></ul></dd>
     
 
@@ -7085,7 +7308,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line569">line 569</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line573">line 573</a>
     </li></ul></dd>
     
 
@@ -7244,7 +7467,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line580">line 580</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line584">line 584</a>
     </li></ul></dd>
     
 
@@ -7403,7 +7626,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line591">line 591</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line595">line 595</a>
     </li></ul></dd>
     
 
@@ -7562,7 +7785,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line602">line 602</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line606">line 606</a>
     </li></ul></dd>
     
 
@@ -7721,7 +7944,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line613">line 613</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line617">line 617</a>
     </li></ul></dd>
     
 
