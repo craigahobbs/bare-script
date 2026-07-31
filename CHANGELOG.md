@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.4 (2026-07-31)
+
+- [4c18bf2](https://github.com/craigahobbs/bare-script/commit/4c18bf2) - add missing include stub arguments - schemaParse types/filename/validate, schemaValidate memberFqn
+
 ## 5.0.3 (2026-07-30)
 
 - [014d1fb](https://github.com/craigahobbs/bare-script/commit/014d1fb) - add unittest report summary section with coverage percentage
