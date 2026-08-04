@@ -78,6 +78,21 @@
                     "description": "Generate library documentation models from source files"
                 },
                 {
+                    "name": "barescriptLint.bare",
+                    "content": "include/barescriptLint-bare.md",
+                    "description": "Lint BareScript models"
+                },
+                {
+                    "name": "barescriptModel.bare",
+                    "content": "include/barescriptModel-bare.md",
+                    "description": "The BareScript type model and model validation"
+                },
+                {
+                    "name": "barescriptParser.bare",
+                    "content": "include/barescriptParser-bare.md",
+                    "description": "Parse BareScript text into BareScript models"
+                },
+                {
                     "name": "data.bare",
                     "content": "include/data-bare.md",
                     "description": "Filter, sort, aggregate, and join tabular data"

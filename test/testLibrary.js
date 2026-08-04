@@ -898,35 +898,6 @@ test('library, barescriptEvaluateExpression', () => {
 });
 
 
-test('library, barescriptParseExpression', () => {
-    assert.deepEqual(
-        scriptFunctions.barescriptParseExpression(['[5, true]'], null),
-        {'function': {'args': [{'number': 5.0}, {'variable': 'true'}], 'name': 'arrayNew'}}
-    );
-
-    // No array literals
-    assert.deepEqual(
-        scriptFunctions.barescriptParseExpression(['[Field name]', false], null),
-        {'variable': 'Field name'}
-    );
-
-    // Invalid expression
-    assert.throws(
-        () => {
-            scriptFunctions.barescriptParseExpression(['foo bar', false], null);
-        },
-        {
-            'name': 'BareScriptParserError',
-            'message': `\
-Syntax error
-foo bar
-   ^
-`
-        }
-    );
-});
-
-
 //
 // Datetime functions
 //

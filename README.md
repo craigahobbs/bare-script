@@ -29,7 +29,7 @@ confident that BareScript will execute the same regardless of the underlying run
 ## Executing BareScript Scripts
 
 To execute a BareScript script, parse the script using the
-[parseScript](https://craigahobbs.github.io/bare-script/module-lib_parser.html#.parseScript)
+[barescriptParseScript](https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseScript)
 function. Then execute the script using the
 [executeScript](https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.executeScript)
 function or the
@@ -37,11 +37,10 @@ function or the
 function. For example:
 
 ``` javascript
-import {executeScript} from 'bare-script/lib/runtime.js';
-import {parseScript} from 'bare-script/lib/parser.js';
+import {barescriptParseScript, executeScript} from 'bare-script/lib/runtime.js';
 
 // Parse the script
-const script = parseScript(`\
+const script = barescriptParseScript(`\
 # Double a number
 function double(n):
     return n * 2
@@ -74,11 +73,11 @@ of the
 functions.
 
 ``` javascript
+import {barescriptParseScript} from 'bare-script/lib/runtime.js';
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
-import {parseScript} from 'bare-script/lib/parser.js';
 
 // Parse the script
-const script = parseScript(`\
+const script = barescriptParseScript(`\
 # Fetch the BareScript builtin library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library-builtin.json'))
 
@@ -102,7 +101,7 @@ The BareScript Library has 108 builtin functions
 To evaluate a
 [BareScript expression](https://craigahobbs.github.io/bare-script/language/#expressions),
 parse the expression using the
-[parseExpression](https://craigahobbs.github.io/bare-script/module-lib_parser.html#.parseExpression)
+[barescriptParseExpression](https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseExpression)
 function. Then evaluate the expression using the
 [evaluateExpression](https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.evaluateExpression)
 function or the
@@ -116,11 +115,10 @@ a set of built-in, spreadsheet-like functions.
 For example:
 
 ``` javascript
-import {evaluateExpression} from 'bare-script/lib/runtime.js';
-import {parseExpression} from 'bare-script/lib/parser.js';
+import {barescriptParseExpression, evaluateExpression} from 'bare-script/lib/runtime.js';
 
 // Parse the expression
-const expr = parseExpression('2 * max(a, b, c)');
+const expr = barescriptParseExpression('2 * max(a, b, c)');
 
 // Evaluate the expression
 const variables = {'a': 1, 'b': 2, 'c': 3};
@@ -219,20 +217,20 @@ time. Tests without a native JavaScript equivalent are omitted.
 
 | Test             | Language        | Time (ms) | Multiple |
 | ---------------- | --------------- | --------: | -------: |
-| markdownParse    | JavaScript      |     314.8 |          |
-|                  | BareScript (JS) |    1628.0 |     5.2x |
-| markdownElements | JavaScript      |      23.8 |          |
-|                  | BareScript (JS) |     378.0 |    15.9x |
-| schemaParse      | JavaScript      |      72.0 |          |
-|                  | BareScript (JS) |    1152.0 |    16.0x |
-| urlDecode        | JavaScript      |       5.0 |          |
-|                  | BareScript (JS) |      86.0 |    17.1x |
-| urlEncode        | JavaScript      |       2.7 |          |
-|                  | BareScript (JS) |      50.5 |    18.7x |
-| schemaValidate   | JavaScript      |      54.2 |          |
-|                  | BareScript (JS) |    1796.0 |    33.1x |
-| mandelbrot       | JavaScript      |    2180.9 |          |
-|                  | BareScript (JS) |  296000.0 |   135.7x |
+| markdownParse    | JavaScript      |     598.0 |          |
+|                  | BareScript (JS) |    2420.0 |     4.0x |
+| schemaParse      | JavaScript      |      71.3 |          |
+|                  | BareScript (JS) |    1164.0 |    16.3x |
+| urlDecode        | JavaScript      |       4.9 |          |
+|                  | BareScript (JS) |      85.5 |    17.5x |
+| urlEncode        | JavaScript      |       2.8 |          |
+|                  | BareScript (JS) |      49.0 |    17.8x |
+| markdownElements | JavaScript      |      29.2 |          |
+|                  | BareScript (JS) |     564.0 |    19.3x |
+| schemaValidate   | JavaScript      |      57.3 |          |
+|                  | BareScript (JS) |    1868.0 |    32.6x |
+| mandelbrot       | JavaScript      |    1976.1 |          |
+|                  | BareScript (JS) |  293000.0 |   148.3x |
 
 
 ## Using BareScript with an AI Assistant

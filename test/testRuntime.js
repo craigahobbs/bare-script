@@ -2,9 +2,10 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    BareScriptRuntimeError, evaluateExpression, executeScript, systemGlobalCoverageName, systemGlobalIncludesName
+    BareScriptRuntimeError, barescriptLintScript, barescriptParseExpression, barescriptParseScript, evaluateExpression, executeScript,
+    systemGlobalCoverageName, systemGlobalIncludesName
 } from '../lib/runtime.js';
-import {validateExpression, validateScript} from '../lib/model.js';
+import {barescriptValidateExpression, barescriptValidateScript} from '../lib/include.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import {systemIncludes} from '../lib/includeSource.js';
@@ -12,7 +13,7 @@ import test from 'node:test';
 
 
 test('executeScript', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
             {'expr': {'name': 'b', 'expr': {'number': 7}}},
@@ -26,7 +27,7 @@ test('executeScript', () => {
 
 
 test('executeScript, global override', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'systemFetch', 'args': [{'string': 'the-url'}]}}
@@ -43,7 +44,7 @@ test('executeScript, global override', () => {
 
 
 test('executeScript, library function override', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'mathSqrt', 'args': [{'number': 16}]}}
@@ -61,7 +62,7 @@ test('executeScript, library function override', () => {
 
 
 test('executeScript, coverage', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'function main():',
@@ -289,7 +290,7 @@ test('executeScript, coverage', () => {
 
 
 test('executeScript, coverage disabled', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'a = 5',
@@ -311,7 +312,7 @@ test('executeScript, coverage disabled', () => {
 
 
 test('executeScript, coverage non-object', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'a = 5',
@@ -331,7 +332,7 @@ test('executeScript, coverage non-object', () => {
 
 
 test('executeScript, coverage no name', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptLines': [
             'a = 5',
             'b = 7',
@@ -350,7 +351,7 @@ test('executeScript, coverage no name', () => {
 
 
 test('executeScript, coverage no linenos', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'a = 5',
@@ -370,7 +371,7 @@ test('executeScript, coverage no linenos', () => {
 
 
 test('executeScript, function', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -394,7 +395,7 @@ test('executeScript, function', () => {
 
 
 test('executeScript, function missing arg', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -417,7 +418,7 @@ test('executeScript, function missing arg', () => {
 
 
 test('executeScript, function lastArgArray', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -441,7 +442,7 @@ test('executeScript, function lastArgArray', () => {
 
 
 test('executeScript, function lastArgArray missing', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -465,7 +466,7 @@ test('executeScript, function lastArgArray missing', () => {
 
 
 test('executeScript, function lastArgArray missing intermediate', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -491,7 +492,7 @@ test('executeScript, function lastArgArray missing intermediate', () => {
 
 
 test('executeScript, function async', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -516,7 +517,7 @@ test('executeScript, function async', () => {
 
 
 test('executeScript, function async missing arg', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -540,7 +541,7 @@ test('executeScript, function async missing arg', () => {
 
 
 test('executeScript, function async lastArgArray', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -565,7 +566,7 @@ test('executeScript, function async lastArgArray', () => {
 
 
 test('executeScript, function async lastArgArray missing', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -590,7 +591,7 @@ test('executeScript, function async lastArgArray missing', () => {
 
 
 test('executeScript, function error', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -606,7 +607,7 @@ test('executeScript, function error', () => {
 
 
 test('executeScript, function argument error', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -622,7 +623,7 @@ test('executeScript, function argument error', () => {
 
 
 test('executeScript, function error log', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -643,7 +644,7 @@ test('executeScript, function error log', () => {
 
 
 test('executeScript, function error log no-debug', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -665,7 +666,7 @@ test('executeScript, function error log no-debug', () => {
 
 
 test('executeScript, function native call', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -690,7 +691,7 @@ test('executeScript, function native call', () => {
 
 
 test('executeScript, function args model mutation', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -713,7 +714,7 @@ test('executeScript, function args model mutation', () => {
 
 
 test('executeScript, jump', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
             {'jump': {'label': 'lab2'}},
@@ -732,7 +733,7 @@ test('executeScript, jump', () => {
 
 
 test('executeScript, jumpif', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'n', 'expr': {'number': 10}}},
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
@@ -760,7 +761,7 @@ test('executeScript, jumpif', () => {
 
 
 test('executeScript, jumpif non-boolean', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'jump': {
                 'label': 'label',
@@ -776,7 +777,7 @@ test('executeScript, jumpif non-boolean', () => {
 
 
 test('executeScript, jump error unknown label', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'jump': {'label': 'unknownLabel'}}
         ]
@@ -792,7 +793,7 @@ test('executeScript, jump error unknown label', () => {
 
 
 test('executeScript, jump error unknown label script name', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'statements': [
             {'jump': {'label': 'unknownLabel', 'lineNumber': 1}}
@@ -809,7 +810,7 @@ test('executeScript, jump error unknown label script name', () => {
 
 
 test('executeScript, jump label indexes cache', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -835,7 +836,7 @@ test('executeScript, jump label indexes cache', () => {
 
 
 test('executeScript, jump prototype label names', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
             {'jump': {'label': 'skip'}},
@@ -865,7 +866,7 @@ test('executeScript, unknown statement no-op', () => {
 
 
 test('executeScript, return', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {'expr': {'number': 5}}}
         ]
@@ -875,7 +876,7 @@ test('executeScript, return', () => {
 
 
 test('executeScript, return blank', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {}}
         ]
@@ -885,7 +886,7 @@ test('executeScript, return blank', () => {
 
 
 test('executeScript, include', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -905,7 +906,7 @@ test('executeScript, include', () => {
 
 
 test('executeScript, include no fetchFn', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -921,7 +922,7 @@ test('executeScript, include no fetchFn', () => {
 
 
 test('executeScript, include system', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -939,7 +940,7 @@ test('executeScript, include system', () => {
 
 
 test('executeScript, include system twice', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}},
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
@@ -958,7 +959,7 @@ test('executeScript, include system twice', () => {
 
 
 test('executeScript, include system includes non-object', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -976,7 +977,7 @@ test('executeScript, include system includes non-object', () => {
 
 
 test('executeScript, include system unknown', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'unknown.bare', 'system': true}]}}
         ]
@@ -992,7 +993,7 @@ test('executeScript, include system unknown', () => {
 
 
 test('executeScript, include system lint', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1019,7 +1020,7 @@ endfunction
 
 
 test('executeScript, include system lint multiple', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1047,7 +1048,7 @@ endfunction
 
 
 test('executeScript, include system lint OK', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1071,8 +1072,150 @@ endfunction
 });
 
 
+test('executeScript, barescriptLintScript', () => {
+    const script = barescriptValidateScript({'statements': [], 'scriptName': 'test.bare', 'scriptLines': []});
+    assert.deepEqual(barescriptLintScript(script), ['test.bare:1: Empty script']);
+
+    // Call again (the lint globals are already initialized)
+    assert.deepEqual(barescriptLintScript(script), ['test.bare:1: Empty script']);
+});
+
+
+test('executeScript, barescriptLintScript globals', () => {
+    const script = barescriptValidateScript({
+        'statements': [
+            {'function': {'name': 'testFn', 'statements': [
+                {'return': {'expr': {'function': {'name': 'asyncFn'}}}}
+            ]}}
+        ]
+    });
+    /* c8 ignore next 3 */
+    // eslint-disable-next-line require-await
+    const asyncFn = async () => true;
+    const nonAsyncFn = () => true;
+    assert.deepEqual(barescriptLintScript(script, {asyncFn, nonAsyncFn, 'notFn': null}), [
+        ':1: Function "testFn" requires async'
+    ]);
+});
+
+
+test('executeScript, barescriptParseScript', () => {
+    const script = barescriptParseScript('a = 1 + \\\n    2\nfunction foo():\n    return a\nendfunction', 1, 'test.bare');
+    assert.deepEqual(script, {
+        'statements': [
+            {'expr': {
+                'name': 'a',
+                'expr': {'binary': {'op': '+', 'left': {'number': 1}, 'right': {'number': 2}}},
+                'lineNumber': 1,
+                'lineCount': 2
+            }},
+            {'function': {'name': 'foo', 'statements': [{'return': {'lineNumber': 4, 'expr': {'variable': 'a'}}}], 'lineNumber': 3}}
+        ],
+        'scriptLines': ['a = 1 + \\', '    2', 'function foo():', '    return a', 'endfunction'],
+        'scriptName': 'test.bare'
+    });
+
+    // Call again (the parser globals are already initialized)
+    assert.deepEqual(barescriptParseScript('b = 2'), {
+        'statements': [{'expr': {'name': 'b', 'expr': {'number': 2}, 'lineNumber': 1}}],
+        'scriptLines': ['b = 2']
+    });
+});
+
+
+test('executeScript, barescriptParseScript error', () => {
+    assert.throws(
+        () => {
+            barescriptParseScript('a = ', 1, 'test.bare');
+        },
+        {
+            'name': 'BareScriptParserError',
+            'error': 'Syntax error',
+            'line': 'a = ',
+            'columnNumber': 4,
+            'lineNumber': 1,
+            'scriptName': 'test.bare',
+            'message': 'test.bare:1: Syntax error\na = \n   ^\n'
+        }
+    );
+
+    // No script name
+    assert.throws(
+        () => {
+            barescriptParseScript('a = ');
+        },
+        {'name': 'BareScriptParserError', 'message': ':1: Syntax error\na = \n   ^\n'}
+    );
+});
+
+
+test('executeScript, barescriptParseScript error long line', () => {
+    // Long line, error on the left
+    assert.throws(
+        () => {
+            barescriptParseScript(`a = * ${'x'.repeat(130)}`, 1, 'test.bare');
+        },
+        {'name': 'BareScriptParserError', 'error': 'Syntax error', 'columnNumber': 5}
+    );
+
+    // Long line, error on the right
+    assert.throws(
+        () => {
+            barescriptParseScript(`a = 1 + ${'b * '.repeat(60)}`, 1, 'test.bare');
+        },
+        {'name': 'BareScriptParserError', 'error': 'Syntax error', 'columnNumber': 248}
+    );
+
+    // Long line, error in the middle
+    assert.throws(
+        () => {
+            barescriptParseScript(`a = foo(${'1, '.repeat(45)}* ${'1, '.repeat(45)}2)`, 1, 'test.bare');
+        },
+        {'name': 'BareScriptParserError', 'error': 'Syntax error', 'columnNumber': 143}
+    );
+});
+
+
+test('executeScript, barescriptParseExpression', () => {
+    assert.deepEqual(barescriptParseExpression('1 + 2 * 3'), {
+        'binary': {'op': '+', 'left': {'number': 1}, 'right': {'binary': {'op': '*', 'left': {'number': 2}, 'right': {'number': 3}}}}
+    });
+
+    // Array literals
+    assert.deepEqual(barescriptParseExpression('[1, 2]', null, null, true), {
+        'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}
+    });
+});
+
+
+test('executeScript, barescriptParseExpression error', () => {
+    assert.throws(
+        () => {
+            barescriptParseExpression('foo bar', 3, 'expr.bare');
+        },
+        {
+            'name': 'BareScriptParserError',
+            'error': 'Syntax error',
+            'line': 'foo bar',
+            'columnNumber': 4,
+            'lineNumber': 3,
+            'scriptName': 'expr.bare',
+            'message': 'expr.bare:3: Syntax error\nfoo bar\n   ^\n'
+        }
+    );
+
+    // No line number
+    assert.throws(
+        () => {
+            barescriptParseExpression('foo bar');
+        },
+        {'name': 'BareScriptParserError', 'lineNumber': null, 'scriptName': null, 'message': 'Syntax error\nfoo bar\n   ^\n'}
+    );
+});
+
+
 test('executeScript, error maxStatements', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -1099,7 +1242,7 @@ test('executeScript, error maxStatements', () => {
 
 
 test('executeScript, error maxStatements library error', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
             {'label': {'name': 'loop'}},
@@ -1121,7 +1264,7 @@ test('executeScript, error maxStatements library error', () => {
 
 
 test('evaluateExpression', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '+',
             'left': {'number': 7},
@@ -1144,27 +1287,27 @@ test('evaluateExpression', () => {
 
 
 test('evaluateExpression, no globals', () => {
-    const expr = validateExpression({'string': 'abc'});
+    const expr = barescriptValidateExpression({'string': 'abc'});
     const options = {};
     assert.equal(evaluateExpression(expr, options), 'abc');
 });
 
 
 test('evaluateExpression, string', () => {
-    const expr = validateExpression({'string': 'abc'});
+    const expr = barescriptValidateExpression({'string': 'abc'});
     assert.equal(evaluateExpression(expr), 'abc');
 });
 
 
 test('evaluateExpression, variable', () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
     assert.equal(evaluateExpression(expr, options), 4);
 });
 
 
 test('evaluateExpression, variable local', () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const locals = {'varName': 4};
     assert.equal(evaluateExpression(expr, null, locals), 4);
     assert.deepEqual(locals, {'varName': 4});
@@ -1172,7 +1315,7 @@ test('evaluateExpression, variable local', () => {
 
 
 test('evaluateExpression, variable null local non-null global', () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
     const locals = {'varName': null};
     assert.equal(evaluateExpression(expr, options, locals), null);
@@ -1180,7 +1323,7 @@ test('evaluateExpression, variable null local non-null global', () => {
 
 
 test('evaluateExpression, variable unknown', () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     assert.equal(evaluateExpression(expr), null);
 });
 
@@ -1188,21 +1331,21 @@ test('evaluateExpression, variable unknown', () => {
 test('evaluateExpression, variable inherited property name', () => {
     // Inherited property names must not resolve as global variables
     const options = {'globals': {}};
-    assert.equal(evaluateExpression(validateExpression({'variable': '__proto__'}), options), null);
-    assert.equal(evaluateExpression(validateExpression({'variable': 'constructor'}), options), null);
+    assert.equal(evaluateExpression(barescriptValidateExpression({'variable': '__proto__'}), options), null);
+    assert.equal(evaluateExpression(barescriptValidateExpression({'variable': 'constructor'}), options), null);
 });
 
 
 test('evaluateExpression, variable undefined value', () => {
     // A host-provided global whose own-property value is undefined resolves to null
     const options = {'globals': {'varName': undefined}};
-    assert.equal(evaluateExpression(validateExpression({'variable': 'varName'}), options), null);
+    assert.equal(evaluateExpression(barescriptValidateExpression({'variable': 'varName'}), options), null);
 });
 
 
 test('executeScript, variable __proto__', () => {
     // Assigning a "__proto__" variable sets an own global, not the object prototype
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': '__proto__', 'expr': {'function': {'name': 'objectNew', 'args': [{'string': 'x'}, {'number': 99}]}}}},
             {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
@@ -1221,7 +1364,7 @@ test('executeScript, variable __proto__', () => {
 test('executeScript, function local __proto__', () => {
     // A "__proto__" function argument is an own local, not the prototype; an unassigned local
     // (an inherited property name) does not resolve
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'function': {
                 'name': 'testFn',
@@ -1241,19 +1384,19 @@ test('executeScript, function local __proto__', () => {
 
 
 test('evaluateExpression, variable literal null', () => {
-    const expr = validateExpression({'variable': 'null'});
+    const expr = barescriptValidateExpression({'variable': 'null'});
     assert.equal(evaluateExpression(expr), null);
 });
 
 
 test('evaluateExpression, variable literal true', () => {
-    const expr = validateExpression({'variable': 'true'});
+    const expr = barescriptValidateExpression({'variable': 'true'});
     assert.equal(evaluateExpression(expr), true);
 });
 
 
 test('evaluateExpression, variable literal false', () => {
-    const expr = validateExpression({'variable': 'false'});
+    const expr = barescriptValidateExpression({'variable': 'false'});
     assert.equal(evaluateExpression(expr), false);
 });
 
@@ -1261,7 +1404,7 @@ test('evaluateExpression, variable literal false', () => {
 test('evaluateExpression, variable literal binary operands', () => {
     // Keyword literals as binary expression operands
     for (const keyword of ['null', 'false', 'true']) {
-        const expr = validateExpression({
+        const expr = barescriptValidateExpression({
             'binary': {
                 'op': '==',
                 'left': {'variable': keyword},
@@ -1276,7 +1419,7 @@ test('evaluateExpression, variable literal binary operands', () => {
 test('evaluateExpression, variable null binary operands', () => {
     // Null-valued globals as binary expression operands and function arguments
     const options = {'globals': {'varNull': null, 'myFunc': (args) => args[0]}};
-    const exprBinary = validateExpression({
+    const exprBinary = barescriptValidateExpression({
         'binary': {
             'op': '==',
             'left': {'variable': 'varNull'},
@@ -1284,7 +1427,7 @@ test('evaluateExpression, variable null binary operands', () => {
         }
     });
     assert.equal(evaluateExpression(exprBinary, options), true);
-    const exprFunction = validateExpression({
+    const exprFunction = barescriptValidateExpression({
         'function': {'name': 'myFunc', 'args': [{'variable': 'varNull'}]}
     });
     assert.equal(evaluateExpression(exprFunction, options), null);
@@ -1292,7 +1435,7 @@ test('evaluateExpression, variable null binary operands', () => {
 
 
 test('evaluateExpression, function', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'myFunc',
             'args': [{'number': 1}, {'number': 2}]
@@ -1308,7 +1451,7 @@ test('evaluateExpression, function', () => {
 
 
 test('evaluateExpression, function no return', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'myFunc'
         }
@@ -1325,7 +1468,7 @@ test('evaluateExpression, function no return', () => {
 
 
 test('evaluateExpression, function if', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1355,7 +1498,7 @@ test('evaluateExpression, function if', () => {
 
 
 test('evaluateExpression, function if non-boolean', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1370,7 +1513,7 @@ test('evaluateExpression, function if non-boolean', () => {
 
 
 test('evaluateExpression, function if no value expression', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if'
         }
@@ -1380,7 +1523,7 @@ test('evaluateExpression, function if no value expression', () => {
 
 
 test('evaluateExpression, function if no true expression', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1394,7 +1537,7 @@ test('evaluateExpression, function if no true expression', () => {
 
 
 test('evaluateExpression, function if no false expression', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1409,7 +1552,7 @@ test('evaluateExpression, function if no false expression', () => {
 
 
 test('evaluateExpression, function builtin', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'abs',
             'args': [
@@ -1423,7 +1566,7 @@ test('evaluateExpression, function builtin', () => {
 
 
 test('evaluateExpression, function no-builtins', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'abs',
             'args': [
@@ -1443,7 +1586,7 @@ test('evaluateExpression, function no-builtins', () => {
 
 
 test('evaluateExpression, function global', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnName',
             'args': [
@@ -1457,7 +1600,7 @@ test('evaluateExpression, function global', () => {
 
 
 test('evaluateExpression, function local', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1472,7 +1615,7 @@ test('evaluateExpression, function local', () => {
 
 
 test('evaluateExpression, function local null', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1493,7 +1636,7 @@ test('evaluateExpression, function local null', () => {
 
 
 test('evaluateExpression, function non-function', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1507,7 +1650,7 @@ test('evaluateExpression, function non-function', () => {
 
 
 test('evaluateExpression, function non-function logFn', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1527,7 +1670,7 @@ test('evaluateExpression, function non-function logFn', () => {
 
 test('evaluateExpression, function inherited property name', () => {
     // Inherited property names must not resolve as callable global functions
-    const expr = validateExpression({'function': {'name': 'constructor'}});
+    const expr = barescriptValidateExpression({'function': {'name': 'constructor'}});
     const options = {'globals': {}};
     assert.throws(
         () => evaluateExpression(expr, options),
@@ -1540,7 +1683,7 @@ test('evaluateExpression, function inherited property name', () => {
 
 
 test('evaluateExpression, function unknown', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnUnknown',
             'args': [
@@ -1561,7 +1704,7 @@ test('evaluateExpression, function unknown', () => {
 
 
 test('evaluateExpression, function unknown no globals', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnUnknown',
             'args': [
@@ -1581,7 +1724,7 @@ test('evaluateExpression, function unknown no globals', () => {
 
 
 test('evaluateExpression, script function no globals', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -1595,7 +1738,7 @@ test('evaluateExpression, script function no globals', () => {
     });
     const globals = {};
     executeScript(script, {'globals': globals});
-    const expr = validateExpression({'function': {'name': 'fn', 'args': []}});
+    const expr = barescriptValidateExpression({'function': {'name': 'fn', 'args': []}});
 
     // Options with globals - the script function call succeeds
     assert.equal(evaluateExpression(expr, {'globals': globals}), 5);
@@ -1609,7 +1752,7 @@ test('evaluateExpression, script function no globals', () => {
 
 
 test('evaluateExpression, function async', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnAsync'
         }
@@ -1629,7 +1772,7 @@ test('evaluateExpression, function async', () => {
 
 
 test('evaluateExpression, function runtime error', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'test'
         }
@@ -1652,7 +1795,7 @@ test('evaluateExpression, function runtime error', () => {
 
 
 test('evaluateExpression, binary logical and', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '&&',
             'left': {'variable': 'leftValue'},
@@ -1678,7 +1821,7 @@ test('evaluateExpression, binary logical and', () => {
 
 
 test('evaluateExpression, binary logical or', () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '||',
             'left': {'variable': 'leftValue'},
@@ -1708,47 +1851,63 @@ test('evaluateExpression, binary addition', () => {
     const options = {'globals': {testDate, testNumber, testString}};
 
     // number + number
-    let expr = validateExpression({'binary': {'op': '+', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 12);
 
     // string + string
-    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testString'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testString'}}}});
     assert.equal(evaluateExpression(expr, options), 'fooabc');
 
     // string + <non-string>
-    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 'foo2');
 
     // <non-string> + string
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'string': 'foo'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'string': 'foo'}}});
     assert.equal(evaluateExpression(expr, options), '2foo');
 
     // datetime + number
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'number': 86400000}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'number': 86400000}}});
     assert.deepEqual(evaluateExpression(expr, options), new Date(2024, 1, 7));
 
     // number + datetime
-    expr = validateExpression({'binary': {'op': '+', 'left': {'number': -86400000}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'number': -86400000},
+        'right': {'function': {'name': 'testDate'}}
+    }});
     assert.deepEqual(evaluateExpression(expr, options), new Date(2024, 1, 5));
 
     // Invalid - bool + number
-    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number + bool
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - datetime + bool
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - bool + datetime
-    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1757,23 +1916,35 @@ test('evaluateExpression, binary subtraction', () => {
     const options = {'globals': {'dt2': new Date(2024, 1, 7), testDate, testNumber}};
 
     // number - number
-    let expr = validateExpression({'binary': {'op': '-', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '-', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 8);
 
     // datetime - datetime
-    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(evaluateExpression(expr, options), 86400000);
 
     // Invalid - bool - number
-    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number - bool
-    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1782,19 +1953,31 @@ test('evaluateExpression, binary multiplication', () => {
     const options = {'globals': {testNumber}};
 
     // number * number
-    let expr = validateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 20);
 
     // Invalid - bool * number
-    expr = validateExpression({'binary': {'op': '*', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number * bool
-    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1803,78 +1986,114 @@ test('evaluateExpression, binary division', () => {
     const options = {'globals': {testNumber}};
 
     // number / number
-    let expr = validateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 5);
 
     // Invalid - bool / number
-    expr = validateExpression({'binary': {'op': '/', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number / bool
-    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, binary equality', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '==', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '==',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), false);
 });
 
 
 test('evaluateExpression, binary inequality', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '!=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '!=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), true);
 });
 
 
 test('evaluateExpression, binary less-than-or-equal-to', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '<=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '<=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), false);
 });
 
 
 test('evaluateExpression, binary less-than', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '<',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), false);
 });
 
 
 test('evaluateExpression, binary greater-than-or-equal-to', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '>=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '>=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), true);
 });
 
 
 test('evaluateExpression, binary greater-than', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '>',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), true);
 });
 
 
 test('evaluateExpression, binary comparison non-number', () => {
     // String compare exercises the valueCompare fallthrough for all comparison operators
-    let expr = validateExpression({'binary': {'op': '==', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '==', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), false);
-    expr = validateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), true);
-    expr = validateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), true);
-    expr = validateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), true);
-    expr = validateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), false);
-    expr = validateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'string': 'b'}}});
     assert.equal(evaluateExpression(expr), false);
 });
 
@@ -1883,19 +2102,31 @@ test('evaluateExpression, binary modulus', () => {
     const options = {'globals': {testNumber}};
 
     // number % number
-    let expr = validateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 0);
 
     // Invalid - bool % number
-    expr = validateExpression({'binary': {'op': '%', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number % bool
-    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1904,26 +2135,42 @@ test('evaluateExpression, binary exponentiation', () => {
     const options = {'globals': {testNumber}};
 
     // number ** number
-    let expr = validateExpression({'binary': {'op': '**', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), 100);
 
     // Invalid - bool ** number
-    expr = validateExpression({'binary': {'op': '**', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - number ** bool
-    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('executeScript, function library error message', () => {
     // Library function error messages must match the reference implementation exactly
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {'expr': {'function': {'name': 'stringFromCharCode', 'args': [
                 {'binary': {'op': '*', 'left': {'number': 1e308}, 'right': {'number': 10}}}
@@ -1953,15 +2200,15 @@ test('evaluateExpression, binary non-finite result', () => {
         ['+', 1e308, 1e308],
         ['-', -1e308, 1e308]
     ]) {
-        const expr = validateExpression({'binary': {'op': binOp, 'left': {'number': left}, 'right': {'number': right}}});
+        const expr = barescriptValidateExpression({'binary': {'op': binOp, 'left': {'number': left}, 'right': {'number': right}}});
         assert.equal(evaluateExpression(expr), null, `${left} ${binOp} ${right}`);
     }
 
     // Datetime addition overflow
     const options = {'globals': {'testDatetime': new Date(2024, 0, 1)}};
-    let expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'testDatetime'}, 'right': {'number': 1e308}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'variable': 'testDatetime'}, 'right': {'number': 1e308}}});
     assert.equal(evaluateExpression(expr, options), null);
-    expr = validateExpression({'binary': {'op': '+', 'left': {'number': 1e308}, 'right': {'variable': 'testDatetime'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'number': 1e308}, 'right': {'variable': 'testDatetime'}}});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -1970,35 +2217,47 @@ test('evaluateExpression, binary bitwise and', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number & number
-    let expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 2);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 2);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(evaluateExpression(expr, options), 2);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '&', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -2007,35 +2266,47 @@ test('evaluateExpression, binary bitwise or', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number | number
-    let expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 10);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 10);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(evaluateExpression(expr, options), 6);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '|', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -2044,35 +2315,47 @@ test('evaluateExpression, binary bitwise xor', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number ^ number
-    let expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 8);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 8);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(evaluateExpression(expr, options), 4);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '^', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -2081,35 +2364,51 @@ test('evaluateExpression, binary left shift', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number << number
-    let expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), 40);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 40);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
     assert.equal(evaluateExpression(expr, options), 8);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -2118,42 +2417,58 @@ test('evaluateExpression, binary right shift', () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number >> number
-    let expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), 2);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 2);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
     assert.equal(evaluateExpression(expr, options), 1);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, unary not', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), false);
 });
 
@@ -2162,11 +2477,11 @@ test('evaluateExpression, unary negate', () => {
     const options = {'globals': {testNumber, testString}};
 
     // - number
-    let expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), -2);
 
     // Invalid
-    expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
+    expr = barescriptValidateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
@@ -2175,30 +2490,30 @@ test('evaluateExpression, unary bitwise not', () => {
     const options = {'globals': {'testNumber': testNumber, 'testString': testString}};
 
     // ~ number
-    let expr = validateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), -3);
 
     // Float
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
     assert.equal(evaluateExpression(expr, options), -3);
 
     // Invalid - non-integer
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid - bool
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
     assert.equal(evaluateExpression(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
     assert.equal(evaluateExpression(expr, options), null);
 });
 
 
 test('evaluateExpression, group', () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'group': {
             'binary': {
                 'op': '*',
@@ -2241,7 +2556,8 @@ function intrArr(...values) {
 }
 
 function intrCall(name, args, options = {}) {
-    return executeScript(validateScript({'statements': [{'return': {'expr': {'function': {'name': name, 'args': args}}}}]}), options);
+    const script = barescriptValidateScript({'statements': [{'return': {'expr': {'function': {'name': name, 'args': args}}}}]});
+    return executeScript(script, options);
 }
 
 
@@ -2271,7 +2587,7 @@ test('executeScript, intrinsic arrayNew', () => {
     assert.deepEqual(intrCall('arrayNew', []), []);
 
     // No arguments at all - the function expression "args" member is absent
-    assert.equal(executeScript(validateScript({'statements': [{'return': {'expr': {'function': {'name': 'arrayNew'}}}}]})), null);
+    assert.equal(executeScript(barescriptValidateScript({'statements': [{'return': {'expr': {'function': {'name': 'arrayNew'}}}}]})), null);
 });
 
 
@@ -2388,7 +2704,7 @@ test('executeScript, intrinsic debug logging', () => {
 test('executeScript, intrinsic aliased name', () => {
     // Aliasing an intrinsic to another name: funcValue is in the intrinsic set but the call name
     // matches no inlined branch, so it falls through to the normal call path.
-    const script = validateScript({'statements': [
+    const script = barescriptValidateScript({'statements': [
         {'expr': {'name': 'myGet', 'expr': {'variable': 'arrayGet'}}},
         {'return': {'expr': intrFn('myGet', intrArr(1, 2, 3), intrNum(1))}}
     ]});
@@ -2399,7 +2715,7 @@ test('executeScript, intrinsic aliased name', () => {
 test('executeScript, intrinsic systemGlobalGet', () => {
     // systemGlobalGet returns the genuine library function; calling it indirectly falls through to
     // the real function (with full argument validation).
-    const script = validateScript({'statements': [
+    const script = barescriptValidateScript({'statements': [
         {'expr': {'name': 'getObj', 'expr': intrFn('systemGlobalGet', intrStr('objectGet'))}},
         {'return': {'expr': intrFn('getObj', intrFn('objectNew', intrStr('k'), intrStr('v')), intrStr('k'))}}
     ]});
@@ -2411,7 +2727,7 @@ test('executeScript, intrinsic override', () => {
     // A user/global override resolves to a different function object (not in the intrinsic set), so
     // the override runs instead of the inlined fast path; without it the intrinsic runs.
     const expr = intrFn('objectGet', intrFn('objectNew', intrStr('k'), intrStr('v')), intrStr('k'));
-    const script = validateScript({'statements': [{'return': {'expr': expr}}]});
+    const script = barescriptValidateScript({'statements': [{'return': {'expr': expr}}]});
     assert.equal(executeScript(script, {'globals': {'objectGet': () => 'override'}}), 'override');
     assert.equal(executeScript(script), 'v');
 });

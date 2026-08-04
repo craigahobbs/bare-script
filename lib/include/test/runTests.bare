@@ -6,6 +6,9 @@
 include <args.bare>
 include <baredoc.bare>
 include <baredocCLI.bare>
+include <barescriptLint.bare>
+include <barescriptModel.bare>
+include <barescriptParser.bare>
 include <data.bare>
 include <dataLineChart.bare>
 include <dataTable.bare>
@@ -36,6 +39,9 @@ unittestCoverageStart()
 include '../args.bare'
 include '../baredoc.bare'
 include '../baredocCLI.bare'
+include '../barescriptLint.bare'
+include '../barescriptModel.bare'
+include '../barescriptParser.bare'
 include '../data.bare'
 include '../dataLineChart.bare'
 include '../dataTable.bare'
@@ -63,6 +69,9 @@ include '../url.bare'
 include 'testArgs.bare'
 include 'testBaredoc.bare'
 include 'testBaredocCLI.bare'
+include 'testBarescriptLint.bare'
+include 'testBarescriptModel.bare'
+include 'testBarescriptParser.bare'
 include 'testData.bare'
 include 'testDataLineChart.bare'
 include 'testDataTable.bare'

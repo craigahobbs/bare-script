@@ -443,10 +443,11 @@ endfunction
 
 ### BareScript (`barescript*`)
 
-`barescriptParseExpression(text)` · `barescriptEvaluateExpression(expr, globals?)`
+`barescriptEvaluateExpression(expr, globals?)`
 
-Use these to evaluate user-authored formula expressions (e.g. for a
-spreadsheet-style data filter).
+Use this to evaluate user-authored formula expressions (e.g. for a
+spreadsheet-style data filter). Parse the expression first with the
+`barescriptParser.bare` include library's `barescriptParseExpression` function.
 
 ---
 
@@ -463,6 +464,9 @@ the `.bare` source. Each include is also documented at
 | Include | Purpose | Key functions |
 | --- | --- | --- |
 | `args.bare` | Parse MarkdownUp URL args, build links | `argsParse`, `argsLink`, `argsURL`, `argsValidate`, `argsHelp` |
+| `barescriptLint.bare` | Lint a BareScript model | `barescriptLintScript` |
+| `barescriptModel.bare` | The BareScript type model + model validation | `barescriptTypeModel`, `barescriptValidateScript`, `barescriptValidateExpression` |
+| `barescriptParser.bare` | Parse BareScript text into BareScript models | `barescriptParseScript`, `barescriptParseScriptEx`, `barescriptParseExpression`, `barescriptParseExpressionEx` |
 | `data.bare` | Tabular data manipulation | `dataParseCSV`, `dataFilter`, `dataSort`, `dataAggregate`, `dataJoin`, `dataCalculatedField`, `dataTop`, `dataValidate` |
 | `dataTable.bare` | Render data array as Markdown table | `dataTable`, `dataTableMarkdown`, `dataTableElements`, `dataTableValidate` |
 | `dataLineChart.bare` | Render line charts as SVG | `dataLineChart`, `dataLineChartElements`, `dataLineChartValidate` |
@@ -1310,11 +1314,10 @@ body it *writes* the body to the file.
 ### Embedding (JavaScript)
 
 ```javascript
-import {parseScript} from 'bare-script/lib/parser.js';
-import {executeScript} from 'bare-script/lib/runtime.js';
+import {barescriptParseScript, executeScript} from 'bare-script/lib/runtime.js';
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 
-const script = parseScript(`return N * 2`);
+const script = barescriptParseScript(`return N * 2`);
 
 // Sync — no async functions used
 console.log(executeScript(script, {globals: {N: 21}}));   // 42

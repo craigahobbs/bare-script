@@ -1,0 +1,1031 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: barescriptParseScript
+# $group: barescriptParser.bare
+# $doc: Parse a BareScript script
+# $arg scriptText: The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
+# $arg startLineNumber: Optional (default is 1). The script's starting line number.
+# $arg scriptName: Optional (default is null). The script name.
+# $return: The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'),
+# $return: or null if a parsing error occurs
+function barescriptParseScript(scriptText, startLineNumber, scriptName):
+    result = barescriptParseScriptEx(scriptText, startLineNumber, scriptName)
+    if objectHas(result, 'error'):
+        systemLogDebug('barescriptParser.bare: ' + objectGet(objectGet(result, 'error'), 'message'))
+        return null
+    endif
+    return objectGet(result, 'result')
+endfunction
+
+
+# $function: barescriptParseScriptEx
+# $group: barescriptParser.bare
+# $doc: Parse a BareScript script with programmatic error reporting
+# $arg scriptText: The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
+# $arg startLineNumber: Optional (default is 1). The script's starting line number.
+# $arg scriptName: Optional (default is null). The script name.
+# $return: On success, an object with the "result" key set to the
+# $return: [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
+# $return: On failure, an object with the "error" key set to the
+# $return: [parser error object](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex).
+# $return: The parser error object has the "error", "line", "columnNumber", "lineNumber", "scriptName",
+# $return: and "message" keys.
+function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
+    startLineNumber = if(startLineNumber != null, startLineNumber, 1)
+    lines = []
+    script = {'statements': [], 'scriptLines': lines}
+    if scriptName != null:
+        objectSet(script, 'scriptName', scriptName)
+    endif
+
+    # Line-split all script text
+    if systemType(scriptText) == 'string':
+        arrayExtend(lines, regexSplit(barescriptParserRegexLineSplit, scriptText))
+    else:
+        for scriptTextPart in scriptText:
+            arrayExtend(lines, regexSplit(barescriptParserRegexLineSplit, scriptTextPart))
+        endfor
+    endif
+
+    # Process each line
+    lineContinuation = []
+    functionDef = null
+    functionLabelDefDepth = null
+    labelDefs = []
+    labelIndex = 0
+    ixLine = null
+    for linePart, ixLinePart in lines:
+        # Comment or empty line?
+        linePartTrimmed = stringTrim(linePart)
+        if linePartTrimmed == '' || stringCharCodeAt(linePartTrimmed, 0) == 0x23:
+            continue
+        endif
+
+        # Set the line index
+        isContinued = arrayLength(lineContinuation) != 0
+        if !isContinued:
+            ixLine = ixLinePart
+        endif
+
+        # Line continuation?
+        linePartNoContinuation = regexReplace(barescriptParserRegexContinuation, linePart, '')
+        if linePart != linePartNoContinuation:
+            arrayPush(lineContinuation, if(isContinued, stringTrim(linePartNoContinuation), \
+                regexReplace(barescriptParserRegexTrimEnd, linePartNoContinuation, '')))
+            continue
+        elif isContinued:
+            arrayPush(lineContinuation, stringTrim(linePartNoContinuation))
+        endif
+
+        # Join the continued script lines, if necessary
+        if isContinued:
+            line = arrayJoin(lineContinuation, ' ')
+            lineContinuation = []
+        else:
+            line = linePart
+        endif
+
+        # Base statement members
+        statements = if(functionDef != null, objectGet(objectGet(functionDef, 'function'), 'statements'), objectGet(script, 'statements'))
+        lineNumber = ixLine + 1
+        statementBase = {'lineNumber': lineNumber}
+        if ixLine != ixLinePart:
+            objectSet(statementBase, 'lineCount', ixLinePart - ixLine + 1)
+        endif
+
+        # Determine the line's leading keyword for dispatch
+        matchKeyword = regexMatch(barescriptParserRegexKeyword, line)
+        keyword = if(matchKeyword != null, objectGet(objectGet(matchKeyword, 'groups'), '1'))
+        jumpif (keyword == null || !objectHas(barescriptParserKeywords, keyword)) barescriptParserStatement
+
+        # Function definition begin?
+        matchFunctionBegin = if(keyword == 'function' || keyword == 'async', regexMatch(barescriptParserRegexFunctionBegin, line))
+        if matchFunctionBegin != null:
+            # Nested function definitions are not allowed
+            if functionDef != null:
+                return {'error': barescriptParserError('Nested function definition', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the function definition statement
+            functionBeginGroups = objectGet(matchFunctionBegin, 'groups')
+            functionLabelDefDepth = arrayLength(labelDefs)
+            functionDef = {'function': objectAssign({ \
+                'name': objectGet(functionBeginGroups, 'name'), \
+                'statements': [] \
+            }, statementBase)}
+            if objectGet(functionBeginGroups, 'args') != null:
+                objectSet(objectGet(functionDef, 'function'), 'args', \
+                    regexSplit(barescriptParserRegexFunctionArgSplit, objectGet(functionBeginGroups, 'args')))
+            endif
+            if objectGet(functionBeginGroups, 'async') != null:
+                objectSet(objectGet(functionDef, 'function'), 'async', true)
+            endif
+            if objectGet(functionBeginGroups, 'lastArgArray') != null:
+                objectSet(objectGet(functionDef, 'function'), 'lastArgArray', true)
+            endif
+            arrayPush(statements, functionDef)
+            continue
+        endif
+
+        # Function definition end?
+        matchFunctionEnd = if(keyword == 'endfunction', regexMatch(barescriptParserRegexFunctionEnd, line))
+        if matchFunctionEnd != null:
+            if functionDef == null:
+                return {'error': barescriptParserError('No matching function definition', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Check for un-matched label definitions
+            if arrayLength(labelDefs) > functionLabelDefDepth:
+                labelDef = arrayPop(labelDefs)
+                defKey = arrayGet(objectKeys(labelDef), 0)
+                def = objectGet(labelDef, defKey)
+                return {'error': barescriptParserError('Missing end' + defKey + ' statement', \
+                    objectGet(def, 'line'), 1, objectGet(def, 'lineNumber'), scriptName)}
+            endif
+
+            functionDef = null
+            functionLabelDefDepth = null
+            continue
+        endif
+
+        # If-then begin?
+        matchIfBegin = if(keyword == 'if', regexMatch(barescriptParserRegexIfBegin, line))
+        if matchIfBegin != null:
+            ifBeginGroups = objectGet(matchIfBegin, 'groups')
+
+            # Parse the if-then expression
+            ifthenExprResult = barescriptParseExpressionEx(objectGet(ifBeginGroups, 'expr'), lineNumber, scriptName, true)
+            if objectHas(ifthenExprResult, 'error'):
+                exprError = objectGet(ifthenExprResult, 'error')
+                columnNumber = stringLength(objectGet(ifBeginGroups, 'if')) + objectGet(exprError, 'columnNumber')
+                return {'error': barescriptParserError( \
+                    objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the if-then label definition
+            ifthen = { \
+                'jump': objectAssign({ \
+                    'label': '__barescriptIf' + labelIndex, \
+                    'expr': {'unary': {'op': '!', 'expr': objectGet(ifthenExprResult, 'result')}} \
+                }, statementBase), \
+                'done': '__barescriptDone' + labelIndex, \
+                'hasElse': false, \
+                'line': line, \
+                'lineNumber': startLineNumber + ixLine \
+            }
+            arrayPush(labelDefs, {'if': ifthen})
+            labelIndex = labelIndex + 1
+
+            # Add the if-then header statement
+            arrayPush(statements, {'jump': objectGet(ifthen, 'jump')})
+            continue
+        endif
+
+        # Else-if-then?
+        matchIfElseIf = if(keyword == 'elif', regexMatch(barescriptParserRegexIfElseIf, line))
+        if matchIfElseIf != null:
+            # Get the else-if-then definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayGet(labelDefs, arrayLength(labelDefs) - 1), 'if'))
+            if ifthen == null:
+                return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Cannot come after the else-then statement
+            if objectGet(ifthen, 'hasElse'):
+                return {'error': barescriptParserError( \
+                    'Elif statement following else statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Parse the else-if-then expression
+            ifElseIfGroups = objectGet(matchIfElseIf, 'groups')
+            ifElseIfExprResult = barescriptParseExpressionEx(objectGet(ifElseIfGroups, 'expr'), lineNumber, scriptName, true)
+            if objectHas(ifElseIfExprResult, 'error'):
+                exprError = objectGet(ifElseIfExprResult, 'error')
+                columnNumber = stringLength(objectGet(ifElseIfGroups, 'elif')) + objectGet(exprError, 'columnNumber')
+                return {'error': barescriptParserError( \
+                    objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Generate the next if-then jump statement
+            prevLabel = objectGet(objectGet(ifthen, 'jump'), 'label')
+            objectSet(ifthen, 'jump', objectAssign({ \
+                'label': '__barescriptIf' + labelIndex, \
+                'expr': {'unary': {'op': '!', 'expr': objectGet(ifElseIfExprResult, 'result')}} \
+            }, statementBase))
+            labelIndex = labelIndex + 1
+
+            # Add the if-then else statements
+            arrayPush(statements, \
+                {'jump': objectAssign({'label': objectGet(ifthen, 'done')}, statementBase)}, \
+                {'label': objectAssign({'name': prevLabel}, statementBase)}, \
+                {'jump': objectGet(ifthen, 'jump')})
+            continue
+        endif
+
+        # Else-then?
+        matchIfElse = if(keyword == 'else', regexMatch(barescriptParserRegexIfElse, line))
+        if matchIfElse != null:
+            # Get the if-then definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayGet(labelDefs, arrayLength(labelDefs) - 1), 'if'))
+            if ifthen == null:
+                return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Cannot have multiple else-then statements
+            if objectGet(ifthen, 'hasElse'):
+                return {'error': barescriptParserError('Multiple else statements', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+            objectSet(ifthen, 'hasElse', true)
+
+            # Add the if-then else statements
+            arrayPush(statements, \
+                {'jump': objectAssign({'label': objectGet(ifthen, 'done')}, statementBase)}, \
+                {'label': objectAssign({'name': objectGet(objectGet(ifthen, 'jump'), 'label')}, statementBase)})
+            continue
+        endif
+
+        # If-then end?
+        matchIfEnd = if(keyword == 'endif', regexMatch(barescriptParserRegexIfEnd, line))
+        if matchIfEnd != null:
+            # Pop the if-then definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'if'))
+            if ifthen == null:
+                return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Update the previous jump statement's label, if necessary
+            if !objectGet(ifthen, 'hasElse'):
+                objectSet(objectGet(ifthen, 'jump'), 'label', objectGet(ifthen, 'done'))
+            endif
+
+            # Add the if-then footer statement
+            arrayPush(statements, {'label': objectAssign({'name': objectGet(ifthen, 'done')}, statementBase)})
+            continue
+        endif
+
+        # While-do begin?
+        matchWhileBegin = if(keyword == 'while', regexMatch(barescriptParserRegexWhileBegin, line))
+        if matchWhileBegin != null:
+            whileBeginGroups = objectGet(matchWhileBegin, 'groups')
+
+            # Parse the while-do expression
+            whileBeginExprResult = barescriptParseExpressionEx(objectGet(whileBeginGroups, 'expr'), lineNumber, scriptName, true)
+            if objectHas(whileBeginExprResult, 'error'):
+                exprError = objectGet(whileBeginExprResult, 'error')
+                columnNumber = stringLength(objectGet(whileBeginGroups, 'while')) + objectGet(exprError, 'columnNumber')
+                return {'error': barescriptParserError( \
+                    objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the while-do label
+            whiledo = { \
+                'loop': '__barescriptLoop' + labelIndex, \
+                'continue': '__barescriptContinue' + labelIndex, \
+                'done': '__barescriptDone' + labelIndex, \
+                'expr': objectGet(whileBeginExprResult, 'result'), \
+                'line': line, \
+                'lineNumber': startLineNumber + ixLine \
+            }
+            arrayPush(labelDefs, {'while': whiledo})
+            labelIndex = labelIndex + 1
+
+            # Add the while-do header statements
+            arrayPush(statements, \
+                {'jump': objectAssign( \
+                    {'label': objectGet(whiledo, 'done'), 'expr': {'unary': {'op': '!', 'expr': objectGet(whiledo, 'expr')}}}, \
+                    statementBase)}, \
+                {'label': objectAssign({'name': objectGet(whiledo, 'loop')}, statementBase)})
+            continue
+        endif
+
+        # While-do end?
+        matchWhileEnd = if(keyword == 'endwhile', regexMatch(barescriptParserRegexWhileEnd, line))
+        if matchWhileEnd != null:
+            # Pop the while-do definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            whiledo = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'while'))
+            if whiledo == null:
+                return {'error': barescriptParserError('No matching while statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the while-do footer statements
+            if objectGet(whiledo, 'hasContinue'):
+                arrayPush(statements, {'label': objectAssign({'name': objectGet(whiledo, 'continue')}, statementBase)})
+            endif
+            arrayPush(statements, \
+                {'jump': objectAssign({'label': objectGet(whiledo, 'loop'), 'expr': objectGet(whiledo, 'expr')}, statementBase)}, \
+                {'label': objectAssign({'name': objectGet(whiledo, 'done')}, statementBase)})
+            continue
+        endif
+
+        # For-each begin?
+        matchForBegin = if(keyword == 'for', regexMatch(barescriptParserRegexForBegin, line))
+        if matchForBegin != null:
+            forBeginGroups = objectGet(matchForBegin, 'groups')
+
+            # Add the for-each label
+            foreach = { \
+                'loop': '__barescriptLoop' + labelIndex, \
+                'continue': '__barescriptContinue' + labelIndex, \
+                'done': '__barescriptDone' + labelIndex, \
+                'index': if(objectGet(forBeginGroups, 'index') != null, objectGet(forBeginGroups, 'index'), \
+                    '__barescriptIndex' + labelIndex), \
+                'values': '__barescriptValues' + labelIndex, \
+                'length': '__barescriptLength' + labelIndex, \
+                'value': objectGet(forBeginGroups, 'value'), \
+                'line': line, \
+                'lineNumber': startLineNumber + ixLine \
+            }
+            arrayPush(labelDefs, {'for': foreach})
+            labelIndex = labelIndex + 1
+
+            # Parse the for-each expression
+            forBeginExprResult = barescriptParseExpressionEx(objectGet(forBeginGroups, 'values'), lineNumber, scriptName, true)
+            if objectHas(forBeginExprResult, 'error'):
+                exprError = objectGet(forBeginExprResult, 'error')
+                columnNumber = stringLength(objectGet(forBeginGroups, 'for')) + objectGet(exprError, 'columnNumber')
+                return {'error': barescriptParserError( \
+                    objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the for-each header statements
+            arrayPush(statements, \
+                {'expr': objectAssign({'name': objectGet(foreach, 'values'), 'expr': objectGet(forBeginExprResult, 'result')}, \
+                    statementBase)}, \
+                {'expr': objectAssign({'name': objectGet(foreach, 'length'), 'expr': {'function': { \
+                    'name': 'arrayLength', 'args': [{'variable': objectGet(foreach, 'values')}]}}}, statementBase)}, \
+                {'jump': objectAssign({'label': objectGet(foreach, 'done'), 'expr': {'unary': { \
+                    'op': '!', 'expr': {'variable': objectGet(foreach, 'length')}}}}, statementBase)}, \
+                {'expr': objectAssign({'name': objectGet(foreach, 'index'), 'expr': {'number': 0}}, statementBase)}, \
+                {'label': objectAssign({'name': objectGet(foreach, 'loop')}, statementBase)}, \
+                {'expr': objectAssign({'name': objectGet(foreach, 'value'), 'expr': {'function': {'name': 'arrayGet', \
+                    'args': [{'variable': objectGet(foreach, 'values')}, {'variable': objectGet(foreach, 'index')}]}}}, \
+                    statementBase)})
+            continue
+        endif
+
+        # For-each end?
+        matchForEnd = if(keyword == 'endfor', regexMatch(barescriptParserRegexForEnd, line))
+        if matchForEnd != null:
+            # Pop the foreach definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            foreach = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'for'))
+            if foreach == null:
+                return {'error': barescriptParserError('No matching for statement', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+
+            # Add the for-each footer statements
+            if objectGet(foreach, 'hasContinue'):
+                arrayPush(statements, {'label': objectAssign({'name': objectGet(foreach, 'continue')}, statementBase)})
+            endif
+            arrayPush(statements, \
+                {'expr': objectAssign({'name': objectGet(foreach, 'index'), 'expr': {'binary': {'op': '+', \
+                    'left': {'variable': objectGet(foreach, 'index')}, 'right': {'number': 1}}}}, statementBase)}, \
+                {'jump': objectAssign({'label': objectGet(foreach, 'loop'), 'expr': {'binary': {'op': '<', \
+                    'left': {'variable': objectGet(foreach, 'index')}, 'right': {'variable': objectGet(foreach, 'length')}}}}, \
+                    statementBase)}, \
+                {'label': objectAssign({'name': objectGet(foreach, 'done')}, statementBase)})
+            continue
+        endif
+
+        # Break statement?
+        matchBreak = if(keyword == 'break', regexMatch(barescriptParserRegexBreak, line))
+        if matchBreak != null:
+            # Get the loop definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            ixLabelDef = arrayLength(labelDefs) - 1
+            while ixLabelDef >= 0 && objectHas(arrayGet(labelDefs, ixLabelDef), 'if'):
+                ixLabelDef = ixLabelDef - 1
+            endwhile
+            labelDef = if(ixLabelDef >= labelDefDepth, arrayGet(labelDefs, ixLabelDef))
+            if labelDef == null:
+                return {'error': barescriptParserError('Break statement outside of loop', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+            loopDef = objectGet(labelDef, arrayGet(objectKeys(labelDef), 0))
+
+            # Add the break jump statement
+            arrayPush(statements, {'jump': objectAssign({'label': objectGet(loopDef, 'done')}, statementBase)})
+            continue
+        endif
+
+        # Continue statement?
+        matchContinue = if(keyword == 'continue', regexMatch(barescriptParserRegexContinue, line))
+        if matchContinue != null:
+            # Get the loop definition
+            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
+            ixLabelDef = arrayLength(labelDefs) - 1
+            while ixLabelDef >= 0 && objectHas(arrayGet(labelDefs, ixLabelDef), 'if'):
+                ixLabelDef = ixLabelDef - 1
+            endwhile
+            labelDef = if(ixLabelDef >= labelDefDepth, arrayGet(labelDefs, ixLabelDef))
+            if labelDef == null:
+                return {'error': barescriptParserError( \
+                    'Continue statement outside of loop', line, 1, startLineNumber + ixLine, scriptName)}
+            endif
+            loopDef = objectGet(labelDef, arrayGet(objectKeys(labelDef), 0))
+
+            # Add the continue jump statement
+            objectSet(loopDef, 'hasContinue', true)
+            arrayPush(statements, {'jump': objectAssign({'label': objectGet(loopDef, 'continue')}, statementBase)})
+            continue
+        endif
+
+        # Jump definition?
+        matchJump = if(keyword == 'jump' || keyword == 'jumpif', regexMatch(barescriptParserRegexJump, line))
+        if matchJump != null:
+            jumpGroups = objectGet(matchJump, 'groups')
+            jumpStatement = {'jump': objectAssign({'label': objectGet(jumpGroups, 'name')}, statementBase)}
+            if objectGet(jumpGroups, 'expr') != null:
+                jumpExprResult = barescriptParseExpressionEx(objectGet(jumpGroups, 'expr'), lineNumber, scriptName, true)
+                if objectHas(jumpExprResult, 'error'):
+                    exprError = objectGet(jumpExprResult, 'error')
+                    columnNumber = stringLength(objectGet(jumpGroups, 'jump')) - stringLength(objectGet(jumpGroups, 'expr')) - 1 + \
+                        objectGet(exprError, 'columnNumber')
+                    return {'error': barescriptParserError( \
+                        objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+                endif
+                objectSet(objectGet(jumpStatement, 'jump'), 'expr', objectGet(jumpExprResult, 'result'))
+            endif
+            arrayPush(statements, jumpStatement)
+            continue
+        endif
+
+        # Return definition?
+        matchReturn = if(keyword == 'return', regexMatch(barescriptParserRegexReturn, line))
+        if matchReturn != null:
+            returnGroups = objectGet(matchReturn, 'groups')
+            returnStatement = {'return': objectCopy(statementBase)}
+            if objectGet(returnGroups, 'expr') != null:
+                returnExprResult = barescriptParseExpressionEx(objectGet(returnGroups, 'expr'), lineNumber, scriptName, true)
+                if objectHas(returnExprResult, 'error'):
+                    exprError = objectGet(returnExprResult, 'error')
+                    columnNumber = stringLength(objectGet(returnGroups, 'return')) - stringLength(objectGet(returnGroups, 'expr')) + \
+                        objectGet(exprError, 'columnNumber')
+                    return {'error': barescriptParserError( \
+                        objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+                endif
+                objectSet(objectGet(returnStatement, 'return'), 'expr', objectGet(returnExprResult, 'result'))
+            endif
+            arrayPush(statements, returnStatement)
+            continue
+        endif
+
+        # Include definition?
+        matchInclude = null
+        if keyword == 'include':
+            matchInclude = regexMatch(barescriptParserRegexInclude, line)
+            if matchInclude == null:
+                matchInclude = regexMatch(barescriptParserRegexIncludeSystem, line)
+            endif
+        endif
+        if matchInclude != null:
+            includeGroups = objectGet(matchInclude, 'groups')
+            delim = objectGet(includeGroups, 'delim')
+            url = if(delim == '<', objectGet(includeGroups, 'url'), barescriptParserStringEscape(objectGet(includeGroups, 'url')))
+            includeStatement = if(arrayLength(statements), arrayGet(statements, arrayLength(statements) - 1))
+            if includeStatement == null || !objectHas(includeStatement, 'include'):
+                includeStatement = {'include': objectAssign({'includes': []}, statementBase)}
+                arrayPush(statements, includeStatement)
+            else:
+                objectSet(objectGet(includeStatement, 'include'), 'lineCount', \
+                    ixLinePart - objectGet(objectGet(includeStatement, 'include'), 'lineNumber') + 2)
+            endif
+            arrayPush(objectGet(objectGet(includeStatement, 'include'), 'includes'), \
+                if(delim == '<', {'url': url, 'system': true}, {'url': url}))
+            continue
+        endif
+
+        # Catch-all (line starts with an identifier but isn't a recognized control statement)
+        barescriptParserStatement:
+        if keyword != null:
+            # Assignment?
+            matchAssignment = regexMatch(barescriptParserRegexAssignment, line)
+            if matchAssignment != null:
+                assignmentGroups = objectGet(matchAssignment, 'groups')
+
+                # Parse the expression
+                assignmentExprResult = barescriptParseExpressionEx(objectGet(assignmentGroups, 'expr'), lineNumber, scriptName, true)
+                if objectHas(assignmentExprResult, 'error'):
+                    exprError = objectGet(assignmentExprResult, 'error')
+                    columnNumber = stringLength(line) - stringLength(objectGet(assignmentGroups, 'expr')) + \
+                        objectGet(exprError, 'columnNumber')
+                    return {'error': barescriptParserError( \
+                        objectGet(exprError, 'error'), line, columnNumber, startLineNumber + ixLine, scriptName)}
+                endif
+
+                # Add the expression statement
+                arrayPush(statements, {'expr': objectAssign({ \
+                    'name': objectGet(assignmentGroups, 'name'), \
+                    'expr': objectGet(assignmentExprResult, 'result') \
+                }, statementBase)})
+                continue
+            endif
+
+            # Label definition?
+            matchLabel = regexMatch(barescriptParserRegexLabel, line)
+            if matchLabel != null:
+                arrayPush(statements, {'label': objectAssign({'name': objectGet(objectGet(matchLabel, 'groups'), 'name')}, \
+                    statementBase)})
+                continue
+            endif
+        endif
+
+        # Expression
+        exprResult = barescriptParseExpressionEx(line, lineNumber, scriptName, true)
+        if objectHas(exprResult, 'error'):
+            exprError = objectGet(exprResult, 'error')
+            return {'error': barescriptParserError(objectGet(exprError, 'error'), line, objectGet(exprError, 'columnNumber'), \
+                startLineNumber + ixLine, scriptName)}
+        endif
+        arrayPush(statements, {'expr': objectAssign({'expr': objectGet(exprResult, 'result')}, statementBase)})
+    endfor
+
+    # Dangling label definitions?
+    if arrayLength(labelDefs) > 0:
+        labelDef = arrayPop(labelDefs)
+        defKey = arrayGet(objectKeys(labelDef), 0)
+        def = objectGet(labelDef, defKey)
+        return {'error': barescriptParserError('Missing end' + defKey + ' statement', \
+            objectGet(def, 'line'), 1, objectGet(def, 'lineNumber'), scriptName)}
+    endif
+
+    return {'result': script}
+endfunction
+
+
+# BareScript regex
+barescriptParserRegexLineSplit = regexNew('\\r?\\n')
+barescriptParserRegexContinuation = regexNew('\\\\\\s*$')
+barescriptParserRegexTrimEnd = regexNew('\\s+$')
+barescriptParserRegexKeyword = regexNew('^\\s*([A-Za-z_][A-Za-z0-9_]*)')
+barescriptParserRegexAssignment = regexNew('^\\s*(?<name>[A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(?<expr>.+)$')
+barescriptParserPartComment = '\\s*(#.*)?$'
+barescriptParserRegexFunctionBegin = regexNew( \
+    '^(?<async>\\s*async)?\\s*function\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)\\s*\\(' + \
+        '\\s*(?<args>[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)?(?<lastArgArray>\\s*\\.\\.\\.)?\\s*\\)\\s*:' + \
+        barescriptParserPartComment)
+barescriptParserRegexFunctionArgSplit = regexNew('\\s*,\\s*')
+barescriptParserRegexFunctionEnd = regexNew('^\\s*endfunction' + barescriptParserPartComment)
+barescriptParserRegexLabel = regexNew('^\\s*(?<name>[A-Za-z_][A-Za-z0-9_]*)\\s*:' + barescriptParserPartComment)
+barescriptParserRegexJump = regexNew( \
+    '^(?<jump>\\s*(?:jump|jumpif\\s*\\((?<expr>.+)\\)))\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)' + barescriptParserPartComment)
+barescriptParserRegexReturn = regexNew('^(?<return>\\s*return(?:\\s+(?<expr>[^#\\s].*))?)' + barescriptParserPartComment)
+barescriptParserRegexInclude = regexNew("^\\s*include\\s+(?<delim>')(?<url>(?:\\\\'|[^'])*)'" + barescriptParserPartComment)
+barescriptParserRegexIncludeSystem = regexNew('^\\s*include\\s+(?<delim><)(?<url>[^>]*)>' + barescriptParserPartComment)
+barescriptParserRegexIfBegin = regexNew('^(?<if>\\s*if\\s+)(?<expr>.+)\\s*:' + barescriptParserPartComment)
+barescriptParserRegexIfElseIf = regexNew('^(?<elif>\\s*elif\\s+)(?<expr>.+)\\s*:' + barescriptParserPartComment)
+barescriptParserRegexIfElse = regexNew('^\\s*else\\s*:' + barescriptParserPartComment)
+barescriptParserRegexIfEnd = regexNew('^\\s*endif' + barescriptParserPartComment)
+barescriptParserRegexForBegin = regexNew( \
+    '^(?<for>\\s*for\\s+(?<value>[A-Za-z_][A-Za-z0-9_]*)(?:\\s*,\\s*(?<index>[A-Za-z_][A-Za-z0-9_]*))?\\s+in\\s+)' + \
+        '(?<values>.+)\\s*:' + barescriptParserPartComment)
+barescriptParserRegexForEnd = regexNew('^\\s*endfor' + barescriptParserPartComment)
+barescriptParserRegexWhileBegin = regexNew('^(?<while>\\s*while\\s+)(?<expr>.+)\\s*:' + barescriptParserPartComment)
+barescriptParserRegexWhileEnd = regexNew('^\\s*endwhile' + barescriptParserPartComment)
+barescriptParserRegexBreak = regexNew('^\\s*break' + barescriptParserPartComment)
+barescriptParserRegexContinue = regexNew('^\\s*continue' + barescriptParserPartComment)
+
+
+# BareScript statement keywords
+barescriptParserKeywords = { \
+    'function': true, 'async': true, 'endfunction': true, 'if': true, 'elif': true, 'else': true, 'endif': true, \
+    'while': true, 'endwhile': true, 'for': true, 'endfor': true, 'break': true, 'continue': true, \
+    'jump': true, 'jumpif': true, 'return': true, 'include': true \
+}
+
+
+# $function: barescriptParseExpression
+# $group: barescriptParser.bare
+# $doc: Parse a BareScript expression
+# $arg exprText: The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
+# $arg lineNumber: Optional (default is null). The script line number.
+# $arg scriptName: Optional (default is null). The script name.
+# $arg arrayLiterals: Optional (default is false). If true, allow parsing of array literals.
+# $return: The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'),
+# $return: or null if a parsing error occurs
+function barescriptParseExpression(exprText, lineNumber, scriptName, arrayLiterals):
+    result = barescriptParseExpressionEx(exprText, lineNumber, scriptName, arrayLiterals)
+    if objectHas(result, 'error'):
+        systemLogDebug('barescriptParser.bare: ' + objectGet(objectGet(result, 'error'), 'message'))
+        return null
+    endif
+    return objectGet(result, 'result')
+endfunction
+
+
+# $function: barescriptParseExpressionEx
+# $group: barescriptParser.bare
+# $doc: Parse a BareScript expression with programmatic error reporting
+# $arg exprText: The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
+# $arg lineNumber: Optional (default is null). The script line number.
+# $arg scriptName: Optional (default is null). The script name.
+# $arg arrayLiterals: Optional (default is false). If true, allow parsing of array literals.
+# $return: On success, an object with the "result" key set to the
+# $return: [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression').
+# $return: On failure, an object with the "error" key set to the parser error object. The parser error
+# $return: object has the "error", "line", "columnNumber", "lineNumber", "scriptName", and "message" keys.
+function barescriptParseExpressionEx(exprText, lineNumber, scriptName, arrayLiterals):
+    error = {}
+    exprAndNext = barescriptParserBinaryExpression(exprText, arrayLiterals, error)
+    if exprAndNext != null:
+        nextText = arrayGet(exprAndNext, 1)
+        if stringTrim(nextText) == '':
+            return {'result': arrayGet(exprAndNext, 0)}
+        endif
+        objectSet(error, 'error', 'Syntax error')
+        objectSet(error, 'line', nextText)
+    endif
+    columnNumber = stringLength(exprText) - stringLength(objectGet(error, 'line')) + 1
+    return {'error': barescriptParserError(objectGet(error, 'error'), exprText, columnNumber, lineNumber, scriptName)}
+endfunction
+
+
+# Helper function to parse a binary operator expression chain. Returns an [expression, nextText]
+# array pair, or null on failure with the error object's "error" and "line" keys set.
+function barescriptParserBinaryExpression(exprText, arrayLiterals, error):
+    # Parse the binary operator's left unary expression
+    leftAndNext = barescriptParserUnaryExpression(exprText, arrayLiterals, error)
+    if leftAndNext == null:
+        return null
+    endif
+    leftExpr = arrayGet(leftAndNext, 0)
+    binText = arrayGet(leftAndNext, 1)
+
+    # Consume binary operators while present, building up the binary expression tree
+    while true:
+        # Match a binary operator or the end of the expression (whitespace-only or end-of-line comment)
+        matchBinaryOp = regexMatch(barescriptParserRegexBinaryOp, binText)
+        if matchBinaryOp == null:
+            return [leftExpr, binText]
+        endif
+        binaryOpGroups = objectGet(matchBinaryOp, 'groups')
+        binOp = objectGet(binaryOpGroups, 'op')
+
+        # End of binary expression?
+        if binOp == null:
+            return [leftExpr, '']
+        endif
+        rightText = stringSlice(binText, stringLength(objectGet(binaryOpGroups, '0')))
+
+        # Parse the right sub-expression
+        rightAndNext = barescriptParserUnaryExpression(rightText, arrayLiterals, error)
+        if rightAndNext == null:
+            return null
+        endif
+        rightExpr = arrayGet(rightAndNext, 0)
+        nextText = arrayGet(rightAndNext, 1)
+
+        # Create the binary expression - re-order for binary operators as necessary
+        binaryReorder = objectGet(barescriptParserBinaryReorder, binOp)
+        leftExprBinary = objectGet(leftExpr, 'binary')
+        if leftExprBinary != null && objectHas(binaryReorder, objectGet(leftExprBinary, 'op')):
+            # Left expression has lower precendence - find where to put this expression within the left expression
+            reorderExpr = leftExpr
+            reorderRightBinary = objectGet(objectGet(objectGet(reorderExpr, 'binary'), 'right'), 'binary')
+            while reorderRightBinary != null && objectHas(binaryReorder, objectGet(reorderRightBinary, 'op')):
+                reorderExpr = objectGet(objectGet(reorderExpr, 'binary'), 'right')
+                reorderRightBinary = objectGet(objectGet(objectGet(reorderExpr, 'binary'), 'right'), 'binary')
+            endwhile
+            objectSet(objectGet(reorderExpr, 'binary'), 'right', \
+                {'binary': {'op': binOp, 'left': objectGet(objectGet(reorderExpr, 'binary'), 'right'), 'right': rightExpr}})
+        else:
+            leftExpr = {'binary': {'op': binOp, 'left': leftExpr, 'right': rightExpr}}
+        endif
+
+        binText = nextText
+    endwhile
+endfunction
+
+
+# Binary operator re-order map
+barescriptParserBinaryReorder = { \
+    '**': {'*': true, '/': true, '%': true, '+': true, '-': true, '<<': true, '>>': true, '<=': true, '<': true, \
+        '>=': true, '>': true, '==': true, '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '*': {'+': true, '-': true, '<<': true, '>>': true, '<=': true, '<': true, '>=': true, '>': true, '==': true, \
+        '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '/': {'+': true, '-': true, '<<': true, '>>': true, '<=': true, '<': true, '>=': true, '>': true, '==': true, \
+        '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '%': {'+': true, '-': true, '<<': true, '>>': true, '<=': true, '<': true, '>=': true, '>': true, '==': true, \
+        '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '+': {'<<': true, '>>': true, '<=': true, '<': true, '>=': true, '>': true, '==': true, '!=': true, '&': true, \
+        '^': true, '|': true, '&&': true, '||': true}, \
+    '-': {'<<': true, '>>': true, '<=': true, '<': true, '>=': true, '>': true, '==': true, '!=': true, '&': true, \
+        '^': true, '|': true, '&&': true, '||': true}, \
+    '<<': {'<=': true, '<': true, '>=': true, '>': true, '==': true, '!=': true, '&': true, '^': true, '|': true, \
+        '&&': true, '||': true}, \
+    '>>': {'<=': true, '<': true, '>=': true, '>': true, '==': true, '!=': true, '&': true, '^': true, '|': true, \
+        '&&': true, '||': true}, \
+    '<=': {'==': true, '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '<': {'==': true, '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '>=': {'==': true, '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '>': {'==': true, '!=': true, '&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '==': {'&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '!=': {'&': true, '^': true, '|': true, '&&': true, '||': true}, \
+    '&': {'^': true, '|': true, '&&': true, '||': true}, \
+    '^': {'|': true, '&&': true, '||': true}, \
+    '|': {'&&': true, '||': true}, \
+    '&&': {'||': true}, \
+    '||': {} \
+}
+
+
+# Helper function to parse a unary expression. Returns an [expression, nextText] array pair,
+# or null on failure with the error object's "error" and "line" keys set.
+function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
+    # Match the expression's leading token - null is a syntax error
+    matchToken = regexMatch(barescriptParserRegexToken, exprText)
+    if matchToken == null:
+        objectSet(error, 'error', 'Syntax error')
+        objectSet(error, 'line', exprText)
+        return null
+    endif
+    tokenGroups = objectGet(matchToken, 'groups')
+    nextText = stringSlice(exprText, stringLength(objectGet(tokenGroups, '0')))
+
+    # Variable or function call?
+    variableName = objectGet(tokenGroups, 'var')
+    if variableName != null:
+        # Not a function call?
+        if objectGet(tokenGroups, 'fnopen') == null:
+            return [{'variable': variableName}, nextText]
+        endif
+
+        # Function call - parse the arguments
+        argText = nextText
+        args = []
+        while true:
+            # Function close?
+            matchFunctionClose = regexMatch(barescriptParserRegexFunctionClose, argText)
+            if matchFunctionClose != null:
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionClose, 'groups'), '0')))
+                break
+            endif
+
+            # Function argument separator
+            if arrayLength(args) != 0:
+                matchFunctionSeparator = regexMatch(barescriptParserRegexFunctionSeparator, argText)
+                if matchFunctionSeparator == null:
+                    objectSet(error, 'error', 'Syntax error')
+                    objectSet(error, 'line', argText)
+                    return null
+                endif
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionSeparator, 'groups'), '0')))
+            endif
+
+            # Get the argument
+            argAndNext = barescriptParserBinaryExpression(argText, arrayLiterals, error)
+            if argAndNext == null:
+                return null
+            endif
+            argText = arrayGet(argAndNext, 1)
+            arrayPush(args, arrayGet(argAndNext, 0))
+        endwhile
+        return [{'function': {'name': variableName, 'args': args}}, argText]
+    endif
+
+    # String?
+    string = objectGet(tokenGroups, 'str')
+    string = if(string != null, string, objectGet(tokenGroups, 'strd'))
+    if string != null:
+        return [{'string': barescriptParserStringEscape(string)}, nextText]
+    endif
+
+    # Number?
+    numberStr = objectGet(tokenGroups, 'num')
+    if numberStr != null:
+        number = if(stringStartsWith(numberStr, '0x'), numberParseInt(stringSlice(numberStr, 2), 16), numberParseFloat(numberStr))
+        return [{'number': number}, nextText]
+    endif
+
+    # Punctuation token: unary operator, group, object creation, array creation, or bracket-variable
+    punc = objectGet(tokenGroups, 'punc')
+
+    # Unary operator? '!', '-', '~'
+    if punc == '!' || punc == '-' || punc == '~':
+        exprAndNext = barescriptParserUnaryExpression(nextText, arrayLiterals, error)
+        if exprAndNext == null:
+            return null
+        endif
+        return [{'unary': {'op': punc, 'expr': arrayGet(exprAndNext, 0)}}, arrayGet(exprAndNext, 1)]
+    endif
+
+    # Group? '('
+    if punc == '(':
+        exprAndNext = barescriptParserBinaryExpression(nextText, arrayLiterals, error)
+        if exprAndNext == null:
+            return null
+        endif
+        groupText = arrayGet(exprAndNext, 1)
+        matchGroupClose = regexMatch(barescriptParserRegexGroupClose, groupText)
+        if matchGroupClose == null:
+            objectSet(error, 'error', 'Unmatched parenthesis')
+            objectSet(error, 'line', exprText)
+            return null
+        endif
+        return [{'group': arrayGet(exprAndNext, 0)}, stringSlice(groupText, stringLength(objectGet(objectGet(matchGroupClose, 'groups'), '0')))]
+    endif
+
+    # Object creation? '{'
+    if punc == '{':
+        argText = nextText
+        args = []
+        while true:
+            # Object close?
+            matchObjectClose = regexMatch(barescriptParserRegexObjectClose, argText)
+            if matchObjectClose != null:
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectClose, 'groups'), '0')))
+                break
+            endif
+
+            # Key/value pair separator
+            if arrayLength(args) != 0:
+                matchObjectSeparator = regexMatch(barescriptParserRegexObjectSeparator, argText)
+                if matchObjectSeparator == null:
+                    objectSet(error, 'error', 'Syntax error')
+                    objectSet(error, 'line', argText)
+                    return null
+                endif
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectSeparator, 'groups'), '0')))
+            endif
+
+            # Get the key
+            keyAndNext = barescriptParserBinaryExpression(argText, arrayLiterals, error)
+            if keyAndNext == null:
+                return null
+            endif
+            argText = arrayGet(keyAndNext, 1)
+            arrayPush(args, arrayGet(keyAndNext, 0))
+
+            # Key/value separator
+            if arrayLength(args) != 0:
+                matchObjectSeparatorKey = regexMatch(barescriptParserRegexObjectSeparatorKey, argText)
+                if matchObjectSeparatorKey == null:
+                    objectSet(error, 'error', 'Syntax error')
+                    objectSet(error, 'line', argText)
+                    return null
+                endif
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectSeparatorKey, 'groups'), '0')))
+            endif
+
+            # Get the value
+            valueAndNext = barescriptParserBinaryExpression(argText, arrayLiterals, error)
+            if valueAndNext == null:
+                return null
+            endif
+            argText = arrayGet(valueAndNext, 1)
+            arrayPush(args, arrayGet(valueAndNext, 0))
+        endwhile
+        return [{'function': {'name': 'objectNew', 'args': args}}, argText]
+    endif
+
+    # Array creation? '['
+    if punc == '[' && arrayLiterals:
+        argText = nextText
+        args = []
+        while true:
+            # Array close?
+            matchArrayClose = regexMatch(barescriptParserRegexArrayClose, argText)
+            if matchArrayClose != null:
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArrayClose, 'groups'), '0')))
+                break
+            endif
+
+            # Array value separator
+            if arrayLength(args) != 0:
+                matchArraySeparator = regexMatch(barescriptParserRegexArraySeparator, argText)
+                if matchArraySeparator == null:
+                    objectSet(error, 'error', 'Syntax error')
+                    objectSet(error, 'line', argText)
+                    return null
+                endif
+                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArraySeparator, 'groups'), '0')))
+            endif
+
+            # Get the value
+            valueAndNext = barescriptParserBinaryExpression(argText, arrayLiterals, error)
+            if valueAndNext == null:
+                return null
+            endif
+            argText = arrayGet(valueAndNext, 1)
+            arrayPush(args, arrayGet(valueAndNext, 0))
+        endwhile
+        return [{'function': {'name': 'arrayNew', 'args': args}}, argText]
+    endif
+
+    # Variable (brackets)
+    matchVariableEx = regexMatch(barescriptParserRegexVariableEx, exprText)
+    if matchVariableEx == null:
+        objectSet(error, 'error', 'Syntax error')
+        objectSet(error, 'line', exprText)
+        return null
+    endif
+    variableName = regexReplace(barescriptParserRegexVariableExEscape, objectGet(objectGet(matchVariableEx, 'groups'), '1'), '$1')
+    return [{'variable': variableName}, stringSlice(exprText, stringLength(objectGet(objectGet(matchVariableEx, 'groups'), '0')))]
+endfunction
+
+
+# BareScript expression regex
+barescriptParserRegexBinaryOp = regexNew('^\\s*(?:(?<op>\\*\\*|\\*|/|%|\\+|-|<<|>>|<=|<|>=|>|==|!=|&&|\\|\\||&|\\^|\\|)|#|$)')
+barescriptParserRegexToken = regexNew( \
+    '^\\s*(?:' + \
+        '(?<var>[A-Za-z_][A-Za-z0-9_]*)(?<fnopen>\\s*\\()?|' + \
+        "'(?<str>(?:\\\\\\\\|\\\\'|[^'])*)'|" + \
+        '"(?<strd>(?:\\\\\\\\|\\\\"|[^"])*)"|' + \
+        '(?<num>0x[A-Fa-f0-9]+|[+-]?[0-9]+(?:\\.[0-9]*)?(?:e[+-]?[0-9]+)?)|' + \
+        '(?<punc>[!~({\\[-])' + \
+    ')')
+barescriptParserRegexFunctionSeparator = regexNew('^\\s*,')
+barescriptParserRegexFunctionClose = regexNew('^\\s*\\)')
+barescriptParserRegexGroupClose = regexNew('^\\s*\\)')
+barescriptParserRegexArraySeparator = regexNew('^\\s*,')
+barescriptParserRegexArrayClose = regexNew('^\\s*\\]')
+barescriptParserRegexObjectSeparatorKey = regexNew('^\\s*:')
+barescriptParserRegexObjectSeparator = regexNew('^\\s*,')
+barescriptParserRegexObjectClose = regexNew('^\\s*\\}')
+barescriptParserRegexVariableEx = regexNew('^\\s*\\[\\s*((?:\\\\\\]|[^\\]])+)\\s*\\]')
+barescriptParserRegexVariableExEscape = regexNew('\\\\([\\\\\\]])')
+
+
+# String literal escapes
+barescriptParserRegexStringEscapes = regexNew('\\\\([nrtbf\'"\\\\]|u[0-9a-fA-F]{4})')
+barescriptParserStringEscapes = { \
+    'n': '\n', \
+    'r': '\r', \
+    't': '\t', \
+    'b': '\b', \
+    'f': '\f', \
+    "'": "'", \
+    '"': '"', \
+    '\\': '\\' \
+}
+
+
+# Helper function to replace string literal escapes
+function barescriptParserStringEscape(text):
+    # No escapes?
+    if stringIndexOf(text, '\\') == -1:
+        return text
+    endif
+
+    # Replace each escape
+    parts = []
+    ixText = 0
+    for match in regexMatchAll(barescriptParserRegexStringEscapes, text):
+        matchGroups = objectGet(match, 'groups')
+        ixMatch = objectGet(match, 'index')
+        arrayPush(parts, stringSlice(text, ixText, ixMatch))
+        esc = objectGet(matchGroups, '1')
+        if stringStartsWith(esc, 'u'):
+            arrayPush(parts, stringFromCharCode(numberParseInt(stringSlice(esc, 1), 16)))
+        else:
+            arrayPush(parts, objectGet(barescriptParserStringEscapes, esc))
+        endif
+        ixText = ixMatch + stringLength(objectGet(matchGroups, '0'))
+    endfor
+    arrayPush(parts, stringSlice(text, ixText))
+    return arrayJoin(parts, '')
+endfunction
+
+
+# Helper function to create a parser error object. The error object contains the "error" (the error
+# description), "line" (the line text), "columnNumber", "lineNumber", "scriptName", and "message" keys.
+function barescriptParserError(error, line, columnNumber, lineNumber, scriptName):
+    # Parser error constants
+    lineLengthMax = 120
+    lineSuffix = ' ...'
+    linePrefix = '... '
+
+    # Trim the error line, if necessary
+    lineError = line
+    lineColumn = columnNumber
+    if stringLength(line) > lineLengthMax:
+        lineLeft = columnNumber - 1 - lineLengthMax / 2
+        lineRight = lineLeft + lineLengthMax
+        if lineLeft < 0:
+            lineError = stringSlice(line, 0, lineLengthMax) + lineSuffix
+        elif lineRight > stringLength(line):
+            lineError = linePrefix + stringSlice(line, stringLength(line) - lineLengthMax)
+            lineColumn = lineColumn - (lineLeft - stringLength(linePrefix) - (lineRight - stringLength(line)))
+        else:
+            lineError = linePrefix + stringSlice(line, lineLeft, lineRight) + lineSuffix
+            lineColumn = lineColumn - (lineLeft - stringLength(linePrefix))
+        endif
+    endif
+
+    # Format the message
+    errorPrefix = if(lineNumber, if(scriptName != null, scriptName, '') + ':' + lineNumber + ': ', '')
+    message = errorPrefix + error + '\n' + lineError + '\n' + stringRepeat(' ', lineColumn - 1) + '^\n'
+    return { \
+        'error': error, \
+        'line': line, \
+        'columnNumber': columnNumber, \
+        'lineNumber': lineNumber, \
+        'scriptName': scriptName, \
+        'message': message \
+    }
+endfunction

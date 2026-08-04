@@ -2,12 +2,12 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    dataAggregate, dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort,
-    dataTableElements, dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString, elementModelValidate,
-    includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape, markdownHeaderId, markdownParagraphText, markdownParse,
-    markdownTitle, markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes,
-    schemaGetStructMembers, schemaParse, schemaTypeModel, schemaTypeModelValidate, schemaValidate, urlDecodeComponent,
-    urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
+    barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, dataAggregate, dataCalculatedField, dataFilter, dataJoin,
+    dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop,
+    dataValidate, elementModelToString, elementModelValidate, includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape,
+    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownValidate, qrcodeElements, qrcodeMatrix,
+    schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel,
+    schemaTypeModelValidate, schemaValidate, urlDecodeComponent, urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -34,6 +34,54 @@ test('includeSetLogFn', () => {
     } finally {
         includeSetLogFn(null);
     }
+});
+
+
+test('barescriptModel, barescriptTypeModel', () => {
+    const typeModel = barescriptTypeModel();
+    assert.equal('BareScript' in typeModel, true);
+    assert.equal('ScriptStatement' in typeModel, true);
+    assert.equal('Expression' in typeModel, true);
+});
+
+
+test('barescriptModel, barescriptValidateExpression', () => {
+    const expr = {'number': 1};
+    assert.deepEqual(barescriptValidateExpression(expr), expr);
+});
+
+
+test('barescriptModel, barescriptValidateExpression error', () => {
+    assert.throws(
+        () => {
+            barescriptValidateExpression({});
+        },
+        {
+            'name': 'SchemaValidationError',
+            'message': 'Invalid value {} (type "object"), expected type "Expression"',
+            'memberFqn': null
+        }
+    );
+});
+
+
+test('barescriptModel, barescriptValidateScript', () => {
+    const script = {'statements': []};
+    assert.deepEqual(barescriptValidateScript(script), script);
+});
+
+
+test('barescriptModel, barescriptValidateScript error', () => {
+    assert.throws(
+        () => {
+            barescriptValidateScript({});
+        },
+        {
+            'name': 'SchemaValidationError',
+            'message': 'Required member "statements" missing',
+            'memberFqn': null
+        }
+    );
 });
 
 

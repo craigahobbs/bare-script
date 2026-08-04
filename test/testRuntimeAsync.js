@@ -4,8 +4,8 @@
 /* eslint-disable require-await */
 
 import {BareScriptRuntimeError, systemGlobalCoverageName, systemGlobalIncludesName} from '../lib/runtime.js';
+import {barescriptValidateExpression, barescriptValidateScript} from '../lib/include.js';
 import {evaluateExpressionAsync, executeScriptAsync} from '../lib/runtimeAsync.js';
-import {validateExpression, validateScript} from '../lib/model.js';
 import {ValueArgsError} from '../lib/value.js';
 import {strict as assert} from 'node:assert';
 import {systemIncludes} from '../lib/includeSource.js';
@@ -13,7 +13,7 @@ import test from 'node:test';
 
 
 test('executeScriptAsync', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
             {'expr': {'name': 'b', 'expr': {'number': 7}}},
@@ -27,7 +27,7 @@ test('executeScriptAsync', async () => {
 
 
 test('executeScriptAsync, global override', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'systemFetch', 'args': [{'string': 'the-url'}]}}
@@ -44,7 +44,7 @@ test('executeScriptAsync, global override', async () => {
 
 
 test('executeScriptAsync, library function override', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'mathSqrt', 'args': [{'number': 16}]}}
@@ -62,7 +62,7 @@ test('executeScriptAsync, library function override', async () => {
 
 
 test('executeScriptAsync, coverage', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'async function main():',
@@ -296,7 +296,7 @@ test('executeScript, coverage include', async () => {
         return {'ok': true, 'text': () => 'b = 2'};
     };
 
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'include <sysutil.bare>',
@@ -359,7 +359,7 @@ test('executeScript, coverage include', async () => {
 
 
 test('executeScriptAsync, coverage disabled', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'include <sysutil.bare>',
@@ -387,7 +387,7 @@ test('executeScriptAsync, coverage disabled', async () => {
 
 
 test('executeScriptAsync, coverage non-object', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'a = 5',
@@ -407,7 +407,7 @@ test('executeScriptAsync, coverage non-object', async () => {
 
 
 test('executeScriptAsync, coverage no name', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptLines': [
             'a = 5',
             'b = 7',
@@ -426,7 +426,7 @@ test('executeScriptAsync, coverage no name', async () => {
 
 
 test('executeScriptAsync, coverage no linenos', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'scriptLines': [
             'a = 5',
@@ -447,7 +447,7 @@ test('executeScriptAsync, coverage no linenos', async () => {
 
 test('executeScriptAsync, function', async () => {
     const options = {'globals': {}};
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -473,7 +473,7 @@ test('executeScriptAsync, function', async () => {
 
 
 test('executeScriptAsync, function missing arg', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -496,7 +496,7 @@ test('executeScriptAsync, function missing arg', async () => {
 
 
 test('executeScriptAsync, function lastArgArray', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -520,7 +520,7 @@ test('executeScriptAsync, function lastArgArray', async () => {
 
 
 test('executeScriptAsync, function lastArgArray missing', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -544,7 +544,7 @@ test('executeScriptAsync, function lastArgArray missing', async () => {
 
 
 test('executeScriptAsync, function lastArgArray missing intermediate', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -571,7 +571,7 @@ test('executeScriptAsync, function lastArgArray missing intermediate', async () 
 
 test('executeScriptAsync, function async', async () => {
     const options = {'globals': {}};
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -598,7 +598,7 @@ test('executeScriptAsync, function async', async () => {
 
 
 test('executeScriptAsync, function async missing arg', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -622,7 +622,7 @@ test('executeScriptAsync, function async missing arg', async () => {
 
 
 test('executeScriptAsync, function async lastArgArray', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -647,7 +647,7 @@ test('executeScriptAsync, function async lastArgArray', async () => {
 
 
 test('executeScriptAsync, function async lastArgArray missing', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -672,7 +672,7 @@ test('executeScriptAsync, function async lastArgArray missing', async () => {
 
 
 test('executeScriptAsync, function async lastArgArray missing intermediate', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -699,7 +699,7 @@ test('executeScriptAsync, function async lastArgArray missing intermediate', asy
 
 
 test('executeScriptAsync, function error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -715,7 +715,7 @@ test('executeScriptAsync, function error', async () => {
 
 
 test('executeScriptAsync, function argument error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -731,7 +731,7 @@ test('executeScriptAsync, function argument error', async () => {
 
 
 test('executeScriptAsync, function error log', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -752,7 +752,7 @@ test('executeScriptAsync, function error log', async () => {
 
 
 test('executeScriptAsync, function error log no-debug', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {
                 'expr': {'function': {'name': 'errorFunction'}}
@@ -774,7 +774,7 @@ test('executeScriptAsync, function error log no-debug', async () => {
 
 
 test('executeScriptAsync, function native call', () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -799,7 +799,7 @@ test('executeScriptAsync, function native call', () => {
 
 
 test('executeScriptAsync, function args model mutation', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -822,7 +822,7 @@ test('executeScriptAsync, function args model mutation', async () => {
 
 
 test('executeScriptAsync, function async native call', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -848,7 +848,7 @@ test('executeScriptAsync, function async native call', async () => {
 
 
 test('executeScriptAsync, jump', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 5}}},
             {'jump': {'label': 'lab2'}},
@@ -867,7 +867,7 @@ test('executeScriptAsync, jump', async () => {
 
 
 test('executeScriptAsync, jumpif', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'n', 'expr': {'number': 10}}},
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
@@ -895,7 +895,7 @@ test('executeScriptAsync, jumpif', async () => {
 
 
 test('executeScriptAsync, jumpif non-boolean', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'jump': {
                 'label': 'label',
@@ -911,7 +911,7 @@ test('executeScriptAsync, jumpif non-boolean', async () => {
 
 
 test('executeScriptAsync, jump error unknown label', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'jump': {'label': 'unknownLabel'}}
         ]
@@ -927,7 +927,7 @@ test('executeScriptAsync, jump error unknown label', async () => {
 
 
 test('executeScriptAsync, jump error unknown label script name', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'scriptName': 'test.bare',
         'statements': [
             {'jump': {'label': 'unknownLabel', 'lineNumber': 1}}
@@ -944,7 +944,7 @@ test('executeScriptAsync, jump error unknown label script name', async () => {
 
 
 test('executeScriptAsync, jump label indexes cache', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -971,7 +971,7 @@ test('executeScriptAsync, jump label indexes cache', async () => {
 
 
 test('executeScriptAsync, jump prototype label names', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'a', 'expr': {'number': 1}}},
             {'jump': {'label': 'skip'}},
@@ -1001,7 +1001,7 @@ test('executeScriptAsync, unknown statement no-op', async () => {
 
 
 test('executeScriptAsync, return', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {'expr': {'number': 5}}}
         ]
@@ -1011,7 +1011,7 @@ test('executeScriptAsync, return', async () => {
 
 
 test('executeScriptAsync, return blank', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'return': {}}
         ]
@@ -1021,7 +1021,7 @@ test('executeScriptAsync, return blank', async () => {
 
 
 test('executeScriptAsync, include', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1044,7 +1044,7 @@ a = 1
 
 
 test('executeScriptAsync, include twice', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}},
             {'include': {'includes': [{'url': 'test.bare'}]}}
@@ -1065,7 +1065,7 @@ test('executeScriptAsync, include twice', async () => {
 
 
 test('executeScriptAsync, include nested', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}},
             {'include': {'includes': [{'url': 'test2.bare'}]}},
@@ -1102,7 +1102,7 @@ include 'test3.bare'
 
 
 test('executeScriptAsync, include no fetchFn', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1118,7 +1118,7 @@ test('executeScriptAsync, include no fetchFn', async () => {
 
 
 test('executeScriptAsync, include system', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1136,7 +1136,7 @@ test('executeScriptAsync, include system', async () => {
 
 
 test('executeScriptAsync, include system and local same name', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}, {'url': 'test.bare'}]}}
         ]
@@ -1162,7 +1162,7 @@ test('executeScriptAsync, include system and local same name', async () => {
 
 
 test('executeScriptAsync, include local and system same name', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}},
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
@@ -1189,7 +1189,7 @@ test('executeScriptAsync, include local and system same name', async () => {
 
 
 test('executeScriptAsync, include system unknown', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1205,7 +1205,7 @@ test('executeScriptAsync, include system unknown', async () => {
 
 
 test('executeScriptAsync, include system with urlFn', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}]}}
         ]
@@ -1224,7 +1224,7 @@ test('executeScriptAsync, include system with urlFn', async () => {
 
 
 test('executeScriptAsync, include multiple', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare', 'system': true}, {'url': 'test2.bare'}]}}
         ]
@@ -1249,7 +1249,7 @@ test('executeScriptAsync, include multiple', async () => {
 
 
 test('executeScriptAsync, include subdir', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'lib/test.bare'}]}}
         ]
@@ -1272,7 +1272,7 @@ a = 1
 
 
 test('executeScriptAsync, include absolute', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1294,8 +1294,21 @@ a = 1
 });
 
 
+test('executeScriptAsync, include system JSON model', async () => {
+    // The barescriptParser.bare system include is the parser-compiled JSON script model
+    const script = barescriptValidateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'barescriptParser.bare', 'system': true}]}}
+        ]
+    });
+    const options = {'globals': {}};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(typeof options.globals.barescriptParseScriptEx, 'function');
+});
+
+
 test('executeScriptAsync, include lint', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1324,7 +1337,7 @@ endfunction
 
 
 test('executeScriptAsync, include lint multiple', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1354,7 +1367,7 @@ endfunction
 
 
 test('executeScriptAsync, include lint OK', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1381,7 +1394,7 @@ endfunction
 
 
 test('executeScriptAsync, include fetchFn not-ok', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1405,7 +1418,7 @@ test('executeScriptAsync, include fetchFn not-ok', async () => {
 
 
 test('executeScriptAsync, include fetchFn response error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1425,7 +1438,7 @@ test('executeScriptAsync, include fetchFn response error', async () => {
 
 
 test('executeScriptAsync, include fetchFn text error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1451,7 +1464,7 @@ test('executeScriptAsync, include fetchFn text error', async () => {
 
 
 test('executeScriptAsync, include fetchFn parser error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
@@ -1479,7 +1492,7 @@ foo bar
 
 
 test('executeScriptAsync, error maxStatements', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -1507,7 +1520,7 @@ test('executeScriptAsync, error maxStatements', async () => {
 
 
 test('executeScriptAsync, error maxStatements library error', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': 'i', 'expr': {'number': 0}}},
             {'label': {'name': 'loop'}},
@@ -1529,7 +1542,7 @@ test('executeScriptAsync, error maxStatements library error', async () => {
 
 
 test('evaluateExpressionAsync', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '+',
             'left': {'number': 7},
@@ -1552,27 +1565,27 @@ test('evaluateExpressionAsync', async () => {
 
 
 test('evaluateExpressionAsync, no globals', async () => {
-    const expr = validateExpression({'string': 'abc'});
+    const expr = barescriptValidateExpression({'string': 'abc'});
     const options = {};
     assert.equal(await evaluateExpressionAsync(expr, options), 'abc');
 });
 
 
 test('evaluateExpressionAsync, string', async () => {
-    const expr = validateExpression({'string': 'abc'});
+    const expr = barescriptValidateExpression({'string': 'abc'});
     assert.equal(await evaluateExpressionAsync(expr), 'abc');
 });
 
 
 test('evaluateExpressionAsync, variable', async () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
     assert.equal(await evaluateExpressionAsync(expr, options), 4);
 });
 
 
 test('evaluateExpressionAsync, variable local', async () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const locals = {'varName': 4};
     assert.equal(await evaluateExpressionAsync(expr, null, locals), 4);
     assert.deepEqual(locals, {'varName': 4});
@@ -1580,7 +1593,7 @@ test('evaluateExpressionAsync, variable local', async () => {
 
 
 test('evaluateExpressionAsync, variable null local non-null global', async () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     const options = {'globals': {'varName': 4}};
     const locals = {'varName': null};
     assert.equal(await evaluateExpressionAsync(expr, options, locals), null);
@@ -1588,7 +1601,7 @@ test('evaluateExpressionAsync, variable null local non-null global', async () =>
 
 
 test('evaluateExpressionAsync, variable unknown', async () => {
-    const expr = validateExpression({'variable': 'varName'});
+    const expr = barescriptValidateExpression({'variable': 'varName'});
     assert.equal(await evaluateExpressionAsync(expr), null);
 });
 
@@ -1596,21 +1609,21 @@ test('evaluateExpressionAsync, variable unknown', async () => {
 test('evaluateExpressionAsync, variable inherited property name', async () => {
     // Inherited property names must not resolve as global variables
     const options = {'globals': {}};
-    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': '__proto__'}), options), null);
-    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': 'constructor'}), options), null);
+    assert.equal(await evaluateExpressionAsync(barescriptValidateExpression({'variable': '__proto__'}), options), null);
+    assert.equal(await evaluateExpressionAsync(barescriptValidateExpression({'variable': 'constructor'}), options), null);
 });
 
 
 test('evaluateExpressionAsync, variable undefined value', async () => {
     // A host-provided global whose own-property value is undefined resolves to null
     const options = {'globals': {'varName': undefined}};
-    assert.equal(await evaluateExpressionAsync(validateExpression({'variable': 'varName'}), options), null);
+    assert.equal(await evaluateExpressionAsync(barescriptValidateExpression({'variable': 'varName'}), options), null);
 });
 
 
 test('executeScriptAsync, variable __proto__', async () => {
     // Assigning a "__proto__" variable sets an own global, not the object prototype
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'expr': {'name': '__proto__', 'expr': {'function': {'name': 'objectNew', 'args': [{'string': 'x'}, {'number': 99}]}}}},
             {'return': {'expr': {'function': {'name': 'arrayNew', 'args': [
@@ -1629,7 +1642,7 @@ test('executeScriptAsync, variable __proto__', async () => {
 test('executeScriptAsync, function local __proto__', async () => {
     // A "__proto__" function argument is an own local, not the prototype; an unassigned local
     // (an inherited property name) does not resolve
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {'function': {
                 'name': 'testFn',
@@ -1649,25 +1662,25 @@ test('executeScriptAsync, function local __proto__', async () => {
 
 
 test('evaluateExpressionAsync, variable literal null', async () => {
-    const expr = validateExpression({'variable': 'null'});
+    const expr = barescriptValidateExpression({'variable': 'null'});
     assert.equal(await evaluateExpressionAsync(expr), null);
 });
 
 
 test('evaluateExpressionAsync, variable literal true', async () => {
-    const expr = validateExpression({'variable': 'true'});
+    const expr = barescriptValidateExpression({'variable': 'true'});
     assert.equal(await evaluateExpressionAsync(expr), true);
 });
 
 
 test('evaluateExpressionAsync, variable literal false', async () => {
-    const expr = validateExpression({'variable': 'false'});
+    const expr = barescriptValidateExpression({'variable': 'false'});
     assert.equal(await evaluateExpressionAsync(expr), false);
 });
 
 
 test('evaluateExpressionAsync, function', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'myFunc',
             'args': [{'number': 1}, {'number': 2}]
@@ -1683,7 +1696,7 @@ test('evaluateExpressionAsync, function', async () => {
 
 
 test('evaluateExpressionAsync, function no return', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'myFunc'
         }
@@ -1700,7 +1713,7 @@ test('evaluateExpressionAsync, function no return', async () => {
 
 
 test('evaluateExpressionAsync, function if', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1730,7 +1743,7 @@ test('evaluateExpressionAsync, function if', async () => {
 
 
 test('evaluateExpressionAsync, function if non-boolean', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1750,7 +1763,7 @@ test('evaluateExpressionAsync, function if non-boolean', async () => {
 
 
 test('evaluateExpressionAsync, function if no value expression', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if'
         }
@@ -1760,7 +1773,7 @@ test('evaluateExpressionAsync, function if no value expression', async () => {
 
 
 test('evaluateExpressionAsync, function if no true expression', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1774,7 +1787,7 @@ test('evaluateExpressionAsync, function if no true expression', async () => {
 
 
 test('evaluateExpressionAsync, function if no false expression', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'if',
             'args': [
@@ -1789,7 +1802,7 @@ test('evaluateExpressionAsync, function if no false expression', async () => {
 
 
 test('evaluateExpressionAsync, function builtin', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'abs',
             'args': [
@@ -1803,7 +1816,7 @@ test('evaluateExpressionAsync, function builtin', async () => {
 
 
 test('evaluateExpressionAsync, function no-builtins', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'abs',
             'args': [
@@ -1823,7 +1836,7 @@ test('evaluateExpressionAsync, function no-builtins', async () => {
 
 
 test('evaluateExpressionAsync, function global', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnName',
             'args': [
@@ -1837,7 +1850,7 @@ test('evaluateExpressionAsync, function global', async () => {
 
 
 test('evaluateExpressionAsync, function local', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1852,7 +1865,7 @@ test('evaluateExpressionAsync, function local', async () => {
 
 
 test('evaluateExpressionAsync, function local null', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1873,7 +1886,7 @@ test('evaluateExpressionAsync, function local null', async () => {
 
 
 test('evaluateExpressionAsync, function non-function', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1887,7 +1900,7 @@ test('evaluateExpressionAsync, function non-function', async () => {
 
 
 test('evaluateExpressionAsync, function non-function logFn', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnLocal',
             'args': [
@@ -1907,7 +1920,7 @@ test('evaluateExpressionAsync, function non-function logFn', async () => {
 
 test('evaluateExpressionAsync, function inherited property name', async () => {
     // Inherited property names must not resolve as callable global functions
-    const expr = validateExpression({'function': {'name': 'constructor'}});
+    const expr = barescriptValidateExpression({'function': {'name': 'constructor'}});
     const options = {'globals': {}};
     await assert.rejects(
         async () => await evaluateExpressionAsync(expr, options),
@@ -1920,7 +1933,7 @@ test('evaluateExpressionAsync, function inherited property name', async () => {
 
 
 test('evaluateExpressionAsync, function unknown', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnUnknown',
             'args': [
@@ -1941,7 +1954,7 @@ test('evaluateExpressionAsync, function unknown', async () => {
 
 
 test('evaluateExpressionAsync, function unknown no globals', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnUnknown',
             'args': [
@@ -1961,7 +1974,7 @@ test('evaluateExpressionAsync, function unknown no globals', async () => {
 
 
 test('evaluateExpressionAsync, script function no globals', async () => {
-    const script = validateScript({
+    const script = barescriptValidateScript({
         'statements': [
             {
                 'function': {
@@ -1975,7 +1988,7 @@ test('evaluateExpressionAsync, script function no globals', async () => {
     });
     const globals = {};
     await executeScriptAsync(script, {'globals': globals});
-    const expr = validateExpression({'function': {'name': 'fn', 'args': []}});
+    const expr = barescriptValidateExpression({'function': {'name': 'fn', 'args': []}});
 
     // Options with globals - the script function call succeeds
     assert.equal(await evaluateExpressionAsync(expr, {'globals': globals}), 5);
@@ -1989,7 +2002,7 @@ test('evaluateExpressionAsync, script function no globals', async () => {
 
 
 test('evaluateExpressionAsync, function async', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'fnAsync'
         }
@@ -2000,7 +2013,7 @@ test('evaluateExpressionAsync, function async', async () => {
 
 
 test('evaluateExpressionAsync, function runtime error', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'function': {
             'name': 'test'
         }
@@ -2023,7 +2036,7 @@ test('evaluateExpressionAsync, function runtime error', async () => {
 
 
 test('evaluateExpressionAsync, binary logical and', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '&&',
             'left': {'variable': 'leftValue'},
@@ -2049,7 +2062,7 @@ test('evaluateExpressionAsync, binary logical and', async () => {
 
 
 test('evaluateExpressionAsync, binary logical or', async () => {
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'binary': {
             'op': '||',
             'left': {'variable': 'leftValue'},
@@ -2079,47 +2092,63 @@ test('evaluateExpressionAsync, binary addition', async () => {
     const options = {'globals': {testDate, testNumber, testString}};
 
     // number + number
-    let expr = validateExpression({'binary': {'op': '+', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 12);
 
     // string + string
-    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testString'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testString'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 'fooabc');
 
     // string + <non-string>
-    expr = validateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'string': 'foo'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 'foo2');
 
     // <non-string> + string
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'string': 'foo'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'string': 'foo'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), '2foo');
 
     // datetime + number
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'number': 86400000}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'number': 86400000}}});
     assert.deepEqual(await evaluateExpressionAsync(expr, options), new Date(2024, 1, 7));
 
     // number + datetime
-    expr = validateExpression({'binary': {'op': '+', 'left': {'number': -86400000}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'number': -86400000},
+        'right': {'function': {'name': 'testDate'}}
+    }});
     assert.deepEqual(await evaluateExpressionAsync(expr, options), new Date(2024, 1, 5));
 
     // Invalid - bool + number
-    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number + bool
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - datetime + bool
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testDate'}}, 'right': {'variable': 'true'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - bool + datetime
-    expr = validateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '+', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '+', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '+',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2128,23 +2157,35 @@ test('evaluateExpressionAsync, binary subtraction', async () => {
     const options = {'globals': {'dt2': new Date(2024, 1, 7), testDate, testNumber}};
 
     // number - number
-    let expr = validateExpression({'binary': {'op': '-', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '-', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 8);
 
     // datetime - datetime
-    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '-', 'left': {'variable': 'dt2'}, 'right': {'function': {'name': 'testDate'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 86400000);
 
     // Invalid - bool - number
-    expr = validateExpression({'binary': {'op': '-', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number - bool
-    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '-', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '-',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2153,19 +2194,31 @@ test('evaluateExpressionAsync, binary multiplication', async () => {
     const options = {'globals': {testNumber}};
 
     // number * number
-    let expr = validateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '*', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 20);
 
     // Invalid - bool * number
-    expr = validateExpression({'binary': {'op': '*', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number * bool
-    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '*', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '*',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2174,61 +2227,97 @@ test('evaluateExpressionAsync, binary division', async () => {
     const options = {'globals': {testNumber}};
 
     // number / number
-    let expr = validateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '/', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 5);
 
     // Invalid - bool / number
-    expr = validateExpression({'binary': {'op': '/', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number / bool
-    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '/', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '/',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
 
 test('evaluateExpressionAsync, binary equality', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '==', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '==',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
 });
 
 
 test('evaluateExpressionAsync, binary inequality', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '!=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '!=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
 });
 
 
 test('evaluateExpressionAsync, binary less-than-or-equal-to', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '<=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '<=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
 });
 
 
 test('evaluateExpressionAsync, binary less-than', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '<',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
 });
 
 
 test('evaluateExpressionAsync, binary greater-than-or-equal-to', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '>=', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '>=',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
 });
 
 
 test('evaluateExpressionAsync, binary greater-than', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'binary': {'op': '>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'binary': {
+        'op': '>',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
 });
 
@@ -2237,17 +2326,21 @@ test('evaluateExpressionAsync, binary comparison non-number', async () => {
     // The testNumber async function forces the runtimeAsync path; string operand exercises
     // the valueCompare fallthrough since the operands are not both numbers
     const options = {'globals': {testNumber}};
-    let expr = validateExpression({'binary': {'op': '==', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '==',
+        'left': {'string': 'a'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
-    expr = validateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '!=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
-    expr = validateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
-    expr = validateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
-    expr = validateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>=', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
-    expr = validateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>', 'left': {'string': 'a'}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), true);
 });
 
@@ -2256,19 +2349,31 @@ test('evaluateExpressionAsync, binary modulus', async () => {
     const options = {'globals': {testNumber}};
 
     // number % number
-    let expr = validateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 0);
 
     // Invalid - bool % number
-    expr = validateExpression({'binary': {'op': '%', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number % bool
-    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '%', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '%',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2277,19 +2382,35 @@ test('evaluateExpressionAsync, binary exponentiation', async () => {
     const options = {'globals': {testNumber}};
 
     // number ** number
-    let expr = validateExpression({'binary': {'op': '**', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), 100);
 
     // Invalid - bool ** number
-    expr = validateExpression({'binary': {'op': '**', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - number ** bool
-    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '**', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '**',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2310,7 +2431,7 @@ test('evaluateExpressionAsync, binary non-finite result', async () => {
         ['+', 1e308, 1e308],
         ['-', -1e308, 1e308]
     ]) {
-        const expr = validateExpression({'binary': {
+        const expr = barescriptValidateExpression({'binary': {
             'op': binOp,
             'left': {'function': {'name': 'testValue', 'args': [{'number': left}]}},
             'right': {'number': right}
@@ -2319,13 +2440,13 @@ test('evaluateExpressionAsync, binary non-finite result', async () => {
     }
 
     // Datetime addition overflow
-    let expr = validateExpression({'binary': {
+    let expr = barescriptValidateExpression({'binary': {
         'op': '+',
         'left': {'function': {'name': 'testValue', 'args': [{'variable': 'testDatetime'}]}},
         'right': {'number': 1e308}
     }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
-    expr = validateExpression({'binary': {
+    expr = barescriptValidateExpression({'binary': {
         'op': '+',
         'left': {'number': 1e308},
         'right': {'function': {'name': 'testValue', 'args': [{'variable': 'testDatetime'}]}}
@@ -2338,35 +2459,47 @@ test('evaluateExpressionAsync, binary bitwise and', async () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number & number
-    let expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '&', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '&', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '&',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2375,35 +2508,47 @@ test('evaluateExpressionAsync, binary bitwise or', async () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number | number
-    let expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 10);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 10);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 6);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '|', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '|', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '|',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2412,35 +2557,47 @@ test('evaluateExpressionAsync, binary bitwise xor', async () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number ^ number
-    let expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 8);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 8);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 6.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 4);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '^', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '^', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '^',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2449,35 +2606,51 @@ test('evaluateExpressionAsync, binary left shift', async () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number << number
-    let expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), 40);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 40);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 8);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '<<', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '<<',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2486,42 +2659,58 @@ test('evaluateExpressionAsync, binary right shift', async () => {
     const options = {'globals': {'testNumber': testNumber}};
 
     // number >> number
-    let expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'number': 10},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
 
     // Left float
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'number': 10.}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 2);
 
     // Right float
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 1.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), 1);
 
     // Invalid - left non-integer
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'number': 10.5}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right non-integer
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - left bool
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'variable': 'true'}, 'right': {'function': {'name': 'testNumber'}}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'variable': 'true'},
+        'right': {'function': {'name': 'testNumber'}}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - right bool
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'true'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'binary': {'op': '>>', 'left': {'function': {'name': 'testNumber'}}, 'right': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'binary': {
+        'op': '>>',
+        'left': {'function': {'name': 'testNumber'}},
+        'right': {'variable': 'null'}
+    }});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
 
 test('evaluateExpressionAsync, unary not', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'testNumber'}}}});
+    const expr = barescriptValidateExpression({'unary': {'op': '!', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), false);
 });
 
@@ -2530,11 +2719,11 @@ test('evaluateExpressionAsync, unary negate', async () => {
     const options = {'globals': {testNumber, testString}};
 
     // - number
-    let expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), -2);
 
     // Invalid
-    expr = validateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
+    expr = barescriptValidateExpression({'unary': {'op': '-', 'expr': {'function': {'name': 'testString'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
@@ -2543,30 +2732,30 @@ test('evaluateExpressionAsync, unary bitwise not', async () => {
     const options = {'globals': {'testNumber': testNumber, 'testString': testString}};
 
     // ~ number
-    let expr = validateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
+    let expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'function': {'name': 'testNumber'}}}});
     assert.equal(await evaluateExpressionAsync(expr, options), -3);
 
     // Float
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'number': 2.}}});
     assert.equal(await evaluateExpressionAsync(expr, options), -3);
 
     // Invalid - non-integer
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'number': 2.5}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid - bool
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'variable': 'true'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 
     // Invalid
-    expr = validateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
+    expr = barescriptValidateExpression({'unary': {'op': '~', 'expr': {'variable': 'null'}}});
     assert.equal(await evaluateExpressionAsync(expr, options), null);
 });
 
 
 test('evaluateExpressionAsync, group', async () => {
     const options = {'globals': {testNumber}};
-    const expr = validateExpression({
+    const expr = barescriptValidateExpression({
         'group': {
             'binary': {
                 'op': '*',
