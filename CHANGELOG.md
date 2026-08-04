@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0 (2026-08-04)
+
+- [7bf0107](https://github.com/craigahobbs/bare-script/commit/7bf0107) - self-host the parser - port parser, model, and lint to include libraries and embed all includes as compressed parser-compiled JSON script models
+
+  Breaking change - moved lib/parser.js `parseScript` to lib/runtime.js `barescriptParseScript`.
+
 ## 5.0.4 (2026-07-31)
 
 - [4c18bf2](https://github.com/craigahobbs/bare-script/commit/4c18bf2) - add missing include stub arguments - schemaParse types/filename/validate, schemaValidate memberFqn
