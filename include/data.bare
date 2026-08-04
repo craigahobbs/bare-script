@@ -1,6 +1,7 @@
 # Licensed under the MIT License
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
+include <barescriptParser.bare>
 include <schema.bare>
 include <schemaParser.bare>
 
@@ -286,8 +287,8 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     endfor
 
     # Parse the join expressions
-    leftExprParsed = barescriptParseExpression(joinExpr, false)
-    rightExprParsed = if(rightExpr != null, barescriptParseExpression(rightExpr, false), leftExprParsed)
+    leftExprParsed = barescriptParseExpression(joinExpr, null, null, false)
+    rightExprParsed = if(rightExpr != null, barescriptParseExpression(rightExpr, null, null, false), leftExprParsed)
 
     # Bucket the right rows by their expression value
     rightCategoryRows = {}
@@ -334,7 +335,7 @@ endfunction
 # $return: The updated data array
 function dataCalculatedField(data, fieldName, expr, variables):
     # Parse the calculation expression
-    calcExpr = barescriptParseExpression(expr, false)
+    calcExpr = barescriptParseExpression(expr, null, null, false)
 
     # Compute the calculated field for each row
     if variables != null:
@@ -362,7 +363,7 @@ function dataFilter(data, expr, variables):
     result = []
 
     # Parse the filter expression
-    filterExpr = barescriptParseExpression(expr, false)
+    filterExpr = barescriptParseExpression(expr, null, null, false)
 
     # Filter the data
     if variables != null:

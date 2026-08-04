@@ -1,7 +1,11 @@
-The "barescript" library contains functions for parsing and evaluating BareScript expressions. To
-parse and evaluate a BareScript expression:
+The "barescript" library contains functions for evaluating BareScript expressions. To parse an
+expression, use the
+[barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
+of the "barescriptParser.bare" include library. To parse and evaluate a BareScript expression:
 
 ```barescript
+include <barescriptParser.bare>
+
 exprStr = '5 * N'
 expr = barescriptParseExpression(exprStr)
 systemLog(barescriptEvaluateExpression(expr, {'N': 10}))

@@ -42,6 +42,7 @@ await executeScriptAsync(
     {
         'statements': [
             {'include': {'includes': [
+                {'url': 'barescriptModel.bare', 'system': true},
                 {'url': 'data.bare', 'system': true},
                 {'url': 'dataLineChart.bare', 'system': true},
                 {'url': 'dataTable.bare', 'system': true},
@@ -85,6 +86,53 @@ function includeOptions() {
         return {'globals': includeGlobals, 'logFn': includeLogFn, 'debug': true};
     }
     return {'globals': includeGlobals};
+}
+
+
+//
+// barescriptModel.bare
+//
+
+
+/**
+ * Get the BareScript type model
+ *
+ * @returns {Object} The BareScript [type model](https://craigahobbs.github.io/bare-script/model/)
+ */
+export function barescriptTypeModel() {
+    return includeGlobals.barescriptTypeModel([], includeOptions());
+}
+
+
+/**
+ * Validate an expression model
+ *
+ * @param {Object} expr - The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+ * @returns {Object} The validated expression model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function barescriptValidateExpression(expr) {
+    const result = includeGlobals.barescriptValidateExpressionEx([expr], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
+}
+
+
+/**
+ * Validate a BareScript model
+ *
+ * @param {Object} script - The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+ * @returns {Object} The validated BareScript model
+ * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
+ */
+export function barescriptValidateScript(script) {
+    const result = includeGlobals.barescriptValidateScriptEx([script], includeOptions());
+    if ('error' in result) {
+        throw new SchemaValidationError(result.error, result.memberFqn);
+    }
+    return result.result;
 }
 
 
@@ -701,7 +749,7 @@ export class SchemaValidationError extends Error {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_runtime.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

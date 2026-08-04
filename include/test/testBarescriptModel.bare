@@ -1,0 +1,95 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../barescriptModel.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testBarescriptTypeModel():
+    unittestMockAll()
+    typeModel = barescriptTypeModel()
+    unittestEqual(objectHas(typeModel, 'BareScript'), true)
+    unittestEqual(objectHas(typeModel, 'ScriptStatement'), true)
+    unittestEqual(objectHas(typeModel, 'Expression'), true)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptTypeModel')
+
+
+function testBarescriptValidateExpression():
+    unittestMockAll()
+    expr = {'number': 1}
+    unittestDeepEqual(barescriptValidateExpression(expr), expr)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateExpression')
+
+
+function testBarescriptValidateExpressionError():
+    unittestMockAll()
+    unittestEqual(barescriptValidateExpression({}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Invalid value {} (type "object"), expected type "Expression"']] \
+    ])
+endfunction
+unittestRunTest('testBarescriptValidateExpressionError')
+
+
+function testBarescriptValidateExpressionEx():
+    unittestMockAll()
+    expr = {'number': 1}
+    unittestDeepEqual(barescriptValidateExpressionEx(expr), {'result': expr})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateExpressionEx')
+
+
+function testBarescriptValidateExpressionExError():
+    unittestMockAll()
+    unittestDeepEqual( \
+        barescriptValidateExpressionEx({}), \
+        {'error': 'Invalid value {} (type "object"), expected type "Expression"', 'memberFqn': null} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateExpressionExError')
+
+
+function testBarescriptValidateScript():
+    unittestMockAll()
+    script = {'statements': [{'expr': {'name': 'a', 'expr': {'number': 1}}}]}
+    unittestDeepEqual(barescriptValidateScript(script), script)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateScript')
+
+
+function testBarescriptValidateScriptError():
+    unittestMockAll()
+    unittestEqual(barescriptValidateScript({}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['schema.bare: Required member "statements" missing']] \
+    ])
+endfunction
+unittestRunTest('testBarescriptValidateScriptError')
+
+
+function testBarescriptValidateScriptEx():
+    unittestMockAll()
+    script = {'statements': []}
+    unittestDeepEqual(barescriptValidateScriptEx(script), {'result': script})
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateScriptEx')
+
+
+function testBarescriptValidateScriptExError():
+    unittestMockAll()
+    unittestDeepEqual( \
+        barescriptValidateScriptEx({}), \
+        {'error': 'Required member "statements" missing', 'memberFqn': null} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptValidateScriptExError')

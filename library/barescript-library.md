@@ -28,6 +28,9 @@ documentation. The **Builtin Functions** are global functions available to every
 | [args.bare](#var.vPublish=true&var.vSingle=true&args-bare) | Parse global arguments and build application links |
 | [baredoc.bare](#var.vPublish=true&var.vSingle=true&baredoc-bare) | The BareScript library documentation application |
 | [baredocCLI.bare](#var.vPublish=true&var.vSingle=true&baredoccli-bare) | Generate library documentation models from source files |
+| [barescriptLint.bare](#var.vPublish=true&var.vSingle=true&barescriptlint-bare) | Lint BareScript models |
+| [barescriptModel.bare](#var.vPublish=true&var.vSingle=true&barescriptmodel-bare) | The BareScript type model and model validation |
+| [barescriptParser.bare](#var.vPublish=true&var.vSingle=true&barescriptparser-bare) | Parse BareScript text into BareScript models |
 | [data.bare](#var.vPublish=true&var.vSingle=true&data-bare) | Filter, sort, aggregate, and join tabular data |
 | [dataLineChart.bare](#var.vPublish=true&var.vSingle=true&datalinechart-bare) | Render tabular data as line charts |
 | [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare) | Render tabular data as tables |
@@ -440,10 +443,14 @@ The sorted array
 
 ## barescript
 
-The "barescript" library contains functions for parsing and evaluating BareScript expressions. To
-parse and evaluate a BareScript expression:
+The "barescript" library contains functions for evaluating BareScript expressions. To parse an
+expression, use the
+[barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
+of the "barescriptParser.bare" include library. To parse and evaluate a BareScript expression:
 
 ```barescript
+include <barescriptParser.bare>
+
 exprStr = '5 * N'
 expr = barescriptParseExpression(exprStr)
 systemLog(barescriptEvaluateExpression(expr, {'N': 10}))
@@ -461,7 +468,6 @@ This outputs:
 ### Function Index
 
 - [barescriptEvaluateExpression](#var.vPublish=true&var.vSingle=true&barescriptevaluateexpression)
-- [barescriptParseExpression](#var.vPublish=true&var.vSingle=true&barescriptparseexpression)
 
 ---
 
@@ -483,24 +489,6 @@ Optional (default is true). If true, include the [built-in expression functions]
 #### Returns
 
 The expression result
-
----
-
-### barescriptParseExpression
-
-Parse a BareScript expression
-
-#### Arguments
-
-**exprStr -**
-The expression string
-
-**arrayLiterals -**
-Optional (default is true). If true, allow array literals.
-
-#### Returns
-
-The [BareScript expression model](../model/#var.vName='Expression')
 
 ---
 
@@ -2790,6 +2778,349 @@ The source filename string
 #### Returns
 
 The array of errors
+
+---
+
+## barescriptLint.bare
+
+The "barescriptLint.bare" include library statically analyzes
+[BareScript models](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') for
+common mistakes: unused variables, arguments, and labels; variables used before assignment; unknown
+global variables and labels; redefined functions and labels; and pointless statements.
+
+Lint a BareScript model:
+
+~~~ bare-script
+include <barescriptLint.bare>
+
+warnings = barescriptLintScript(script)
+for warning in warnings:
+    markdownPrint('', 'Warning: ' + markdownEscape(warning))
+endfor
+~~~
+
+Pass the script's global variables to also perform the unknown-global lint checks:
+
+~~~ bare-script
+warnings = barescriptLintScript(script, globals)
+~~~
+
+
+### Function Index
+
+- [barescriptLintScript](#var.vPublish=true&var.vSingle=true&barescriptlintscript)
+
+---
+
+### barescriptLintScript
+
+Lint a BareScript model
+
+#### Arguments
+
+**script -**
+The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+
+**globals -**
+Optional (default is null). The script's global variables. If provided, the unknown-global
+lint checks are performed.
+
+**asyncFunctions -**
+Optional (default is null). The object of async global function names (name to true).
+If provided along with globals, the async lint checks are performed.
+
+#### Returns
+
+The array of lint warning strings
+
+---
+
+## barescriptModel.bare
+
+The "barescriptModel.bare" include library provides the BareScript type model and model validation
+functions.
+
+A [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') is
+an object representation of a BareScript script. It is produced by the BareScript parser and
+consumed by the BareScript runtime. The
+[BareScript type model](https://craigahobbs.github.io/bare-script/model/) is the
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) schema that describes
+the BareScript model.
+
+Get the BareScript type model:
+
+~~~ bare-script
+include <barescriptModel.bare>
+
+typeModel = barescriptTypeModel()
+~~~
+
+Validate a BareScript model (for example, one loaded from a JSON resource):
+
+~~~ bare-script
+scriptJSON = jsonParse(systemFetch('script.json'))
+script = barescriptValidateScript(scriptJSON)
+if script == null:
+    markdownPrint('Invalid BareScript model!')
+endif
+~~~
+
+The [barescriptValidateScript](#var.vGroup='barescriptModel.bare'&barescriptvalidatescript) and
+[barescriptValidateExpression](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpression)
+functions return null if validation fails and log the validation error in
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+validation error, use the
+[barescriptValidateScriptEx](#var.vGroup='barescriptModel.bare'&barescriptvalidatescriptex) and
+[barescriptValidateExpressionEx](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpressionex)
+functions:
+
+~~~ bare-script
+result = barescriptValidateScriptEx(scriptModel)
+if objectHas(result, 'error'):
+    markdownPrint('', 'Error: ' + markdownEscape(objectGet(result, 'error')))
+else:
+    script = objectGet(result, 'result')
+endif
+~~~
+
+
+### Function Index
+
+- [barescriptTypeModel](#var.vPublish=true&var.vSingle=true&barescripttypemodel)
+- [barescriptValidateExpression](#var.vPublish=true&var.vSingle=true&barescriptvalidateexpression)
+- [barescriptValidateExpressionEx](#var.vPublish=true&var.vSingle=true&barescriptvalidateexpressionex)
+- [barescriptValidateScript](#var.vPublish=true&var.vSingle=true&barescriptvalidatescript)
+- [barescriptValidateScriptEx](#var.vPublish=true&var.vSingle=true&barescriptvalidatescriptex)
+
+---
+
+### barescriptTypeModel
+
+Get the [BareScript type model](https://craigahobbs.github.io/bare-script/model/)
+
+#### Arguments
+
+None
+
+#### Returns
+
+The [BareScript type model](https://craigahobbs.github.io/bare-script/model/)
+
+---
+
+### barescriptValidateExpression
+
+Validate an expression model
+
+#### Arguments
+
+**expr -**
+The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+
+#### Returns
+
+The validated [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'),
+or null if validation fails
+
+---
+
+### barescriptValidateExpressionEx
+
+Validate an expression model with programmatic error reporting
+
+#### Arguments
+
+**expr -**
+The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+
+#### Returns
+
+On success, an object with the "result" key set to the validated
+[expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression').
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
+
+---
+
+### barescriptValidateScript
+
+Validate a BareScript model
+
+#### Arguments
+
+**script -**
+The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+
+#### Returns
+
+The validated [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'),
+or null if validation fails
+
+---
+
+### barescriptValidateScriptEx
+
+Validate a BareScript model with programmatic error reporting
+
+#### Arguments
+
+**script -**
+The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+
+#### Returns
+
+On success, an object with the "result" key set to the validated
+[BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
+On failure, an object with the "error" key set to the validation error message and the
+"memberFqn" key set to the fully-qualified member name (or null).
+
+---
+
+## barescriptParser.bare
+
+The "barescriptParser.bare" include library parses
+[BareScript](https://craigahobbs.github.io/bare-script/language/) script text into
+[BareScript models](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
+
+Parse a BareScript script:
+
+~~~ bare-script
+include <barescriptParser.bare>
+
+script = barescriptParseScript(scriptText)
+if script == null:
+    markdownPrint('Syntax error!')
+endif
+~~~
+
+The [barescriptParseScript](#var.vGroup='barescriptParser.bare'&barescriptparsescript) function
+returns null if parsing fails and logs the parser error in
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+parser error, use the
+[barescriptParseScriptEx](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex) function:
+
+~~~ bare-script
+result = barescriptParseScriptEx(scriptText, 1, 'test.bare')
+if objectHas(result, 'error'):
+    markdownPrint('', 'Error: ' + markdownEscape(objectGet(objectGet(result, 'error'), 'error')))
+else:
+    script = objectGet(result, 'result')
+endif
+~~~
+
+To parse a BareScript expression, use the
+[barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
+or, for programmatic error reporting, the
+[barescriptParseExpressionEx](#var.vGroup='barescriptParser.bare'&barescriptparseexpressionex)
+function.
+
+
+### Function Index
+
+- [barescriptParseExpression](#var.vPublish=true&var.vSingle=true&barescriptparseexpression)
+- [barescriptParseExpressionEx](#var.vPublish=true&var.vSingle=true&barescriptparseexpressionex)
+- [barescriptParseScript](#var.vPublish=true&var.vSingle=true&barescriptparsescript)
+- [barescriptParseScriptEx](#var.vPublish=true&var.vSingle=true&barescriptparsescriptex)
+
+---
+
+### barescriptParseExpression
+
+Parse a BareScript expression
+
+#### Arguments
+
+**exprText -**
+The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
+
+**lineNumber -**
+Optional (default is null). The script line number.
+
+**scriptName -**
+Optional (default is null). The script name.
+
+**arrayLiterals -**
+Optional (default is false). If true, allow parsing of array literals.
+
+#### Returns
+
+The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'),
+or null if a parsing error occurs
+
+---
+
+### barescriptParseExpressionEx
+
+Parse a BareScript expression with programmatic error reporting
+
+#### Arguments
+
+**exprText -**
+The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
+
+**lineNumber -**
+Optional (default is null). The script line number.
+
+**scriptName -**
+Optional (default is null). The script name.
+
+**arrayLiterals -**
+Optional (default is false). If true, allow parsing of array literals.
+
+#### Returns
+
+On success, an object with the "result" key set to the
+[expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression').
+On failure, an object with the "error" key set to the parser error object. The parser error
+object has the "error", "line", "columnNumber", "lineNumber", "scriptName", and "message" keys.
+
+---
+
+### barescriptParseScript
+
+Parse a BareScript script
+
+#### Arguments
+
+**scriptText -**
+The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
+
+**startLineNumber -**
+Optional (default is 1). The script's starting line number.
+
+**scriptName -**
+Optional (default is null). The script name.
+
+#### Returns
+
+The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'),
+or null if a parsing error occurs
+
+---
+
+### barescriptParseScriptEx
+
+Parse a BareScript script with programmatic error reporting
+
+#### Arguments
+
+**scriptText -**
+The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
+
+**startLineNumber -**
+Optional (default is 1). The script's starting line number.
+
+**scriptName -**
+Optional (default is null). The script name.
+
+#### Returns
+
+On success, an object with the "result" key set to the
+[BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
+On failure, an object with the "error" key set to the
+[parser error object](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex).
+The parser error object has the "error", "line", "columnNumber", "lineNumber", "scriptName",
+and "message" keys.
 
 ---
 

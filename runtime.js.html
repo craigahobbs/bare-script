@@ -33,8 +33,6 @@
 
 import {ValueArgsError, valueBoolean, valueCompare, valueObjectSet, valueString} from './value.js';
 import {expressionFunctions, intrinsics, scriptFunctions} from './library.js';
-import {lintScript} from './lint.js';
-import {parseScript} from './parser.js';
 import {systemIncludes} from './includeSource.js';
 
 
@@ -199,8 +197,10 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
                     throw new BareScriptRuntimeError(script, statement, `Include of "${url}" failed`);
                 }
 
-                // Parse the include script
-                const includeScript = parseScript(includeText, 1, url);
+                // Parse the include script. A system include starting with "{" is the
+                // parser-compiled JSON script model (all system includes are embedded pre-compiled).
+                const includeScript = (includeText.charCodeAt(0) === 0x7B
+                    ? JSON.parse(includeText) : barescriptParseScript(includeText, 1, url));
                 includeScript.system = true;
 
                 // Execute the include script
@@ -208,7 +208,7 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
 
                 // Run the bare-script linter?
                 if ('logFn' in options &amp;&amp; options.debug) {
-                    const warnings = lintScript(includeScript, globals);
+                    const warnings = barescriptLintScript(includeScript, globals);
                     const warningPrefix = `BareScript: Include "${url}" static analysis...`;
                     if (warnings.length) {
                         options.logFn(`${warningPrefix} ${warnings.length} warning${warnings.length > 1 ? 's' : ''}:`);
@@ -222,6 +222,100 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
     }
 
     return null;
+}
+
+
+// The barescriptParser.bare include library script globals (lazily initialized)
+let parserGlobals = null;
+
+
+// Helper function to execute the barescriptParser.bare include library script, if necessary
+function parserGlobalsInit() {
+    if (parserGlobals === null) {
+        parserGlobals = {};
+        executeScript(
+            {'statements': [{'include': {'includes': [{'url': 'barescriptParser.bare', 'system': true}]}}]},
+            {'globals': parserGlobals}
+        );
+    }
+}
+
+
+/**
+ * Parse a BareScript script
+ *
+ * @param {string|string[]} scriptText - The [script text](https://craigahobbs.github.io/bare-script/language/)
+ * @param {number} [startLineNumber = 1] - The script's starting line number
+ * @param {?string} [scriptName = null] - The script name
+ * @returns {Object} The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+ * @throws [BareScriptParserError]{@link module:lib/runtime.BareScriptParserError}
+ */
+export function barescriptParseScript(scriptText, startLineNumber = 1, scriptName = null) {
+    parserGlobalsInit();
+    const result = parserGlobals.barescriptParseScriptEx([scriptText, startLineNumber, scriptName], {'globals': parserGlobals});
+    if ('error' in result) {
+        const {error} = result;
+        throw new BareScriptParserError(error.error, error.line, error.columnNumber, error.lineNumber, error.scriptName);
+    }
+    return result.result;
+}
+
+
+/**
+ * Parse a BareScript expression
+ *
+ * @param {string} exprText - The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
+ * @param {?number} [lineNumber = null] - The script line number
+ * @param {?string} [scriptName = null] - The script name
+ * @param {boolean} [arrayLiterals = false] - If True, allow parsing of array literals
+ * @returns {Object} The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+ * @throws [BareScriptParserError]{@link module:lib/runtime.BareScriptParserError}
+ */
+export function barescriptParseExpression(exprText, lineNumber = null, scriptName = null, arrayLiterals = false) {
+    parserGlobalsInit();
+    const result = parserGlobals.barescriptParseExpressionEx([exprText, lineNumber, scriptName, arrayLiterals], {'globals': parserGlobals});
+    if ('error' in result) {
+        const {error} = result;
+        throw new BareScriptParserError(error.error, error.line, error.columnNumber, error.lineNumber, error.scriptName);
+    }
+    return result.result;
+}
+
+
+// The barescriptLint.bare include library script globals (lazily initialized)
+let lintGlobals = null;
+
+
+/**
+ * Lint a BareScript model
+ *
+ * @param {Object} script - The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+ * @param {?Object} [globals = null] - The script global variables
+ * @returns {string[]} The array of lint warning strings
+ */
+export function barescriptLintScript(script, globals = null) {
+    // Execute the barescriptLint.bare include library script, if necessary
+    if (lintGlobals === null) {
+        lintGlobals = {};
+        executeScript(
+            {'statements': [{'include': {'includes': [{'url': 'barescriptLint.bare', 'system': true}]}}]},
+            {'globals': lintGlobals}
+        );
+    }
+
+    // Compute the async global function names
+    let asyncFunctions = null;
+    if (globals !== null) {
+        asyncFunctions = {};
+        for (const [funcName, funcValue] of Object.entries(globals)) {
+            if (typeof funcValue === 'function' &amp;&amp; funcValue.constructor === AsyncFunction) {
+                asyncFunctions[funcName] = true;
+            }
+        }
+    }
+
+    // Call the barescriptLint.bare lint function
+    return lintGlobals.barescriptLintScript([script, globals, asyncFunctions], {'globals': lintGlobals});
 }
 
 
@@ -782,6 +876,67 @@ export class BareScriptRuntimeError extends Error {
         this.name = this.constructor.name;
     }
 }
+
+
+/**
+ * A BareScript parser error
+ *
+ * @extends {Error}
+ * @property {string} error - The error description
+ * @property {string} line - The line text
+ * @property {number} columnNumber - The error column number
+ * @property {?number} lineNumber - The error line number
+ * @property {?string} scriptName - The script name
+ */
+export class BareScriptParserError extends Error {
+    /**
+     * Create a BareScript parser error
+     *
+     * @param {string} error - The error description
+     * @param {string} line - The line text
+     * @param {number} [columnNumber] - The error column number
+     * @param {?number} [lineNumber] - The error line number
+     * @param {?string} [scriptName] - The script name
+     */
+    constructor(error, line, columnNumber, lineNumber, scriptName) {
+        // Parser error constants
+        const lineLengthMax = 120;
+        const lineSuffix = ' ...';
+        const linePrefix = '... ';
+
+        // Trim the error line, if necessary
+        let lineError = line;
+        let lineColumn = columnNumber;
+        if (line.length > lineLengthMax) {
+            const lineLeft = columnNumber - 1 - lineLengthMax / 2;
+            const lineRight = lineLeft + lineLengthMax;
+            if (lineLeft &lt; 0) {
+                lineError = line.slice(0, lineLengthMax) + lineSuffix;
+            } else if (lineRight > line.length) {
+                lineError = linePrefix + line.slice(line.length - lineLengthMax);
+                lineColumn -= lineLeft - linePrefix.length - (lineRight - line.length);
+            } else {
+                lineError = linePrefix + line.slice(lineLeft, lineRight) + lineSuffix;
+                lineColumn -= lineLeft - linePrefix.length;
+            }
+        }
+
+        // Format the message
+        const errorPrefix = (lineNumber ? `${scriptName || ''}:${lineNumber}: ` : '');
+        const message = `\
+${errorPrefix}${error}
+${lineError}
+${' '.repeat(lineColumn - 1)}^
+`;
+        super(message);
+        this.name = this.constructor.name;
+        this.error = error;
+        this.line = line;
+        this.columnNumber = columnNumber;
+        this.lineNumber = lineNumber;
+        this.scriptName = scriptName;
+    }
+}
 </code></pre>
         </article>
     </section>
@@ -792,7 +947,7 @@ export class BareScriptRuntimeError extends Error {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_runtime.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">

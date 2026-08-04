@@ -67,17 +67,16 @@ confident that BareScript will execute the same regardless of the underlying run
 </ul>
 <h2>Executing BareScript Scripts</h2>
 <p>To execute a BareScript script, parse the script using the
-<a href="https://craigahobbs.github.io/bare-script/module-lib_parser.html#.parseScript">parseScript</a>
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseScript">barescriptParseScript</a>
 function. Then execute the script using the
 <a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.executeScript">executeScript</a>
 function or the
 <a href="https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.executeScriptAsync">executeScriptAsync</a>
 function. For example:</p>
-<pre class="prettyprint source lang-javascript"><code>import {executeScript} from 'bare-script/lib/runtime.js';
-import {parseScript} from 'bare-script/lib/parser.js';
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript, executeScript} from 'bare-script/lib/runtime.js';
 
 // Parse the script
-const script = parseScript(`\
+const script = barescriptParseScript(`\
 # Double a number
 function double(n):
     return n * 2
@@ -102,11 +101,11 @@ of the
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Object'&amp;objectget">objectGet</a>, and
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&amp;arraylength">arrayLength</a>
 functions.</p>
-<pre class="prettyprint source lang-javascript"><code>import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
-import {parseScript} from 'bare-script/lib/parser.js';
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript} from 'bare-script/lib/runtime.js';
+import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 
 // Parse the script
-const script = parseScript(`\
+const script = barescriptParseScript(`\
 # Fetch the BareScript builtin library documentation JSON
 docs = jsonParse(systemFetch('https://craigahobbs.github.io/bare-script/library/library-builtin.json'))
 
@@ -124,7 +123,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 <p>To evaluate a
 <a href="https://craigahobbs.github.io/bare-script/language/#expressions">BareScript expression</a>,
 parse the expression using the
-<a href="https://craigahobbs.github.io/bare-script/module-lib_parser.html#.parseExpression">parseExpression</a>
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseExpression">barescriptParseExpression</a>
 function. Then evaluate the expression using the
 <a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.evaluateExpression">evaluateExpression</a>
 function or the
@@ -134,11 +133,10 @@ function.</p>
 <a href="https://craigahobbs.github.io/bare-script/library/expression.html">BareScript Expression Library</a>,
 a set of built-in, spreadsheet-like functions.</p>
 <p>For example:</p>
-<pre class="prettyprint source lang-javascript"><code>import {evaluateExpression} from 'bare-script/lib/runtime.js';
-import {parseExpression} from 'bare-script/lib/parser.js';
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseExpression, evaluateExpression} from 'bare-script/lib/runtime.js';
 
 // Parse the expression
-const expr = parseExpression('2 * max(a, b, c)');
+const expr = barescriptParseExpression('2 * max(a, b, c)');
 
 // Evaluate the expression
 const variables = {'a': 1, 'b': 2, 'c': 3};
@@ -221,86 +219,86 @@ time. Tests without a native JavaScript equivalent are omitted.</p>
 <tr>
 <td>markdownParse</td>
 <td>JavaScript</td>
-<td style="text-align:right">314.8</td>
+<td style="text-align:right">598.0</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">1628.0</td>
-<td style="text-align:right">5.2x</td>
-</tr>
-<tr>
-<td>markdownElements</td>
-<td>JavaScript</td>
-<td style="text-align:right">23.8</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">378.0</td>
-<td style="text-align:right">15.9x</td>
+<td style="text-align:right">2420.0</td>
+<td style="text-align:right">4.0x</td>
 </tr>
 <tr>
 <td>schemaParse</td>
 <td>JavaScript</td>
-<td style="text-align:right">72.0</td>
+<td style="text-align:right">71.3</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">1152.0</td>
-<td style="text-align:right">16.0x</td>
+<td style="text-align:right">1164.0</td>
+<td style="text-align:right">16.3x</td>
 </tr>
 <tr>
 <td>urlDecode</td>
 <td>JavaScript</td>
-<td style="text-align:right">5.0</td>
+<td style="text-align:right">4.9</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">86.0</td>
-<td style="text-align:right">17.1x</td>
+<td style="text-align:right">85.5</td>
+<td style="text-align:right">17.5x</td>
 </tr>
 <tr>
 <td>urlEncode</td>
 <td>JavaScript</td>
-<td style="text-align:right">2.7</td>
+<td style="text-align:right">2.8</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">50.5</td>
-<td style="text-align:right">18.7x</td>
+<td style="text-align:right">49.0</td>
+<td style="text-align:right">17.8x</td>
+</tr>
+<tr>
+<td>markdownElements</td>
+<td>JavaScript</td>
+<td style="text-align:right">29.2</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">564.0</td>
+<td style="text-align:right">19.3x</td>
 </tr>
 <tr>
 <td>schemaValidate</td>
 <td>JavaScript</td>
-<td style="text-align:right">54.2</td>
+<td style="text-align:right">57.3</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">1796.0</td>
-<td style="text-align:right">33.1x</td>
+<td style="text-align:right">1868.0</td>
+<td style="text-align:right">32.6x</td>
 </tr>
 <tr>
 <td>mandelbrot</td>
 <td>JavaScript</td>
-<td style="text-align:right">2180.9</td>
+<td style="text-align:right">1976.1</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">296000.0</td>
-<td style="text-align:right">135.7x</td>
+<td style="text-align:right">293000.0</td>
+<td style="text-align:right">148.3x</td>
 </tr>
 </tbody>
 </table>
@@ -347,7 +345,7 @@ It was started using <a href="https://github.com/craigahobbs/javascript-template
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_lint.html">lib/lint</a></li><li><a href="module-lib_model.html">lib/model</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_parser.html">lib/parser</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_parser.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-lib_include.html">lib/include</a></li><li><a href="module-lib_options.html">lib/options</a></li><li><a href="module-lib_optionsNode.html">lib/optionsNode</a></li><li><a href="module-lib_runtime.html">lib/runtime</a></li><li><a href="module-lib_runtimeAsync.html">lib/runtimeAsync</a></li></ul><h3>Classes</h3><ul><li><a href="module-lib_include.SchemaParserError.html">SchemaParserError</a></li><li><a href="module-lib_include.SchemaValidationError.html">SchemaValidationError</a></li><li><a href="module-lib_runtime.BareScriptParserError.html">BareScriptParserError</a></li><li><a href="module-lib_runtime.BareScriptRuntimeError.html">BareScriptRuntimeError</a></li></ul>
 </nav>
 
 <br class="clear">
