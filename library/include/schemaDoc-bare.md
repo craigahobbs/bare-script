@@ -1,5 +1,5 @@
 The "schemaDoc.bare" include library provides functions for generating documentation for
-[schemas](#var.vGroup='schema'). It's particularly useful for defining and documenting options
+[schemas](#var.vGroup='schema.bare'). It's particularly useful for defining and documenting options
 objects, file formats, and APIs.
 
 Execute the schema documentation application for a Schema Markdown (`.smd`) file:

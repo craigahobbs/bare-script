@@ -5737,7 +5737,7 @@ On failure, an object with the "error" key set to the validation error message a
 ## schemaDoc.bare
 
 The "schemaDoc.bare" include library provides functions for generating documentation for
-[schemas](#var.vGroup='schema'). It's particularly useful for defining and documenting options
+[schemas](#var.vGroup='schema.bare'). It's particularly useful for defining and documenting options
 objects, file formats, and APIs.
 
 Execute the schema documentation application for a Schema Markdown (`.smd`) file:
@@ -6226,9 +6226,9 @@ endfunction
 ~~~
 
 The
-[documentSetTitle](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare%3A%20document'&documentsettitle)
+[documentSetTitle](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare'&documentsettitle)
 function and the
-[markdownPrint](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare%3A%20markdown'&markdownprint)
+[markdownPrint](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare'&markdownprint)
 function have external side-effects that will interfere with running our unit tests.
 
 To test this code, first call the [unittestMockAll](#unittestmockall) function at the beginning of

@@ -161,7 +161,7 @@ return getMinMax(1, 2, 3, 5)
 ~~~
 
 A function that makes any **asynchronous** function call (e.g.,
-[systemFetch](../library/#var.vGroup='System'&systemfetch)) must be defined as asynchronous. For example:
+[systemFetch](../library/#var.vGroup='system'&systemfetch)) must be defined as asynchronous. For example:
 
 ~~~ barescript
 async function getLibraryCount(url):
@@ -340,7 +340,7 @@ The [BareScript Library](../library/) is a set of built-in, general-purpose glob
 available to all BareScript scripts. The library contains functions for creating and manipulating
 objects, arrays, datetimes, regular expressions, and strings. There are also functions for
 parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
-[systemFetch](../library/#var.vGroup='System'&systemfetch).
+[systemFetch](../library/#var.vGroup='system'&systemfetch).
 
 Library functions validate their arguments and will return `null` (or a specified default value) if
 given invalid arguments. When debug logging is enabled, library functions log detailed error
