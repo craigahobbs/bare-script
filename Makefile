@@ -39,7 +39,7 @@ sync:
 
 
 # Generate the include library source module
-_test _lint _cover _doc test-include perf: lib/includeSource.js
+_test _lint _cover _doc test-include-lint test-include-markdownup test-include-run perf: lib/includeSource.js
 lib/includeSource.js: Makefile $(sort $(wildcard lib/include/*.bare)) | build/npm.build
 	$(NODE_SHELL) node --input-type=module -e "$$INCLUDE_SOURCE_JS" $@ $(filter %.bare,$^)
 
@@ -137,11 +137,16 @@ endef
 export INCLUDE_SOURCE_JS
 
 
-.PHONY: test-include
+# The include-test sub-targets are independent so they run in parallel under "make -j"
+.PHONY: test-include test-include-lint test-include-markdownup test-include-run
 commit: test-include
-test-include: build/npm.build
+test-include: test-include-lint test-include-markdownup test-include-run
+test-include-lint test-include-markdownup test-include-run: build/npm.build
+test-include-lint:
 	$(NODE_SHELL) npx bare -x -m lib/include/*.bare lib/include/test/*.bare
+test-include-markdownup:
 	$(NODE_SHELL) npx bare -d -v vUnittestReport true lib/include/test/runTestsMarkdownUp.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+test-include-run:
 	$(NODE_SHELL) npx bare -d -m lib/include/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
