@@ -53,7 +53,6 @@ return fibonacci(10)
   - [Binary Operator Expressions](#binary-operator-expressions)
   - [Unary Operator Expressions](#unary-operator-expressions)
   - [Group Expressions](#group-expressions)
-  - [The BareScript Expression Library](#the-barescript-expression-library)
 - [Emacs Mode](#emacs-mode)
 
 

@@ -67,9 +67,9 @@ This outputs:
 includes a set of built-in functions for mathematical operations, object manipulation, array
 manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
 of the
-[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch),
-[objectGet](https://craigahobbs.github.io/bare-script/library/#var.vGroup='Object'&objectget), and
-[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&arraylength)
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&systemfetch),
+[objectGet](https://craigahobbs.github.io/bare-script/library/#var.vGroup='object'&objectget), and
+[arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vGroup='array'&arraylength)
 functions.
 
 ``` javascript
@@ -177,12 +177,10 @@ bare script.bare
 ```
 
 **Note:** In the BareScript CLI, import statements and the
-[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&systemfetch)
 function read non-URL paths from the local file system.
-[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&systemfetch)
-calls with a non-URL path and a
-[request body](https://craigahobbs.github.io/bare-script/library/model.html#var.vName='SystemFetchRequest')
-write the body to the path.
+[systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&systemfetch)
+calls with a non-URL path and a request body write the body to the path.
 
 
 ## MarkdownUp, a Markdown Viewer with BareScript
@@ -236,7 +234,7 @@ time. Tests without a native JavaScript equivalent are omitted.
 ## Using BareScript with an AI Assistant
 
 This repository ships a
-[`SKILL.md`](https://github.com/craigahobbs/bare-script-py/blob/main/SKILL.md)
+[`SKILL.md`](https://github.com/craigahobbs/bare-script/blob/main/SKILL.md)
 file that teaches an AI coding assistant how to write idiomatic BareScript — language syntax, the
 built-in and include libraries, the MarkdownUp application pattern, and the unit-test conventions.
 It is plain Markdown and applies to either BareScript implementation.

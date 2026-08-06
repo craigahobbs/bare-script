@@ -6,7 +6,7 @@ To run the baredoc application, include "baredoc.bare" and call the [baredocMain
 function with a [documentation configuration](model.html#var.vName='BaredocConfig') object (or the URL
 of its JSON resource). Each section's `url` is a
 [library model JSON](model.html#var.vName='BaredocLibrary') resource (for example, one produced by
-[baredocCLI](baredocCLI-bare.md)):
+[baredocCLI](#var.vGroup='baredocCLI.bare'&_top)):
 
 ~~~ bare-script
 include <baredoc.bare>

@@ -15,7 +15,7 @@ endif
 
 The [barescriptParseScript](#var.vGroup='barescriptParser.bare'&barescriptparsescript) function
 returns null if parsing fails and logs the parser error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
 parser error, use the
 [barescriptParseScriptEx](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex) function:
 

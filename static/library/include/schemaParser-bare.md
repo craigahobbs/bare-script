@@ -1,6 +1,6 @@
 The "schemaParser.bare" include library provides functions for parsing
 [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text into
-[type models](model.html#var.vName='Types').
+[type models](model.html#var.vName='Types'&var.vURL='').
 
 Parse Schema Markdown text:
 
@@ -20,7 +20,7 @@ types = schemaParse( \
 ~~~
 
 The [schemaParse](#var.vGroup='schemaParser.bare'&schemaparse) function returns null if parsing
-fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to parse errors, use the
 [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function:
 
@@ -36,7 +36,7 @@ endif
 ~~~
 
 The [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function can also accumulate
-multiple schemas into a single [type model](model.html#var.vName='Types') by passing the types
+multiple schemas into a single [type model](model.html#var.vName='Types'&var.vURL='') by passing the types
 argument.
 
 Use the [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function to validate a value

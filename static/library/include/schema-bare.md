@@ -24,7 +24,7 @@ endif
 ~~~
 
 The [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function returns null if validation
-fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to validation errors, use the
 [schemaValidateEx](#var.vGroup='schema.bare'&schemavalidateex) function:
 
