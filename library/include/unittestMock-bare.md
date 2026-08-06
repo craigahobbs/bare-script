@@ -3,7 +3,7 @@ Consider the following MarkdownUp application:
 
 **app.bare**
 
-~~~ bare-script
+```bare-script
 function appMain(count):
     title = 'My Application'
     documentSetTitle(title)
@@ -14,24 +14,24 @@ function appMain(count):
         i = i + 1
     endwhile
 endfunction
-~~~
+```
 
 The
-[documentSetTitle](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare'&documentsettitle)
+[documentSetTitle](#var.vGroup='markdownUp.bare'&documentsettitle)
 function and the
-[markdownPrint](https://craigahobbs.github.io/bare-script/library/#var.vGroup='markdownUp.bare'&markdownprint)
+[markdownPrint](#var.vGroup='markdownUp.bare'&markdownprint)
 function have external side-effects that will interfere with running our unit tests.
 
-To test this code, first call the [unittestMockAll](#unittestmockall) function at the beginning of
+To test this code, first call the [unittestMockAll](#var.vGroup='unittestMock.bare'&unittestmockall) function at the beginning of
 your test function to mock all
 [BareScript library](https://craigahobbs.github.io/bare-script/library/)
 functions. At the end of the test function, we stop mocking by calling the
-[unittestMockEnd](#unittestmockend) function and check the mocked function calls using the
+[unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function and check the mocked function calls using the
 [unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal) function.
 
 **runTests.bare**
 
-~~~ bare-script
+```bare-script
 include <unittest.bare>
 include <unittestMock.bare>
 
@@ -45,11 +45,11 @@ include 'testApp.bare'
 unittestCoverageStop()
 
 return unittestReport({'coverageMin': 100})
-~~~
+```
 
 **testApp.bare**
 
-~~~ bare-script
+```bare-script
 include 'app.bare'
 
 function testApp():
@@ -70,4 +70,4 @@ function testApp():
     )
 endfunction
 unittestRunTest('testApp')
-~~~
+```

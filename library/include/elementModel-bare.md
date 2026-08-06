@@ -7,7 +7,7 @@ Consider the following example of creating a simple HTML element model and rende
 First, include the "elementModel.bare" library and define an element model for a div containing a
 heading and a paragraph.
 
-~~~ bare-script
+```bare-script
 include <elementModel.bare>
 
 elements = elementModelValidate({ \
@@ -18,18 +18,18 @@ elements = elementModelValidate({ \
         {'html': 'p', 'elem': {'text': 'This is a paragraph.'}} \
     ] \
 })
-~~~
+```
 
 Then, render the element model to an HTML string using the `elementModelToString` function:
 
-~~~ bare-script
+```bare-script
 htmlString = elementModelToString(elements)
-~~~
+```
 
 For SVG elements, set the tag to 'svg' instead of 'html'. The `elementModelToString` function will
 automatically add the necessary xmlns attribute for SVG.
 
-~~~ bare-script
+```bare-script
 elements = elementModelValidate({ \
     'svg': 'svg', \
     'attr': {'width': '100', 'height': '100'}, \
@@ -39,7 +39,7 @@ elements = elementModelValidate({ \
     } \
 })
 svgString = elementModelToString(elements)
-~~~
+```
 
 Element models support nested arrays of elements, text nodes, attributes, and optional callback
 functions for event handling (though callbacks are ignored during stringification).

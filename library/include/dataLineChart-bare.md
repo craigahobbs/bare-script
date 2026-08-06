@@ -3,7 +3,7 @@ The "dataLineChart.bare" include library provides functions for rendering line c
 To render a line chart, use the [dataLineChart](#var.vGroup='dataLineChart.bare'&datalinechart)
 function with a data array and a [line chart model](model.html#var.vName='DataLineChart'):
 
-~~~ bare-script
+```bare-script
 include <dataLineChart.bare>
 
 data = [ \
@@ -20,11 +20,11 @@ dataLineChart(data, { \
     'x': 'month', \
     'y': ['sales', 'costs'] \
 })
-~~~
+```
 
 You can customize axis tick marks, annotations, and the chart dimensions:
 
-~~~ bare-script
+```bare-script
 dataLineChart(data, { \
     'title': 'Sales Trend', \
     'x': 'month', \
@@ -32,11 +32,11 @@ dataLineChart(data, { \
     'yTicks': {'count': 5}, \
     'yLines': [{'value': 140, 'label': 'Target'}] \
 })
-~~~
+```
 
 You can use a color encoding field to group lines by a category:
 
-~~~ bare-script
+```bare-script
 data = [ \
     {'month': 1, 'sales': 120, 'region': 'East'}, \
     {'month': 1, 'sales': 95, 'region': 'West'}, \
@@ -49,17 +49,17 @@ dataLineChart(data, { \
     'y': ['sales'], \
     'color': 'region' \
 })
-~~~
+```
 
 To obtain the line chart SVG
 [element model](https://github.com/craigahobbs/element-model#readme)
 instead of rendering directly, use the
 [dataLineChartElements](#var.vGroup='dataLineChart.bare'&datalinechartelements) function.
 
-~~~ bare-script
+```bare-script
 elementModelRender(dataLineChartElements(data, { \
     'x': 'month', \
     'y': ['sales'], \
     'color': 'region' \
 }))
-~~~
+```

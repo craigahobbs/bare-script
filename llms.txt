@@ -1,0 +1,20 @@
+# BareScript
+
+> BareScript is a simple, lightweight, and portable programming language. Its Pythonic syntax is
+> influenced by JavaScript, C, and the Unix Shell. There are two implementations with identical
+> behavior: [BareScript for JavaScript](https://craigahobbs.github.io/bare-script/) and
+> [BareScript for Python](https://craigahobbs.github.io/bare-script-py/).
+
+## Documentation
+
+- [The BareScript Language](language/README.md): the language reference
+- [The BareScript Library](library/barescript-library.md): the builtin and include library function reference
+- [The BareScript Library Models](library/barescript-library-model.md): the include library type models
+- [The BareScript Expression Library](library/barescript-expression-library.md): the expression function reference
+- [The BareScript Runtime Model](model/barescript-model.md): the script and expression model reference
+- [SKILL.md](SKILL.md): the AI assistant skill for writing BareScript
+
+## Machine-readable
+
+- [library-builtin.json](library/library-builtin.json): the builtin function documentation model JSON
+- [library-include.json](library/library-include.json): the include function documentation model JSON

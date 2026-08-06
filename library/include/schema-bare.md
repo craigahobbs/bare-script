@@ -4,7 +4,7 @@ Schema Markdown is a human-readable schema definition language.
 
 Validate a value against a schema type:
 
-~~~ bare-script
+```bare-script
 include <schema.bare>
 include <schemaParser.bare>
 
@@ -21,14 +21,14 @@ if validated != null:
     # Validation succeeded
     markdownPrint('Valid person: ' + objectGet(validated, 'name'))
 endif
-~~~
+```
 
 The [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function returns null if validation
 fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to validation errors, use the
 [schemaValidateEx](#var.vGroup='schema.bare'&schemavalidateex) function:
 
-~~~ bare-script
+```bare-script
 result = schemaValidateEx(types, 'Person', {'name': 'Alice'})
 if objectHas(result, 'error'):
     markdownPrint('Error: ' + objectGet(result, 'error'))
@@ -36,7 +36,7 @@ if objectHas(result, 'error'):
 else:
     person = objectGet(result, 'result')
 endif
-~~~
+```
 
 Schema validation provides:
 

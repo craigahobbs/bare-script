@@ -106,7 +106,7 @@ endfunction
 
 # $function: dataLineChartValidateEx
 # $group: dataLineChart.bare
-# $doc: Validate a line chart model
+# $doc: Validate a line chart model with programmatic error reporting
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
 # $return: On success, an object with the "result" key set to the validated [line chart model](model.html#var.vName='DataLineChart').
 # $return: On failure, an object with the "error" key set to the validation error message and the

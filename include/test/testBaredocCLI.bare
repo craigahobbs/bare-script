@@ -103,6 +103,30 @@ endfunction
 unittestRunTest('testBaredocCLIParse_ignoreInvalid')
 
 
+function testBaredocCLIParse_async():
+    source = arrayJoin([ \
+        '# $function: myAsync', \
+        '# $group: Async', \
+        '# $doc: The asynchronous function', \
+        '# $async: true' \
+    ], '\n')
+    functions = {}
+    errors = baredocCLIParse(functions, source)
+    unittestDeepEqual(errors, [])
+    unittestDeepEqual(functions, { \
+        'myAsync': { \
+            'async': true, \
+            'doc': [ \
+                'The asynchronous function' \
+            ], \
+            'group': 'Async', \
+            'name': 'myAsync' \
+        } \
+    })
+endfunction
+unittestRunTest('testBaredocCLIParse_async')
+
+
 function testBaredocCLIParse_ignoreTrailingSpace():
     source = arrayJoin([ \
         '# $function: myIgnored', \

@@ -6,6 +6,7 @@ include <args.bare>
 
 # $function: baredocCLIMain
 # $group: baredocCLI.bare
+# $async: true
 # $doc: The BareScript documentation tool main entry point
 # $return: The exit status code
 async function baredocCLIMain():
@@ -134,10 +135,10 @@ function baredocCLIParse(functions, source, filename):
                     arrayPush(funcDoc, text)
                 endif
 
-            elif key == 'ignore':
-                # Ignore the function?
+            elif key == 'ignore' || key == 'async':
+                # Ignore the function? Asynchronous function?
                 if textTrim != 'true' && textTrim != 'false':
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid ignore value "' + textTrim + '"')
+                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid ' + key + ' value "' + textTrim + '"')
                     continue
                 endif
                 objectSet(func, key, textTrim == 'true')
@@ -241,6 +242,6 @@ endfunction
 
 
 # baredocCLIParse regular expressions
-baredocCLIParseRegexKey = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<key>function|group|doc|return|ignore):\\s?(?<text>.*)$')
+baredocCLIParseRegexKey = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<key>function|group|doc|return|ignore|async):\\s?(?<text>.*)$')
 baredocCLIParseRegexArg = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$arg\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?):\\s?(?<text>.*)$')
 baredocCLIParseRegexUnknown = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<unknown>[^:]+):')

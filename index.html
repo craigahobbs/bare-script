@@ -65,6 +65,13 @@ confident that BareScript will execute the same regardless of the underlying run
 <li><a href="https://craigahobbs.github.io/bare-script/">API Documentation</a></li>
 <li><a href="https://github.com/craigahobbs/bare-script">Source code</a></li>
 </ul>
+<h2>Installation</h2>
+<p>Install the bare-script package in your project with npm:</p>
+<pre class="prettyprint source"><code>npm install bare-script
+</code></pre>
+<p>To use the <code>bare</code> command-line interface, install the package globally:</p>
+<pre class="prettyprint source"><code>npm install -g bare-script
+</code></pre>
 <h2>Executing BareScript Scripts</h2>
 <p>To execute a BareScript script, parse the script using the
 <a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseScript">barescriptParseScript</a>
@@ -117,7 +124,7 @@ return 'The BareScript Library has ' + arrayLength(objectGet(docs, 'functions'))
 console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 </code></pre>
 <p>This outputs:</p>
-<pre class="prettyprint source"><code>The BareScript Library has 108 builtin functions
+<pre class="prettyprint source"><code>The BareScript Library has 100 builtin functions
 </code></pre>
 <h2>Evaluating BareScript Expressions</h2>
 <p>To evaluate a
@@ -177,7 +184,7 @@ console.log(markdownTitle(markdown));
 files use the &quot;.bare&quot; file extension.</p>
 <pre class="prettyprint source"><code>bare script.bare
 </code></pre>
-<p><strong>Note:</strong> In the BareScript CLI, import statements and the
+<p><strong>Note:</strong> In the BareScript CLI, include statements and the
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
 function read non-URL paths from the local file system.
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
@@ -190,7 +197,7 @@ dynamically rendering Markdown text, drawing SVG images, etc. For example:</p>
 
 This is a Markdown document with embedded BareScript:
 
-``` markdown-script
+```markdown-script
 markdownPrint('Hello, Markdown!')
 ```
 </code></pre>
@@ -322,12 +329,17 @@ other assistants, include the file's contents in your system prompt or rules fil
 <pre class="prettyprint source"><code>pip install markdown-up
 markdown-up ticTacToe.md
 </code></pre>
-<p>The BareScript library is also documented as single-page Markdown, which can be fetched directly
+<p>The BareScript documentation is also published as plain Markdown, which can be fetched directly
 into an assistant's context alongside <code>SKILL.md</code>:</p>
 <ul>
+<li><a href="https://craigahobbs.github.io/bare-script/language/README.md">The BareScript Language</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/library/barescript-library.md">The BareScript Library</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/library/barescript-library-model.md">The BareScript Library Models</a></li>
+<li><a href="https://craigahobbs.github.io/bare-script/library/barescript-expression-library.md">The BareScript Expression Library</a></li>
+<li><a href="https://craigahobbs.github.io/bare-script/model/barescript-model.md">The BareScript Runtime Model</a></li>
 </ul>
+<p><code>SKILL.md</code> itself is published at <a href="https:%5C/%5C/craigahobbs.github.io/bare-script/SKILL.md">https://craigahobbs.github.io/bare-script/SKILL.md</a>, and
+<a href="https:%5C/%5C/craigahobbs.github.io/bare-script/llms.txt">https://craigahobbs.github.io/bare-script/llms.txt</a> indexes all of the fetchable documentation.</p>
 <h2>Development</h2>
 <p>This package is developed using <a href="https://github.com/craigahobbs/javascript-build#readme">javascript-build</a>.
 It was started using <a href="https://github.com/craigahobbs/javascript-template#readme">javascript-template</a> as follows:</p>

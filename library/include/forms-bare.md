@@ -4,7 +4,7 @@ creation of common form controls for MarkdownUp applications.
 
 Create a text input element:
 
-~~~ bare-script
+```bare-script
 include <forms.bare>
 
 function myAppMain():
@@ -18,18 +18,18 @@ function myAppOnEnter():
 endfunction
 
 myAppMain()
-~~~
+```
 
 Create a link element:
 
-~~~ bare-script
+```bare-script
 link = formsLinkElements('Click me', 'other.html')
 elementModelRender(link)
-~~~
+```
 
 Create a link button element with a click handler:
 
-~~~ bare-script
+```bare-script
 function myAppMain():
     button = formsLinkButtonElements('Click me', myAppOnClick)
     elementModelRender(button)
@@ -40,7 +40,7 @@ function myAppOnClick():
 endfunction
 
 myAppMain()
-~~~
+```
 
 These helper functions create properly structured element models that can be rendered with the
 [elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender) function.

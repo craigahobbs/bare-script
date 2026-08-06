@@ -4,14 +4,14 @@ The "barescriptParser.bare" include library parses
 
 Parse a BareScript script:
 
-~~~ bare-script
+```bare-script
 include <barescriptParser.bare>
 
 script = barescriptParseScript(scriptText)
 if script == null:
     markdownPrint('Syntax error!')
 endif
-~~~
+```
 
 The [barescriptParseScript](#var.vGroup='barescriptParser.bare'&barescriptparsescript) function
 returns null if parsing fails and logs the parser error in
@@ -19,14 +19,14 @@ returns null if parsing fails and logs the parser error in
 parser error, use the
 [barescriptParseScriptEx](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex) function:
 
-~~~ bare-script
+```bare-script
 result = barescriptParseScriptEx(scriptText, 1, 'test.bare')
 if objectHas(result, 'error'):
     markdownPrint('', 'Error: ' + markdownEscape(objectGet(objectGet(result, 'error'), 'error')))
 else:
     script = objectGet(result, 'result')
 endif
-~~~
+```
 
 To parse a BareScript expression, use the
 [barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function

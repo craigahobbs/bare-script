@@ -10,21 +10,21 @@ the BareScript model.
 
 Get the BareScript type model:
 
-~~~ bare-script
+```bare-script
 include <barescriptModel.bare>
 
 typeModel = barescriptTypeModel()
-~~~
+```
 
 Validate a BareScript model (for example, one loaded from a JSON resource):
 
-~~~ bare-script
+```bare-script
 scriptJSON = jsonParse(systemFetch('script.json'))
 script = barescriptValidateScript(scriptJSON)
 if script == null:
     markdownPrint('Invalid BareScript model!')
 endif
-~~~
+```
 
 The [barescriptValidateScript](#var.vGroup='barescriptModel.bare'&barescriptvalidatescript) and
 [barescriptValidateExpression](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpression)
@@ -35,11 +35,11 @@ validation error, use the
 [barescriptValidateExpressionEx](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpressionex)
 functions:
 
-~~~ bare-script
+```bare-script
 result = barescriptValidateScriptEx(scriptModel)
 if objectHas(result, 'error'):
     markdownPrint('', 'Error: ' + markdownEscape(objectGet(result, 'error')))
 else:
     script = objectGet(result, 'result')
 endif
-~~~
+```

@@ -72,7 +72,7 @@ endfunction
 # $group: markdownUp.bare
 # $doc: Set the document keydown event handler. For example:
 # $doc:
-# $doc: ```barescript
+# $doc: ```bare-script
 # $doc: function myAppMain():
 # $doc:     myAppRender()
 # $doc:     documentSetKeyDown(myAppKeyDown)
@@ -338,7 +338,7 @@ endfunction
 # $doc: game loops and animations. The modifier-key states must match exactly, so by default the key
 # $doc: must be pressed with no modifier keys held. For example:
 # $doc:
-# $doc: ```barescript
+# $doc: ```bare-script
 # $doc: if windowKeyState('ArrowLeft'):
 # $doc:     playerX = playerX - playerSpeed
 # $doc: endif

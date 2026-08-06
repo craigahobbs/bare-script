@@ -42,14 +42,14 @@ An argument model list
 
 An argument value type
 
-| Value    |
-|----------|
-| bool     |
-| date     |
-| datetime |
-| float    |
-| int      |
-| string   |
+| Value    | Description                                                                   |
+|----------|-------------------------------------------------------------------------------|
+| bool     | A boolean value (the numbers 0 and 1 are also accepted)                       |
+| date     | A date value - a datetime with zero time of day (ISO date strings are parsed) |
+| datetime | A datetime value (ISO date/time strings are parsed)                           |
+| float    | A number value                                                                |
+| int      | An integer number value                                                       |
+| string   | A string value (the default)                                                  |
 
 ---
 
@@ -76,6 +76,7 @@ A library function
 | doc    | string []                                                     |            | The function's documentation Markdown lines        |
 | args   | [BaredocFunctionArgument](#struct-baredocfunctionargument) [] | optional   | The function arguments                             |
 | return | string []                                                     | optional   | The function return's documentation Markdown lines |
+| async  | bool                                                          | optional   | If true, the function is asynchronous              |
 | ignore | bool                                                          | optional   | If true, ignore the function                       |
 
 ### struct BaredocFunctionArgument
@@ -236,11 +237,11 @@ A datetime format
 
 A field alignment
 
-| Value  |
-|--------|
-| left   |
-| right  |
-| center |
+| Value  | Description            |
+|--------|------------------------|
+| left   | Left-align the field   |
+| right  | Right-align the field  |
+| center | Center-align the field |
 
 ### struct DataTableFieldFormat
 

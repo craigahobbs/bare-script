@@ -16,15 +16,15 @@ Consider the following MarkdownUp application:
 
 **app.md**
 
-``` markdown
-~~~ markdown-script
+```markdown
+~~~markdown-script
 include 'app.bare'
 ~~~
 ```
 
 **app.bare:**
 
-~~~ bare-script
+```bare-script
 function appMain():
     markdownPrint('# Hello!', '')
     i = 0
@@ -35,23 +35,23 @@ function appMain():
 endfunction
 
 appMain()
-~~~
+```
 
 The application runs as expected within
 [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme).
 However, when running in plain BareScript, the `markdownPrint` function is not defined, and the
 application fails:
 
-~~~ sh
+```sh
 $ bare app.bare
 app.bare:
 Undefined function "markdownPrint"
-~~~
+```
 
 However, if we first include "markdownUp.bare" using the "-m" argument, the application works and
 outputs the generated Markdown to the terminal:
 
-~~~ sh
+```sh
 $ bare -m app.bare
 # Hello!
 
@@ -65,4 +65,4 @@ $ bare -m app.bare
 - 8
 - 9
 - 10
-~~~
+```

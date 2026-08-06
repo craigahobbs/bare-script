@@ -12,9 +12,10 @@ include <url.bare>
 
 # $function: schemaDocMain
 # $group: schemaDoc.bare
+# $async: true
 # $doc: The Schema Markdown documentation viewer main entry point
 # $arg url: Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
-# $arg title: Optional. The schema title.
+# $arg title: Optional (default is null). The schema title. If null, the URL is used as the title.
 # $arg hideNoGroup: Optional (default is false). If true, hide types with no group.
 async function schemaDocMain(url, title, hideNoGroup):
     # Parse arguments

@@ -4,7 +4,7 @@ Markdown tables. This is useful for displaying tabular data in MarkdownUp applic
 To render a data table, use the [dataTableMarkdown](#var.vGroup='dataTable.bare'&datatablemarkdown)
 function with a data array and an optional data table model:
 
-~~~ bare-script
+```bare-script
 include <dataTable.bare>
 
 data = [ \
@@ -19,13 +19,13 @@ model = { \
 }
 
 markdownPrint(dataTableMarkdown(data, model))
-~~~
+```
 
 The data table model allows you to control which fields are displayed, their order, and how values
 are formatted. You can specify field alignment, headers, and other display options.
 
 If no model is provided, all fields are displayed in their natural order with default formatting:
 
-~~~ bare-script
+```bare-script
 markdownPrint(dataTableMarkdown(data))
-~~~
+```

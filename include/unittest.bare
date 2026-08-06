@@ -10,7 +10,8 @@ include <markdown.bare>
 
 # $function: unittestRunTest
 # $group: unittest.bare
-# $doc: Run a unit test
+# $async: true
+# $doc: Run a unit test. Running the same test name twice records a warning.
 # $arg testName: The test function name
 async function unittestRunTest(testName):
     # Tests disabled?
@@ -193,7 +194,7 @@ endfunction
 # $function: unittestReport
 # $group: unittest.bare
 # $doc: Render the unit test report
-# $arg options: Optional unittest report options object. The following options are available:
+# $arg options: Optional (default is null). The unittest report options object. The following options are available:
 # $arg options: - **coverageExclude** - array of script names to exclude from coverage
 # $arg options: - **coverageMin** - verify minimum coverage percent (0 - 100)
 # $arg options: - **links** - the array of page links

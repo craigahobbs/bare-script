@@ -1,23 +1,83 @@
 # The BareScript Expression Library
 
 Welcome to the [BareScript](https://craigahobbs.github.io/bare-script/language/) Expression Library
-documentation.
+documentation. The expression library is the set of spreadsheet-like functions available when
+evaluating standalone
+[BareScript expressions](https://craigahobbs.github.io/bare-script/language/#expressions) — for
+example, with the implementations' expression APIs (JavaScript `evaluateExpression`, Python
+`evaluate_expression`) or the `barescriptEvaluateExpression` builtin.
+
+Each expression function is a short alias of a builtin library function:
+
+| Expression | Builtin |
+| ---------- | ------- |
+| `abs` | `mathAbs` |
+| `acos` | `mathAcos` |
+| `arrayNew` | `arrayNew` |
+| `asin` | `mathAsin` |
+| `atan` | `mathAtan` |
+| `atan2` | `mathAtan2` |
+| `ceil` | `mathCeil` |
+| `charCodeAt` | `stringCharCodeAt` |
+| `cos` | `mathCos` |
+| `date` | `datetimeNew` |
+| `day` | `datetimeDay` |
+| `endsWith` | `stringEndsWith` |
+| `fixed` | `numberToFixed` |
+| `floor` | `mathFloor` |
+| `fromCharCode` | `stringFromCharCode` |
+| `hour` | `datetimeHour` |
+| `indexOf` | `stringIndexOf` |
+| `lastIndexOf` | `stringLastIndexOf` |
+| `len` | `stringLength` |
+| `ln` | `mathLn` |
+| `log` | `mathLog` |
+| `lower` | `stringLower` |
+| `max` | `mathMax` |
+| `min` | `mathMin` |
+| `minute` | `datetimeMinute` |
+| `month` | `datetimeMonth` |
+| `now` | `datetimeNow` |
+| `objectNew` | `objectNew` |
+| `parseFloat` | `numberParseFloat` |
+| `parseInt` | `numberParseInt` |
+| `pi` | `mathPi` |
+| `rand` | `mathRandom` |
+| `replace` | `stringReplace` |
+| `rept` | `stringRepeat` |
+| `round` | `mathRound` |
+| `second` | `datetimeSecond` |
+| `sign` | `mathSign` |
+| `sin` | `mathSin` |
+| `slice` | `stringSlice` |
+| `sqrt` | `mathSqrt` |
+| `startsWith` | `stringStartsWith` |
+| `tan` | `mathTan` |
+| `text` | `stringNew` |
+| `today` | `datetimeToday` |
+| `trim` | `stringTrim` |
+| `upper` | `stringUpper` |
+| `year` | `datetimeYear` |
+
+See [The BareScript Library](index.html) for the full builtin function documentation.
 
 
 ## Expression Functions
 
 |  |  |
 | --- | --- |
-| [array](#var.vPublish=true&var.vSingle=true&array) |  |
-| [datetime](#var.vPublish=true&var.vSingle=true&datetime) |  |
-| [math](#var.vPublish=true&var.vSingle=true&math) |  |
-| [number](#var.vPublish=true&var.vSingle=true&number) |  |
-| [object](#var.vPublish=true&var.vSingle=true&object) |  |
-| [string](#var.vPublish=true&var.vSingle=true&string) |  |
+| [array](#var.vPublish=true&var.vSingle=true&array) | Create arrays |
+| [datetime](#var.vPublish=true&var.vSingle=true&datetime) | Create and query date/time values |
+| [math](#var.vPublish=true&var.vSingle=true&math) | Mathematical operations and constants |
+| [number](#var.vPublish=true&var.vSingle=true&number) | Parse and format numbers |
+| [object](#var.vPublish=true&var.vSingle=true&object) | Create objects |
+| [string](#var.vPublish=true&var.vSingle=true&string) | Search, slice, and transform strings |
 
 ---
 
 ## array
+
+Create arrays
 
 ### Function Index
 
@@ -41,6 +101,8 @@ The new array
 ---
 
 ## datetime
+
+Create and query date/time values
 
 ### Function Index
 
@@ -209,6 +271,8 @@ The full year
 
 ## math
 
+Mathematical operations and constants
+
 ### Function Index
 
 - [abs](#var.vPublish=true&var.vSingle=true&abs)
@@ -373,7 +437,7 @@ The natural logarithm of the number
 
 ### log
 
-Compute the logarithm (base 10) of a number
+Compute the logarithm of a number
 
 #### Arguments
 
@@ -527,6 +591,8 @@ The tangent of the angle
 
 ## number
 
+Parse and format numbers
+
 ### Function Index
 
 - [fixed](#var.vPublish=true&var.vSingle=true&fixed)
@@ -591,6 +657,8 @@ The integer
 
 ## object
 
+Create objects
+
 ### Function Index
 
 - [objectNew](#var.vPublish=true&var.vSingle=true&objectnew)
@@ -613,6 +681,8 @@ The new object
 ---
 
 ## string
+
+Search, slice, and transform strings
 
 ### Function Index
 
@@ -701,7 +771,7 @@ Optional (default is 0). The index at which to start the search.
 
 #### Returns
 
-The first index of the search string; -1 if not found.
+The first index of the search string; -1 if not found
 
 ---
 
@@ -722,7 +792,7 @@ Optional (default is the end of the string). The index at which to start the sea
 
 #### Returns
 
-The last index of the search string; -1 if not found.
+The last index of the search string; -1 if not found
 
 ---
 
@@ -758,7 +828,12 @@ The lower-case string
 
 ### replace
 
-Replace all instances of a string with another string
+Replace all instances of a string with another string. For example:
+
+```bare-script
+result = stringReplace('a-a-a', '-', '+')
+# result is 'a+a+a'
+```
 
 #### Arguments
 
