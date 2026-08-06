@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.3 (2026-08-06)
+
+- [a1ba775](https://github.com/craigahobbs/bare-script/commit/a1ba775) - improve documentation \(language reference semantics, library doc examples, $async marking, llms.txt\)
+
 ## 5.1.1 (2026-08-06)
 
 - [7a7df9d](https://github.com/craigahobbs/bare-script/commit/7a7df9d) - fix broken documentation links \(debug-mode hashes, Types vURL='', stale README links\)
