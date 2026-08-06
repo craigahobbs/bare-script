@@ -10,6 +10,7 @@ include <schemaParser.bare>
 
 # $function: baredocMain
 # $group: baredoc.bare
+# $async: true
 # $doc: The BareScript library documentation application main entry point
 # $arg config: The [documentation configuration](model.html#var.vName='BaredocConfig') object or its JSON resource URL
 async function baredocMain(config):
@@ -271,14 +272,15 @@ function baredocGroup(args, groupContent, groups, groupName, baseHeader):
     # Render the group function documentation
     for function_ in groupFunctions:
         # Render the function header
-        markdownPrint( \
-            '', \
-            '---', \
-            '', \
-            baseHeader + '# ' + markdownEscape(objectGet(function_, 'name')), \
-            '', \
-            objectGet(function_, 'doc') \
-        )
+        markdownPrint('', '---', '', baseHeader + '# ' + markdownEscape(objectGet(function_, 'name')))
+
+        # Render the function's async note
+        if objectGet(function_, 'async'):
+            markdownPrint('', '**async** - The calling function must be declared with "async function"')
+        endif
+
+        # Render the function documentation
+        markdownPrint('', objectGet(function_, 'doc'))
 
         # Render the functions's argument documentation
         markdownPrint('', baseHeader + '## Arguments')
@@ -367,6 +369,9 @@ baredocTypes = schemaParse( \
     '', \
     "    # The function return's documentation Markdown lines", \
     '    optional string[] return', \
+    '', \
+    '    # If true, the function is asynchronous', \
+    '    optional bool async', \
     '', \
     '    # If true, ignore the function', \
     '    optional bool ignore', \

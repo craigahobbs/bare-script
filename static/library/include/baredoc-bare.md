@@ -2,13 +2,13 @@ The "baredoc.bare" include library contains the BareScript library documentation
 See baredoc in action by visiting the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
 
-To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#baredocmain)
+To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#var.vGroup='baredoc.bare'&baredocmain)
 function with a [documentation configuration](model.html#var.vName='BaredocConfig') object (or the URL
 of its JSON resource). Each section's `url` is a
 [library model JSON](model.html#var.vName='BaredocLibrary') resource (for example, one produced by
 [baredocCLI](#var.vGroup='baredocCLI.bare'&_top)):
 
-~~~ bare-script
+```bare-script
 include <baredoc.bare>
 
 baredocMain({ \
@@ -17,11 +17,11 @@ baredocMain({ \
         {'title': 'My Functions', 'url': 'my-library.json'} \
     ] \
 })
-~~~
+```
 
 You can add top-level content, multiple sections, and per-section group content:
 
-~~~ bare-script
+```bare-script
 include <baredoc.bare>
 
 baredocMain({ \
@@ -36,12 +36,12 @@ baredocMain({ \
         {'title': 'Include Functions', 'url': 'my-include.json'} \
     ] \
 })
-~~~
+```
 
 Instead of an inline object, you can pass the URL of a configuration JSON resource:
 
-~~~ bare-script
+```bare-script
 include <baredoc.bare>
 
 baredocMain('my-library-config.json')
-~~~
+```

@@ -19,7 +19,7 @@ endfunction
 
 # $function: elementModelValidateEx
 # $group: elementModel.bare
-# $doc: Validate an element model
+# $doc: Validate an element model with programmatic error reporting
 # $arg elements: The element model.
 # $arg elements: An element model is either null, an element object, or an array of any of these.
 # $return: On success, an object with the "result" key set to the element model.

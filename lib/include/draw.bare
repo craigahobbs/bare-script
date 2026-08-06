@@ -240,7 +240,8 @@ endfunction
 
 # $function: drawNew
 # $group: draw.bare
-# $doc: Create a new drawing
+# $doc: Create a new drawing. The new drawing becomes the current drawing - all other "draw" functions
+# $doc: operate on the current drawing. Call drawRender to render the current drawing.
 # $arg width: The width of the drawing
 # $arg height: The height of the drawing
 function drawNew(width, height):

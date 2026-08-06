@@ -5,17 +5,17 @@ global variables and labels; redefined functions and labels; and pointless state
 
 Lint a BareScript model:
 
-~~~ bare-script
+```bare-script
 include <barescriptLint.bare>
 
 warnings = barescriptLintScript(script)
 for warning in warnings:
     markdownPrint('', 'Warning: ' + markdownEscape(warning))
 endfor
-~~~
+```
 
 Pass the script's global variables to also perform the unknown-global lint checks:
 
-~~~ bare-script
+```bare-script
 warnings = barescriptLintScript(script, globals)
-~~~
+```

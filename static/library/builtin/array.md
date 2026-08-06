@@ -5,15 +5,15 @@ with the [arrayNew](#var.vGroup='array'&arraynew) function.
 To access and modify array elements, use the [arrayGet](#var.vGroup='array'&arrayget) and
 [arraySet](#var.vGroup='array'&arrayset) functions:
 
-~~~ bare-script
+```bare-script
 values = [1, 2, 3, 4, 5]
 firstValue = arrayGet(values, 0)
 arraySet(values, 0, 10)
-~~~
+```
 
 Arrays can be extended, sliced, and manipulated in various ways:
 
-~~~ bare-script
+```bare-script
 # Add elements to the end
 arrayPush(values, 6, 7, 8)
 
@@ -25,11 +25,11 @@ subset = arraySlice(values, 1, 4)
 
 # Join array elements into a string
 text = arrayJoin(values, ', ')
-~~~
+```
 
 Arrays can also be sorted, searched, and flattened:
 
-~~~ bare-script
+```bare-script
 # Sort an array
 arraySorted = arraySort([3, 1, 4, 1, 5, 9])
 
@@ -39,4 +39,4 @@ index = arrayIndexOf(values, 3)
 # Flatten nested arrays
 nested = [[1, 2], [3, [4, 5]]]
 flat = arrayFlat(nested, 2)
-~~~
+```

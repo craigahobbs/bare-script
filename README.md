@@ -26,6 +26,21 @@ confident that BareScript will execute the same regardless of the underlying run
 - [Source code](https://github.com/craigahobbs/bare-script)
 
 
+## Installation
+
+Install the bare-script package in your project with npm:
+
+```
+npm install bare-script
+```
+
+To use the `bare` command-line interface, install the package globally:
+
+```
+npm install -g bare-script
+```
+
+
 ## Executing BareScript Scripts
 
 To execute a BareScript script, parse the script using the
@@ -36,7 +51,7 @@ function or the
 [executeScriptAsync](https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.executeScriptAsync)
 function. For example:
 
-``` javascript
+```javascript
 import {barescriptParseScript, executeScript} from 'bare-script/lib/runtime.js';
 
 // Parse the script
@@ -72,7 +87,7 @@ of the
 [arrayLength](https://craigahobbs.github.io/bare-script/library/#var.vGroup='array'&arraylength)
 functions.
 
-``` javascript
+```javascript
 import {barescriptParseScript} from 'bare-script/lib/runtime.js';
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 
@@ -92,7 +107,7 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 This outputs:
 
 ```
-The BareScript Library has 108 builtin functions
+The BareScript Library has 100 builtin functions
 ```
 
 
@@ -114,7 +129,7 @@ a set of built-in, spreadsheet-like functions.
 
 For example:
 
-``` javascript
+```javascript
 import {barescriptParseExpression, evaluateExpression} from 'bare-script/lib/runtime.js';
 
 // Parse the expression
@@ -146,7 +161,7 @@ exported by the
 Each stub function executes its corresponding include library function using the BareScript
 runtime. For example:
 
-``` javascript
+```javascript
 import {markdownParse, markdownTitle} from 'bare-script/lib/include.js';
 
 // Parse the Markdown text
@@ -176,7 +191,7 @@ files use the ".bare" file extension.
 bare script.bare
 ```
 
-**Note:** In the BareScript CLI, import statements and the
+**Note:** In the BareScript CLI, include statements and the
 [systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&systemfetch)
 function read non-URL paths from the local file system.
 [systemFetch](https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&systemfetch)
@@ -194,7 +209,7 @@ dynamically rendering Markdown text, drawing SVG images, etc. For example:
 
 This is a Markdown document with embedded BareScript:
 
-``` markdown-script
+```markdown-script
 markdownPrint('Hello, Markdown!')
 ```
 ~~~
@@ -265,11 +280,17 @@ pip install markdown-up
 markdown-up ticTacToe.md
 ```
 
-The BareScript library is also documented as single-page Markdown, which can be fetched directly
+The BareScript documentation is also published as plain Markdown, which can be fetched directly
 into an assistant's context alongside `SKILL.md`:
 
+- [The BareScript Language](https://craigahobbs.github.io/bare-script/language/README.md)
 - [The BareScript Library](https://craigahobbs.github.io/bare-script/library/barescript-library.md)
 - [The BareScript Library Models](https://craigahobbs.github.io/bare-script/library/barescript-library-model.md)
+- [The BareScript Expression Library](https://craigahobbs.github.io/bare-script/library/barescript-expression-library.md)
+- [The BareScript Runtime Model](https://craigahobbs.github.io/bare-script/model/barescript-model.md)
+
+`SKILL.md` itself is published at <https://craigahobbs.github.io/bare-script/SKILL.md>, and
+<https://craigahobbs.github.io/bare-script/llms.txt> indexes all of the fetchable documentation.
 
 
 ## Development

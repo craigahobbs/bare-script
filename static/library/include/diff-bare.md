@@ -4,23 +4,23 @@ implementing version control-like functionality.
 
 To compute differences between two strings:
 
-~~~ bare-script
+```bare-script
 include <diff.bare>
 
 left = 'Line 1\nLine 2\nLine 3'
 right = 'Line 1\nLine 2 modified\nLine 3\nLine 4'
 
 differences = diffLines(left, right)
-~~~
+```
 
 You can also pass arrays of strings:
 
-~~~ bare-script
+```bare-script
 leftLines = ['Line 1', 'Line 2', 'Line 3']
 rightLines = ['Line 1', 'Line 2 modified', 'Line 3', 'Line 4']
 
 differences = diffLines(leftLines, rightLines)
-~~~
+```
 
 The function returns an array of [difference models](model.html#var.vName='Differences') that
 describe the changes between the two inputs. Each difference model indicates whether lines were

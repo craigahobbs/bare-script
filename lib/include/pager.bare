@@ -84,6 +84,7 @@ endfunction
 
 # $function: pagerMain
 # $group: pager.bare
+# $async: true
 # $doc: The pager application main entry point
 # $arg pagerModel: The [pager model](model.html#var.vName='Pager')
 # $arg options: The pager application options. The following options are available:

@@ -3,7 +3,7 @@ expressions are patterns used to match character combinations in strings.
 
 Create a regular expression:
 
-~~~ bare-script
+```bare-script
 # Basic pattern
 regex = regexNew('[0-9]+')
 
@@ -11,11 +11,11 @@ regex = regexNew('[0-9]+')
 caseInsensitive = regexNew('[a-z]+', 'i')
 multiline = regexNew('^Line', 'm')
 dotAll = regexNew('.*', 's')
-~~~
+```
 
 Find matches in strings:
 
-~~~ bare-script
+```bare-script
 # Find first match
 text = 'The year is 2024'
 match = regexMatch(regexNew('[0-9]+'), text)
@@ -28,25 +28,25 @@ endif
 # Find all matches
 text = 'Prices: $10, $20, $30'
 matches = regexMatchAll(regexNew('\\$([0-9]+)'), text)
-~~~
+```
 
 Replace text using patterns:
 
-~~~ bare-script
+```bare-script
 # Replace all digits with X
 text = 'Phone: 555-1234'
 result = regexReplace(regexNew('[0-9]'), text, 'X')
 # Result: 'Phone: XXX-XXXX'
-~~~
+```
 
 Split strings with patterns:
 
-~~~ bare-script
+```bare-script
 # Split on whitespace
 text = 'one  two   three'
 parts = regexSplit(regexNew('\\s+'), text)
 # Result: ['one', 'two', 'three']
-~~~
+```
 
 Common regex patterns:
 - `[a-zA-Z]+` - One or more letters

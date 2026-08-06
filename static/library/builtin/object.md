@@ -4,39 +4,39 @@ collections that can be created using object literal syntax (e.g., `{'a': 1, 'b'
 
 Create and manipulate objects:
 
-~~~ bare-script
+```bare-script
 # Create a new object
-person = {'name', 'Alice', 'age', 30}
+person = {'name': 'Alice', 'age': 30}
 
 # Set and get values
 objectSet(person, 'city', 'New York')
 name = objectGet(person, 'name')
 city = objectGet(person, 'city', 'Unknown')  # With default value
-~~~
+```
 
 Check for keys and get all keys:
 
-~~~ bare-script
+```bare-script
 # Check if a key exists
 hasAge = objectHas(person, 'age')
 
 # Get all keys
 keys = objectKeys(person)
-~~~
+```
 
 Copy and assign objects:
 
-~~~ bare-script
+```bare-script
 # Create a shallow copy
 personCopy = objectCopy(person)
 
 # Assign properties from one object to another
 defaults = {'country': 'USA', 'status': 'active'}
 objectAssign(person, defaults)
-~~~
+```
 
 Delete keys:
 
-~~~ bare-script
+```bare-script
 objectDelete(person, 'status')
-~~~
+```

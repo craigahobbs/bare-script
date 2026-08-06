@@ -4,7 +4,33 @@
     "sections": [
         {
             "title": "Expression Functions",
-            "url": "expression-builtin.json"
+            "url": "expression-builtin.json",
+            "groups": [
+                {
+                    "name": "array",
+                    "description": "Create arrays"
+                },
+                {
+                    "name": "datetime",
+                    "description": "Create and query date/time values"
+                },
+                {
+                    "name": "math",
+                    "description": "Mathematical operations and constants"
+                },
+                {
+                    "name": "number",
+                    "description": "Parse and format numbers"
+                },
+                {
+                    "name": "object",
+                    "description": "Create objects"
+                },
+                {
+                    "name": "string",
+                    "description": "Search, slice, and transform strings"
+                }
+            ]
         }
     ]
 }

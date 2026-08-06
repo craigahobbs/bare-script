@@ -4,7 +4,7 @@ The "schemaParser.bare" include library provides functions for parsing
 
 Parse Schema Markdown text:
 
-~~~ bare-script
+```bare-script
 include <schemaParser.bare>
 
 types = schemaParse( \
@@ -17,14 +17,14 @@ types = schemaParse( \
     "    # The person's age", \
     '    int age' \
 )
-~~~
+```
 
 The [schemaParse](#var.vGroup='schemaParser.bare'&schemaparse) function returns null if parsing
 fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to parse errors, use the
 [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function:
 
-~~~ bare-script
+```bare-script
 result = schemaParseEx('struct Person', null, 'person.smd')
 if objectHas(result, 'errors'):
     for error in objectGet(result, 'errors'):
@@ -33,7 +33,7 @@ if objectHas(result, 'errors'):
 else:
     types = objectGet(result, 'result')
 endif
-~~~
+```
 
 The [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function can also accumulate
 multiple schemas into a single [type model](model.html#var.vName='Types'&var.vURL='') by passing the types

@@ -53,8 +53,14 @@ dataTableTypes = schemaParse( \
     '', \
     '# A field alignment', \
     'enum DataTableFieldAlignment', \
+    '', \
+    '    # Left-align the field', \
     '    left', \
+    '', \
+    '    # Right-align the field', \
     '    right', \
+    '', \
+    '    # Center-align the field', \
     '    center', \
     '', \
     '', \
@@ -84,7 +90,7 @@ endfunction
 
 # $function: dataTableValidateEx
 # $group: dataTable.bare
-# $doc: Validate a data table model
+# $doc: Validate a data table model with programmatic error reporting
 # $arg dataTable: The [data table model](model.html#var.vName='DataTable')
 # $return: On success, an object with the "result" key set to the validated [data table model](model.html#var.vName='DataTable').
 # $return: On failure, an object with the "error" key set to the validation error message and the
@@ -254,7 +260,7 @@ endfunction
 
 # $function: dataTable
 # $group: dataTable.bare
-# $doc: Render a data table
+# $doc: Render a data table in the document
 # $arg data: The data array
 # $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
 function dataTable(data, dataTable):
@@ -265,7 +271,7 @@ endfunction
 
 # $function: dataTableElements
 # $group: dataTable.bare
-# $doc: Render a data table
+# $doc: Generate a data table element model
 # $arg data: The data array
 # $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
 # $return: The data table [element model](https://github.com/craigahobbs/element-model#readme)

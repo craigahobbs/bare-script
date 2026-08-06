@@ -105,7 +105,9 @@ endfunction
 
 # $function: markdownElementsAsync
 # $group: markdownElements.bare
-# $doc: Generate an element model from a Markdown model
+# $async: true
+# $doc: Generate an element model from a Markdown model.
+# $doc: Use this form of the function if you have one or more asynchronous code block functions.
 # $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
 # $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
 # $return: The Markdown's [element model](https://github.com/craigahobbs/element-model#readme)

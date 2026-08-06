@@ -110,7 +110,7 @@ endfunction
 
 # $function: dataValidateEx
 # $group: data.bare
-# $doc: Validate a data array
+# $doc: Validate a data array with programmatic error reporting
 # $arg data: The data array
 # $arg csv: Optional (default is false). If true, parse value strings.
 # $return: On success, an object with the "result" key set to the map of field name to field type.
@@ -243,7 +243,15 @@ endfunction
 
 # $function: dataJoin
 # $group: data.bare
-# $doc: Join two data arrays
+# $doc: Join two data arrays. A right-row field that collides with a left-row field is renamed
+# $doc: with a "2" suffix. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: people = [{'name': 'Alice', 'city': 'NY'}, {'name': 'Bob', 'city': 'SF'}]
+# $doc: cities = [{'city': 'NY', 'state': 'NY'}, {'city': 'SF', 'state': 'CA'}]
+# $doc: joined = dataJoin(people, cities, 'city')
+# $doc: # joined is [{'city': 'NY', 'city2': 'NY', 'name': 'Alice', 'state': 'NY'}, ...]
+# $doc: ```
 # $arg leftData: The left data array
 # $arg rightData: The right data array
 # $arg joinExpr: The join expression
@@ -327,7 +335,13 @@ endfunction
 
 # $function: dataCalculatedField
 # $group: data.bare
-# $doc: Add a calculated field to a data array
+# $doc: Add a calculated field to each row of a data array, in place. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: data = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
+# $doc: dataCalculatedField(data, 'sum', 'a + b')
+# $doc: # data is [{'a': 1, 'b': 2, 'sum': 3}, {'a': 3, 'b': 4, 'sum': 7}]
+# $doc: ```
 # $arg data: The data array
 # $arg fieldName: The calculated field name
 # $arg expr: The calculated field expression
@@ -386,7 +400,16 @@ endfunction
 
 # $function: dataAggregate
 # $group: data.bare
-# $doc: Aggregate a data array
+# $doc: Aggregate a data array. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: data = [{'city': 'NY', 'temp': 65}, {'city': 'NY', 'temp': 70}, {'city': 'SF', 'temp': 60}]
+# $doc: averages = dataAggregate(data, { \
+# $doc:     'categories': ['city'], \
+# $doc:     'measures': [{'field': 'temp', 'function': 'average', 'name': 'avgTemp'}] \
+# $doc: })
+# $doc: # averages is [{'avgTemp': 67.5, 'city': 'NY'}, {'avgTemp': 60, 'city': 'SF'}]
+# $doc: ```
 # $arg data: The data array
 # $arg aggregation: The [aggregation model](model.html#var.vName='DataAggregation')
 # $return: The aggregated data array
@@ -595,7 +618,7 @@ endfunction
 # $group: data.bare
 # $doc: Keep the top rows for each category
 # $arg data: The data array
-# $arg count: The number of rows to keep (default is 1)
+# $arg count: Optional (default is 1). The number of rows to keep.
 # $arg categoryFields: Optional (default is null). The category fields.
 # $return: The top data array
 function dataTop(data, count, categoryFields):

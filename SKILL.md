@@ -1,5 +1,5 @@
 ---
-name: barescript
+name: bare-script
 description: Teaches a model how to write BareScript — language syntax, the built-in library, the include library, MarkdownUp client-rendered applications, and unit tests. Use this skill whenever the user asks you to write, read, modify, or review BareScript (`.bare`) code, a MarkdownUp Markdown application, a `markdown-script` code block, or any code that uses BareScript built-in functions (`array*`, `object*`, `string*`, `data*`, `markdownPrint`, `elementModelRender`, `drawNew`, etc.). Also use it when asked to write unit tests for BareScript code. Apply this skill even if the user does not say the word "BareScript" — recognize it from the `.bare` extension, the `markdown-script` fenced code block, or the function-naming style above.
 ---
 
@@ -25,7 +25,8 @@ BareScript is a small, embeddable scripting language with Python-flavored
 syntax. It runs in two implementations (JavaScript and Python) that share
 100% of their test suite. There are no classes, no modules, no exceptions, no
 imports — just functions, a literal-only data model (number, string, boolean,
-null, array, object, datetime, regex, function), and ~200 library functions.
+null, array, object, datetime, regex, function), 100 built-in functions, and
+~130 more in the bundled include libraries.
 Long-running scripts can be executed in a synchronous interpreter; scripts
 that do I/O (`systemFetch`, includes that fetch URLs) run in the async
 interpreter and use `async function` declarations.
@@ -39,7 +40,7 @@ interpreter and use `async function` declarations.
 There are no semicolons. To continue a long statement onto the next line, end
 the previous line with a backslash `\`:
 
-```barescript
+```bare-script
 colors = [ \
     'red', \
     'green', \
@@ -51,7 +52,7 @@ colors = [ \
 
 `#` to end of line. **There are no block comments.**
 
-```barescript
+```bare-script
 # This is a comment
 x = 1  # Trailing comments are also fine
 ```
@@ -69,21 +70,21 @@ x = 1  # Trailing comments are also fine
 
 ### Variables and assignment
 
-```barescript
+```bare-script
 x = 5
 name = 'Alice'
 items = [1, 2, 3]
 ```
 
 Top-level assignments create globals. Assignments inside a `function` create
-locals. Variable names with non-alphanumeric characters must be wrapped in
-brackets: `[Height (ft)]`.
+locals. In standalone expressions only (the host `evaluateExpression` /
+`evaluate_expression` APIs — not scripts), a variable name with
+non-alphanumeric characters may be wrapped in brackets: `[Height (ft)]`.
 
 ### **Critical: there is no bracket access for arrays/objects**
 
-`obj['key']` and `arr[0]` are **NOT valid BareScript**. (Brackets are only used
-for array *literals* and for variable names with special characters.) Always
-use the library functions:
+`obj['key']` and `arr[0]` are **NOT valid BareScript**. (In scripts, brackets
+are only used for array *literals*.) Always use the library functions:
 
 | You want…                 | Use this                          |
 | ------------------------- | --------------------------------- |
@@ -104,7 +105,7 @@ catch yourself typing `[`, stop and check whether you mean a literal.**
 Every block-opening statement ends with `:` and every block has an explicit
 `endif` / `endwhile` / `endfor` / `endfunction`:
 
-```barescript
+```bare-script
 if x < 0:
     y = -1
 elif x > 0:
@@ -136,7 +137,7 @@ rarely used outside the standard library — prefer `while`/`for`.
 
 ### Functions
 
-```barescript
+```bare-script
 function double(n):
     return n * 2
 endfunction
@@ -155,11 +156,22 @@ Sync code cannot call async code.
 `return` without an expression returns `null`. A function with no `return`
 also returns `null`.
 
+A `...` suffix on the **last** argument collects any extra call arguments into
+an array (an empty array when none are passed):
+
+```bare-script
+function labelValues(label, values...):
+    return label + ': ' + arrayJoin(values, ', ')
+endfunction
+
+labelValues('sizes', 1, 2, 3)    # 'sizes: 1, 2, 3'
+```
+
 ### The built-in `if(test, a, b)` expression function
 
 This is special: only the chosen branch is evaluated.
 
-```barescript
+```bare-script
 v = if(a == b, fn1(), fn2())
 ```
 
@@ -173,6 +185,10 @@ Logical: `&& ||` (short-circuit; `&&` returns left if falsy else right;
 `||` returns left if truthy else right)
 Bitwise: `& | ^ << >> ~`
 Unary: `!` `-` `~`
+
+Precedence, highest to lowest: `**` · `* / %` · `+ -` · `<< >>` ·
+`< <= > >=` · `== !=` · `&` · `^` · `|` · `&&` · `||`. Equal precedence
+evaluates left to right — including `**` (`2 ** 3 ** 2` is 64, not 512).
 
 `+` concatenates strings and coerces the other operand to string if either is
 a string. Datetimes support `+ number` (milliseconds) and `datetime - datetime`
@@ -205,7 +221,7 @@ producer never returns as empty).
 `&&`, `||`, and the `if(test, a, b)` expression function all short-circuit —
 the unused branch is never evaluated:
 
-```barescript
+```bare-script
 # regexMatch only runs when stringStartsWith returns true
 m = stringStartsWith(s, '"') && regexMatch(quotedFieldRe, s)
 
@@ -218,10 +234,10 @@ Library functions don't short-circuit their arguments. Use the operators or
 
 ### Includes
 
-```barescript
+```bare-script
 include 'util.bare'             # relative path (or URL)
-include <unittest.bare>         # system include — resolved against the
-                                 # interpreter's system-include prefix
+include <unittest.bare>         # system include — one of the include
+                                 # libraries bundled with the runtime
 ```
 
 `include` evaluates the file's top-level statements in the global scope,
@@ -237,7 +253,7 @@ In the CLI, non-URL paths read from the local filesystem; same for non-URL
 
 Use a trailing backslash. Common in object and array literals:
 
-```barescript
+```bare-script
 person = { \
     'name': 'Alice', \
     'age': 30, \
@@ -313,9 +329,9 @@ Full reference: <https://craigahobbs.github.io/bare-script/library/> — also
 published as a single-page Markdown document that can be fetched directly into
 context: <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
 (that one page documents **both** the built-in library here and the include
-library in Section 3, with full signatures — fetch it whenever you need a
-signature this skill doesn't spell out). What follows is what you need to
-*recall the right name* without searching.
+library in Section 3 — argument names, descriptions, and return values — fetch
+it whenever you need a signature this skill doesn't spell out). What follows is
+what you need to *recall the right name* without searching.
 
 ### Array (`array*`)
 
@@ -327,7 +343,7 @@ signature this skill doesn't spell out). What follows is what you need to
 `arrayPush(arr, values...)` · `arrayReverse(arr)` · `arraySet(arr, i, v)` ·
 `arrayShift(arr)` · `arraySlice(arr, start?, end?)` · `arraySort(arr, cmp?)`
 
-```barescript
+```bare-script
 nums = [3, 1, 4, 1, 5]
 arrayPush(nums, 9, 2, 6)
 sorted = arraySort(arrayCopy(nums))     # don't mutate the original
@@ -340,7 +356,7 @@ for a missing key), an index `>= arrayLength(arr)` returns `null` and **emits a
 debug log** in debug mode — so you can't use `arrayGet` to "peek" at an optional
 trailing element. Guard the length, and let short-circuiting skip the read:
 
-```barescript
+```bare-script
 desc = arrayGet(sort, 1)                          # BAD: logs when sort is just [field]
 desc = if(arrayLength(sort) >= 2, arrayGet(sort, 1))   # GOOD: null when absent
 ```
@@ -359,7 +375,7 @@ the array analog of guarding with `objectHas` before a no-default `objectGet`.
 
 Iterate keys with `for`:
 
-```barescript
+```bare-script
 for key in objectKeys(obj):
     systemLog(key + ' = ' + objectGet(obj, key))
 endfor
@@ -378,7 +394,7 @@ endfor
 
 There is **no string interpolation**. Use `+`:
 
-```barescript
+```bare-script
 greeting = 'Hello, ' + name + '! You are ' + age + ' years old.'
 ```
 
@@ -432,7 +448,7 @@ include-library functions — `schema.bare`, `schemaParser.bare`, and `schemaTyp
 `systemFetch` is the **only** I/O primitive — and it's async. Any function
 that calls it (directly or transitively) must be `async`.
 
-```barescript
+```bare-script
 async function loadDocs():
     return jsonParse(systemFetch('https://example.com/data.json'))
 endfunction
@@ -454,12 +470,11 @@ spreadsheet-style data filter). Parse the expression first with the
 ## 3. The include library (`include <name.bare>`)
 
 Pure-BareScript libraries that ship with the package. Always include before
-calling. Every include function — full signatures and option shapes — is in the
-single-page Markdown reference
+calling. Every include function — argument names, descriptions, and return
+values — is in the single-page Markdown reference
 (<https://craigahobbs.github.io/bare-script/library/barescript-library.md>);
 fetch it for any signature the table below doesn't spell out, rather than reading
-the `.bare` source. Each include is also documented at
-<https://craigahobbs.github.io/bare-script/include/>.
+the `.bare` source.
 
 | Include | Purpose | Key functions |
 | --- | --- | --- |
@@ -477,7 +492,6 @@ the `.bare` source. Each include is also documented at
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
 | `markdownElements.bare` | Markdown model → element model | `markdownElements`, `markdownElementsAsync` |
-| `markdownHighlight.bare` | Code-block syntax highlighting | `markdownHighlightElements`, `markdownHighlightCodeBlockElements`, `markdownHighlightCodeBlockElementsAsync`, `markdownHighlightCompileHighlightModels` |
 | `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
 | `pager.bare` | Multi-page MarkdownUp app shell | `pagerMain`, `pagerValidate` |
 | `qrcode.bare` | Render QR codes | `qrcodeDraw`, `qrcodeElements`, `qrcodeMatrix` |
@@ -490,9 +504,13 @@ the `.bare` source. Each include is also documented at
 | `url.bare` | Encode/decode URLs and URL query strings | `urlEncode`, `urlEncodeComponent`, `urlEncodeQueryString`, `urlDecodeQueryString`, `urlDecodeComponent` |
 | `baredoc.bare` / `baredocCLI.bare` | Generate library model JSON from doc comments | `baredocMain`, `baredocCLIMain` |
 
+(`markdownHighlight.bare`, `dataUtil.bare`, and `schemaUtil.bare` are internal
+support libraries — they are includable but intentionally undocumented; don't
+call them directly.)
+
 ### `data.bare` quick examples
 
-```barescript
+```bare-script
 include <data.bare>
 
 rows = [ \
@@ -526,7 +544,7 @@ joined = dataJoin(rows, cities, 'city')
 
 ### `draw.bare` quick example
 
-```barescript
+```bare-script
 include <draw.bare>
 
 drawNew(400, 300)
@@ -541,7 +559,7 @@ drawRender()                # prints SVG via markdownPrint in MarkdownUp
 
 Element models are plain BareScript objects shaped like:
 
-```barescript
+```bare-script
 { \
     'html': 'div',                              # or 'svg': '...' for SVG
     'attr': {'id': 'main', 'class': 'box'}, \   # optional attributes
@@ -587,14 +605,14 @@ MarkdownUp app is a Markdown file plus one or more `.bare` files.
 **app.md**
 
 ````markdown
-~~~ markdown-script
+~~~markdown-script
 include 'app.bare'
 ~~~
 ````
 
 **app.bare**
 
-```barescript
+```bare-script
 function appMain():
     documentSetTitle('Hello App')
     markdownPrint('# Hello, MarkdownUp!', '')
@@ -779,7 +797,7 @@ In tests, the stubs let you assert what the app *would have rendered*.
 
 ### URL arguments with `args.bare`
 
-```barescript
+```bare-script
 include <args.bare>
 
 arguments = [ \
@@ -814,7 +832,7 @@ appMain()
 
 ### Interactive forms with `forms.bare`
 
-```barescript
+```bare-script
 include <args.bare>
 include <forms.bare>
 
@@ -839,7 +857,7 @@ appMain()
 
 ### Multi-page apps with `pager.bare`
 
-```barescript
+```bare-script
 include <pager.bare>
 
 function pageHello(args):
@@ -876,7 +894,7 @@ work cleanly:
 
 A minimal skeleton:
 
-```barescript
+```bare-script
 include <draw.bare>
 
 appAnchorId = 'app-anchor'
@@ -1060,14 +1078,14 @@ myapp/
 ### `test/runTests.md`
 
 ````markdown
-~~~ markdown-script
+~~~markdown-script
 include 'runTests.bare'
 ~~~
 ````
 
 ### `test/runTests.bare`
 
-```barescript
+```bare-script
 include <unittest.bare>
 include <unittestMock.bare>     # only if you need mocking
 
@@ -1109,7 +1127,7 @@ Reaching a 100% floor, in practice:
 
 ### `test/testApp.bare` — basic assertions
 
-```barescript
+```bare-script
 include <unittest.bare>          # so the file lints standalone (see below)
 include '../app.bare'
 
@@ -1168,10 +1186,10 @@ though assertions pass. Check with
 
 `markdownPrint`, `documentSetTitle`, `systemFetch`, `windowSetLocation`, etc.
 all have side effects you don't want in unit tests.
-[unittestMock.bare](https://craigahobbs.github.io/bare-script/include/)
+[unittestMock.bare](https://craigahobbs.github.io/bare-script/library/barescript-library.md)
 intercepts every library function and records calls.
 
-```barescript
+```bare-script
 include <unittest.bare>
 include <unittestMock.bare>
 include '../app.bare'
@@ -1285,7 +1303,7 @@ bare -m app.bare              # run a MarkdownUp app (Markdown text output)
 bare -l app.bare              # run a MarkdownUp app (HTML output)
 bare -c 'expr'                # run an inline expression
 bare -d script.bare           # debug mode: log invalid library args
-bare -v K=V script.bare       # set global K to JSON value V
+bare -v NAME EXPR script.bare # set global NAME to an expression value, e.g. -v vCount 3
 bare -x script.bare           # run AND statically analyze (lint warnings + execution)
 bare -s script.bare           # static analysis only — parse + lint, no execution
 bare -m -x app.bare           # run + lint a MarkdownUp app (must combine -m with -x)
@@ -1328,7 +1346,18 @@ console.log(await executeScriptAsync(script, {fetchFn: fetch}));
 
 ### Embedding (Python)
 
-Identical API in the
+```python
+from bare_script import barescript_parse_script, execute_script
+
+script = barescript_parse_script('return N * 2')
+print(execute_script(script, {'globals': {'N': 21}}))  # 42
+```
+
+Scripts that fetch or use URL includes need a fetch function in the options —
+`{'fetch_fn': fetch_http}`, or `fetch_read_only` / `fetch_read_write` for local
+files. The Python implementation has a single synchronous API — there is no
+separate async runtime; `execute_script` runs scripts that use `systemFetch`
+and non-system includes directly. See the
 [`bare-script` Python package](https://github.com/craigahobbs/bare-script-py#readme).
 
 ---
@@ -1381,7 +1410,9 @@ most commonly produce when writing BareScript for the first time.
   pick the function that literally describes the operation. If it isn't in this
   file, fetch the single-page library reference
   (<https://craigahobbs.github.io/bare-script/library/barescript-library.md>),
-  which documents every built-in *and* include function. Only read the
+  which documents every built-in *and* include function; for language-syntax
+  questions, fetch the language reference
+  (<https://craigahobbs.github.io/bare-script/language/README.md>). Only read the
   implementation source — the library module and the shared `.bare` include
   files — as a last resort, and freely when you're working inside a BareScript
   implementation repo itself.
@@ -1397,13 +1428,19 @@ most commonly produce when writing BareScript for the first time.
 
 ## 9. Links
 
+Fetchable Markdown (best for loading into context):
+
+- Language reference: <https://craigahobbs.github.io/bare-script/language/README.md>
+- Built-in + include library, single-page (both libraries — argument names, descriptions, and return values): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
+- Library models: <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>
+- Expression library: <https://craigahobbs.github.io/bare-script/library/barescript-expression-library.md>
+- BareScript runtime model (the script/expression AST, operator enums): <https://craigahobbs.github.io/bare-script/model/barescript-model.md>
+- MarkdownUp example applications: <https://craigahobbs.github.io/MarkdownUpApplications.md>
+
+Browser documentation apps and sources:
+
 - Language: <https://craigahobbs.github.io/bare-script/language/>
-- Built-in library: <https://craigahobbs.github.io/bare-script/library/>
-- Include library: <https://craigahobbs.github.io/bare-script/include/>
-- Expression library: <https://craigahobbs.github.io/bare-script/library/expression.html>
-- Built-in + include library, single-page Markdown (fetch for the full reference — both libraries, full signatures): <https://craigahobbs.github.io/bare-script/library/barescript-library.md>
-- Library models, single-page Markdown: <https://craigahobbs.github.io/bare-script/library/barescript-library-model.md>
+- Library: <https://craigahobbs.github.io/bare-script/library/>
 - MarkdownUp: <https://craigahobbs.github.io/markdown-up/>
-- MarkdownUp example applications (fetchable Markdown): <https://craigahobbs.github.io/MarkdownUpApplications.md>
 - JS source: <https://github.com/craigahobbs/bare-script>
 - Python source: <https://github.com/craigahobbs/bare-script-py>

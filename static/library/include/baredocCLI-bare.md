@@ -29,10 +29,13 @@ bare -m -v vFiles "'[\"test.bare\"]'" -v vOutput '"test.json"' -c 'include <bare
 
 
 baredoc documentation comments begin with the "$" character, followed immediately by a keyword
-("function", "group", "doc", "arg", or "return"), followed by the ":" character, followed by the
-keyword value. The "function" keyword begins every library function definition. For example:
+("function", "group", "doc", "arg", "return", "async", or "ignore"), followed by the ":"
+character, followed by the keyword value. The "function" keyword begins every library function
+definition. "$async: true" marks a function as asynchronous (the calling function must be declared
+with "async function"), and "$ignore: true" excludes a function from the documentation. For
+example:
 
-```barescript
+```bare-script
 # $function: myFunction
 # $group: My Group
 # $doc: This is my function.
@@ -43,7 +46,7 @@ keyword value. The "function" keyword begins every library function definition. 
 # $arg arg2:
 # $arg arg2: More on the second argument.
 # $return: The message
-function myFunction(arg1, arg2)
+function myFunction(arg1, arg2):
     message = 'Hello'
     systemLog(message)
     return message

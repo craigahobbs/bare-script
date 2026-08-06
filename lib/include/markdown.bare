@@ -102,7 +102,7 @@ endfunction
 
 # $function: markdownValidateEx
 # $group: markdown.bare
-# $doc: Validate a Markdown model
+# $doc: Validate a Markdown model with programmatic error reporting
 # $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
 # $return: On success, an object with the "result" key set to the validated [Markdown model](model.html#var.vName='Markdown').
 # $return: On failure, an object with the "error" key set to the validation error message and the

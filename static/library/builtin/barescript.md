@@ -3,7 +3,7 @@ expression, use the
 [barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
 of the "barescriptParser.bare" include library. To parse and evaluate a BareScript expression:
 
-```barescript
+```bare-script
 include <barescriptParser.bare>
 
 exprStr = '5 * N'

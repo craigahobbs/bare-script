@@ -214,6 +214,9 @@ doc:
 		-c "schemaDocMain('model.json', 'The BareScript Runtime Model')" \
 		> barescript-model.md
 
+    # Publish the AI assistant skill (llms.txt is copied from static/)
+	cp SKILL.md build/doc/
+
 
 # JavaScript to generate the expression library documentation
 define DOC_EXPR_JS

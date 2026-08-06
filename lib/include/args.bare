@@ -42,11 +42,23 @@ argsTypes = schemaParse( \
     '', \
     '# An argument value type', \
     'enum ArgsType', \
+    '', \
+    '    # A boolean value (the numbers 0 and 1 are also accepted)', \
     '    bool', \
+    '', \
+    '    # A date value - a datetime with zero time of day (ISO date strings are parsed)', \
     '    date', \
+    '', \
+    '    # A datetime value (ISO date/time strings are parsed)', \
     '    datetime', \
+    '', \
+    '    # A number value', \
     '    float', \
+    '', \
+    '    # An integer number value', \
     '    int', \
+    '', \
+    '    # A string value (the default)', \
     '    string' \
 )
 
