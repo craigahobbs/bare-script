@@ -1,5 +1,5 @@
 The "schemaTypeModel.bare" include library provides the
-[Schema Markdown Type Model](model.html#var.vName='Types') and type model validation functions.
+[Schema Markdown Type Model](model.html#var.vName='Types'&var.vURL='') and type model validation functions.
 
 Get the Schema Markdown type model:
 
@@ -21,7 +21,7 @@ endif
 
 The [schemaTypeModelValidate](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidate) function
 returns null if validation fails and logs the validation errors in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to
 validation errors, use the
 [schemaTypeModelValidateEx](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidateex) function:
 

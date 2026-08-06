@@ -2622,7 +2622,7 @@ To run the baredoc application, include "baredoc.bare" and call the [baredocMain
 function with a [documentation configuration](model.html#var.vName='BaredocConfig') object (or the URL
 of its JSON resource). Each section's `url` is a
 [library model JSON](model.html#var.vName='BaredocLibrary') resource (for example, one produced by
-[baredocCLI](baredocCLI-bare.md)):
+[baredocCLI](#var.vGroup='baredocCLI.bare'&_top)):
 
 ~~~ bare-script
 include <baredoc.bare>
@@ -2868,7 +2868,7 @@ endif
 The [barescriptValidateScript](#var.vGroup='barescriptModel.bare'&barescriptvalidatescript) and
 [barescriptValidateExpression](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpression)
 functions return null if validation fails and log the validation error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
 validation error, use the
 [barescriptValidateScriptEx](#var.vGroup='barescriptModel.bare'&barescriptvalidatescriptex) and
 [barescriptValidateExpressionEx](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpressionex)
@@ -2995,7 +2995,7 @@ endif
 
 The [barescriptParseScript](#var.vGroup='barescriptParser.bare'&barescriptparsescript) function
 returns null if parsing fails and logs the parser error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
 parser error, use the
 [barescriptParseScriptEx](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex) function:
 
@@ -5590,7 +5590,7 @@ endif
 ~~~
 
 The [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function returns null if validation
-fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to validation errors, use the
 [schemaValidateEx](#var.vGroup='schema.bare'&schemavalidateex) function:
 
@@ -5814,7 +5814,7 @@ The array of Markdown text lines
 
 The "schemaParser.bare" include library provides functions for parsing
 [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text into
-[type models](model.html#var.vName='Types').
+[type models](model.html#var.vName='Types'&var.vURL='').
 
 Parse Schema Markdown text:
 
@@ -5834,7 +5834,7 @@ types = schemaParse( \
 ~~~
 
 The [schemaParse](#var.vGroup='schemaParser.bare'&schemaparse) function returns null if parsing
-fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 For programmatic access to parse errors, use the
 [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function:
 
@@ -5850,7 +5850,7 @@ endif
 ~~~
 
 The [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function can also accumulate
-multiple schemas into a single [type model](model.html#var.vName='Types') by passing the types
+multiple schemas into a single [type model](model.html#var.vName='Types'&var.vURL='') by passing the types
 argument.
 
 Use the [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function to validate a value
@@ -5912,7 +5912,7 @@ On failure, an object with the "errors" key set to the array of error message st
 ## schemaTypeModel.bare
 
 The "schemaTypeModel.bare" include library provides the
-[Schema Markdown Type Model](model.html#var.vName='Types') and type model validation functions.
+[Schema Markdown Type Model](model.html#var.vName='Types'&var.vURL='') and type model validation functions.
 
 Get the Schema Markdown type model:
 
@@ -5934,7 +5934,7 @@ endif
 
 The [schemaTypeModelValidate](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidate) function
 returns null if validation fails and logs the validation errors in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to
 validation errors, use the
 [schemaTypeModelValidateEx](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidateex) function:
 
@@ -6384,7 +6384,7 @@ args = urlDecodeQueryString('name=Alice&scores.0=90&scores.1=85')
 All decoded leaf values are strings. The
 [urlDecodeQueryString](#var.vGroup='url.bare'&urldecodequerystring) function returns null on
 invalid input (invalid key/value pairs, out-of-order array indices, or duplicate keys) and logs
-the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 
 To percent-encode a URL or URL component, use the
 [urlEncode](#var.vGroup='url.bare'&urlencode) and

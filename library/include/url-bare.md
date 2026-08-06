@@ -21,7 +21,7 @@ args = urlDecodeQueryString('name=Alice&scores.0=90&scores.1=85')
 All decoded leaf values are strings. The
 [urlDecodeQueryString](#var.vGroup='url.bare'&urldecodequerystring) function returns null on
 invalid input (invalid key/value pairs, out-of-order array indices, or duplicate keys) and logs
-the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug).
+the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
 
 To percent-encode a URL or URL component, use the
 [urlEncode](#var.vGroup='url.bare'&urlencode) and

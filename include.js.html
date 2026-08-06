@@ -509,7 +509,7 @@ export function qrcodeMatrix(message, level = null) {
 /**
  * Get an enum's values (inherited values first)
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @param {Object} enumModel - The enum model
  * @returns {Object[]} The array of enum value models
  */
@@ -521,7 +521,7 @@ export function schemaGetEnumValues(types, enumModel) {
 /**
  * Get a user type's referenced type model
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @param {string} typeName - The type name
  * @param {?Object} [referencedTypes = null] - A map of referenced user type name to user type model to update
  * @returns {Object} The referenced type model
@@ -534,7 +534,7 @@ export function schemaGetReferencedTypes(types, typeName, referencedTypes = null
 /**
  * Get a struct's members (inherited members first)
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @param {Object} struct - The struct model
  * @returns {Object[]} The array of struct member models
  */
@@ -546,7 +546,7 @@ export function schemaGetStructMembers(types, struct) {
 /**
  * Validate a value using a schema type model
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @param {string} typeName - The type name
  * @param {*} value - The value to validate
  * @param {?string} [memberFqn = null] - The fully-qualified member name (for error messages)
@@ -570,7 +570,7 @@ export function schemaValidate(types, typeName, value, memberFqn = null) {
 /**
  * Generate the Schema Markdown user type documentation as an array of Markdown text lines
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @param {string} typeName - The type name
  * @param {?Object} [options = null] - The schema documentation options object
  * @returns {string[]} The array of Markdown text lines
@@ -589,10 +589,11 @@ export function schemaDocMarkdown(types, typeName, options = null) {
  * Parse Schema Markdown text
  *
  * @param {string|string[]} text - The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
- * @param {?Object} [types = null] - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types') to update
+ * @param {?Object} [types = null] - The schema's
+ *     [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='') to update
  * @param {?string} [filename = null] - The file name (for error messages)
  * @param {?boolean} [validate = null] - If true (the default), validate the type model after parsing
- * @returns {Object} The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @returns {Object} The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  * @throws [SchemaParserError]{@link module:lib/include.SchemaParserError}
  */
 export function schemaParse(text, types = null, filename = null, validate = null) {
@@ -612,7 +613,7 @@ export function schemaParse(text, types = null, filename = null, validate = null
 /**
  * Get the Schema Markdown type model
  *
- * @returns {Object} The Schema Markdown [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types')
+ * @returns {Object} The Schema Markdown [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='')
  */
 export function schemaTypeModel() {
     return includeGlobals.schemaTypeModel([], includeOptions());
@@ -622,7 +623,8 @@ export function schemaTypeModel() {
 /**
  * Validate a Schema Markdown type model
  *
- * @param {Object} types - The schema's [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types') to validate
+ * @param {Object} types - The schema's
+ *     [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&amp;var.vURL='') to validate
  * @returns {Object} The validated type model
  * @throws [SchemaValidationError]{@link module:lib/include.SchemaValidationError}
  */

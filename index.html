@@ -97,9 +97,9 @@ console.log(executeScript(script, {globals}));
 includes a set of built-in functions for mathematical operations, object manipulation, array
 manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
 of the
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>,
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Object'&amp;objectget">objectGet</a>, and
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='Array'&amp;arraylength">arrayLength</a>
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>,
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='object'&amp;objectget">objectGet</a>, and
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='array'&amp;arraylength">arrayLength</a>
 functions.</p>
 <pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript} from 'bare-script/lib/runtime.js';
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
@@ -178,12 +178,10 @@ files use the &quot;.bare&quot; file extension.</p>
 <pre class="prettyprint source"><code>bare script.bare
 </code></pre>
 <p><strong>Note:</strong> In the BareScript CLI, import statements and the
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
 function read non-URL paths from the local file system.
-<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='System'&amp;systemfetch">systemFetch</a>
-calls with a non-URL path and a
-<a href="https://craigahobbs.github.io/bare-script/library/model.html#var.vName='SystemFetchRequest'">request body</a>
-write the body to the path.</p>
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
+calls with a non-URL path and a request body write the body to the path.</p>
 <h2>MarkdownUp, a Markdown Viewer with BareScript</h2>
 <p><a href="https://craigahobbs.github.io/markdown-up/">MarkdownUp</a> is a Markdown Viewer that executes
 BareScript embedded within Markdown documents. The MarkdownUp runtime contains functions for
@@ -304,7 +302,7 @@ time. Tests without a native JavaScript equivalent are omitted.</p>
 </table>
 <h2>Using BareScript with an AI Assistant</h2>
 <p>This repository ships a
-<a href="https://github.com/craigahobbs/bare-script-py/blob/main/SKILL.md"><code>SKILL.md</code></a>
+<a href="https://github.com/craigahobbs/bare-script/blob/main/SKILL.md"><code>SKILL.md</code></a>
 file that teaches an AI coding assistant how to write idiomatic BareScript — language syntax, the
 built-in and include libraries, the MarkdownUp application pattern, and the unit-test conventions.
 It is plain Markdown and applies to either BareScript implementation.</p>

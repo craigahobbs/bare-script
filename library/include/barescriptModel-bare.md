@@ -29,7 +29,7 @@ endif
 The [barescriptValidateScript](#var.vGroup='barescriptModel.bare'&barescriptvalidatescript) and
 [barescriptValidateExpression](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpression)
 functions return null if validation fails and log the validation error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug). For programmatic access to the
+[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
 validation error, use the
 [barescriptValidateScriptEx](#var.vGroup='barescriptModel.bare'&barescriptvalidatescriptex) and
 [barescriptValidateExpressionEx](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpressionex)
