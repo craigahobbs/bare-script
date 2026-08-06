@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.1 (2026-08-06)
+
+- [7a7df9d](https://github.com/craigahobbs/bare-script/commit/7a7df9d) - fix broken documentation links \(debug-mode hashes, Types vURL='', stale README links\)
+
+- [737a660](https://github.com/craigahobbs/bare-script/commit/737a660) - fix stale library documentation links \(vGroup group names\)
+
 ## 5.1.0 (2026-08-04)
 
 - [7bf0107](https://github.com/craigahobbs/bare-script/commit/7bf0107) - self-host the parser - port parser, model, and lint to include libraries and embed all includes as compressed parser-compiled JSON script models
