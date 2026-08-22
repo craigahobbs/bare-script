@@ -50,6 +50,8 @@ return unittestReport({'coverageMin': 100})
 **testApp.bare**
 
 ```bare-script
+include <unittest.bare>
+include <unittestMock.bare>
 include 'app.bare'
 
 function testApp():

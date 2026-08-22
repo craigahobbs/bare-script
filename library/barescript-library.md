@@ -6208,6 +6208,7 @@ failure using the [unittestEqual](#var.vGroup='unittest.bare'&unittestequal) and
 functions.
 
 ```bare-script
+include <unittest.bare>
 include '../code1.bare'
 
 function testCode1SumNumbers():
@@ -6408,6 +6409,8 @@ return unittestReport({'coverageMin': 100})
 **testApp.bare**
 
 ```bare-script
+include <unittest.bare>
+include <unittestMock.bare>
 include 'app.bare'
 
 function testApp():
