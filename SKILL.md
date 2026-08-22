@@ -695,10 +695,12 @@ test: $(VENV_BUILD)
 	$(VENV_BIN)/bare -d -m test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
-# Statically analyze (and execute) every script, standalone
+# Lint every script standalone. -x lints and executes (libraries + test files);
+# -s lints the test runners without executing them (that's `make test`).
 .PHONY: lint
 lint: $(VENV_BUILD)
-	$(VENV_BIN)/bare -x -m *.bare test/*.bare
+	$(VENV_BIN)/bare -x -m *.bare test/test*.bare
+	$(VENV_BIN)/bare -s -m test/runTests*.bare
 
 
 # View the app in a browser (MarkdownUp local server)
@@ -723,7 +725,8 @@ $(VENV_BUILD):
 ```
 
 `make test` runs in debug mode so a stray invalid-builtin-arg debug log surfaces;
-`make lint` is the standalone static analysis of every file; `make commit` is the
+`make lint` statically analyzes every file standalone (`-x` executes libraries and
+test files; `-s` lints the runners without executing them); `make commit` is the
 gate to run before committing. For a `draw.bare` canvas app, add a `screenshots`
 target that renders frames with `bare -l` and rasterizes them headless (Section 6).
 
@@ -1152,18 +1155,20 @@ them up.
 
 **Each test file must itself `include <unittest.bare>`** (and `<unittestMock.bare>`
 if it mocks) **plus the module(s) it tests** — even though the runner includes
-them too. The project lint `bare -x -m *.bare test/*.bare` static-analyzes *each
-file independently*, so a test file that relies on the runner for
-`unittestRunTest` / `unittestEqual` fails with `Undefined function`. Because
-`include` is idempotent (Section 1), the runner re-including them is harmless.
+them too. Project lint static-analyzes *each file independently* (`bare -x -m *.bare
+test/test*.bare` plus `bare -s -m test/runTests*.bare`), so a test file that relies
+on the runner for `unittestRunTest` / `unittestEqual` fails with `Undefined
+function`. Because `include` is idempotent (Section 1), the runner re-including
+them is harmless. `-s` on the runners is required: `-x` would execute them and
+run the whole suite.
 
 ### Running tests
 
 ```sh
-bare -m test/runTests.bare        # exits non-zero on any failure
-bare -m -x test/runTests.bare     # lint + run (lint warnings printed alongside test results)
-bare -d -m test/runTests.bare     # debug mode — surfaces builtin debug logs (see below)
-bare -x -m *.bare test/*.bare     # the standard project lint: every file, standalone
+bare -m test/runTests.bare                 # exits non-zero on any failure
+bare -d -m test/runTests.bare              # debug mode — surfaces builtin debug logs (see below)
+bare -x -m *.bare test/test*.bare          # lint+execute libraries and test files, standalone
+bare -s -m test/runTests*.bare             # lint the runners without executing them
 bare -m test/runTests.bare -v vUnittestTest "'testName'"   # run only one test by name
 ```
 
@@ -1313,7 +1318,9 @@ bare -m -s app.bare           # lint-only check of a MarkdownUp app
 Note: `-x` is *static analysis **with** execution* — it runs the script and
 also reports lint warnings. Use `-s` for parse/lint without execution. For
 MarkdownUp apps and their tests, always combine `-m` (or `-l`) with `-x` or
-`-s` so the runtime stubs are available (see Section 4).
+`-s` so the runtime stubs are available (see Section 4). Lint test runners
+(`runTests*.bare`) with `-s` so you don't execute the suite as a side-effect
+of linting.
 
 Note: under `-m` (Markdown text) only `markdownPrint` output is emitted —
 `elementModelRender`, and therefore `drawRender` (which calls it), render

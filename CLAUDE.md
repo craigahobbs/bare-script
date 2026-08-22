@@ -58,7 +58,7 @@ The runtime is split so the synchronous path stays free of `async`:
 
 ### CLI
 
-`bin/bare.js` is a thin shim around `lib/bare.js#main` that wires in `fetchReadWrite` + `logStdout`. `lib/bare.js` implements the `bare` CLI: argument parsing, `-c`/`-m`/`-d`/`-v`/`-x` flags, HTML/MarkdownUp render modes, and the `-x` lint/syntax-check mode.
+`bin/bare.js` is a thin shim around `lib/bare.js#main` that wires in `fetchReadWrite` + `logStdout`. `lib/bare.js` implements the `bare` CLI: argument parsing, `-c`/`-m`/`-d`/`-v`/`-s`/`-x` flags, HTML/MarkdownUp render modes, and the `-s`/`-x` lint modes (`-s` parse+lint only, `-x` lint with execution).
 
 ### Include library (`lib/include/*.bare`)
 
