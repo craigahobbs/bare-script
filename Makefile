@@ -144,7 +144,7 @@ test-include: test-include-lint test-include-markdownup test-include-run
 test-include-lint test-include-markdownup test-include-run: build/npm.build
 test-include-lint:
 	$(NODE_SHELL) npx bare -x -m lib/include/*.bare lib/include/test/test*.bare
-	$(NODE_SHELL) npx bare -s -m lib/include/test/runTests*.bare
+	$(NODE_SHELL) npx bare -s -m lib/include/test/runTests.bare lib/include/test/runTestsMarkdownUp.bare
 test-include-markdownup:
 	$(NODE_SHELL) npx bare -d -v vUnittestReport true lib/include/test/runTestsMarkdownUp.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 test-include-run:
