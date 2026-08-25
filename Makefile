@@ -154,7 +154,6 @@ test-include-run:
 doc:
     # Copy statics
 	cp -R static/* build/doc/
-	cp -R lib/include build/doc/
 
     # Generate the builtin library documentation
 	$(NODE_SHELL) npx bare -m \
