@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Notes for coding agents working in this repository.
 
 ## Project overview
 
@@ -10,16 +10,17 @@ BareScript is a lightweight, embeddable scripting and expression language with a
 
 When writing, modifying, or reviewing BareScript code (`.bare` files, `markdown-script` blocks, MarkdownUp apps, or BareScript unit tests), first read `SKILL.md` at the repo root. It's the model-agnostic reference for the language, built-in library, include library, MarkdownUp app pattern, and unit-test / mocking pattern.
 
-## Common commands
+## javascript-build
 
-Build driven by `Makefile` + `Makefile.base` (the latter downloaded from `javascript-build`). Set `USE_DOCKER=1` or `USE_PODMAN=1` to containerize.
+This is a [javascript-build](https://github.com/craigahobbs/javascript-build#readme) package. Read the javascript-build skill before running tests, lint, coverage, or changing the Makefile: [`../javascript-build/SKILL.md`](../javascript-build/SKILL.md) if that file exists, otherwise [https://raw.githubusercontent.com/craigahobbs/javascript-build/main/SKILL.md](https://raw.githubusercontent.com/craigahobbs/javascript-build/main/SKILL.md).
 
-- `make test` — run the Node test suite (`node --test`)
-- `make test TEST=<pattern>` — run Node tests matching a name **pattern** (`node --test --test-name-pattern`)
-- `make lint` — ESLint over `lib/`, `test/`, `bin/`, `perf/`
-- `make cover` — c8 coverage; enforces 100% on `lib/` and `test/`
-- `make doc` — JSDoc + library docs build (writes to `build/doc/`)
-- `make commit` — full pre-publish gate (test + lint + doc + cover)
+Local Makefile overrides:
+
+- `ESLINT_ARGS` — also `bin/` and `perf/`
+- `commit` also depends on `test-include`
+
+Package-specific targets:
+
 - `make test-include` — run the `.bare` test suite under `lib/include/test/` via the `bare` CLI
 - `make test-include TEST=<name>` — single `.bare` test. Note the asymmetry with `make test`: this is an **exact**
   test name, not a pattern (`unittest.bare` compares with `!=`), so a prefix like `testSchemaValidate` silently runs 0 tests
@@ -35,8 +36,6 @@ Build driven by `Makefile` + `Makefile.base` (the latter downloaded from `javasc
 - `make perf TEST=<name>` — run a single perf test across all languages (a program silently skips a test it doesn't
   implement; an unknown test name fails the run)
 - `make sync` — push `lib/include/` and `static/` to the Python repo
-- `make clean` / `make superclean` — remove `build/`, downloaded base files, container images
-- `npm test` — bare `node --test` invocation (skips container/build setup)
 
 `make perf` benchmarks the runtime itself. For optimizing an individual include file, write a throwaway `.bare` harness under `perf/` and run with `node bin/bare.js perf/<file>.bare` — `perf/` is outside the shipped package and isn't synced cross-repo, so harnesses can live there until you're done and then be removed (regenerate as needed).
 
