@@ -633,8 +633,11 @@ A new MarkdownUp app isn't "done" when it renders — ship it as a project anyon
 can verify from a clean checkout. Always create three things alongside the app,
 not just the `.bare`/`.md`:
 
-1. **A unit-test suite** under `test/` (Section 5 has the layout and how to mock
-   the runtime). Test the app's logic, not just that it parses.
+1. **A unit-test suite** under `test/` (Section 5). For a MarkdownUp app: a
+   page-render test per screen state, named-handler tests, and a
+   callback-binding test for every `formsLinkButtonElements` /
+   `formsTextElements` / SVG control — `'<function>'` in the render log is
+   not enough.
 2. **100% coverage, enforced.** The runner ends with
    `return unittestReport({'coverageMin': 100})`, so the suite fails if any
    statement goes untested. A new `if`/`elif` body, loop body, or early `return`
@@ -653,7 +656,8 @@ myapp/
 └── test/
     ├── runTests.md
     ├── runTests.bare
-    └── testApp.bare
+    ├── testApp.bare
+    └── testAppHelpers.bare  # optional; callback-binding helpers (Section 5)
 ```
 
 For a tested app, call `appMain()` from **`app.md`** (`include 'app.bare'` then
@@ -984,9 +988,9 @@ producing partial state.
 
 ### Real-world example applications
 
-Complete, working MarkdownUp apps to study — each is a single `.bare` file
-exercising the patterns above. Grouped by what they demonstrate (full gallery:
-<https://craigahobbs.github.io/MarkdownUpApplications.md>):
+Complete, working MarkdownUp apps to study — grouped by what they demonstrate
+(full gallery: <https://craigahobbs.github.io/MarkdownUpApplications.md>). Two
+ship a 100% coverage frontend test suite (Section 5).
 
 **Canvas drawing & animation (`draw.bare`)**
 
@@ -1039,12 +1043,17 @@ exercising the patterns above. Grouped by what they demonstrate (full gallery:
   [App](https://craigahobbs.github.io/downloads/) ·
   [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/downloads/downloads.bare)
 - **npm Dependency Explorer** — fetches and aggregates the npm registry;
-  `forms.bare`-driven.
+  `forms.bare`-driven. Frontend tests in `test/` (page renders + named form
+  handler).
   [App](https://craigahobbs.github.io/npm-dependency-explorer/) ·
   [Source](https://github.com/craigahobbs/npm-dependency-explorer/blob/main/npmDependencyExplorer.bare)
 
 **Forms, widgets & documentation viewers (`forms.bare`, `schemaDoc.bare`)**
 
+- **Ollama Chat** — conversational LLM client; hash-routed pages, `forms.bare`
+  controls, JSON API via `systemFetch`. Frontend tests in
+  `src/ollama_chat/static/test/` (page renders, handlers, callback bindings).
+  [Source](https://github.com/craigahobbs/ollama-chat/blob/main/src/ollama_chat/static/ollamaChat.bare)
 - **QR Code** — generates QR codes with `qrcode.bare` + `elementModel.bare`.
   [App](https://craigahobbs.github.io/qrcode/) ·
   [Source](https://github.com/craigahobbs/craigahobbs.github.io/blob/main/qrcode/qrcodeApp.bare)
@@ -1075,7 +1084,8 @@ myapp/
 └── test/
     ├── runTests.md          # entry point for MarkdownUp / browser
     ├── runTests.bare        # entry point for `bare -m`
-    └── testApp.bare
+    ├── testApp.bare
+    └── testAppHelpers.bare  # optional; callback-binding helpers (see below)
 ```
 
 ### `test/runTests.md`
@@ -1220,9 +1230,9 @@ unittestRunTest('testAppMain')
 Patterns:
 
 - **`unittestMockAll(data?)` at the top of the test** — mocks every MarkdownUp
-  runtime function and `systemFetch`/`systemLog`. Each call is recorded as
-  `[name, [args...]]`. The optional `data` argument supplies per-function
-  mock inputs; the two supported keys are:
+  runtime function and `systemFetch`/`systemLog`. Recorded calls (unless noted
+  below) are `[name, [args...]]`. The optional `data` argument supplies
+  per-function mock inputs; the two supported keys are:
   - `'documentInputValue'`: object mapping input element id → value
   - `'systemFetch'`: object mapping URL → response text
   Example: `unittestMockAll({'systemFetch': {'data.json': '{"a": 1}'}})`.
@@ -1230,7 +1240,10 @@ Patterns:
   responses (a batched, parallel fetch), recorded as
   `['systemFetch', [[url1, url2]]]`. Calling `systemFetch` with an empty array
   succeeds and returns `[]`, so consider guarding with `if arrayLength(urls):`
-  before fetching to skip a wasted no-op call.
+  before fetching to skip a wasted no-op call. A **request object**
+  (`{'url': '...', 'body': '...'}`) is looked up by its `'url'` key — the body
+  is not part of the mock key. An unmocked URL returns `null` (that's the
+  error-path fixture: `unittestMockAll({})`).
 - **`unittestMockOne(funcName, mockFunc)`** — replace one library function
   with `mockFunc` (a function value). `mockFunc` is called instead of the
   real implementation; its return value is what callers see. The call is
@@ -1238,7 +1251,18 @@ Patterns:
 - **`unittestMockOneGeneric(funcName)`** — record-only mock; calls return
   `null`. Useful for side-effect-only functions.
 - **`unittestMockEnd()` returns the recorded call log** as an array of
-  `[name, [args...]]` entries, and stops mocking.
+  `[name, [args...]]` entries, and stops mocking. **Never nest
+  `unittestMockAll`** — always `unittestMockEnd()` first. Nesting overwrites
+  the saved originals with the already-mocked functions, and the next End
+  then "restores" the mocks.
+- **Not everything is in the log.** Layout getters
+  (`documentFontSize` = 16, `windowWidth` = 1024, `windowHeight` = 768),
+  `documentURL` (identity), `localStorageGet` / `sessionStorageGet`,
+  `windowClipboardRead`, and `windowURLObject` (returns
+  `'blob:' + urlEncode(type) + '-' + urlEncode(first 20 chars)`) are mocked
+  but **not recorded**. Write expected pixel styles against those defaults.
+  Seed storage *after* `unittestMockAll` so the mock store is the one being
+  written; Set/Remove/Clear *are* recorded.
 
 ### Test conventions used in this repo
 
@@ -1247,11 +1271,18 @@ Patterns:
   it up by name.
 - Async tests use `async function` and the runner awaits them.
 - For functions with side effects, **always** `unittestMockAll()` and assert
-  on the call log — do not mock partially.
+  on the call log — do not mock partially. Binding helpers
+  (`testVerifyClick` / `testSameEffect`) own MockAll/End; the test body must
+  not wrap them in another MockAll.
 - **Reset the globals a test sets.** Apps read URL args from `v<Name>` globals
   (`systemGlobalSet('vName', 'x')`); a test that sets them should set each back
   to `null` at the end so state never leaks into the next test. Prefer
   unsetting exactly what the test set over a blanket "clear everything" helper.
+  Set the globals **before** `argsParse` / `appMain()` — `argsParse` snapshots
+  them.
+- **UI test files `include` the same libraries the expected values call**
+  (`<forms.bare>`, `<args.bare>`, `<dataLineChart.bare>`, …) so they lint
+  standalone and so expected element models can reuse the app's builders.
 
 ### Builtin debug logs are NOT mockable
 
@@ -1273,28 +1304,193 @@ expected:')`. So **every `failed with error` line must be immediately preceded
 by a `NOTICE:` line** — `grep -B1 "failed with error"` over the output makes
 that a one-look check; any un-NOTICE'd line is unintended logging.
 
-### Asserting rendered output
+### Testing MarkdownUp frontend applications
 
-Apps render through `markdownPrint` and `elementModelRender`; under
-`unittestMockAll()` you assert the recorded call log. Three things make those
-assertions tractable:
+A MarkdownUp UI is tested by mocking I/O, calling the page, and asserting the
+recorded call log — not by inspecting the DOM. Canonical suites:
+[Ollama Chat](https://github.com/craigahobbs/ollama-chat/tree/main/src/ollama_chat/static/test)
+(page renders, named handlers, callback bindings) and
+[npm Dependency Explorer](https://github.com/craigahobbs/npm-dependency-explorer/tree/main/test)
+(page renders + a named form handler).
 
-- **`unittestDeepEqual` compares `jsonStringify` output**, and that one fact
-  drives the rest. Object keys serialize **sorted**, so key order never has to
-  match. Every function serializes to the string `'<function>'` (and every
-  regex to `'<regex>'`), so to assert an element model that carries an
-  event-handler callback — e.g. `formsTextElements` stores
-  `systemPartial(formsTextOnKeyup, onEnter)` under `callback.keyup` — just write
-  the string `'<function>'` in that slot and the deep-equal matches. There is no
-  literal for the anonymous partial, but none is needed and no scrubbing of the
-  call log is needed either. Trade-off: all functions collapse to the same
-  sentinel, so the assertion proves a callback is *present*, not *which* one.
-  (`jsonStringify(value, 4)` on its own is also handy for dumping a captured log
-  into a stable, diffable literal.)
-- **To test a captured event callback, invoke it with the args MarkdownUp
-  appends at event time** — `capturedFn(14, 7, 30, 30)` for an SVG-element click, `capturedFn(13)`
-  for a keyup. Calling it with no args passes whether or not the handler leaks an
-  event arg into a real parameter, so a no-arg call won't catch that bug.
+**`unittestDeepEqual` compares `jsonStringify` output.** Object keys serialize
+**sorted**. Functions serialize to `'<function>'`, so an event-handler
+callback in an expected element model is that string — e.g.
+`formsLinkButtonElements('Add', '<function>')`. A render assertion proves a
+callback is *present*, not *which* one. Dump a captured log with
+`jsonStringify(value, 4)` to author the first draft.
+
+Split tests four ways:
+
+1. **Pure functions** — `unittestEqual` / `unittestDeepEqual` on return
+   values. No mocking.
+2. **Page renders** — `unittestMockAll(...)`, call `appMain()` / the page
+   function, `unittestDeepEqual` the entire call log. One test per screen
+   state.
+3. **Named handlers** — call the handler directly; assert fetch URL+body
+   and `windowSetLocation`. Cover the null-fetch path (no navigation).
+4. **Callback bindings** — required for every `callback` control
+   (`formsLinkButtonElements`, `formsTextElements` keyup, SVG click), even
+   when the label is unique — unique labels can still be miswired. Walk
+   the live recorded model, find the control, invoke it with MarkdownUp's
+   trailing event args, and compare its side-effect log to
+   `systemPartial(handler, ...)`. Plain `<a href>` links
+   (`formsLinkElements`, `argsLink`) are fully asserted by the render log.
+
+**Page-render skeleton** (`async` if the page fetches). Include the
+builders the expected values call (`<forms.bare>`, `<args.bare>`,
+`<dataLineChart.bare>`, …):
+
+```bare-script
+include <args.bare>
+include <forms.bare>
+include <unittest.bare>
+include <unittestMock.bare>
+include '../app.bare'
+
+
+async function testAppMain_empty():
+    unittestMockAll({'systemFetch': {'getItems': jsonStringify({'items': []})}})
+    appMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['getItems']], \
+        ['documentSetTitle', ['My App']], \
+        ['markdownPrint', ['# My App']], \
+        ['elementModelRender', [ \
+            { \
+                'html': 'p', \
+                'elem': [ \
+                    formsLinkElements('Home', '#var='), \
+                    {'text': ' | '}, \
+                    formsLinkButtonElements('Add', '<function>') \
+                ] \
+            } \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testAppMain_empty')
+```
+
+`markdownPrint(dataTableMarkdown(...))` logs as one argument: an **array
+of table-line strings**. `dataTable()` / `dataLineChart()` wrap the
+elements function in a paragraph:
+`['elementModelRender', [{'html': 'p', 'elem': dataTableElements(data, model)}]]`
+(same wrap for `dataLineChartElements(data, lineChart)`). Put the elements
+call in the expected log instead of inlined SVG.
+
+`systemFetch` log shapes (lookup is by URL — Mocking above): GET
+`['systemFetch', ['getTemplate?id=T1']]` (map keys include the query
+string; `objectNew(url, text)` when the key is computed); POST
+`['systemFetch', [{'url': 'createItem', 'body': '{"title":"New"}'}]]`
+(`jsonStringify` sorts object keys); unmocked URL → `null`; batched
+`['systemFetch', [[url1, url2]]]`. `windowSetTimeout` is
+`['windowSetTimeout', ['<function>', ms]]` — test the named timeout
+function directly.
+
+**Named-handler tests** call the function directly:
+
+```bare-script
+async function testAppOnAdd():
+    unittestMockAll({'systemFetch': {'createItem': jsonStringify({'id': 'NEWID'})}})
+    appOnAdd()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [{'url': 'createItem', 'body': '{"title":"New"}'}]], \
+        ['windowSetLocation', ["#var.vId='NEWID'"]] \
+    ])
+endfunction
+unittestRunTest('testAppOnAdd')
+```
+
+Also cover `unittestMockAll({})` (fetch returns `null`, no
+`windowSetLocation`) and `documentInputValue` for form submit handlers.
+
+**Callback binding helpers** — copy into `test/testAppHelpers.bare`
+(included from each UI test file, not from `runTests.bare`). They
+re-render per button so mutating handlers don't leak. If the handler
+mutates its argument, pass a fresh copy per check — `testSameEffect` runs
+`expectedFn()` first.
+
+```bare-script
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+function testFindClick(model, text):
+    type = systemType(model)
+    if type == 'array':
+        for item in model:
+            found = testFindClick(item, text)
+            if found != null:
+                return found
+            endif
+        endfor
+    elif type == 'object':
+        elem = objectGet(model, 'elem')
+        callback = objectGet(model, 'callback')
+        if callback != null && systemType(elem) == 'object' && objectGet(elem, 'text') == text:
+            return objectGet(callback, 'click')
+        endif
+        return testFindClick(elem, text)
+    endif
+    return null
+endfunction
+
+
+async function testSameEffect(actualFn, expectedFn, data):
+    unittestMockAll(data)
+    expectedFn()
+    expected = unittestMockEnd()
+    unittestMockAll(data)
+    actualFn()
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+
+
+async function testVerifyClick(renderFn, text, expectedFn, data):
+    unittestMockAll(data)
+    renderFn()
+    found = testFindClick(unittestMockEnd(), text)
+    testSameEffect(found, expectedFn, data)
+endfunction
+```
+
+Keep `testSameEffect` always. Omit `testFindClick` / `testVerifyClick`
+unless the app has `formsLinkButtonElements`. When labels repeat, also
+copy `testFindClicks` / `testVerifyClickN` from
+[Ollama Chat's helpers](https://github.com/craigahobbs/ollama-chat/blob/main/src/ollama_chat/static/test/testOllamaChatHelpers.bare)
+(`testVerifyClickN(render, 'Add', 0, ...)`). Unused helpers fail
+`coverageMin: 100`.
+
+Usage — wrap the page in `systemPartial` so `renderFn()` takes no args:
+
+```bare-script
+include 'testAppHelpers.bare'
+
+
+async function testIndexDeleteBinding():
+    args = argsParse(appArguments)
+    item = {'id': 'C1', 'title': 'Chat'}
+    render = systemPartial(appIndexPage, args)
+    data = {'systemFetch': {'getItems': jsonStringify({'items': [item]})}}
+
+    testVerifyClick(render, 'Delete', systemPartial(appOnAction, args, 'C1', 'delete'), data)
+endfunction
+unittestRunTest('testIndexDeleteBinding')
+```
+
+`testVerifyClick` is for HTML `formsLinkButtonElements` (a click appends
+nothing). `testFindClick` matches `elem.text` plus `callback.click`. For
+keyup or an SVG with no text node, pull the callback by position and pass
+it to `testSameEffect`.
+
+**Invoke captured callbacks with the args MarkdownUp appends at event
+time** — otherwise a handler that leaks an event arg still matches a
+no-arg call:
+
+```bare-script
+testSameEffect(systemPartial(capturedFn, 14, 7, 30, 30), expectedFn, data)
+testSameEffect(systemPartial(keyupFn, 13), expectedFn, data)
+```
 
 ---
 
@@ -1401,6 +1597,10 @@ most commonly produce when writing BareScript for the first time.
 - [ ] **Element-model callbacks `systemPartial`-bind all handler args** — event
       callbacks get extra trailing args (SVG-click coords, `keyCode`); an unbound
       param catches them (see Section 3).
+- [ ] **Frontend tests assert the full mock call log per screen state** and
+      prove every `callback` control (`formsLinkButtonElements`,
+      `formsTextElements`, SVG) is bound to the intended handler (Section 5).
+      A `'<function>'` in the render log is not enough.
 - [ ] **Use `for value, ixValue in items:`** to get both value and index;
       don't reinvent with `while`.
 
@@ -1429,7 +1629,9 @@ most commonly produce when writing BareScript for the first time.
 - **Don't introduce abstractions.** BareScript apps are small; inline the
   logic, one `appMain()` is fine.
 - **For tests, use the `unittest.bare` + `unittestMock.bare` pattern** from
-  Section 5 — don't invent your own assertions.
+  Section 5 — don't invent your own assertions. For a MarkdownUp frontend,
+  follow the page-render / named-handler / callback-binding split; don't
+  stop at "the function returned" or at `'<function>'` in the render log.
 
 ---
 
