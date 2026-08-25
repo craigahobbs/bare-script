@@ -61,7 +61,6 @@ confident that BareScript will execute the same regardless of the underlying run
 <ul>
 <li><a href="https://craigahobbs.github.io/bare-script/language/">The BareScript Language</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/library/">The BareScript Library</a></li>
-<li><a href="https://craigahobbs.github.io/bare-script/include/test/">The BareScript Include Library Tests</a></li>
 <li><a href="https://craigahobbs.github.io/bare-script/">API Documentation</a></li>
 <li><a href="https://github.com/craigahobbs/bare-script">Source code</a></li>
 </ul>
@@ -69,6 +68,8 @@ confident that BareScript will execute the same regardless of the underlying run
 <p>Install the bare-script package in your project with npm:</p>
 <pre class="prettyprint source"><code>npm install bare-script
 </code></pre>
+<p>This package is ESM-only. Import from subpaths such as <code>bare-script/lib/runtime.js</code> — there is no
+package root export.</p>
 <p>To use the <code>bare</code> command-line interface, install the package globally:</p>
 <pre class="prettyprint source"><code>npm install -g bare-script
 </code></pre>
@@ -99,15 +100,18 @@ console.log(executeScript(script, {globals}));
 <p>This outputs:</p>
 <pre class="prettyprint source"><code>10 times 2 is 20
 </code></pre>
-<h3>The BareScript Library</h3>
+<h2>The BareScript Library</h2>
 <p><a href="https://craigahobbs.github.io/bare-script/library/">The BareScript Library</a>
-includes a set of built-in functions for mathematical operations, object manipulation, array
-manipulation, regular expressions, HTTP fetch and more. The following example demonstrates the use
-of the
+documents the built-in functions available to every script and the include libraries loaded with
+the <a href="https://craigahobbs.github.io/bare-script/language/#include-statements">include statement</a>.
+Built-in functions cover mathematical operations, object and array manipulation, regular
+expressions, HTTP fetch, and more. Angle-bracket includes (<code>include &lt;markdown.bare&gt;</code>) load libraries
+bundled with the runtime. Quoted includes (<code>include 'util.bare'</code>) load a local file or URL.</p>
+<p>The following example uses the built-in
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>,
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='object'&amp;objectget">objectGet</a>, and
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='array'&amp;arraylength">arrayLength</a>
-functions.</p>
+functions:</p>
 <pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript} from 'bare-script/lib/runtime.js';
 import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
 
@@ -126,34 +130,41 @@ console.log(await executeScriptAsync(script, {'fetchFn': fetch}));
 <p>This outputs:</p>
 <pre class="prettyprint source"><code>The BareScript Library has 100 builtin functions
 </code></pre>
-<h2>Evaluating BareScript Expressions</h2>
-<p>To evaluate a
-<a href="https://craigahobbs.github.io/bare-script/language/#expressions">BareScript expression</a>,
-parse the expression using the
-<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseExpression">barescriptParseExpression</a>
-function. Then evaluate the expression using the
-<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.evaluateExpression">evaluateExpression</a>
-function or the
-<a href="https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.evaluateExpressionAsync">evaluateExpressionAsync</a>
-function.</p>
-<p>Expression evaluation includes the
-<a href="https://craigahobbs.github.io/bare-script/library/expression.html">BareScript Expression Library</a>,
-a set of built-in, spreadsheet-like functions.</p>
-<p>For example:</p>
-<pre class="prettyprint source lang-javascript"><code>import {barescriptParseExpression, evaluateExpression} from 'bare-script/lib/runtime.js';
+<p>Include libraries are loaded before use:</p>
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript, executeScript} from 'bare-script/lib/runtime.js';
 
-// Parse the expression
-const expr = barescriptParseExpression('2 * max(a, b, c)');
+// Parse the script
+const script = barescriptParseScript(`\
+include &lt;markdownParser.bare>
+include &lt;markdown.bare>
 
-// Evaluate the expression
-const variables = {'a': 1, 'b': 2, 'c': 3};
-console.log(evaluateExpression(expr, null, variables))
+markdown = markdownParse('# Hello, Markdown!')
+return markdownTitle(markdown)
+`);
+
+// Execute the script
+console.log(executeScript(script));
 </code></pre>
 <p>This outputs:</p>
-<pre class="prettyprint source"><code>6
+<pre class="prettyprint source"><code>Hello, Markdown!
 </code></pre>
-<h2>The Include Library Stub Functions</h2>
-<p>BareScript include library functions are callable directly from JavaScript using the native stub functions
+<p>Quoted includes and
+<a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
+calls with a non-URL path need a filesystem-aware fetch function. In Node.js, pass
+<a href="https://craigahobbs.github.io/bare-script/module-lib_optionsNode.html#.fetchReadOnly">fetchReadOnly</a>
+or
+<a href="https://craigahobbs.github.io/bare-script/module-lib_optionsNode.html#.fetchReadWrite">fetchReadWrite</a>
+from <code>bare-script/lib/optionsNode.js</code> to
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.executeScriptAsync">executeScriptAsync</a>:</p>
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseScript} from 'bare-script/lib/runtime.js';
+import {executeScriptAsync} from 'bare-script/lib/runtimeAsync.js';
+import {fetchReadWrite} from 'bare-script/lib/optionsNode.js';
+
+const script = barescriptParseScript(&quot;include 'util.bare'&quot;);
+await executeScriptAsync(script, {'fetchFn': fetchReadWrite});
+</code></pre>
+<h3>Stub Functions</h3>
+<p>Include library functions are also callable directly from JavaScript using the native stub functions
 exported by the
 <a href="https://craigahobbs.github.io/bare-script/module-lib_include.html">include module</a> — for example,
 <a href="https://craigahobbs.github.io/bare-script/module-lib_include.html#.dataAggregate">dataAggregate</a>,
@@ -179,10 +190,43 @@ console.log(markdownTitle(markdown));
 <p>This outputs:</p>
 <pre class="prettyprint source"><code>Hello, Markdown!
 </code></pre>
+<h2>Evaluating BareScript Expressions</h2>
+<p>To evaluate a
+<a href="https://craigahobbs.github.io/bare-script/language/#expressions">BareScript expression</a>,
+parse the expression using the
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.barescriptParseExpression">barescriptParseExpression</a>
+function. Then evaluate the expression using the
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtime.html#.evaluateExpression">evaluateExpression</a>
+function or the
+<a href="https://craigahobbs.github.io/bare-script/module-lib_runtimeAsync.html#.evaluateExpressionAsync">evaluateExpressionAsync</a>
+function.</p>
+<p>Expression evaluation includes the
+<a href="https://craigahobbs.github.io/bare-script/library/expression.html">BareScript Expression Library</a>,
+a set of built-in, spreadsheet-like functions.</p>
+<p>For example:</p>
+<pre class="prettyprint source lang-javascript"><code>import {barescriptParseExpression, evaluateExpression} from 'bare-script/lib/runtime.js';
+
+// Parse the expression
+const expr = barescriptParseExpression('2 * max(a, b, c)');
+
+// Evaluate the expression
+const variables = {'a': 1, 'b': 2, 'c': 3};
+console.log(evaluateExpression(expr, null, variables));
+</code></pre>
+<p>This outputs:</p>
+<pre class="prettyprint source"><code>6
+</code></pre>
 <h2>The BareScript Command-Line Interface (CLI)</h2>
 <p>You can run BareScript from the command line using the BareScript CLI, &quot;bare&quot;. BareScript script
 files use the &quot;.bare&quot; file extension.</p>
-<pre class="prettyprint source"><code>bare script.bare
+<pre class="prettyprint source"><code>bare script.bare                      # run a script
+bare -c 'systemLog(&quot;Hello, World!&quot;)'  # execute inline code
+bare -v N 10 script.bare              # set the global N to 10
+bare -d script.bare                   # debug mode
+bare -m app.bare                      # MarkdownUp text output
+bare -l app.bare                      # MarkdownUp HTML output
+bare -s script.bare                   # parse and lint only
+bare -x script.bare                   # lint with execution
 </code></pre>
 <p><strong>Note:</strong> In the BareScript CLI, include statements and the
 <a href="https://craigahobbs.github.io/bare-script/library/#var.vGroup='system'&amp;systemfetch">systemFetch</a>
@@ -201,6 +245,10 @@ This is a Markdown document with embedded BareScript:
 markdownPrint('Hello, Markdown!')
 ```
 </code></pre>
+<p>To run a MarkdownUp script (<code>.bare</code>) from this package, use <code>bare -m</code> (Markdown text) or <code>bare -l</code>
+(HTML). To view a MarkdownUp document (<code>.md</code> with <code>markdown-script</code> blocks), install the
+<a href="https://github.com/craigahobbs/markdown-up-py#readme">markdown-up</a> viewer or open the file in the
+<a href="https://craigahobbs.github.io/markdown-up/">MarkdownUp web app</a>.</p>
 <h2>Performance</h2>
 <p>The <code>make perf</code> target benchmarks the BareScript runtime with a suite of compute-intensive tests —
 Mandelbrot set computation, Markdown parsing and rendering, QR code generation, Schema Markdown
@@ -312,7 +360,8 @@ time. Tests without a native JavaScript equivalent are omitted.</p>
 <a href="https://github.com/craigahobbs/bare-script/blob/main/SKILL.md"><code>SKILL.md</code></a>
 file that teaches an AI coding assistant how to write idiomatic BareScript — language syntax, the
 built-in and include libraries, the MarkdownUp application pattern, and the unit-test conventions.
-It is plain Markdown and applies to either BareScript implementation.</p>
+It is plain Markdown and applies to either BareScript implementation. Assistants that discover
+<code>SKILL.md</code> at the repository root can use it without copying.</p>
 <p>For <a href="https://claude.com/claude-code">Claude Code</a> and other tools that follow the
 <a href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview">Agent Skills</a>
 convention, install it as a project or user skill:</p>
@@ -325,7 +374,7 @@ other assistants, include the file's contents in your system prompt or rules fil
 <pre class="prettyprint source"><code>claude &quot;Build a MarkdownUp application that plays tic-tac-toe against the user, with a reset button and a running win/loss/draw tally rendered as a bar chart. Save it as ticTacToe.md&quot;
 </code></pre>
 <p>To run the resulting MarkdownUp application locally, install the
-<a href="https://pypi.org/project/markdown-up/">markdown-up</a> viewer and point it at the Markdown file:</p>
+<a href="https://github.com/craigahobbs/markdown-up-py#readme">markdown-up</a> viewer and point it at the Markdown file:</p>
 <pre class="prettyprint source"><code>pip install markdown-up
 markdown-up ticTacToe.md
 </code></pre>
