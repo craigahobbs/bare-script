@@ -31,7 +31,7 @@
         "eslint": "~10.8",
         "globals": "~17.8",
         "jsdoc": "~4.0",
-        "markdown-model": "~2.3",
+        "markdown-model": "~2.4",
         "schema-markdown": "~1.3"
     }
 }

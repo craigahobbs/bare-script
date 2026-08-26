@@ -290,20 +290,20 @@ time. Tests without a native JavaScript equivalent are omitted.
 
 | Test             | Language        | Time (ms) | Multiple |
 | ---------------- | --------------- | --------: | -------: |
-| markdownParse    | JavaScript      |     598.0 |          |
-|                  | BareScript (JS) |    2420.0 |     4.0x |
-| schemaParse      | JavaScript      |      71.3 |          |
-|                  | BareScript (JS) |    1164.0 |    16.3x |
-| urlDecode        | JavaScript      |       4.9 |          |
-|                  | BareScript (JS) |      85.5 |    17.5x |
-| urlEncode        | JavaScript      |       2.8 |          |
-|                  | BareScript (JS) |      49.0 |    17.8x |
-| markdownElements | JavaScript      |      29.2 |          |
-|                  | BareScript (JS) |     564.0 |    19.3x |
-| schemaValidate   | JavaScript      |      57.3 |          |
-|                  | BareScript (JS) |    1868.0 |    32.6x |
-| mandelbrot       | JavaScript      |    1976.1 |          |
-|                  | BareScript (JS) |  293000.0 |   148.3x |
+| markdownParse    | JavaScript      |     649.1 |          |
+|                  | BareScript (JS) |    3020.0 |     4.7x |
+| schemaParse      | JavaScript      |      72.5 |          |
+|                  | BareScript (JS) |    1192.0 |    16.4x |
+| urlDecode        | JavaScript      |       5.0 |          |
+|                  | BareScript (JS) |      90.0 |    18.0x |
+| urlEncode        | JavaScript      |       2.6 |          |
+|                  | BareScript (JS) |      51.0 |    19.8x |
+| markdownElements | JavaScript      |      32.7 |          |
+|                  | BareScript (JS) |     737.0 |    22.5x |
+| schemaValidate   | JavaScript      |      56.9 |          |
+|                  | BareScript (JS) |    1936.0 |    34.0x |
+| mandelbrot       | JavaScript      |    2037.3 |          |
+|                  | BareScript (JS) |  305000.0 |   149.7x |
 
 
 ## Using BareScript with an AI Assistant
