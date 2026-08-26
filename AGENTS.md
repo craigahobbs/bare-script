@@ -187,3 +187,40 @@ Two corollaries, both learned the hard way:
   nowhere to live in them without adding a parameter to every recursive call. Prefer the change that keeps all four
   sources parallel, even when it measures slower.
 
+### The markdown-model reference port
+
+`markdown.bare`, `markdownParser.bare`, `markdownElements.bare`, and `markdownHighlight.bare` are a
+port of **markdown-model**:
+
+- `../markdown-model/lib/parser.js`, `lib/model.js`, `lib/elements.js`, `lib/highlight.js`
+
+Keep them as close to line-for-line identical as the languages allow, so **a change to the markdown
+include files needs a matching change in markdown-model in the same session — and vice versa.**
+markdown-model has its own `make commit` gate (tests + lint + 100% coverage). The `.bare` sources
+still sync to `../bare-script-py/` via `make sync`; do not hand-edit the Python copies.
+
+The same corollaries as schema-markdown apply: port perf-neutral structure so the sources stay
+aligned; drop optimizations that force divergence.
+
+Host carve-outs (do not force these to match):
+
+| Area | BareScript | markdown-model |
+| --- | --- | --- |
+| Naming | `markdownParse`, `markdownEscape`, `markdownTitle`, `markdownHighlightCodeBlockElements` | `parseMarkdown`, `escapeMarkdownText`, `getMarkdownTitle`, `codeBlockElements` |
+| Type names | `MarkdownParagraph`, `MarkdownSpan`, `MarkdownHighlight`, … (prefixed) | `Paragraph`, `Span`, `Highlight`, … |
+| Parse args | `markdownParse(lines...)` + `arrayFlat` | `(string\|string[], startLineNumber=1)` |
+| `usedHeaderIds` | plain object | `Set` |
+| Copy UI class / CSS vars | `barescript-no-print`, `--barescript-color-*` | `markdown-model-no-print`, `--markdown-model-color-*` |
+| CSS | `static/markdown.css` (`light-dark()`) | `static/markdown-model.css` (`--markdown-model-dark-mode`) |
+| Async | separate `*Async` functions | `markdownElementsAsync` awaits Promises |
+| Validation extras | `markdownValidateEx` | throws from `validateMarkdownModel` |
+| Nested helpers | top-level `markdownParserCloseParagraph` | closure over parse state |
+| Code-block line join | `arrayJoin(lines, '\n') + '\n'` | preserve a line's existing trailing newline |
+| Tests | `unittest.bare` / `make test-include` | `node --test` / `make test` |
+
+Parallel modules: `markdownParser.bare` ↔ `lib/parser.js`; `markdown.bare` (types, validate, escape,
+title, paragraph text, header id) ↔ `lib/model.js` + helpers in `lib/parser.js` / `lib/elements.js`;
+`markdownElements.bare` ↔ `lib/elements.js`; `markdownHighlight.bare` ↔ `lib/highlight.js`. Include
+tests `testMarkdown*.bare` ↔ `test/testParser.js`, `testParserSpans.js`, `testElements.js`,
+`testHighlight*.js`.
+
