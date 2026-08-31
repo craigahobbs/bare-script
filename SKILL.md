@@ -491,6 +491,7 @@ the `.bare` source.
 | `forms.bare` | Form-control element-model helpers | `formsTextElements`, `formsLinkElements`, `formsLinkButtonElements` |
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
+| `markdownString.bare` | Markdown model → Markdown text | `markdownToString` |
 | `markdownElements.bare` | Markdown model → element model | `markdownElements`, `markdownElementsAsync` |
 | `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
 | `pager.bare` | Multi-page MarkdownUp app shell | `pagerMain`, `pagerValidate` |

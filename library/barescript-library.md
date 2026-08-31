@@ -46,6 +46,7 @@ logged for each invalid-argument failure.
 | [markdown.bare](#var.vPublish=true&var.vSingle=true&markdown-bare) | Markdown escaping, header IDs, and utilities |
 | [markdownElements.bare](#var.vPublish=true&var.vSingle=true&markdownelements-bare) | Convert a Markdown model to an element model |
 | [markdownParser.bare](#var.vPublish=true&var.vSingle=true&markdownparser-bare) | Parse Markdown text into a Markdown model |
+| [markdownString.bare](#var.vPublish=true&var.vSingle=true&markdownstring-bare) | Render a Markdown model as Markdown text |
 | [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare) | Stub implementations of the MarkdownUp runtime functions |
 | [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare) | Multi-page MarkdownUp application shell |
 | [qrcode.bare](#var.vPublish=true&var.vSingle=true&qrcode-bare) | Render QR codes |
@@ -4903,6 +4904,80 @@ The Markdown text lines (may contain nested arrays of un-split lines)
 #### Returns
 
 The [Markdown model](model.html#var.vName='Markdown')
+
+---
+
+## markdownString.bare
+
+The "markdownString.bare" include library renders a
+[Markdown model](model.html#var.vName='Markdown') back to Markdown text.
+
+```bare-script
+include <markdownParser.bare>
+include <markdownString.bare>
+
+markdown = markdownParse('#   Hello, World!', '', 'This is a', 'paragraph.')
+text = markdownToString(markdown)
+```
+
+Together with [markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), it works as a
+Markdown formatter — the rendered text is normalized, not source-preserving:
+
+- Paragraph text is re-wrapped to the wrap width
+- Setext headers are rendered as hash headers and indented code blocks are rendered fenced
+- The "\_" and "\~" character styles are normalized to "\*" and "\~\~"
+- Auto-links stay angle-bracket form when the parser would recognize them
+- Table cells are padded to the column width and alignment
+- Only the characters that require escaping are escaped
+
+The "wrapWidth" argument sets the text wrap width (100 by default). It is a target for paragraph
+text, not a hard maximum: links, images, and code spans are never split across lines, and fenced
+code is not wrapped. Pass zero to render each paragraph on a single line:
+
+```bare-script
+text = markdownToString(markdown, 80)
+oneLine = markdownToString(markdown, 0)
+```
+
+The "refCount" argument generates link and image references for repeated URLs. It is the minimum
+number of occurrences of a URL for which a reference is rendered — zero (the default) renders every
+link and image inline. The reference definitions are added at the end of the Markdown text:
+
+```bare-script
+text = markdownToString(markdown, 100, 2)
+```
+
+
+### Function Index
+
+- [markdownToString](#var.vPublish=true&var.vSingle=true&markdowntostring)
+
+---
+
+### markdownToString
+
+Render a [Markdown model](model.html#var.vName='Markdown') as Markdown text. The rendered text
+is normalized - text is re-wrapped, character styles are rendered with the "\*" and "\~"
+syntax, code blocks are rendered fenced, and only the characters that require escaping are
+escaped.
+
+#### Arguments
+
+**markdown -**
+The [Markdown model](model.html#var.vName='Markdown')
+
+**wrapWidth -**
+Optional (default is 100). The text wrap width. If zero or less, text is not wrapped.
+This is a target for paragraph text, not a hard maximum - a word longer than the wrap
+width (a link, image, or code span) is kept intact, and fenced code is not wrapped.
+
+**refCount -**
+Optional (default is 0). The minimum number of occurrences of a link/image URL for which a
+link/image reference is rendered. If zero or less, all links/images are rendered inline.
+
+#### Returns
+
+The Markdown text
 
 ---
 

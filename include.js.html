@@ -50,6 +50,7 @@ await executeScriptAsync(
                 {'url': 'markdown.bare', 'system': true},
                 {'url': 'markdownElements.bare', 'system': true},
                 {'url': 'markdownParser.bare', 'system': true},
+                {'url': 'markdownString.bare', 'system': true},
                 {'url': 'qrcode.bare', 'system': true},
                 {'url': 'schema.bare', 'system': true},
                 {'url': 'schemaDoc.bare', 'system': true},
@@ -468,6 +469,25 @@ export function markdownElementsAsync(markdown, options = null) {
  */
 export function markdownParse(text) {
     return includeGlobals.markdownParse([text], includeOptions());
+}
+
+
+//
+// markdownString.bare
+//
+
+
+/**
+ * Render a Markdown model as Markdown text
+ *
+ * @param {Object} markdown - The Markdown model
+ * @param {number} [wrapWidth = 100] - The text wrap width. If zero or less, text is not wrapped.
+ * @param {number} [refCount = 0] - The minimum number of occurrences of a link/image URL for which a
+ *     link/image reference is rendered. If zero or less, all links/images are rendered inline.
+ * @returns {string} The Markdown text
+ */
+export function markdownToString(markdown, wrapWidth = null, refCount = null) {
+    return includeGlobals.markdownToString([markdown, wrapWidth, refCount], includeOptions());
 }
 
 

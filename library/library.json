@@ -143,6 +143,11 @@
                     "description": "Parse Markdown text into a Markdown model"
                 },
                 {
+                    "name": "markdownString.bare",
+                    "content": "include/markdownString-bare.md",
+                    "description": "Render a Markdown model as Markdown text"
+                },
+                {
                     "name": "markdownUp.bare",
                     "content": "include/markdownUp-bare.md",
                     "description": "Stub implementations of the MarkdownUp runtime functions"
