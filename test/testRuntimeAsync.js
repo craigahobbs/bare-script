@@ -1064,6 +1064,32 @@ test('executeScriptAsync, include twice', async () => {
 });
 
 
+test('executeScriptAsync, include grouped nested', async () => {
+    const script = barescriptValidateScript({
+        'statements': [
+            {'include': {'includes': [{'url': 'test.bare'}, {'url': 'test2.bare'}]}}
+        ]
+    });
+    const urls = [];
+    const fetchFn = (url) => {
+        urls.push(url);
+        return {
+            'ok': true,
+            'text': () => (url === 'test2.bare' ? 'a = 1' : `\
+include 'test2.bare'
+b = a
+`)
+        };
+    };
+    const options = {'globals': {}, fetchFn};
+    assert.equal(await executeScriptAsync(script, options), null);
+    assert.equal(options.globals.a, 1);
+    assert.equal(options.globals.b, 1);
+    assert.deepEqual(urls, ['test.bare', 'test2.bare']);
+    assert.deepEqual(options.globals[systemGlobalIncludesName], {'test.bare': true, 'test2.bare': true});
+});
+
+
 test('executeScriptAsync, include nested', async () => {
     const script = barescriptValidateScript({
         'statements': [
