@@ -5,7 +5,8 @@ import {
     barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, dataAggregate, dataCalculatedField, dataFilter, dataJoin,
     dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop,
     dataValidate, elementModelToString, elementModelValidate, includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape,
-    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownValidate, qrcodeElements, qrcodeMatrix,
+    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownToString, markdownValidate, qrcodeElements,
+    qrcodeMatrix,
     schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel,
     schemaTypeModelValidate, schemaValidate, urlDecodeComponent, urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
@@ -296,6 +297,24 @@ test('markdownElements, markdownElementsAsync async code block', async () => {
 
 test('markdownParser, markdownParse', () => {
     assert.deepEqual(markdownParse('# Title'), {'parts': [{'paragraph': {'spans': [{'text': 'Title'}], 'style': 'h1'}}]});
+});
+
+
+test('markdownString, markdownToString', () => {
+    assert.equal(markdownToString(markdownParse('#  Title\n\nSome\ntext')), '# Title\n\nSome text\n');
+});
+
+
+test('markdownString, markdownToString wrapWidth', () => {
+    assert.equal(markdownToString(markdownParse('aaa bbb ccc'), 7), 'aaa bbb\nccc\n');
+});
+
+
+test('markdownString, markdownToString refCount', () => {
+    assert.equal(
+        markdownToString(markdownParse('[a](u.html) [b](u.html)'), 0, 2),
+        '[a][1] [b][1]\n\n[1]: u.html\n'
+    );
 });
 
 

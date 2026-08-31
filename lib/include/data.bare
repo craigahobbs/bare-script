@@ -485,7 +485,7 @@ function dataAggregate(data, aggregation):
             measureName = arrayGet(meta, 0)
             measureFunc = arrayGet(meta, 2)
             measureValues = objectGet(aggregateRow, measureName)
-            if !arrayLength(measureValues):
+            if !measureValues:
                 objectSet(aggregateRow, measureName, null)
             elif measureFunc == 'count':
                 objectSet(aggregateRow, measureName, arrayLength(measureValues))

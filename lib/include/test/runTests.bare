@@ -21,6 +21,7 @@ include <markdown.bare>
 include <markdownElements.bare>
 include <markdownHighlight.bare>
 include <markdownParser.bare>
+include <markdownString.bare>
 include <pager.bare>
 include <qrcode.bare>
 include <schema.bare>
@@ -54,6 +55,7 @@ include '../markdown.bare'
 include '../markdownElements.bare'
 include '../markdownHighlight.bare'
 include '../markdownParser.bare'
+include '../markdownString.bare'
 include '../pager.bare'
 include '../qrcode.bare'
 include '../schema.bare'
@@ -87,6 +89,7 @@ include 'testMarkdownHighlight2.bare'
 include 'testMarkdownHighlight3.bare'
 include 'testMarkdownParser.bare'
 include 'testMarkdownParserSpans.bare'
+include 'testMarkdownString.bare'
 include 'testPager.bare'
 include 'testQrcode.bare'
 include 'testSchema.bare'

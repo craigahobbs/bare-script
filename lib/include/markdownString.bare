@@ -1,0 +1,675 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: markdownToString
+# $group: markdownString.bare
+# $doc: Render a [Markdown model](model.html#var.vName='Markdown') as Markdown text. The rendered text
+# $doc: is normalized - text is re-wrapped, character styles are rendered with the "\*" and "\~"
+# $doc: syntax, code blocks are rendered fenced, and only the characters that require escaping are
+# $doc: escaped.
+# $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
+# $arg wrapWidth: Optional (default is 100). The text wrap width. If zero or less, text is not wrapped.
+# $arg wrapWidth: This is a target for paragraph text, not a hard maximum - a word longer than the wrap
+# $arg wrapWidth: width (a link, image, or code span) is kept intact, and fenced code is not wrapped.
+# $arg refCount: Optional (default is 0). The minimum number of occurrences of a link/image URL for which a
+# $arg refCount: link/image reference is rendered. If zero or less, all links/images are rendered inline.
+# $return: The Markdown text
+function markdownToString(markdown, wrapWidth, refCount):
+    # Compute the link/image reference definitions
+    refs = markdownStringRefs(markdown, if(refCount != null, refCount, 0))
+
+    # Render the Markdown model's parts
+    lines = markdownStringParts(objectGet(markdown, 'parts'), if(wrapWidth != null, wrapWidth, 100), refs, false)
+
+    # Add the link/image reference definitions
+    refDefs = objectGet(refs, 'defs')
+    if refDefs:
+        arrayPush(lines, '')
+        arrayExtend(lines, refDefs)
+    endif
+
+    # A non-empty Markdown file ends with a newline
+    return arrayJoin(lines, '\n') + if(lines, '\n', '')
+endfunction
+
+
+#
+# Link/image references
+#
+
+
+# Helper function to compute the link/image reference labels and definitions
+function markdownStringRefs(markdown, refCount):
+    refs = {'labels': {}, 'defs': []}
+    if refCount <= 0:
+        return refs
+    endif
+
+    # Count the link/image target occurrences
+    counts = {'counts': {}, 'order': [], 'targets': {}}
+    markdownStringRefsParts(objectGet(markdown, 'parts'), counts)
+
+    # Create a label and definition for each target with enough occurrences
+    labels = objectGet(refs, 'labels')
+    defs = objectGet(refs, 'defs')
+    countsCount = objectGet(counts, 'counts')
+    countsTarget = objectGet(counts, 'targets')
+    for key in objectGet(counts, 'order'):
+        if objectGet(countsCount, key) >= refCount:
+            label = stringNew(arrayLength(defs) + 1)
+            target = objectGet(countsTarget, key)
+            objectSet(labels, key, label)
+            arrayPush(defs, '[' + label + ']: ' + markdownStringTarget(arrayGet(target, 0), arrayGet(target, 1)))
+        endif
+    endfor
+    return refs
+endfunction
+
+
+# Helper function to count a part array's link/image target occurrences
+function markdownStringRefsParts(parts, counts):
+    for part in parts:
+        paragraph = objectGet(part, 'paragraph')
+        if paragraph:
+            markdownStringRefsSpans(objectGet(paragraph, 'spans'), counts)
+            continue
+        endif
+        list = objectGet(part, 'list')
+        if list:
+            for item in objectGet(list, 'items'):
+                markdownStringRefsParts(objectGet(item, 'parts'), counts)
+            endfor
+            continue
+        endif
+        quote = objectGet(part, 'quote')
+        if quote:
+            markdownStringRefsParts(objectGet(quote, 'parts'), counts)
+            continue
+        endif
+        table = objectGet(part, 'table')
+        if table:
+            markdownStringRefsRows([objectGet(table, 'headers')], counts)
+            markdownStringRefsRows(objectGet(table, 'rows', []), counts)
+        endif
+    endfor
+endfunction
+
+
+# Helper function to count a table row array's link/image target occurrences
+function markdownStringRefsRows(rows, counts):
+    for row in rows:
+        for cell in row:
+            markdownStringRefsSpans(cell, counts)
+        endfor
+    endfor
+endfunction
+
+
+# Helper function to count a span array's link/image target occurrences
+function markdownStringRefsSpans(spans, counts):
+    for span in spans:
+        link = objectGet(span, 'link')
+        if link:
+            markdownStringRefsAdd(counts, objectGet(link, 'href'), objectGet(link, 'title'))
+            markdownStringRefsSpans(objectGet(link, 'spans'), counts)
+            continue
+        endif
+        image = objectGet(span, 'image')
+        if image:
+            markdownStringRefsAdd(counts, objectGet(image, 'src'), objectGet(image, 'title'))
+            continue
+        endif
+        style = objectGet(span, 'style')
+        if style:
+            markdownStringRefsSpans(objectGet(style, 'spans'), counts)
+            continue
+        endif
+        linkRef = objectGet(span, 'linkRef')
+        if linkRef:
+            markdownStringRefsSpans(objectGet(linkRef, 'spans'), counts)
+        endif
+    endfor
+endfunction
+
+
+# Helper function to count a link/image target occurrence
+function markdownStringRefsAdd(counts, href, title):
+    # A link reference definition cannot have an empty URL
+    if href == '':
+        return
+    endif
+
+    key = markdownStringRefKey(href, title)
+    countsCount = objectGet(counts, 'counts')
+    count = objectGet(countsCount, key)
+    if count == null:
+        objectSet(countsCount, key, 1)
+        objectSet(objectGet(counts, 'targets'), key, [href, title])
+        arrayPush(objectGet(counts, 'order'), key)
+    else:
+        objectSet(countsCount, key, count + 1)
+    endif
+endfunction
+
+
+# Helper function to compute a link/image target's reference key
+function markdownStringRefKey(href, title):
+    return href + '\n' + if(title != null, title, '')
+endfunction
+
+
+# Helper function to get a link/image target's reference label (or null if there is none)
+function markdownStringRefLabel(refs, href, title):
+    return objectGet(objectGet(refs, 'labels'), markdownStringRefKey(href, title))
+endfunction
+
+
+#
+# Markdown parts
+#
+
+
+# Helper function to render a part array's Markdown text lines. Within a list item, a nested list
+# directly following a paragraph is rendered without a separating empty line so the list stays
+# "tight" - an empty line makes it a "loose" list for CommonMark renderers.
+function markdownStringParts(parts, wrapWidth, refs, listItem):
+    lines = []
+    for part, ixPart in parts:
+        # Separate the parts with an empty line
+        if ixPart && !(listItem && markdownStringPartsTight(arrayGet(parts, ixPart - 1), part)):
+            arrayPush(lines, '')
+        endif
+
+        paragraph = objectGet(part, 'paragraph')
+        if paragraph:
+            arrayExtend(lines, markdownStringParagraph(paragraph, wrapWidth, refs))
+            continue
+        endif
+        list = objectGet(part, 'list')
+        if list:
+            arrayExtend(lines, markdownStringList(list, wrapWidth, refs))
+            continue
+        endif
+        quote = objectGet(part, 'quote')
+        if quote:
+            arrayExtend(lines, markdownStringQuote(quote, wrapWidth, refs))
+            continue
+        endif
+        codeBlock = objectGet(part, 'codeBlock')
+        if codeBlock:
+            arrayExtend(lines, markdownStringCodeBlock(codeBlock))
+            continue
+        endif
+        table = objectGet(part, 'table')
+        if table:
+            arrayExtend(lines, markdownStringTable(table, refs))
+            continue
+        endif
+
+        # Horizontal rule
+        arrayPush(lines, '---')
+    endfor
+    return lines
+endfunction
+
+
+# Helper function to test if a part directly follows a previous part with no separating empty line
+function markdownStringPartsTight(partPrev, part):
+    # The previous part must be a non-header paragraph
+    paragraphPrev = objectGet(partPrev, 'paragraph')
+    if !paragraphPrev || objectGet(paragraphPrev, 'style') != null:
+        return false
+    endif
+
+    # A list only interrupts a paragraph if its items are bulleted or numbered from one
+    list = objectGet(part, 'list')
+    return list != null && objectGet(list, 'start', 1) == 1
+endfunction
+
+
+# Helper function to render a paragraph part's Markdown text lines
+function markdownStringParagraph(paragraph, wrapWidth, refs):
+    spans = objectGet(paragraph, 'spans')
+    style = objectGet(paragraph, 'style')
+
+    # Header paragraph? Headers are a single line - a wrapped header would parse as two parts.
+    if style:
+        text = arrayJoin(markdownStringWords(spans, refs, true), ' ')
+
+        # Escape a trailing hash sequence on the full ATX line so all-hash text is escaped too
+        line = stringRepeat('#', numberParseInt(stringSlice(style, 1))) + ' ' + text
+        return [regexReplace(markdownStringRegexHeaderHash, line, '$1\\$2')]
+    endif
+
+    return markdownStringWrap(markdownStringWords(spans, refs, false), wrapWidth)
+endfunction
+
+
+markdownStringRegexHeaderHash = regexNew('(\\s)(#+)$')
+
+
+# Helper function to render a list part's Markdown text lines
+function markdownStringList(list, wrapWidth, refs):
+    start = objectGet(list, 'start')
+    lines = []
+    for item, ixItem in objectGet(list, 'items'):
+        # The list item mark - the parser's list item indent is the mark plus a single space
+        mark = if(start != null, stringNew(start + ixItem) + '.', '-') + ' '
+        indent = if(start != null, stringRepeat(' ', stringLength(mark)), '  ')
+
+        # Render the list item's parts
+        itemParts = objectGet(item, 'parts')
+        itemWrapWidth = if(wrapWidth > 0, mathMax(wrapWidth - stringLength(mark), 1), wrapWidth)
+        itemLines = markdownStringParts(itemParts, itemWrapWidth, refs, true)
+        if !itemLines:
+            arrayPush(lines, mark)
+            continue
+        endif
+
+        # A non-paragraph first part already starts with a block opener. Keep the item mark on its
+        # own line so it doesn't merge (`- - nested`, `- ---`).
+        if objectGet(arrayGet(itemParts, 0), 'paragraph'):
+            arrayPush(lines, mark + arrayGet(itemLines, 0))
+            itemLines = arraySlice(itemLines, 1)
+        else:
+            arrayPush(lines, mark)
+        endif
+        for itemLine in itemLines:
+            arrayPush(lines, if(itemLine == '', '', indent + itemLine))
+        endfor
+    endfor
+    return lines
+endfunction
+
+
+# Helper function to render a block quote part's Markdown text lines
+function markdownStringQuote(quote, wrapWidth, refs):
+    lines = []
+
+    # Empty lines within a block quote must be marked or they end the block quote
+    quoteWrapWidth = if(wrapWidth > 0, mathMax(wrapWidth - 2, 1), wrapWidth)
+    for quoteLine in markdownStringParts(objectGet(quote, 'parts'), quoteWrapWidth, refs, false):
+        arrayPush(lines, if(quoteLine == '', '>', '> ' + quoteLine))
+    endfor
+    if !lines:
+        arrayPush(lines, '>')
+    endif
+    return lines
+endfunction
+
+
+# Helper function to render a code block part's Markdown text lines
+function markdownStringCodeBlock(codeBlock):
+    codeLines = objectGet(codeBlock, 'lines')
+
+    # Compute the code fence length - longer than any code line's leading code fence
+    fenceLength = 2
+    for codeLine in codeLines:
+        matchFence = regexMatch(markdownStringRegexFence, codeLine)
+        if matchFence:
+            fenceLength = mathMax(fenceLength, stringLength(objectGet(objectGet(matchFence, 'groups'), '1')))
+        endif
+    endfor
+
+    language = objectGet(codeBlock, 'language')
+    fence = stringRepeat('`', fenceLength + 1)
+    lines = [fence + if(language != null, language, '')]
+    arrayExtend(lines, codeLines)
+    arrayPush(lines, fence)
+    return lines
+endfunction
+
+
+markdownStringRegexFence = regexNew('^ {0,3}(`{3,})')
+
+
+#
+# Markdown tables
+#
+
+
+# Helper function to render a table part's Markdown text lines
+function markdownStringTable(table, refs):
+    aligns = objectGet(table, 'aligns')
+
+    # Render the header and data cell text
+    cellRows = [markdownStringTableRow(objectGet(table, 'headers'), refs)]
+    for row in objectGet(table, 'rows', []):
+        arrayPush(cellRows, markdownStringTableRow(row, refs))
+    endfor
+
+    # Compute the column widths - the alignment row needs at least three characters
+    widths = []
+    for cellRow in cellRows:
+        for cellText, ixCell in cellRow:
+            cellWidth = mathMax(stringLength(cellText), 3)
+            if ixCell >= arrayLength(widths):
+                arrayPush(widths, cellWidth)
+            elif cellWidth > arrayGet(widths, ixCell):
+                arraySet(widths, ixCell, cellWidth)
+            endif
+        endfor
+    endfor
+
+    # Render the alignment row
+    alignRow = []
+    for align, ixAlign in aligns:
+        alignWidth = if(ixAlign < arrayLength(widths), arrayGet(widths, ixAlign), 3)
+        if align == 'right':
+            arrayPush(alignRow, stringRepeat('-', alignWidth - 1) + ':')
+        elif align == 'center':
+            arrayPush(alignRow, ':' + stringRepeat('-', alignWidth - 2) + ':')
+        else:
+            arrayPush(alignRow, stringRepeat('-', alignWidth))
+        endif
+    endfor
+
+    # Render the header row, the alignment row, and the data rows
+    lines = [ \
+        markdownStringTableLine(arrayGet(cellRows, 0), widths, aligns), \
+        markdownStringTableLine(alignRow, widths, aligns) \
+    ]
+    for cellRow in arraySlice(cellRows, 1):
+        arrayPush(lines, markdownStringTableLine(cellRow, widths, aligns))
+    endfor
+    return lines
+endfunction
+
+
+# Helper function to render a table row's cell text
+function markdownStringTableRow(row, refs):
+    cellRow = []
+    for cell in row:
+        # Escape the cell's pipes - the parser only unescapes a cell's escaped pipes
+        cellText = arrayJoin(markdownStringWords(cell, refs, true), ' ')
+        arrayPush(cellRow, regexReplace(markdownStringRegexCell, cellText, '\\$1'))
+    endfor
+    return cellRow
+endfunction
+
+
+# Helper function to render a table line from its cell text, padded to the column alignment
+function markdownStringTableLine(cellRow, widths, aligns):
+    cells = []
+    for cellText, ixCell in cellRow:
+        cellWidth = if(ixCell < arrayLength(widths), arrayGet(widths, ixCell), stringLength(cellText))
+        padWidth = mathMax(cellWidth - stringLength(cellText), 0)
+        align = if(ixCell < arrayLength(aligns), arrayGet(aligns, ixCell), 'left')
+        if align == 'right':
+            padLeft = padWidth
+        elif align == 'center':
+            padLeft = mathFloor(padWidth / 2)
+        else:
+            padLeft = 0
+        endif
+        arrayPush(cells, ' ' + stringRepeat(' ', padLeft) + cellText + stringRepeat(' ', padWidth - padLeft) + ' ')
+    endfor
+    return '|' + arrayJoin(cells, '|') + '|'
+endfunction
+
+
+markdownStringRegexCell = regexNew('(\\|)')
+
+
+#
+# Markdown spans
+#
+
+
+# Helper function to render a span array as an array of wrappable words. A null word is a line
+# break. Links, images, and code spans are atomic - they are never split across lines.
+function markdownStringWords(spans, refs, singleLine):
+    state = {'words': [], 'closed': true}
+    markdownStringSpans(spans, refs, singleLine, state)
+    return objectGet(state, 'words')
+endfunction
+
+
+# Helper function to render a span array's words
+function markdownStringSpans(spans, refs, singleLine, state):
+    for span in spans:
+        text = objectGet(span, 'text')
+        if text != null:
+            markdownStringText(text, state)
+            continue
+        endif
+        code = objectGet(span, 'code')
+        if code != null:
+            markdownStringWordsAppend(state, markdownStringCode(code))
+            continue
+        endif
+        link = objectGet(span, 'link')
+        if link:
+            markdownStringWordsAppend(state, markdownStringLink(link, refs))
+            continue
+        endif
+        image = objectGet(span, 'image')
+        if image:
+            markdownStringWordsAppend(state, markdownStringImage(image, refs))
+            continue
+        endif
+        style = objectGet(span, 'style')
+        if style:
+            styleName = objectGet(style, 'style')
+            mark = if(styleName == 'bold', '**', if(styleName == 'italic', '*', '~~'))
+            markdownStringWordsAppend(state, mark)
+            markdownStringSpans(objectGet(style, 'spans'), refs, singleLine, state)
+            # Closing delimiter must never start a word
+            objectSet(state, 'closed', false)
+            markdownStringWordsAppend(state, mark)
+            continue
+        endif
+        linkRef = objectGet(span, 'linkRef')
+        if linkRef:
+            markdownStringSpans(objectGet(linkRef, 'spans'), refs, singleLine, state)
+            continue
+        endif
+
+        # Line break - a single-line context has no following line for a backslash line break
+        if singleLine:
+            markdownStringWordsAppend(state, '<br>')
+        else:
+            arrayPush(objectGet(state, 'words'), null)
+            objectSet(state, 'closed', true)
+        endif
+    endfor
+endfunction
+
+
+# Helper function to render a text span's words
+function markdownStringText(text, state):
+    # Escape the span once, then split - whitespace is not escaped
+    text = markdownStringEscape(text)
+    for token, ixToken in regexSplit(markdownStringRegexSpace, text):
+        if ixToken || token == '':
+            objectSet(state, 'closed', true)
+        endif
+        if token != '':
+            markdownStringWordsAppend(state, token)
+        endif
+    endfor
+endfunction
+
+
+# Helper function to append text to the current word (or start a new word)
+function markdownStringWordsAppend(state, text):
+    words = objectGet(state, 'words')
+    ixWord = arrayLength(words) - 1
+    word = if(ixWord >= 0, arrayGet(words, ixWord))
+    if objectGet(state, 'closed') || word == null:
+        arrayPush(words, text)
+        objectSet(state, 'closed', false)
+    else:
+        arraySet(words, ixWord, word + text)
+    endif
+endfunction
+
+
+markdownStringRegexSpace = regexNew('\\s+')
+
+
+# Helper function to render a code span
+function markdownStringCode(code):
+    # The code span delimiter must be longer than any backtick run within the code
+    tickLength = 0
+    for matchTicks in regexMatchAll(markdownStringRegexTicks, code):
+        tickLength = mathMax(tickLength, stringLength(objectGet(objectGet(matchTicks, 'groups'), '0')))
+    endfor
+
+    # Pad when the parser would strip (`^ (.+) $`) or when the code starts/ends with a backtick
+    ticks = stringRepeat('`', tickLength + 1)
+    pad = if(regexMatch(markdownStringRegexCodePad, code), ' ', '')
+    return ticks + pad + code + pad + ticks
+endfunction
+
+
+markdownStringRegexTicks = regexNew('`+')
+markdownStringRegexCodePad = regexNew('^`|`$|^ (.+) $')
+
+
+# Helper function to render a link span - a link is atomic so its text is never split across lines
+function markdownStringLink(link, refs):
+    href = objectGet(link, 'href')
+    title = objectGet(link, 'title')
+    spans = objectGet(link, 'spans')
+
+    # A link whose text is its URL is an autolink if the parser would recognize "<href>"
+    label = markdownStringRefLabel(refs, href, title)
+    if label == null && title == null && arrayLength(spans) == 1:
+        if objectGet(arrayGet(spans, 0), 'text') == href && regexMatch(markdownStringRegexAutolink, href):
+            return '<' + href + '>'
+        endif
+    endif
+
+    text = arrayJoin(markdownStringWords(spans, refs, true), ' ')
+    if label != null:
+        return '[' + text + '][' + label + ']'
+    endif
+    return '[' + text + '](' + markdownStringTarget(href, title) + ')'
+endfunction
+
+
+markdownStringRegexAutolink = regexNew('^[A-Za-z]{3,}:[^ \\r\\n>]+$')
+
+
+# Helper function to render an image span
+function markdownStringImage(image, refs):
+    src = objectGet(image, 'src')
+    title = objectGet(image, 'title')
+
+    # The parser collapses image alt text whitespace runs to a single space
+    alt = regexReplace(markdownStringRegexAltEscape, regexReplace(markdownStringRegexSpace, objectGet(image, 'alt'), ' '), '\\$1')
+    alt = markdownStringEscapeRefs(alt)
+
+    label = markdownStringRefLabel(refs, src, title)
+    if label != null:
+        return '![' + alt + '][' + label + ']'
+    endif
+    return '![' + alt + '](' + markdownStringTarget(src, title) + ')'
+endfunction
+
+
+markdownStringRegexAltEscape = regexNew('([\\\\\\[\\]])')
+
+
+# Helper function to render a link/image target - the URL and its optional title
+function markdownStringTarget(href, title):
+    # A URL containing whitespace must use the angle-bracket syntax
+    if regexMatch(markdownStringRegexSpace, href):
+        text = '<' + regexReplace(markdownStringRegexHrefAngle, href, '\\$1') + '>'
+    else:
+        text = regexReplace(markdownStringRegexHref, href, '\\$1')
+    endif
+    text = markdownStringEscapeRefs(text)
+    if title != null:
+        text = text + ' "' + markdownStringEscapeRefs(regexReplace(markdownStringRegexTitle, title, '\\$1')) + '"'
+    endif
+    return text
+endfunction
+
+
+markdownStringRegexHref = regexNew('([\\\\)]|^<)')
+markdownStringRegexHrefAngle = regexNew('([\\\\>])')
+markdownStringRegexTitle = regexNew('([\\\\"])')
+
+
+#
+# Text escapes
+#
+
+
+# Helper function to escape a text span
+function markdownStringEscape(text):
+    # Escape the span syntax characters, then the character references and the "<" span syntax -
+    # those escapes add a backslash so they must run after the backslash escapes
+    result = regexReplace(markdownStringRegexEscape, text, '\\$1')
+    result = markdownStringEscapeRefs(result)
+    return regexReplace(markdownStringRegexLt, result, '\\<$1')
+endfunction
+
+
+# Helper function to escape the character references within text
+function markdownStringEscapeRefs(text):
+    return regexReplace(markdownStringRegexRef, text, '\\&$1')
+endfunction
+
+
+markdownStringRegexRef = regexNew('&((?:[A-Za-z]+[0-9]*|#[0-9]{1,7}|#[Xx][A-Fa-f0-9]{1,6});)')
+markdownStringRegexLt = regexNew('<(br(?:[\\s/>]|$)|(?:[A-Za-z]{3,}:|[A-Za-z0-9.!#$%&\'*+/=?^_`{|}~-]+@)[^ \\r\\n]*>)')
+markdownStringRegexEscape = regexNew('([\\\\`*_~\\[\\]])')
+
+
+#
+# Text wrapping
+#
+
+
+# Helper function to wrap an array of words to an array of Markdown text lines
+function markdownStringWrap(words, wrapWidth):
+    lines = []
+    line = ''
+    ixLast = arrayLength(words) - 1
+    for word, ixWord in words:
+        # Line break?
+        if word == null:
+            # A trailing backslash line break has no following line - use an HTML line break
+            if ixWord == ixLast:
+                line = line + '<br>'
+            else:
+                arrayPush(lines, markdownStringWrapLine(line, true))
+                line = ''
+            endif
+            continue
+        endif
+
+        if line == '':
+            line = word
+        elif wrapWidth > 0 && stringLength(line) + stringLength(word) + 1 > wrapWidth:
+            arrayPush(lines, markdownStringWrapLine(line, false))
+            line = word
+        else:
+            line = line + ' ' + word
+        endif
+    endfor
+    arrayPush(lines, markdownStringWrapLine(line, false))
+    return lines
+endfunction
+
+
+# Helper function to render a wrapped line - escape a leading Markdown block syntax and add a line break
+function markdownStringWrapLine(line, isBreak):
+    text = if(regexMatch(markdownStringRegexBlock, line), '\\' + line, line)
+    if !isBreak:
+        return text
+    endif
+
+    # A backslash line break must not itself be escaped - use a two-space line break
+    return if(stringEndsWith(text, '\\'), text + '  ', text + '\\')
+endfunction
+
+
+markdownStringRegexBlock = regexNew( \
+    '^(?:#{1,6}\\s|[-+*]\\s|[0-9][.)]\\s|[1-9][0-9]+[.)]\\s|>|(?:=+|-+)\\s*$|(?:\\*\\s*){3,}$|(?:_\\s*){3,}$|' + \
+        ' {0,3}(?:`{3,}|~{3,})|(?::?-+:?\\s*)?(?:\\|\\s*:?-+:?\\s*)+(?:\\|\\s*)?$)' \
+)

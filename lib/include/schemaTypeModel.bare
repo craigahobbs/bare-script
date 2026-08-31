@@ -288,7 +288,7 @@ function schemaTypeModelValidateEx(types):
 
     # Do additional type model validation
     errors = schemaValidateTypeModelErrors(validatedTypes)
-    if arrayLength(errors):
+    if errors:
         # Sort by type name, member name, and message; a null member name sorts as ""
         arraySort(errors, schemaTypeModelErrorCompare)
         errorMessages = []

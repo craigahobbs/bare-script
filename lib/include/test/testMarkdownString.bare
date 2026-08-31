@@ -1,0 +1,1140 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../markdownParser.bare'
+include '../markdownString.bare'
+include '../unittest.bare'
+
+
+# Helper function to render a Markdown model and verify the text re-parses to the same model
+function testMarkdownStringRoundTrip(markdown, wrapWidth, refCount):
+    text = markdownToString(markdown, wrapWidth, refCount)
+    unittestDeepEqual(markdownParse(text), markdown)
+    return text
+endfunction
+
+
+#
+# markdownToString tests
+#
+
+
+function testMarkdownToString():
+    unittestEqual( \
+        markdownToString(markdownParse( \
+            '# Title', \
+            '', \
+            'Some text', \
+            'and more text', \
+            '', \
+            '## Sub-title' \
+        )), \
+        arrayJoin([ \
+            '# Title', \
+            '', \
+            'Some text and more text', \
+            '', \
+            '## Sub-title' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownToString')
+
+
+function testMarkdownToString_empty():
+    unittestEqual(markdownToString({'parts': []}), '')
+endfunction
+unittestRunTest('testMarkdownToString_empty')
+
+
+function testMarkdownToString_headers():
+    unittestEqual( \
+        markdownToString(markdownParse( \
+            'Setext Title', \
+            '============', \
+            '', \
+            'Setext Sub-title', \
+            '----------------', \
+            '', \
+            '### Three ###', \
+            '', \
+            '#### Four', \
+            '', \
+            '##### Five', \
+            '', \
+            '###### Six' \
+        )), \
+        arrayJoin([ \
+            '# Setext Title', \
+            '', \
+            '## Setext Sub-title', \
+            '', \
+            '### Three', \
+            '', \
+            '#### Four', \
+            '', \
+            '##### Five', \
+            '', \
+            '###### Six' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownToString_headers')
+
+
+function testMarkdownToString_headerHash():
+    # A trailing hash sequence is escaped so it doesn't parse as a closing hash sequence
+    markdown = {'parts': [{'paragraph': {'style': 'h1', 'spans': [{'text': 'C# ##'}]}}]}
+    unittestEqual(testMarkdownStringRoundTrip(markdown, null, null), '# C# \\##' + '\n')
+
+    # All-hash text has no interior whitespace, so the replace runs on the full ATX line
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('# \\#'), null, null), '# \\#' + '\n')
+    unittestEqual( \
+        testMarkdownStringRoundTrip({'parts': [{'paragraph': {'style': 'h1', 'spans': [{'text': '##'}]}}]}, null, null), \
+        '# \\##' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownToString_headerHash')
+
+
+function testMarkdownToString_headerEmpty():
+    markdown = {'parts': [{'paragraph': {'style': 'h2', 'spans': []}}]}
+    unittestEqual(testMarkdownStringRoundTrip(markdown, null, null), '## ' + '\n')
+endfunction
+unittestRunTest('testMarkdownToString_headerEmpty')
+
+
+function testMarkdownToString_headerBreak():
+    # A header is a single line so its line breaks are HTML line breaks
+    markdown = markdownParse('# Before<br>After')
+    unittestEqual(testMarkdownStringRoundTrip(markdown, null, null), '# Before<br>After' + '\n')
+endfunction
+unittestRunTest('testMarkdownToString_headerBreak')
+
+
+function testMarkdownToString_horizontalRule():
+    unittestEqual( \
+        markdownToString(markdownParse( \
+            'Before', \
+            '', \
+            '***', \
+            '', \
+            'After' \
+        )), \
+        arrayJoin([ \
+            'Before', \
+            '', \
+            '---', \
+            '', \
+            'After' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownToString_horizontalRule')
+
+
+#
+# Text wrapping tests
+#
+
+
+function testMarkdownStringWrap():
+    unittestEqual( \
+        markdownToString(markdownParse('aaa bbb ccc ddd eee fff'), 11), \
+        arrayJoin([ \
+            'aaa bbb ccc', \
+            'ddd eee fff' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap')
+
+
+function testMarkdownStringWrap_none():
+    # A wrap width of zero or less disables wrapping
+    unittestEqual(markdownToString(markdownParse('aaa bbb ccc ddd eee fff'), 0), 'aaa bbb ccc ddd eee fff' + '\n')
+    unittestEqual( \
+        markdownToString(markdownParse('Before\\', 'After'), 0), \
+        arrayJoin(['Before\\', 'After'], '\n') + '\n' \
+    )
+    unittestEqual(markdownToString(markdownParse('Before<br>'), 0), 'Before<br>' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringWrap_none')
+
+
+function testMarkdownStringWrap_longWord():
+    # A word longer than the wrap width is never split
+    unittestEqual( \
+        markdownToString(markdownParse('aa bbbbbbbbbbbb cc'), 5), \
+        arrayJoin([ \
+            'aa', \
+            'bbbbbbbbbbbb', \
+            'cc' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_longWord')
+
+
+function testMarkdownStringWrap_break():
+    markdown = markdownParse( \
+        'Before\\', \
+        'After' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            'Before\\', \
+            'After' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_break')
+
+
+function testMarkdownStringWrap_breakTrailing():
+    # A trailing line break has no following line so it is an HTML line break
+    markdown = markdownParse('Before<br>')
+    unittestEqual(testMarkdownStringRoundTrip(markdown, null, null), 'Before<br>' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringWrap_breakTrailing')
+
+
+function testMarkdownStringWrap_breakOnly():
+    markdown = {'parts': [{'paragraph': {'spans': [{'br': 1}, {'br': 1}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '\\', \
+            '<br>' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_breakOnly')
+
+
+function testMarkdownStringWrap_breakBackslash():
+    # A backslash line break must not follow an escaped backslash - use a two-space line break
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': 'a\\'}, {'br': 1}, {'text': 'b'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            'a\\\\  ', \
+            'b' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_breakBackslash')
+
+
+function testMarkdownStringWrap_blockEscape():
+    # A line that starts with block syntax only because of wrapping is escaped
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': \
+        'aaaaa - bbb aaaaa # ccc aaaaa === aaaaa *** aaaaa ___ aaaaa ``` aaaaa ~~~ '}]}}]}
+    text = markdownToString(markdown, 5)
+    unittestEqual( \
+        text, \
+        arrayJoin([ \
+            'aaaaa', \
+            '\\- bbb', \
+            'aaaaa', \
+            '\\# ccc', \
+            'aaaaa', \
+            '\\===', \
+            'aaaaa', \
+            '\\*\\*\\*', \
+            'aaaaa', \
+            '\\_\\_\\_', \
+            'aaaaa', \
+            '\\`\\`\\`', \
+            'aaaaa', \
+            '\\~\\~\\~' \
+        ], '\n') + '\n' \
+    )
+    unittestDeepEqual( \
+        markdownParse(text), \
+        {'parts': [{'paragraph': {'spans': [{'text': \
+            'aaaaa\n- bbb\naaaaa\n# ccc\naaaaa\n===\naaaaa\n***\naaaaa\n___\naaaaa\n```\naaaaa\n~~~'}]}}]} \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_blockEscape')
+
+
+function testMarkdownStringWrap_blockEscapeStart():
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': \
+        '# Heading'}]}}, {'paragraph': {'spans': [{'text': '- List'}]}}, \
+        {'paragraph': {'spans': [{'text': '1. Number'}]}}, {'paragraph': {'spans': [{'text': '1234567890. Number'}]}}, \
+        {'paragraph': {'spans': [{'text': '> Quote'}]}}, \
+        {'paragraph': {'spans': [{'text': '==='}]}}, {'paragraph': {'spans': [{'text': '|---|---|'}]}}, \
+        {'paragraph': {'spans': [{'text': '***'}]}}, {'paragraph': {'spans': [{'text': '___'}]}}, \
+        {'paragraph': {'spans': [{'text': '```'}]}}, {'paragraph': {'spans': [{'text': '~~~'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '\\# Heading', \
+            '', \
+            '\\- List', \
+            '', \
+            '\\1. Number', \
+            '', \
+            '\\1234567890. Number', \
+            '', \
+            '\\> Quote', \
+            '', \
+            '\\===', \
+            '', \
+            '\\|---|---|', \
+            '', \
+            '\\*\\*\\*', \
+            '', \
+            '\\_\\_\\_', \
+            '', \
+            '\\`\\`\\`', \
+            '', \
+            '\\~\\~\\~' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_blockEscapeStart')
+
+
+function testMarkdownStringWrap_blockEscapeOrdered():
+    # The parser has no 9-digit cap on ordered-list markers
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': 'aaaaa 1234567890. foo'}]}}]}
+    text = markdownToString(markdown, 15)
+    unittestEqual( \
+        text, \
+        arrayJoin([ \
+            'aaaaa', \
+            '\\1234567890. foo' \
+        ], '\n') + '\n' \
+    )
+    unittestDeepEqual( \
+        markdownParse(text), \
+        {'parts': [{'paragraph': {'spans': [{'text': 'aaaaa\n1234567890. foo'}]}}]} \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_blockEscapeOrdered')
+
+
+function testMarkdownStringWrap_blockEscapeHrFence():
+    # Unescaped thematic-break and fence openers (style marks, code spans) are escaped at wrap
+    markdown = {'parts': [{'paragraph': {'spans': [ \
+        {'text': 'aaaaa '}, {'style': {'style': 'bold', 'spans': []}}, {'text': ' bbb '}, \
+        {'style': {'style': 'strikethrough', 'spans': []}}, {'text': ' ccc '}, \
+        {'code': '``'}, {'text': ' ddd'} \
+    ]}}]}
+    text = markdownToString(markdown, 5)
+    unittestEqual( \
+        text, \
+        arrayJoin([ \
+            'aaaaa', \
+            '\\****', \
+            'bbb', \
+            '\\~~~~', \
+            'ccc', \
+            '\\``` `` ```', \
+            'ddd' \
+        ], '\n') + '\n' \
+    )
+    unittestDeepEqual( \
+        markdownParse(text), \
+        {'parts': [{'paragraph': {'spans': [{'text': 'aaaaa\n****\nbbb\n~~~~\nccc\n``` `` ```\nddd'}]}}]} \
+    )
+endfunction
+unittestRunTest('testMarkdownStringWrap_blockEscapeHrFence')
+
+
+#
+# List tests
+#
+
+
+function testMarkdownStringList():
+    markdown = markdownParse( \
+        '- one', \
+        '- two', \
+        '', \
+        '1. first', \
+        '2. second' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- one', \
+            '- two', \
+            '', \
+            '1. first', \
+            '2. second' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList')
+
+
+function testMarkdownStringList_start():
+    markdown = markdownParse( \
+        '9. nine', \
+        '10. ten', \
+        '11. eleven' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '9. nine', \
+            '10. ten', \
+            '11. eleven' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_start')
+
+
+function testMarkdownStringList_nested():
+    # A nested list directly following a list item's paragraph is rendered "tight"
+    markdown = markdownParse( \
+        '- one', \
+        '  - nested one', \
+        '  - nested two', \
+        '- two' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- one', \
+            '  - nested one', \
+            '  - nested two', \
+            '- two' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_nested')
+
+
+function testMarkdownStringList_nestedNumbered():
+    # A numbered list that does not start at one cannot interrupt a paragraph
+    markdown = markdownParse( \
+        '- one', \
+        '', \
+        '  3. three', \
+        '', \
+        '- two', \
+        '', \
+        '  1. one' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- one', \
+            '', \
+            '  3. three', \
+            '- two', \
+            '  1. one' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_nestedNumbered')
+
+
+function testMarkdownStringList_nestedFirst():
+    # A nested list as a list item's first part must not merge with the item mark
+    markdown = markdownParse( \
+        '- ', \
+        '  - nested' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- ', \
+            '  - nested' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_nestedFirst')
+
+
+function testMarkdownStringList_nestedFirstNumbered():
+    markdown = markdownParse( \
+        '1. ', \
+        '   1. nested' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '1. ', \
+            '   1. nested' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_nestedFirstNumbered')
+
+
+function testMarkdownStringList_hrFirst():
+    # A thematic break as a list item's first part must not merge with the item mark
+    markdown = markdownParse( \
+        '- ', \
+        '  ---' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- ', \
+            '  ---' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_hrFirst')
+
+
+function testMarkdownStringList_multipleParts():
+    markdown = markdownParse( \
+        '- one', \
+        '', \
+        '  more one', \
+        '', \
+        '  ```', \
+        '  code', \
+        '  ```', \
+        '', \
+        '  after code', \
+        '- two' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- one', \
+            '', \
+            '  more one', \
+            '', \
+            '  ```', \
+            '  code', \
+            '  ```', \
+            '', \
+            '  after code', \
+            '- two' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_multipleParts')
+
+
+function testMarkdownStringList_emptyItem():
+    markdown = {'parts': [{'list': {'items': [{'parts': []}, {'parts': [{'paragraph': {'spans': [{'text': 'two'}]}}]}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '- ', \
+            '- two' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_emptyItem')
+
+
+function testMarkdownStringList_wrap():
+    markdown = markdownParse('- aaa bbb ccc ddd')
+    unittestEqual( \
+        markdownToString(markdown, 9), \
+        arrayJoin([ \
+            '- aaa bbb', \
+            '  ccc ddd' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringList_wrap')
+
+
+function testMarkdownStringList_wrapNone():
+    # A wrap width of zero or less disables wrapping, including nested list items
+    markdown = markdownParse( \
+        '- aaa bbb ccc', \
+        '  - ddd eee fff' \
+    )
+    text = arrayJoin([ \
+        '- aaa bbb ccc', \
+        '  - ddd eee fff' \
+    ], '\n') + '\n'
+    unittestEqual(markdownToString(markdown, 0), text)
+    unittestEqual(markdownToString(markdown, -1), text)
+endfunction
+unittestRunTest('testMarkdownStringList_wrapNone')
+
+
+#
+# Block quote tests
+#
+
+
+function testMarkdownStringQuote():
+    markdown = markdownParse( \
+        '> Quoted text', \
+        '>', \
+        '> - one', \
+        '> - two' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '> Quoted text', \
+            '>', \
+            '> - one', \
+            '> - two' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringQuote')
+
+
+function testMarkdownStringQuote_empty():
+    markdown = markdownParse('>')
+    unittestEqual(testMarkdownStringRoundTrip(markdown, null, null), '>' + '\n')
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('> >'), null, null), '> >' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringQuote_empty')
+
+
+function testMarkdownStringQuote_wrap():
+    markdown = markdownParse('> aaa bbb ccc ddd')
+    unittestEqual( \
+        markdownToString(markdown, 9), \
+        arrayJoin([ \
+            '> aaa bbb', \
+            '> ccc ddd' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringQuote_wrap')
+
+
+function testMarkdownStringQuote_wrapNone():
+    # A wrap width of zero or less disables wrapping, including nested quotes
+    markdown = markdownParse( \
+        '> aaa bbb ccc', \
+        '>', \
+        '> > ddd eee fff' \
+    )
+    text = arrayJoin([ \
+        '> aaa bbb ccc', \
+        '>', \
+        '> > ddd eee fff' \
+    ], '\n') + '\n'
+    unittestEqual(markdownToString(markdown, 0), text)
+    unittestEqual(markdownToString(markdown, -1), text)
+endfunction
+unittestRunTest('testMarkdownStringQuote_wrapNone')
+
+
+#
+# Code block tests
+#
+
+
+function testMarkdownStringCodeBlock():
+    markdown = markdownParse( \
+        '```javascript', \
+        'const x = 1;', \
+        '```', \
+        '', \
+        '```', \
+        'no language', \
+        '```' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '```javascript', \
+            'const x = 1;', \
+            '```', \
+            '', \
+            '```', \
+            'no language', \
+            '```' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringCodeBlock')
+
+
+function testMarkdownStringCodeBlock_indented():
+    # An indented code block is rendered fenced
+    markdown = markdownParse( \
+        'Before', \
+        '', \
+        '    indented code', \
+        '', \
+        'After' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            'Before', \
+            '', \
+            '```', \
+            'indented code', \
+            '```', \
+            '', \
+            'After' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringCodeBlock_indented')
+
+
+function testMarkdownStringCodeBlock_fence():
+    # The code fence must be longer than any fence within the code
+    markdown = markdownParse( \
+        '~~~~', \
+        '```', \
+        'nested fence', \
+        '```', \
+        '~~~~' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '````', \
+            '```', \
+            'nested fence', \
+            '```', \
+            '````' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringCodeBlock_fence')
+
+
+#
+# Table tests
+#
+
+
+function testMarkdownStringTable():
+    markdown = markdownParse( \
+        '| Name | Value | Note |', \
+        '| --- | ---: | :---: |', \
+        '| a | 1 | x |', \
+        '| bbbb | 22 | yy |' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '| Name | Value | Note |', \
+            '| ---- | ----: | :--: |', \
+            '| a    |     1 |  x   |', \
+            '| bbbb |    22 |  yy  |' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringTable')
+
+
+function testMarkdownStringTable_noRows():
+    markdown = markdownParse( \
+        '| A | B |', \
+        '| - | - |' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '| A   | B   |', \
+            '| --- | --- |' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringTable_noRows')
+
+
+function testMarkdownStringTable_escape():
+    # Table cell pipes are escaped after the spans are rendered - other escapes pass through
+    markdown = markdownParse( \
+        '| A | B |', \
+        '| - | - |', \
+        '| a \\| b | c \\\\ d |', \
+        '| \\*e\\* | *f* |' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '| A      | B      |', \
+            '| ------ | ------ |', \
+            '| a \\| b | c \\\\ d |', \
+            '| \\*e\\*  | *f*    |' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringTable_escape')
+
+
+function testMarkdownStringTable_extraAligns():
+    # An alignment array longer than the header row
+    markdown = {'parts': [{'table': {'headers': [[{'text': 'A'}]], 'aligns': ['left', 'right', 'center']}}]}
+    unittestEqual( \
+        markdownToString(markdown), \
+        arrayJoin([ \
+            '| A   |', \
+            '| --- | --: | :-: |' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringTable_extraAligns')
+
+
+function testMarkdownStringTable_break():
+    # A table cell is a single line so its line breaks are HTML line breaks
+    markdown = markdownParse( \
+        '| A | B |', \
+        '| - | - |', \
+        '| one<br>two | c |' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        arrayJoin([ \
+            '| A          | B   |', \
+            '| ---------- | --- |', \
+            '| one<br>two | c   |' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringTable_break')
+
+
+#
+# Span tests
+#
+
+
+function testMarkdownStringSpans_style():
+    markdown = markdownParse('__bold__ and _italic_ and ~strike~ and ***both***')
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, null, null), \
+        '**bold** and *italic* and ~~strike~~ and ***both***' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_style')
+
+
+function testMarkdownStringSpans_code():
+    markdown = markdownParse('Code `x = 1` and ``a ` b`` and `` `tick` `` and ` a `')
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        'Code `x = 1` and ``a ` b`` and `` `tick` `` and `a`' + '\n' \
+    )
+
+    # A code span with a leading or trailing space is padded so the parser restores it exactly
+    markdownPad = {'parts': [{'paragraph': {'spans': [{'code': ' a '}]}}]}
+    unittestEqual(testMarkdownStringRoundTrip(markdownPad, 0, null), '`  a  `' + '\n')
+
+    # All-space code of length 1 or 2 is not stripped, so it must not be padded
+    unittestEqual( \
+        testMarkdownStringRoundTrip({'parts': [{'paragraph': {'spans': [{'code': ' '}]}}]}, 0, null), \
+        '` `' + '\n' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip({'parts': [{'paragraph': {'spans': [{'code': '  '}]}}]}, 0, null), \
+        '`  `' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_code')
+
+
+function testMarkdownStringSpans_link():
+    markdown = markdownParse( \
+        'A [link](https://example.com) and [titled](https://example.com "The Title") ' + \
+        'and <https://example.com/auto> and [*styled*](x.html)' \
+    )
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        'A [link](https://example.com) and [titled](https://example.com "The Title") and ' + \
+        '<https://example.com/auto> and [*styled*](x.html)' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_link')
+
+
+function testMarkdownStringSpans_linkAutolink():
+    # A link whose text is its URL is an autolink when the parser would recognize "<href>"
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('<https://example.com>'), 0, null), '<https://example.com>' + '\n')
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdownParse('[https://example.com/foo_bar](https://example.com/foo_bar)'), 0, null), \
+        '<https://example.com/foo_bar>' + '\n' \
+    )
+
+    # An email autolink's href includes "mailto:"
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('<foo@bar.com>'), 0, null), '<mailto:foo@bar.com>' + '\n')
+
+    # Equal text and href that is not an autolink scheme stays a markdown link
+    unittestEqual( \
+        testMarkdownStringRoundTrip({'parts': [{'paragraph': {'spans': [ \
+            {'link': {'href': 'foo', 'spans': [{'text': 'foo'}]}} \
+        ]}}]}, 0, null), \
+        '[foo](foo)' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_linkAutolink')
+
+
+function testMarkdownStringSpans_linkEscape():
+    # A URL with whitespace uses the angle-bracket syntax
+    markdown = {'parts': [{'paragraph': {'spans': [ \
+        {'link': {'href': 'a b.html', 'spans': [{'text': 'space'}]}}, \
+        {'text': ' '}, \
+        {'link': {'href': 'a)b\\c<d.html', 'spans': [{'text': 'escape'}]}}, \
+        {'text': ' '}, \
+        {'link': {'href': '<a> b.html', 'spans': [{'text': 'angle'}]}}, \
+        {'text': ' '}, \
+        {'link': {'href': 'q.html', 'title': 'A "quoted\\" title', 'spans': [{'text': 'title'}]}} \
+    ]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        '[space](<a b.html>) [escape](a\\)b\\\\c<d.html) [angle](<<a\\> b.html>) ' + \
+        '[title](q.html "A \\"quoted\\\\\\" title")' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_linkEscape')
+
+
+function testMarkdownStringSpans_linkEscapeRef():
+    # Character references in destinations and titles are escaped like text
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('[x](\\&copy;)'), 0, null), '[x](\\&copy;)' + '\n')
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdownParse('[x](u.html "\\&copy;")'), 0, null), \
+        '[x](u.html "\\&copy;")' + '\n' \
+    )
+    unittestEqual(testMarkdownStringRoundTrip(markdownParse('![x](\\&copy;)'), 0, null), '![x](\\&copy;)' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringSpans_linkEscapeRef')
+
+
+function testMarkdownStringSpans_image():
+    markdown = markdownParse('An ![alt text](img.png) and ![titled](img.png "The Title")')
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        'An ![alt text](img.png) and ![titled](img.png "The Title")' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_image')
+
+
+function testMarkdownStringSpans_imageEscape():
+    # The parser collapses image alt text whitespace runs, so the newline renders as a space
+    markdown = {'parts': [{'paragraph': {'spans': [ \
+        {'image': {'src': 'i.png', 'alt': 'a [b] \\c &copy; d\ne'}} \
+    ]}}]}
+    text = markdownToString(markdown, 0)
+    unittestEqual(text, '![a \\[b\\] \\\\c \\&copy; d e](i.png)' + '\n')
+    unittestDeepEqual( \
+        markdownParse(text), \
+        {'parts': [{'paragraph': {'spans': [{'image': {'src': 'i.png', 'alt': 'a [b] \\c &copy; d e'}}]}}]} \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_imageEscape')
+
+
+function testMarkdownStringSpans_linkRef():
+    # A link/image reference is inlined at the default reference count
+    markdown = markdownParse( \
+        'A [ref link][one] and an ![ref image][two] and a [shortcut].', \
+        '', \
+        '[one]: https://example.com/one', \
+        '[two]: img.png "Image Title"', \
+        '[shortcut]: https://example.com/short' \
+    )
+    unittestEqual( \
+        markdownToString(markdown, 0), \
+        'A [ref link](https://example.com/one) and an ![ref image](img.png "Image Title") and a ' + \
+        '[shortcut](https://example.com/short).' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringSpans_linkRef')
+
+
+function testMarkdownStringSpans_linkRefUnresolved():
+    # An unresolved link reference renders as its fallback text spans
+    markdown = markdownParse('A [missing] reference')
+    unittestEqual(markdownToString(markdown, 0), 'A \\[missing\\] reference' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringSpans_linkRefUnresolved')
+
+
+function testMarkdownStringSpans_whitespace():
+    # Whitespace runs separate words - leading and trailing whitespace is dropped
+    markdown = {'parts': [{'paragraph': {'spans': [ \
+        {'text': '  a  b  '}, \
+        {'code': 'c'}, \
+        {'text': 'd '}, \
+        {'code': 'e'} \
+    ]}}]}
+    unittestEqual(markdownToString(markdown, 0), 'a b `c`d `e`' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringSpans_whitespace')
+
+
+#
+# Escape tests
+#
+
+
+function testMarkdownStringEscape():
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': 'a \\ b ` c * d _ e ~ f [ g ] h'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        'a \\\\ b \\` c \\* d \\_ e \\~ f \\[ g \\] h' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringEscape')
+
+
+function testMarkdownStringEscape_link():
+    # A bracket pair that would parse as a link or link reference
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': '[a](b) ![c](d) [e][f] [g]'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        '\\[a\\](b) !\\[c\\](d) \\[e\\]\\[f\\] \\[g\\]' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringEscape_link')
+
+
+function testMarkdownStringEscape_lessThan():
+    # Only a "<" that starts a line break or the alternate link syntax is escaped
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': \
+        '<https://example.com> <a@b.com> <br> <br/> a < b <notascheme>'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        '\\<https://example.com> \\<a@b.com> \\<br> \\<br/> a < b <notascheme>' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringEscape_lessThan')
+
+
+function testMarkdownStringEscape_lessThanBreak():
+    # An HTML line break split across words
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': '<br />'}]}}]}
+    unittestEqual(testMarkdownStringRoundTrip(markdown, 0, null), '\\<br />' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringEscape_lessThanBreak')
+
+
+function testMarkdownStringEscape_characterReference():
+    # Only an "&" that starts a character reference is escaped
+    markdown = {'parts': [{'paragraph': {'spans': [{'text': '&copy; &amp; &#91; &#x41; & a&b AT&T;'}]}}]}
+    unittestEqual( \
+        testMarkdownStringRoundTrip(markdown, 0, null), \
+        '\\&copy; \\&amp; \\&#91; \\&#x41; & a&b AT\\&T;' + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringEscape_characterReference')
+
+
+#
+# Link/image reference tests
+#
+
+
+function testMarkdownStringRefs():
+    markdown = markdownParse( \
+        'A [one](https://example.com/a) and [two](https://example.com/a) and', \
+        '[three](https://example.com/b) and ![four](https://example.com/a).' \
+    )
+    unittestEqual( \
+        markdownToString(markdown, 0, 2), \
+        arrayJoin([ \
+            'A [one][1] and [two][1] and [three](https://example.com/b) and ![four][1].', \
+            '', \
+            '[1]: https://example.com/a' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringRefs')
+
+
+function testMarkdownStringRefs_all():
+    markdown = markdownParse('A [one](a.html "A Title") and ![two](b.html).')
+    unittestEqual( \
+        markdownToString(markdown, 0, 1), \
+        arrayJoin([ \
+            'A [one][1] and ![two][2].', \
+            '', \
+            '[1]: a.html "A Title"', \
+            '[2]: b.html' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringRefs_all')
+
+
+function testMarkdownStringRefs_emptyURL():
+    # A link reference definition cannot have an empty URL
+    markdown = {'parts': [{'paragraph': {'spans': [{'link': {'href': '', 'spans': [{'text': 'empty'}]}}]}}]}
+    unittestEqual(markdownToString(markdown, 0, 1), '[empty]()' + '\n')
+endfunction
+unittestRunTest('testMarkdownStringRefs_emptyURL')
+
+
+function testMarkdownStringRefs_allParts():
+    # Link/image targets are counted in every part and span type
+    markdown = markdownParse( \
+        '# [h](u.html)', \
+        '', \
+        '---', \
+        '', \
+        '```', \
+        'code', \
+        '```', \
+        '', \
+        '- [l](u.html)', \
+        '', \
+        '> [q](u.html)', \
+        '', \
+        '| [t](u.html) |', \
+        '| --- |', \
+        '| [r](u.html) |', \
+        '', \
+        '*[s](u.html)* [![i](u.html)](u.html) [x][ref]', \
+        '', \
+        '[ref]: u.html' \
+    )
+    unittestEqual( \
+        markdownToString(markdown, 0, 9), \
+        arrayJoin([ \
+            '# [h][1]', \
+            '', \
+            '---', \
+            '', \
+            '```', \
+            'code', \
+            '```', \
+            '', \
+            '- [l][1]', \
+            '', \
+            '> [q][1]', \
+            '', \
+            '| [t][1] |', \
+            '| ------ |', \
+            '| [r][1] |', \
+            '', \
+            '*[s][1]* [![i][1]][1] [x][1]', \
+            '', \
+            '[1]: u.html' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringRefs_allParts')
+
+
+function testMarkdownStringRefs_title():
+    # The same URL with a different title is a different reference
+    markdown = markdownParse( \
+        '[a](u.html "One") [b](u.html "One") [c](u.html "Two") [d](u.html "Two")' \
+    )
+    unittestEqual( \
+        markdownToString(markdown, 0, 2), \
+        arrayJoin([ \
+            '[a][1] [b][1] [c][2] [d][2]', \
+            '', \
+            '[1]: u.html "One"', \
+            '[2]: u.html "Two"' \
+        ], '\n') + '\n' \
+    )
+endfunction
+unittestRunTest('testMarkdownStringRefs_title')

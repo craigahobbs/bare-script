@@ -15,7 +15,7 @@ markdownParserRegexTable = regexNew('^ {0,3}(?::?-+:?\\s*)?(?:\\|\\s*:?-+:?\\s*)
 markdownParserRegexTableRow = regexNew('^ {0,3}(?:(?:\\\\\\||[^|])+\\s*)?(?:\\|\\s*(?:\\\\\\||[^|])*?\\s*)+(?:\\|\\s*)?')
 markdownParserRegexTableRowTrim = regexNew('^\\s*\\|?')
 markdownParserRegexTableCell = regexNew('^\\s*(?<cell>(?:\\\\\\||[^|])*?)\\s*\\|')
-markdownParserRegexTableEscape = regexNew('\\\\(\\\\|)')
+markdownParserRegexTableEscape = regexNew('\\\\(\\|)')
 
 
 # $function: markdownParse
@@ -472,22 +472,22 @@ markdownParserLinkHref = '[ \\r\\n]*(?<linkHref>' + \
 markdownParserRegexSpans = regexNew( \
     '(?<br>(?: {2,}|(?<!\\\\)\\\\)\\r?\\n)|' + \
     '(?<brHtml>(?<!\\\\)<br\\s*/?>)|' + \
-    '(?<linkImg>\\[\\s*!\\[' + stringReplace(markdownParserLinkText, '<link', '<linkImg') + '\\]' + \
+    '(?<linkImg>(?<!\\\\)\\[\\s*!\\[' + stringReplace(markdownParserLinkText, '<link', '<linkImg') + '\\]' + \
         '\\(' + stringReplace(markdownParserLinkHref, '<link', '<linkImg') + '\\)\\s*\\]' + \
         '\\(' + stringReplace(markdownParserLinkHref, '<link', '<linkImgLink') + '\\))|' + \
-    '(?<linkImgRef>\\[(?<linkImgRefFull>\\s*!(?:\\[' + stringReplace(markdownParserLinkText, '<link', '<linkImgRefImg') + '\\])?' + \
+    '(?<linkImgRef>(?<!\\\\)\\[(?<linkImgRefFull>\\s*!(?:\\[' + stringReplace(markdownParserLinkText, '<link', '<linkImgRefImg') + '\\])?' + \
         '\\[' + stringReplace(markdownParserLinkText, '<link', '<linkImgRef') + '\\])\\s*\\]' + \
         '\\(' + stringReplace(markdownParserLinkHref, '<link', '<linkImgRefLink') + '\\))|' + \
-    '(?<linkRefImg>\\[\\s*!\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImg') + '\\]' + \
+    '(?<linkRefImg>(?<!\\\\)\\[\\s*!\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImg') + '\\]' + \
         '\\(' + stringReplace(markdownParserLinkHref, '<link', '<linkRefImg') + '\\)\\s*\\]' + \
         '\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImgLink') + '\\])|' + \
-    '(?<linkRefImgRef>\\[(?<linkRefImgRefFull>\\s*!(?:\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImgRefImg') + '\\])?' + \
+    '(?<linkRefImgRef>(?<!\\\\)\\[(?<linkRefImgRefFull>\\s*!(?:\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImgRefImg') + '\\])?' + \
         '\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImgRef') + '\\])\\s*\\]' + \
         '\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefImgRefLink') + '\\])|' + \
-    '(?<link>!?\\[' + markdownParserLinkText + '\\]\\(' + markdownParserLinkHref + '\\))|' + \
+    '(?<link>(?<!\\\\)!?\\[' + markdownParserLinkText + '\\]\\(' + markdownParserLinkHref + '\\))|' + \
     '(?<linkRef>(?<!\\\\)!?(?:\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRefOther') + '\\])?' + \
         '\\[' + stringReplace(markdownParserLinkText, '<link', '<linkRef') + '\\])|' + \
-    '(?<linkAlt><(?<linkAltScheme>[A-Za-z]{3,}:|[a-zA-Z0-9.!#$%&\'*+/=?^_`{|}~-]+@)[^ \\r\\n]+>)|' + \
+    '(?<linkAlt>(?<!\\\\)<(?<linkAltScheme>[A-Za-z]{3,}:|[a-zA-Z0-9.!#$%&\'*+/=?^_`{|}~-]+@)[^ \\r\\n]+>)|' + \
     '(?<bold>(?<!\\\\)(?<!\\*)\\*{2,}(?!\\**\\s)(?:[^\\s\\\\*]|\\\\.|\\s(?!\\*{2,})|\\*(?!\\*))+\\*{2,})|' + \
     '(?<italic>(?<!\\\\)(?<!\\*)\\*(?!\\**\\s)(?:[^\\s\\\\*]|\\\\.|\\s(?!\\*))+\\*)|' + \
     '(?<boldu>(?<!\\\\)(?<!_)(?<![A-Za-z0-9])_{2,}(?!_*\\s)(?:[^\\s\\\\_]|\\\\.|\\s(?!_{2,})|_(?!_))+_{2,}(?!_*[A-Za-z0-9]))|' + \
@@ -747,50 +747,76 @@ function markdownParserCreateFallbackSpan(text, linkRefs, textFallback):
 endfunction
 
 
-# Helper function to remove span text escapes and replace character references
+# Helper function to remove span text escapes and replace character references. This is a single
+# left-to-right pass - an escape or a character reference is consumed as a unit and its replacement
+# is never re-scanned, so an escape hides a character reference and a replacement is never replaced
+# again by a later pass.
 function markdownParserRemoveEscapes(text, isHref):
-    # Remove escapes
-    if stringIndexOf(text, '\\') >= 0:
-        escapeRegex = if(isHref, markdownParserRegexEscapeHref, markdownParserRegexEscapeText)
-        result = regexReplace(escapeRegex, text, '$1')
-    else:
-        result = text
+    # No character references? Removing the escapes is then a single substitution.
+    if stringIndexOf(text, '&') < 0:
+        if stringIndexOf(text, '\\') < 0:
+            return text
+        endif
+        return regexReplace(if(isHref, markdownParserRegexEscapeHref, markdownParserRegexEscapeText), text, '$1')
     endif
 
-    # Replace entity and numeric character references
-    if stringIndexOf(text, '&') >= 0:
-        for entityMatch in regexMatchAll(markdownParserRegexEntityRef, result):
-            entityGroups = objectGet(entityMatch, 'groups')
-            entityName = objectGet(entityGroups, '1')
+    parts = []
+    ixSearch = 0
+    for match in regexMatchAll(if(isHref, markdownParserRegexUnescapeHref, markdownParserRegexUnescapeText), text):
+        matchGroups = objectGet(match, 'groups')
+        matchIndex = objectGet(match, 'index')
+        matchText = objectGet(matchGroups, '0')
+
+        # Add any preceding text
+        if ixSearch < matchIndex:
+            arrayPush(parts, stringSlice(text, ixSearch, matchIndex))
+        endif
+        ixSearch = matchIndex + stringLength(matchText)
+
+        # Escape?
+        escaped = objectGet(matchGroups, 'escaped')
+        if escaped != null:
+            arrayPush(parts, escaped)
+            continue
+        endif
+
+        # Entity reference? An unknown entity name is left as-is.
+        entityName = objectGet(matchGroups, 'name')
+        if entityName != null:
             entityChar = objectGet(markdownParserEntityRefs, entityName)
-            if entityChar != null:
-                result = stringReplace(result, objectGet(entityGroups, '0'), entityChar)
-            endif
-        endfor
+            arrayPush(parts, if(entityChar != null, entityChar, matchText))
+            continue
+        endif
 
-        for decimalMatch in regexMatchAll(markdownParserRegexDecimalRef, result):
-            decimalGroups = objectGet(decimalMatch, 'groups')
-            decimalValue = numberParseInt(objectGet(decimalGroups, '1'))
-            result = stringReplace(result, objectGet(decimalGroups, '0'), stringFromCharCode(decimalValue))
-        endfor
+        # Decimal or hexadecimal numeric character reference
+        decimalValue = objectGet(matchGroups, 'decimal')
+        if decimalValue != null:
+            arrayPush(parts, stringFromCharCode(numberParseInt(decimalValue)))
+        else:
+            arrayPush(parts, stringFromCharCode(numberParseInt(objectGet(matchGroups, 'hex'), 16)))
+        endif
+    endfor
 
-        for hexMatch in regexMatchAll(markdownParserRegexHexRef, result):
-            hexGroups = objectGet(hexMatch, 'groups')
-            hexValue = numberParseInt(objectGet(hexGroups, '1'), 16)
-            result = stringReplace(result, objectGet(hexGroups, '0'), stringFromCharCode(hexValue))
-        endfor
+    # Add any remaining text
+    if ixSearch < stringLength(text):
+        arrayPush(parts, stringSlice(text, ixSearch))
     endif
 
-    return result
+    return arrayJoin(parts, '')
 endfunction
+
+
+markdownParserRegexUnescapeText = regexNew( \
+    '\\\\(?<escaped>[!-~])|&(?<name>[A-Za-z]+[0-9]*);|&#(?<decimal>[0-9]{1,7});|&#[Xx](?<hex>[A-Fa-f0-9]{1,6});' \
+)
+markdownParserRegexUnescapeHref = regexNew( \
+    '\\\\(?<escaped>[!-/:-@[-`{-~])|&(?<name>[A-Za-z]+[0-9]*);|&#(?<decimal>[0-9]{1,7});|&#[Xx](?<hex>[A-Fa-f0-9]{1,6});' \
+)
 
 
 # Escape and entity regex
 markdownParserRegexEscapeText = regexNew('\\\\([!-~])')
 markdownParserRegexEscapeHref = regexNew('\\\\([!-/:-@[-`{-~])')
-markdownParserRegexEntityRef = regexNew('&([A-Za-z]+[0-9]*);')
-markdownParserRegexDecimalRef = regexNew('&#([0-9]{1,7});')
-markdownParserRegexHexRef = regexNew('&#[Xx]([A-Fa-f0-9]{1,6});')
 markdownParserEntityRefs = { \
     'acute': stringFromCharCode(180), \
     'amp': stringFromCharCode(38), \

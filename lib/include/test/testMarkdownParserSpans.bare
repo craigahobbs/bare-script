@@ -2780,8 +2780,7 @@ function testMarkdownParse_linkEscapeStart():
             'parts': [ \
                 {'paragraph': { \
                     'spans': [ \
-                        {'text': '\\'}, \
-                        {'link': {'href': '/uri', 'spans': [{'text': 'link'}]}} \
+                        {'text': '[link](/uri)'} \
                     ] \
                 }} \
             ] \
@@ -2789,6 +2788,33 @@ function testMarkdownParse_linkEscapeStart():
     )
 endfunction
 unittestRunTest('testMarkdownParse_linkEscapeStart')
+
+
+function testMarkdownParse_escapeCharacterReference():
+    # Escapes and character references are replaced in a single pass - an escape hides a character
+    # reference and a replacement is never replaced again
+    unittestDeepEqual( \
+        markdownValidate(markdownParse('\\&copy;')), \
+        {'parts': [{'paragraph': {'spans': [{'text': '&copy;'}]}}]} \
+    )
+    unittestDeepEqual( \
+        markdownValidate(markdownParse('\\\\&copy;')), \
+        {'parts': [{'paragraph': {'spans': [{'text': '\\' + stringFromCharCode(169)}]}}]} \
+    )
+    unittestDeepEqual( \
+        markdownValidate(markdownParse('&amp;copy; &amp;amp;')), \
+        {'parts': [{'paragraph': {'spans': [{'text': '&copy; &amp;'}]}}]} \
+    )
+    unittestDeepEqual( \
+        markdownValidate(markdownParse('&#38;#x41;')), \
+        {'parts': [{'paragraph': {'spans': [{'text': '&#x41;'}]}}]} \
+    )
+    unittestDeepEqual( \
+        markdownValidate(markdownParse('&foo;')), \
+        {'parts': [{'paragraph': {'spans': [{'text': '&foo;'}]}}]} \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_escapeCharacterReference')
 
 
 function testMarkdownParse_linkNoTitle():
@@ -3493,10 +3519,9 @@ function testMarkdownParse_linkImageEscapeStart():
             'parts': [ \
                 {'paragraph': { \
                     'spans': [ \
-                        {'text': '\\'}, \
-                        {'link': {'href': 'url', 'spans': [ \
-                            {'image': {'alt': 'alt', 'src': 'src'}} \
-                        ]}} \
+                        {'text': '['}, \
+                        {'image': {'alt': 'alt', 'src': 'src'}}, \
+                        {'text': '](url)'} \
                     ] \
                 }} \
             ] \
@@ -4632,17 +4657,13 @@ function testMarkdownParse_linkAndImageReferenceEscapeStart():
         'parts': [ \
             {'paragraph': { \
                 'spans': [ \
-                    {'text': '\\'}, \
-                    {'link': { \
-                        'href': '/url', \
+                    {'text': '['}, \
+                    {'linkRef': { \
                         'spans': [ \
-                            {'linkRef': { \
-                                'spans': [ \
-                                    {'image': {'alt': 'img', 'src': 'moon.jpg'}} \
-                                ] \
-                            }} \
+                            {'image': {'alt': 'img', 'src': 'moon.jpg'}} \
                         ] \
-                    }} \
+                    }}, \
+                    {'text': '](/url)'} \
                 ] \
             }} \
         ] \
@@ -4783,14 +4804,14 @@ function testMarkdownParse_linkReferenceAndImageEscapeStart():
         'parts': [ \
             {'paragraph': { \
                 'spans': [ \
-                    {'text': '\\'}, \
+                    {'text': '['}, \
+                    {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}}, \
+                    {'text': ']'}, \
                     {'linkRef': { \
                         'spans': [ \
                             {'link': { \
                                 'href': '/uri', \
-                                'spans': [ \
-                                    {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
-                                ], \
+                                'spans': [{'text': 'ref'}], \
                                 'title': 'moon-link' \
                             }} \
                         ] \
@@ -4934,18 +4955,18 @@ function testMarkdownParse_linkReferenceAndImageReferenceEscapeStart():
         'parts': [ \
             {'paragraph': { \
                 'spans': [ \
-                    {'text': '\\'}, \
+                    {'text': '['}, \
+                    {'linkRef': { \
+                        'spans': [ \
+                            {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
+                        ] \
+                    }}, \
+                    {'text': ']'}, \
                     {'linkRef': { \
                         'spans': [ \
                             {'link': { \
                                 'href': '/uri', \
-                                'spans': [ \
-                                    {'linkRef': { \
-                                        'spans': [ \
-                                            {'image': {'alt': 'moon', 'src': 'moon.jpg', 'title': 'moon-image'}} \
-                                        ] \
-                                    }} \
-                                ], \
+                                'spans': [{'text': 'ref'}], \
                                 'title': 'moon-link' \
                             }} \
                         ] \

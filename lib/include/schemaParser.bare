@@ -130,7 +130,7 @@ function schemaParserParse(lines, types, filename, validate):
 
         # Line continuation?
         linePartNoContinuation = if(stringIndexOf(linePart, '\\') != -1, regexReplace(schemaParserRegexLineCont, linePart, ''), linePart)
-        if linePartNoContinuation == linePart && !arrayLength(lineContinuation):
+        if linePartNoContinuation == linePart && !lineContinuation:
             line = linePart
         else:
             arrayPush(lineContinuation, linePartNoContinuation)
@@ -212,7 +212,7 @@ function schemaParserParse(lines, types, filename, validate):
             endif
             memberTypeAttr = schemaParserParseTypedef(matchGroups)
             memberDoc = null
-            if arrayLength(doc):
+            if doc:
                 memberDoc = doc
                 doc = []
             endif
@@ -252,7 +252,7 @@ function schemaParserParse(lines, types, filename, validate):
             action = null
             urls = null
             definitionDoc = null
-            if arrayLength(doc):
+            if doc:
                 definitionDoc = doc
                 doc = []
             endif
@@ -308,7 +308,7 @@ function schemaParserParse(lines, types, filename, validate):
             enumValue = {'name': valueString}
             arrayPush(objectGet(enum, 'values'), enumValue)
             enumValueDoc = null
-            if arrayLength(doc):
+            if doc:
                 enumValueDoc = doc
                 doc = []
             endif
@@ -335,7 +335,7 @@ function schemaParserParse(lines, types, filename, validate):
             urls = null
             userType = null
             typedefDoc = null
-            if arrayLength(doc):
+            if doc:
                 typedefDoc = doc
                 doc = []
             endif
@@ -379,7 +379,7 @@ function schemaParserParse(lines, types, filename, validate):
             urls = null
             userType = null
             actionDoc = null
-            if arrayLength(doc):
+            if doc:
                 actionDoc = doc
                 doc = []
             endif
@@ -521,7 +521,7 @@ function schemaParserParse(lines, types, filename, validate):
 
     # Errors?
     errorKeys = objectKeys(errorMap)
-    if arrayLength(errorKeys):
+    if errorKeys:
         errorTuples = []
         for errorKey in errorKeys:
             arrayPush(errorTuples, objectGet(errorMap, errorKey))

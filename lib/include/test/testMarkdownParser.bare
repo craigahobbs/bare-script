@@ -2614,6 +2614,37 @@ endfunction
 unittestRunTest('testMarkdownParse_tableEscapes')
 
 
+function testMarkdownParse_tableEscapesSpan():
+    # Only an escaped pipe is unescaped at the cell level - every other escape is left for the span parser
+    markdown = markdownParse([ \
+        '| H |', \
+        '| - |', \
+        '| \\*em\\* |', \
+        '| \\[x](y) |', \
+        '| a \\\\ b |', \
+        '| *em* |' \
+    ])
+    unittestDeepEqual( \
+        markdownValidate(markdown), \
+        { \
+            'parts': [ \
+                {'table': { \
+                    'headers': [[{'text': 'H'}]], \
+                    'aligns': ['left'], \
+                    'rows': [ \
+                        [[{'text': '*em*'}]], \
+                        [[{'text': '[x](y)'}]], \
+                        [[{'text': 'a \\ b'}]], \
+                        [[{'style': {'style': 'italic', 'spans': [{'text': 'em'}]}}]] \
+                    ] \
+                }} \
+            ] \
+        } \
+    )
+endfunction
+unittestRunTest('testMarkdownParse_tableEscapesSpan')
+
+
 function testMarkdownParse_tableMismatchedDelimiter():
     markdown = markdownParse([ \
         '| abc | def |', \
