@@ -53,19 +53,35 @@ import {argv} from 'node:process';
 // Command-line arguments
 const [, outputPath, ...includePaths] = argv;
 
-// The include model compression phrase table - known schema keys, statement/expression shapes, and
-// parser-generated "__barescript" name prefixes. Encoding applies phrases longest-first (see sort below).
+// The include model compression phrase table - statement/expression shapes, common builtins, leftover
+// JSON fragments, and parser-generated "__barescript" name prefixes. Encoding applies phrases
+// longest-first (see sort below). 61 phrases plus a '~' escape fill the alphanumeric index set.
+// Prefer high bytes-per-decode-token phrases (builtin call shapes) over short high-frequency
+// leftovers that save only 2-3 bytes per expansion.
 const phrases = [
     '{"jump":{"label":"__barescriptDone', '{"jump":{"label":"__barescriptContinue', '{"jump":{"label":"__barescriptLoop',
     '{"jump":{"label":"__barescriptIf', '{"label":{"name":"__barescript', '{"variable":"__barescript',
-    '{"expr":{"name":"__barescript', '{"function":{"name":"arrayGet","args":[', '{"function":{"name":"arrayLength","args":[',
-    '{"function":{"name":"objectGet","args":[', '{"function":{"name":"objectSet","args":[',
-    '{"function":{"name":"arrayPush","args":[', '{"function":{"name":"if","args":[',
-    '__barescript', '"lineNumber":', '"statements":[', '{"function":{"name":"', ',"args":[',
-    '{"expr":{"name":"', '{"expr":{"expr":', ',"expr":{', '"expr":{', '{"variable":"', '{"string":"', '{"number":',
-    '{"binary":{"op":"', ',"left":', ',"right":', '{"unary":{"op":"', '{"group":{', '{"jump":{"label":"',
-    '{"label":{"name":"', '{"return":{', ',"lineNumber":', '"lineCount":', '"},{"string":"', '"variable":"',
-    '"string":"', '"},{', '"}},{', '"}}},{', '}}},{', '}}}},', '"]}},'
+    '{"expr":{"name":"__barescript', '{"function":{"name":"markdownHighlightCreateWordListRegex","args":[',
+    '{"function":{"name":"dataLineChartSvgValue","args":[', '{"function":{"name":"barescriptParserError","args":[',
+    '{"function":{"name":"barescriptLintWarning","args":[', '{"function":{"name":"drawGetCurrentDrawing","args":[',
+    '{"function":{"name":"stringFromCharCode","args":[', '{"function":{"name":"schemaMemberError","args":[',
+    '{"function":{"name":"stringStartsWith","args":[', '{"function":{"name":"systemLogDebug","args":[',
+    '{"function":{"name":"markdownEscape","args":[', '{"function":{"name":"markdownPrint","args":[',
+    '{"function":{"name":"stringReplace","args":[', '{"function":{"name":"arrayLength","args":[',
+    '{"function":{"name":"objectAssign","args":[', '{"function":{"name":"numberToFixed","args":[',
+    '{"function":{"name":"jsonStringify","args":[', '{"function":{"name":"stringLength","args":[',
+    '{"function":{"name":"arrayExtend","args":[', '{"function":{"name":"stringSlice","args":[',
+    '{"function":{"name":"objectKeys","args":[', '{"function":{"name":"regexMatch","args":[',
+    '{"function":{"name":"systemType","args":[', '{"function":{"name":"objectGet","args":[',
+    '{"function":{"name":"objectSet","args":[', '{"function":{"name":"objectNew","args":[',
+    '{"function":{"name":"objectHas","args":[', '{"function":{"name":"arrayPush","args":[',
+    '{"function":{"name":"arrayNew","args":[', '{"function":{"name":"arrayGet","args":[',
+    '{"function":{"name":"arrayJoin","args":[', '{"function":{"name":"arraySort","args":[',
+    '{"function":{"name":"regexNew","args":[', '{"function":{"name":"if","args":[',
+    '"lineNumber":', '"statements":[', '{"function":{"name":"', ',"args":[',
+    '{"expr":{"name":"', '{"expr":{"expr":', ',"expr":', '","expr":', '{"variable":"', '{"string":"',
+    '{"number":', '{"binary":{"op":"', ',"left":', ',"right":', '{"unary":{"op":"', '{"return":{',
+    ',"lineNumber":', '"lineCount":', '"},{"string":"', '"}]}}]}}', '"}]}}'
 ];
 phrases.sort((phraseA, phraseB) => phraseB.length - phraseA.length);
 const indexes = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
