@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.5 (2026-08-31)
+
+- [882df0c](https://github.com/craigahobbs/bare-script/commit/882df0c) - improve include-model dictionary compression
+
 ## 5.1.4 (2026-08-31)
 
 - [ddb1ba9](https://github.com/craigahobbs/bare-script/commit/ddb1ba9) - cache include fetches so nested grouped includes share a GET
