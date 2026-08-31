@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.4 (2026-08-31)
+
+- [ddb1ba9](https://github.com/craigahobbs/bare-script/commit/ddb1ba9) - cache include fetches so nested grouped includes share a GET
+
 ## 5.1.3 (2026-08-06)
 
 - [a1ba775](https://github.com/craigahobbs/bare-script/commit/a1ba775) - improve documentation \(language reference semantics, library doc examples, $async marking, llms.txt\)
