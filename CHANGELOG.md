@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.6 (2026-08-31)
+
+- [fa62676](https://github.com/craigahobbs/bare-script/commit/fa62676) - add markdownToString and fix markdown parser escape handling
+
 ## 5.1.5 (2026-08-31)
 
 - [882df0c](https://github.com/craigahobbs/bare-script/commit/882df0c) - improve include-model dictionary compression
