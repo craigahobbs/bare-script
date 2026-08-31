@@ -178,19 +178,30 @@ async function executeScriptHelperAsync(script, statements, options, locals, lab
                 return true;
             });
 
-            // Get the include script text - system includes from the system include map, otherwise fetch
-            const includeTexts = await Promise.all(includeURLs.map(async ({includeURL, systemInclude}) => {
+            // Get the include script text - system includes from the system include map, otherwise fetch.
+            // Cache fetches so a nested include of a URL already in this parallel batch shares the GET.
+            let {includeFetch} = options;
+            if (includeFetch === null || typeof includeFetch !== 'object') {
+                includeFetch = {};
+                options.includeFetch = includeFetch;
+            }
+            const includeTexts = await Promise.all(includeURLs.map(async ({includeURL, includeKey, systemInclude}) => {
                 if (systemInclude) {
                     const includeText = (Object.hasOwn(systemIncludes, includeURL) ? systemIncludes[includeURL] : null);
                     return {includeText, systemInclude};
                 }
-                try {
-                    const response = ('fetchFn' in options ? await options.fetchFn(includeURL) : null);
-                    const includeText = (response !== null &amp;&amp; response.ok ? await response.text() : null);
-                    return {includeText, systemInclude};
-                } catch {
-                    return {'includeText': null, systemInclude};
+                if (!(includeKey in includeFetch)) {
+                    includeFetch[includeKey] = (async () => {
+                        try {
+                            const response = ('fetchFn' in options ? await options.fetchFn(includeURL) : null);
+                            return (response !== null &amp;&amp; response.ok ? await response.text() : null);
+                        } catch {
+                            return null;
+                        }
+                    })();
                 }
+                const includeText = await includeFetch[includeKey];
+                return {includeText, systemInclude};
             }));
 
             // Parse and execute each script
