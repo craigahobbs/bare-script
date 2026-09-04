@@ -52,7 +52,7 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
     # Process each line
     lineContinuation = []
     functionDef = null
-    functionLabelDefDepth = null
+    labelDefDepth = 0
     labelDefs = []
     labelIndex = 0
     ixLine = null
@@ -110,7 +110,7 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
 
             # Add the function definition statement
             functionBeginGroups = objectGet(matchFunctionBegin, 'groups')
-            functionLabelDefDepth = arrayLength(labelDefs)
+            labelDefDepth = arrayLength(labelDefs)
             functionDef = {'function': objectAssign({ \
                 'name': objectGet(functionBeginGroups, 'name'), \
                 'statements': [] \
@@ -137,7 +137,7 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
             endif
 
             # Check for un-matched label definitions
-            if arrayLength(labelDefs) > functionLabelDefDepth:
+            if arrayLength(labelDefs) > labelDefDepth:
                 labelDef = arrayPop(labelDefs)
                 defKey = arrayGet(objectKeys(labelDef), 0)
                 def = objectGet(labelDef, defKey)
@@ -146,7 +146,7 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
             endif
 
             functionDef = null
-            functionLabelDefDepth = null
+            labelDefDepth = 0
             continue
         endif
 
@@ -187,7 +187,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchIfElseIf = if(keyword == 'elif', regexMatch(barescriptParserRegexIfElseIf, line))
         if matchIfElseIf != null:
             # Get the else-if-then definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayGet(labelDefs, arrayLength(labelDefs) - 1), 'if'))
             if ifthen == null:
                 return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
@@ -229,7 +228,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchIfElse = if(keyword == 'else', regexMatch(barescriptParserRegexIfElse, line))
         if matchIfElse != null:
             # Get the if-then definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayGet(labelDefs, arrayLength(labelDefs) - 1), 'if'))
             if ifthen == null:
                 return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
@@ -252,7 +250,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchIfEnd = if(keyword == 'endif', regexMatch(barescriptParserRegexIfEnd, line))
         if matchIfEnd != null:
             # Pop the if-then definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             ifthen = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'if'))
             if ifthen == null:
                 return {'error': barescriptParserError('No matching if statement', line, 1, startLineNumber + ixLine, scriptName)}
@@ -307,7 +304,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchWhileEnd = if(keyword == 'endwhile', regexMatch(barescriptParserRegexWhileEnd, line))
         if matchWhileEnd != null:
             # Pop the while-do definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             whiledo = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'while'))
             if whiledo == null:
                 return {'error': barescriptParserError('No matching while statement', line, 1, startLineNumber + ixLine, scriptName)}
@@ -373,7 +369,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchForEnd = if(keyword == 'endfor', regexMatch(barescriptParserRegexForEnd, line))
         if matchForEnd != null:
             # Pop the foreach definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             foreach = if(arrayLength(labelDefs) > labelDefDepth, objectGet(arrayPop(labelDefs), 'for'))
             if foreach == null:
                 return {'error': barescriptParserError('No matching for statement', line, 1, startLineNumber + ixLine, scriptName)}
@@ -397,7 +392,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchBreak = if(keyword == 'break', regexMatch(barescriptParserRegexBreak, line))
         if matchBreak != null:
             # Get the loop definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             ixLabelDef = arrayLength(labelDefs) - 1
             while ixLabelDef >= 0 && objectHas(arrayGet(labelDefs, ixLabelDef), 'if'):
                 ixLabelDef = ixLabelDef - 1
@@ -417,7 +411,6 @@ function barescriptParseScriptEx(scriptText, startLineNumber, scriptName):
         matchContinue = if(keyword == 'continue', regexMatch(barescriptParserRegexContinue, line))
         if matchContinue != null:
             # Get the loop definition
-            labelDefDepth = if(functionDef != null, functionLabelDefDepth, 0)
             ixLabelDef = arrayLength(labelDefs) - 1
             while ixLabelDef >= 0 && objectHas(arrayGet(labelDefs, ixLabelDef), 'if'):
                 ixLabelDef = ixLabelDef - 1

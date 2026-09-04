@@ -291,73 +291,21 @@ function dataLineChartElements(data, lineChart, options):
     chartWidth = objectGet(lineChart, 'width', dataLineChartDefaultWidth)
     chartHeight = objectGet(lineChart, 'height', dataLineChartDefaultHeight)
 
-    # Compute Y-axis tick values
-    yAxisTicks = []
-    yTicks = objectGet(lineChart, 'yTicks')
-    yTickCount = if(yTicks != null && objectHas(yTicks, 'count'), objectGet(yTicks, 'count'), dataLineChartDefaultYAxisTickCount)
-    yTickSkip = if(yTicks != null && objectHas(yTicks, 'skip'), objectGet(yTicks, 'skip') + 1, 1)
-    yTickStart = if(yTicks != null && objectHas(yTicks, 'start'), objectGet(yTicks, 'start'), yMin)
-    yTickEnd = if(yTicks != null && objectHas(yTicks, 'end'), objectGet(yTicks, 'end'), yMax)
-    ixTick = 0
-    while ixTick < yTickCount:
-        yTickParam = if(yTickCount == 1, 0, ixTick / (yTickCount - 1))
-        yTickValue = dataUtilParameterValue(yTickParam, yTickStart, yTickEnd)
-        yTickLabel = if((ixTick % yTickSkip) != 0, '', dataUtilFormatValue(yTickValue, chartPrecision, chartDatetime))
-        arrayPush(yAxisTicks, [yTickValue, yTickLabel])
-        yMin = if(yTickValue < yMin, yTickValue, yMin)
-        yMax = if(yTickValue > yMax, yTickValue, yMax)
-        ixTick = ixTick + 1
-    endwhile
-
-    # Compute X-axis tick values
-    xAxisTicks = []
-    xTicks = objectGet(lineChart, 'xTicks')
-    xTickCount = if(xTicks != null && objectHas(xTicks, 'count'), objectGet(xTicks, 'count'), dataLineChartDefaultXAxisTickCount)
-    xTickSkip = if(xTicks != null && objectHas(xTicks, 'skip'), objectGet(xTicks, 'skip') + 1, 1)
-    xTickStart = if(xTicks != null && objectHas(xTicks, 'start'), objectGet(xTicks, 'start'), xMin)
-    xTickEnd = if(xTicks != null && objectHas(xTicks, 'end'), objectGet(xTicks, 'end'), xMax)
-    ixTick = 0
-    while ixTick < xTickCount:
-        xTickParam = if(xTickCount == 1, 0, ixTick / (xTickCount - 1))
-        xTickValue = dataUtilParameterValue(xTickParam, xTickStart, xTickEnd)
-        xTickLabel = if((ixTick % xTickSkip) != 0, '', dataUtilFormatValue(xTickValue, chartPrecision, chartDatetime))
-        arrayPush(xAxisTicks, [xTickValue, xTickLabel])
-        xMin = if(xTickValue < xMin, xTickValue, xMin)
-        xMax = if(xTickValue > xMax, xTickValue, xMax)
-        ixTick = ixTick + 1
-    endwhile
-
-    # Compute Y-axis annotations
-    yAxisAnnotations = []
-    yLines = objectGet(lineChart, 'yLines')
-    if yLines != null:
-        for annotation in yLines:
-            yAnnotationValue = objectGet(annotation, 'value')
-            yAnnotationLabel = objectGet(annotation, 'label')
-            if yAnnotationLabel == null:
-                yAnnotationLabel = dataUtilFormatValue(yAnnotationValue, chartPrecision, chartDatetime)
-            endif
-            arrayPush(yAxisAnnotations, [yAnnotationValue, yAnnotationLabel])
-            yMin = if(yAnnotationValue < yMin, yAnnotationValue, yMin)
-            yMax = if(yAnnotationValue > yMax, yAnnotationValue, yMax)
-        endfor
-    endif
-
-    # Compute X-axis annotations
-    xAxisAnnotations = []
-    xLines = objectGet(lineChart, 'xLines')
-    if xLines != null:
-        for annotation in xLines:
-            xAnnotationValue = objectGet(annotation, 'value')
-            xAnnotationLabel = objectGet(annotation, 'label')
-            if xAnnotationLabel == null:
-                xAnnotationLabel = dataUtilFormatValue(xAnnotationValue, chartPrecision, chartDatetime)
-            endif
-            arrayPush(xAxisAnnotations, [xAnnotationValue, xAnnotationLabel])
-            xMin = if(xAnnotationValue < xMin, xAnnotationValue, xMin)
-            xMax = if(xAnnotationValue > xMax, xAnnotationValue, xMax)
-        endfor
-    endif
+    # Compute the axis tick values and annotations - each is an array of [value, label] pairs that may extend the axis range
+    yAxisTicks = dataLineChartAxisTicks(objectGet(lineChart, 'yTicks'), dataLineChartDefaultYAxisTickCount, yMin, yMax, \
+        chartPrecision, chartDatetime)
+    xAxisTicks = dataLineChartAxisTicks(objectGet(lineChart, 'xTicks'), dataLineChartDefaultXAxisTickCount, xMin, xMax, \
+        chartPrecision, chartDatetime)
+    yAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'yLines'), chartPrecision, chartDatetime)
+    xAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'xLines'), chartPrecision, chartDatetime)
+    for valueLabel in arrayExtend(arrayCopy(yAxisTicks), yAxisAnnotations):
+        yMin = mathMin(yMin, arrayGet(valueLabel, 0))
+        yMax = mathMax(yMax, arrayGet(valueLabel, 0))
+    endfor
+    for valueLabel in arrayExtend(arrayCopy(xAxisTicks), xAxisAnnotations):
+        xMin = mathMin(xMin, arrayGet(valueLabel, 0))
+        xMax = mathMax(xMax, arrayGet(valueLabel, 0))
+    endfor
 
     # Chart title calculations
     chartBorderSize = fontSize
@@ -818,6 +766,40 @@ function dataLineChartElements(data, lineChart, options):
             colorLegendElements \
         ] \
     }
+endfunction
+
+
+# Helper function to compute an axis's tick marks - the array of [value, label] pairs
+function dataLineChartAxisTicks(ticks, defaultCount, minValue, maxValue, precision, datetime):
+    tickCount = if(ticks != null && objectHas(ticks, 'count'), objectGet(ticks, 'count'), defaultCount)
+    tickSkip = if(ticks != null && objectHas(ticks, 'skip'), objectGet(ticks, 'skip') + 1, 1)
+    tickStart = if(ticks != null && objectHas(ticks, 'start'), objectGet(ticks, 'start'), minValue)
+    tickEnd = if(ticks != null && objectHas(ticks, 'end'), objectGet(ticks, 'end'), maxValue)
+    axisTicks = []
+    ixTick = 0
+    while ixTick < tickCount:
+        tickParam = if(tickCount == 1, 0, ixTick / (tickCount - 1))
+        tickValue = dataUtilParameterValue(tickParam, tickStart, tickEnd)
+        tickLabel = if((ixTick % tickSkip) != 0, '', dataUtilFormatValue(tickValue, precision, datetime))
+        arrayPush(axisTicks, [tickValue, tickLabel])
+        ixTick = ixTick + 1
+    endwhile
+    return axisTicks
+endfunction
+
+
+# Helper function to compute an axis's annotations - the array of [value, label] pairs
+function dataLineChartAxisAnnotations(lines, precision, datetime):
+    axisAnnotations = []
+    for annotation in if(lines != null, lines, []):
+        annotationValue = objectGet(annotation, 'value')
+        annotationLabel = objectGet(annotation, 'label')
+        if annotationLabel == null:
+            annotationLabel = dataUtilFormatValue(annotationValue, precision, datetime)
+        endif
+        arrayPush(axisAnnotations, [annotationValue, annotationLabel])
+    endfor
+    return axisAnnotations
 endfunction
 
 
