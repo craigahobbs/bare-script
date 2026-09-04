@@ -106,18 +106,18 @@ function baredocCLIParse(functions, source, filename):
 
             # Keyword used outside of function?
             if key != 'function' && func == null:
-                arrayPush(errors, filename + ':' + (ixLine + 1) + ': ' + key + ' keyword outside function')
+                baredocCLIError(errors, filename, ixLine, key + ' keyword outside function')
                 continue
             endif
 
             # Process the keyword
             if key == 'group':
                 if textTrim == '':
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid function group name "' + textTrim + '"')
+                    baredocCLIError(errors, filename, ixLine, 'Invalid function group name "' + textTrim + '"')
                     continue
                 endif
                 if objectHas(func, 'group'):
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Function "' + objectGet(func, 'name') + '" group redefinition')
+                    baredocCLIError(errors, filename, ixLine, 'Function "' + objectGet(func, 'name') + '" group redefinition')
                     continue
                 endif
 
@@ -138,7 +138,7 @@ function baredocCLIParse(functions, source, filename):
             elif key == 'ignore' || key == 'async':
                 # Ignore the function? Asynchronous function?
                 if textTrim != 'true' && textTrim != 'false':
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid ' + key + ' value "' + textTrim + '"')
+                    baredocCLIError(errors, filename, ixLine, 'Invalid ' + key + ' value "' + textTrim + '"')
                     continue
                 endif
                 objectSet(func, key, textTrim == 'true')
@@ -146,11 +146,11 @@ function baredocCLIParse(functions, source, filename):
             else:
                 # key == 'function'
                 if textTrim == '':
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid function name "' + textTrim + '"')
+                    baredocCLIError(errors, filename, ixLine, 'Invalid function name "' + textTrim + '"')
                     continue
                 endif
                 if objectHas(functions, textTrim):
-                    arrayPush(errors, filename + ':' + (ixLine + 1) + ': Function "' + textTrim + '" redefinition')
+                    baredocCLIError(errors, filename, ixLine, 'Function "' + textTrim + '" redefinition')
                     continue
                 endif
 
@@ -172,7 +172,7 @@ function baredocCLIParse(functions, source, filename):
 
             # Keyword used outside of function?
             if func == null:
-                arrayPush(errors, filename + ':' + (ixLine + 1) + ': Function argument "' + name + '" outside function')
+                baredocCLIError(errors, filename, ixLine, 'Function argument "' + name + '" outside function')
                 continue
             endif
 
@@ -215,7 +215,7 @@ function baredocCLIParse(functions, source, filename):
         if matchUnknown != null:
             groupsUnknown = objectGet(matchUnknown, 'groups')
             unknown = objectGet(groupsUnknown, 'unknown')
-            arrayPush(errors, filename + ':' + (ixLine + 1) + ': Invalid documentation comment "' + unknown + '"')
+            baredocCLIError(errors, filename, ixLine, 'Invalid documentation comment "' + unknown + '"')
             continue
         endif
     endfor
@@ -238,6 +238,12 @@ function baredocCLIParse(functions, source, filename):
     endfor
 
     return errors
+endfunction
+
+
+# Helper to add a source line error
+function baredocCLIError(errors, filename, ixLine, message):
+    arrayPush(errors, filename + ':' + (ixLine + 1) + ': ' + message)
 endfunction
 
 

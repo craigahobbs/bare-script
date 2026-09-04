@@ -157,8 +157,9 @@ schemaDocArguments = argsValidate([ \
 # $arg options: - **hideReferenced** - If true, referenced types are not rendered (default is false)
 # $return: The array of Markdown text lines
 function schemaDocMarkdown(types, typeName, options):
-    headerPrefix = if(options != null, objectGet(options, 'headerPrefix', '#'), '#')
-    hideReferenced = if(options != null, objectGet(options, 'hideReferenced', false), false)
+    options = if(options != null, options, {})
+    headerPrefix = objectGet(options, 'headerPrefix', '#')
+    hideReferenced = objectGet(options, 'hideReferenced', false)
 
     # Get the user type
     if !objectHas(types, typeName):
@@ -367,7 +368,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
         endif
 
         # URLs
-        actionURLs = if(options != null && objectHas(options, 'actionURLs'), objectGet(options, 'actionURLs'), objectGet(action, 'urls'))
+        actionURLs = if(objectHas(options, 'actionURLs'), objectGet(options, 'actionURLs'), objectGet(action, 'urls'))
         if actionURLs:
             arrayPush(lines, '')
             arrayPush(lines, '**Note:** The request is exposed at the following ' + if(arrayLength(actionURLs) == 1, 'URL:', 'URLs:'))
@@ -380,7 +381,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
         endif
 
         # Path, query, input, and output structs (custom actions have no output struct)
-        actionCustom = options != null && objectGet(options, 'actionCustom')
+        actionCustom = objectGet(options, 'actionCustom')
         for actionStruct in schemaDocActionStructs:
             structMember = arrayGet(actionStruct, 0)
             if objectHas(action, structMember) && !(actionCustom && structMember == 'output'):

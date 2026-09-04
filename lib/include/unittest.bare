@@ -182,11 +182,11 @@ endfunction
 # $arg options: - **title** - the page title
 # $return: The number of unit test failures
 function unittestReport(options):
-    coverageMin = if(options, objectGet(options, 'coverageMin', 0), 0)
-    coverageExclude = if(options, objectGet(options, 'coverageExclude'))
-    links = if(options, objectGet(options, 'links'))
-    defaultTitle = 'unittestReport'
-    title = if(options, objectGet(options, 'title', defaultTitle), defaultTitle)
+    options = if(options != null, options, {})
+    coverageMin = objectGet(options, 'coverageMin', 0)
+    coverageExclude = objectGet(options, 'coverageExclude')
+    links = objectGet(options, 'links')
+    title = objectGet(options, 'title', 'unittestReport')
 
     # Parse arguments
     args = argsParse(unittestReportArguments)

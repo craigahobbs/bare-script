@@ -194,7 +194,7 @@ function dataLineChartElements(data, lineChart, options):
     colorOrder = objectGet(lineChart, 'colorOrder')
 
     # Determine the font size
-    fontSize = if(options, objectGet(options, 'fontSize'))
+    fontSize = objectGet(if(options != null, options, {}), 'fontSize')
     if !fontSize:
         documentFontSize = systemGlobalGet('documentFontSize')
         fontSize = if(documentFontSize, documentFontSize(), dataLineChartChartFontDefaultSizePx)

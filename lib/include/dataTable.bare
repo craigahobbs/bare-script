@@ -107,10 +107,12 @@ endfunction
 # $arg model: The [data table model](model.html#var.vName='DataTable')
 # $return: The array of Markdown table line strings
 function dataTableMarkdown(data, model):
+    model = if(model != null, model, {})
+
     # Determine the table fields - categories first, then the value fields
     fields = []
-    modelFields = if(model != null, objectGet(model, 'fields'))
-    modelCategories = if(model != null, objectGet(model, 'categories'))
+    modelFields = objectGet(model, 'fields')
+    modelCategories = objectGet(model, 'categories')
     if modelCategories != null:
         arrayExtend(fields, modelCategories)
     endif
@@ -120,10 +122,10 @@ function dataTableMarkdown(data, model):
     endif
 
     # Get precision and formatting
-    formatDatetime = if(model != null, objectGet(model, 'datetime'))
-    formatPrecision = if(model != null, objectGet(model, 'precision'))
-    formatTrim = if(model != null, objectGet(model, 'trim'))
-    formats = if(model != null, objectGet(model, 'formats'))
+    formatDatetime = objectGet(model, 'datetime')
+    formatPrecision = objectGet(model, 'precision')
+    formatTrim = objectGet(model, 'trim')
+    formats = objectGet(model, 'formats')
 
     # Precompute per-field rendering metadata, [field, align, header, isCategory], and
     # initialize widths to the field header width
@@ -277,18 +279,20 @@ endfunction
 # $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
 # $return: The data table [element model](https://github.com/craigahobbs/element-model#readme)
 function dataTableElements(data, dataTable):
+    dataTable = if(dataTable != null, dataTable, {})
+
     # Compute the table's field names
-    categories = if(dataTable != null, objectGet(dataTable, 'categories')) || []
-    tableFields = if(dataTable != null, objectGet(dataTable, 'fields'))
+    categories = objectGet(dataTable, 'categories') || []
+    tableFields = objectGet(dataTable, 'fields')
     if tableFields == null:
         tableFields = dataTableComputeFields(data, categories)
     endif
 
     # Data table members
-    fieldFormats = if(dataTable != null, objectGet(dataTable, 'formats'))
-    formatPrecision = if(dataTable != null, objectGet(dataTable, 'precision'))
-    formatDatetime = if(dataTable != null, objectGet(dataTable, 'datetime'))
-    formatTrim = if(dataTable != null, objectGet(dataTable, 'trim'))
+    fieldFormats = objectGet(dataTable, 'formats')
+    formatPrecision = objectGet(dataTable, 'precision')
+    formatDatetime = objectGet(dataTable, 'datetime')
+    formatTrim = objectGet(dataTable, 'trim')
 
     # Create the table element model
     resultRows = []

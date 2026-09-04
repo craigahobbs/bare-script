@@ -50,19 +50,19 @@ function unittestMockAll(data):
     unittestMockOneGeneric('elementModelRender')
 
     # Local Storage
-    unittestMockOne('localStorageClear', unittestMock_localStorageClear)
-    unittestMockOne('localStorageGet', unittestMock_localStorageGet)
-    unittestMockOne('localStorageRemove', unittestMock_localStorageRemove)
-    unittestMockOne('localStorageSet', unittestMock_localStorageSet)
+    unittestMockOne('localStorageClear', systemPartial(unittestMock_storageClear, 'localStorageClear', 'localStorage'))
+    unittestMockOne('localStorageGet', systemPartial(unittestMock_storageGet, 'localStorage'))
+    unittestMockOne('localStorageRemove', systemPartial(unittestMock_storageRemove, 'localStorageRemove', 'localStorage'))
+    unittestMockOne('localStorageSet', systemPartial(unittestMock_storageSet, 'localStorageSet', 'localStorage'))
 
     # Markdown
     unittestMockOneGeneric('markdownPrint')
 
     # Session Storage
-    unittestMockOne('sessionStorageClear', unittestMock_sessionStorageClear)
-    unittestMockOne('sessionStorageGet', unittestMock_sessionStorageGet)
-    unittestMockOne('sessionStorageRemove', unittestMock_sessionStorageRemove)
-    unittestMockOne('sessionStorageSet', unittestMock_sessionStorageSet)
+    unittestMockOne('sessionStorageClear', systemPartial(unittestMock_storageClear, 'sessionStorageClear', 'sessionStorage'))
+    unittestMockOne('sessionStorageGet', systemPartial(unittestMock_storageGet, 'sessionStorage'))
+    unittestMockOne('sessionStorageRemove', systemPartial(unittestMock_storageRemove, 'sessionStorageRemove', 'sessionStorage'))
+    unittestMockOne('sessionStorageSet', systemPartial(unittestMock_storageSet, 'sessionStorageSet', 'sessionStorage'))
 
     # System
     unittestMockOne('systemFetch', systemPartial(unittestMock_systemFetch, if(data != null, objectGet(data, 'systemFetch'))))
@@ -156,86 +156,39 @@ endfunction
 
 
 #
-# Local Storage functions
+# Storage functions - shared by the local and session storage mocks
 #
 
 
-function unittestMock_localStorageClear(args...):
+function unittestMock_storageClear(funcName, storageKey, args...):
     # Record the mocked function call
-    arrayPush(unittestMockCalls, ['localStorageClear', args])
+    arrayPush(unittestMockCalls, [funcName, args])
 
     # Update the mock state
-    objectSet(unittestMockState, 'localStorage', {})
+    objectSet(unittestMockState, storageKey, {})
 endfunction
 
 
-function unittestMock_localStorageGet(key):
-    return objectGet(objectGet(unittestMockState, 'localStorage'), key)
+function unittestMock_storageGet(storageKey, key):
+    return objectGet(objectGet(unittestMockState, storageKey), key)
 endfunction
 
 
-function unittestMock_localStorageRemove(args...):
-    key = arrayGet(args, 0)
-
+function unittestMock_storageRemove(funcName, storageKey, args...):
     # Record the mocked function call
-    arrayPush(unittestMockCalls, ['localStorageRemove', args])
+    arrayPush(unittestMockCalls, [funcName, args])
 
     # Update the mock state
-    objectDelete(objectGet(unittestMockState, 'localStorage'), key)
+    objectDelete(objectGet(unittestMockState, storageKey), arrayGet(args, 0))
 endfunction
 
 
-function unittestMock_localStorageSet(args...):
-    key = arrayGet(args, 0)
-    value = arrayGet(args, 1)
-
+function unittestMock_storageSet(funcName, storageKey, args...):
     # Record the mocked function call
-    arrayPush(unittestMockCalls, ['localStorageSet', args])
+    arrayPush(unittestMockCalls, [funcName, args])
 
     # Update the mock state
-    objectSet(objectGet(unittestMockState, 'localStorage'), key, value)
-endfunction
-
-
-#
-# Session Storage functions
-#
-
-
-function unittestMock_sessionStorageClear(args...):
-    # Record the mocked function call
-    arrayPush(unittestMockCalls, ['sessionStorageClear', args])
-
-    # Update the mock state
-    objectSet(unittestMockState, 'sessionStorage', {})
-endfunction
-
-
-function unittestMock_sessionStorageGet(key):
-    return objectGet(objectGet(unittestMockState, 'sessionStorage'), key)
-endfunction
-
-
-function unittestMock_sessionStorageRemove(args...):
-    key = arrayGet(args, 0)
-
-    # Record the mocked function call
-    arrayPush(unittestMockCalls, ['sessionStorageRemove', args])
-
-    # Update the mock state
-    objectDelete(objectGet(unittestMockState, 'sessionStorage'), key)
-endfunction
-
-
-function unittestMock_sessionStorageSet(args...):
-    key = arrayGet(args, 0)
-    value = arrayGet(args, 1)
-
-    # Record the mocked function call
-    arrayPush(unittestMockCalls, ['sessionStorageSet', args])
-
-    # Update the mock state
-    objectSet(objectGet(unittestMockState, 'sessionStorage'), key, value)
+    objectSet(objectGet(unittestMockState, storageKey), arrayGet(args, 0), arrayGet(args, 1))
 endfunction
 
 
