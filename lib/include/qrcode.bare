@@ -675,9 +675,11 @@ function qrcodeMatrixPenalty(matrix, bestPenalty):
     size = arrayLength(matrix)
     penalty = 0
 
-    # Compute row penalties
+    # Compute row penalties - the rows as "0"/"1" strings
+    rowStrings = []
     for row in matrix:
         stringRow = arrayJoin(row, '')
+        arrayPush(rowStrings, stringRow)
 
         # Penalty 1: Five or more same-colored modules in a row
         for runMatch in regexMatchAll(qrcodeMatrixPenaltyRunRegex, stringRow):
@@ -688,30 +690,32 @@ function qrcodeMatrixPenalty(matrix, bestPenalty):
         penalty = penalty + 40 * arrayLength(regexMatchAll(qrcodeMatrixPenaltyPatternRegex, stringRow))
     endfor
 
-    # Compute column penalties - also count dark modules
-    darkCount = 0
-    twoBySize = size - 1
+    # Penalty 2: 2x2 blocks of same color - compare each adjacent row pair as binary numbers, in chunks of up
+    # to 31 columns that overlap by one column so each adjacent column pair is in exactly one chunk
+    ixRow = 0
+    while ixRow < size - 1:
+        rowString = arrayGet(rowStrings, ixRow)
+        rowString2 = arrayGet(rowStrings, ixRow + 1)
+        ixChunk = 0
+        while ixChunk < size - 1:
+            ixChunkEnd = mathMin(ixChunk + 31, size)
+            bits = numberParseInt(stringSlice(rowString, ixChunk, ixChunkEnd), 2)
+            bits2 = numberParseInt(stringSlice(rowString2, ixChunk, ixChunkEnd), 2)
+
+            # A block bit is set where a column pair's modules match between the rows and within the row
+            same = ~(bits ^ bits2)
+            blocks = same & (same >> 1) & ~(bits ^ (bits >> 1)) & ((1 << (ixChunkEnd - ixChunk - 1)) - 1)
+            penalty = penalty + 3 * stringLength(regexReplace(qrcodeMatrixPenaltyZeroRegex, numberToString(blocks, 2), ''))
+            ixChunk = ixChunk + 30
+        endwhile
+        ixRow = ixRow + 1
+    endwhile
+
+    # Compute column penalties - each column string is the matrix text's column of characters
+    matrixText = arrayJoin(rowStrings, '\n') + '\n'
     ix = 0
     while ix < size:
-        column = []
-        iy = 0
-        while iy < size:
-            row = arrayGet(matrix, iy)
-            bit = arrayGet(row, ix)
-            arrayPush(column, bit)
-
-            # Penalty 2: 2x2 blocks of same color
-            row2 = if(ix < twoBySize && iy < twoBySize, arrayGet(matrix, iy + 1))
-            if row2 && bit == arrayGet(row, ix + 1) && bit == arrayGet(row2, ix) && bit == arrayGet(row2, ix + 1):
-                penalty = penalty + 3
-            endif
-
-            # Count "dark" pixels
-            darkCount = darkCount + bit
-
-            iy = iy + 1
-        endwhile
-        stringColumn = arrayJoin(column, '')
+        stringColumn = regexReplace(qrcodeMatrixColumnRegex(ix), matrixText, '$1')
 
         # Penalty 1: Five or more same-colored modules in a column
         for runMatch in regexMatchAll(qrcodeMatrixPenaltyRunRegex, stringColumn):
@@ -730,6 +734,7 @@ function qrcodeMatrixPenalty(matrix, bestPenalty):
     endwhile
 
     # Penalty 4: Proportion of dark modules
+    darkCount = stringLength(regexReplace(qrcodeMatrixPenaltyLightRegex, matrixText, ''))
     darkPercent = (darkCount * 100) / (size * size)
     penalty = penalty + mathFloor(mathAbs(darkPercent - 50) / 5) * 10
 
@@ -737,9 +742,22 @@ function qrcodeMatrixPenalty(matrix, bestPenalty):
 endfunction
 
 
-# QR matrix scorinn pattern regular expressions
+# QR matrix scoring pattern regular expressions
 qrcodeMatrixPenaltyRunRegex = regexNew('(?:0{5,}|1{5,})')
 qrcodeMatrixPenaltyPatternRegex = regexNew('(?:10111010000|00001011101)')
+qrcodeMatrixPenaltyZeroRegex = regexNew('0')
+qrcodeMatrixPenaltyLightRegex = regexNew('[0\\n]')
+
+
+# Helper to get the regex that replaces the matrix text with a column's characters (cached by column index)
+function qrcodeMatrixColumnRegex(ix):
+    while arrayLength(qrcodeMatrixColumnRegexes) <= ix:
+        arrayPush(qrcodeMatrixColumnRegexes, regexNew('[01]{' + arrayLength(qrcodeMatrixColumnRegexes) + '}([01])[01]*\\n'))
+    endwhile
+    return arrayGet(qrcodeMatrixColumnRegexes, ix)
+endfunction
+
+qrcodeMatrixColumnRegexes = []
 
 
 # Generate Reed-Solomon error correction codewords
