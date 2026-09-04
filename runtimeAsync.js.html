@@ -32,11 +32,12 @@
 /** @module lib/runtimeAsync */
 
 import {
-    AsyncFunction, BareScriptRuntimeError, barescriptLintScript, barescriptParseScript, computeLabelIndexes, defaultMaxStatements,
-    evaluateExpression, recordStatementCoverage, scriptFunction, systemGlobalCoverageName, systemGlobalIncludesName
+    AsyncFunction, BareScriptRuntimeError, barescriptParseScript, computeLabelIndexes, defaultMaxStatements, evaluateExpression,
+    executeScriptInit, lintInclude, recordStatementCoverage, scriptFunction, scriptFunctionLocals, systemGlobalCoverageName,
+    systemGlobalIncludes
 } from './runtime.js';
 import {ValueArgsError, valueBoolean, valueCompare, valueObjectSet, valueString} from './value.js';
-import {expressionFunctions, scriptFunctions} from './library.js';
+import {expressionFunctions} from './library.js';
 import {systemIncludes} from './includeSource.js';
 import {urlFileRelative} from './options.js';
 
@@ -51,22 +52,7 @@ import {urlFileRelative} from './options.js';
  * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
 export function executeScriptAsync(script, options = {}) {
-    // Create the global variable object, if necessary
-    let {globals = null} = options;
-    if (globals === null) {
-        globals = {};
-        options.globals = globals;
-    }
-
-    // Set the script function globals variables
-    for (const scriptFuncName of Object.keys(scriptFunctions)) {
-        if (!(scriptFuncName in globals)) {
-            globals[scriptFuncName] = scriptFunctions[scriptFuncName];
-        }
-    }
-
-    // Execute the script
-    options.statementCount = 0;
+    executeScriptInit(options);
     return executeScriptHelperAsync(script, script.statements, options, null, computeLabelIndexes(script.statements));
 }
 
@@ -84,7 +70,12 @@ async function executeScriptHelperAsync(script, statements, options, locals, lab
     const statementsLength = statements.length;
     for (let ixStatement = 0; ixStatement &lt; statementsLength; ixStatement++) {
         const statement = statements[ixStatement];
-        const [statementKey] = Object.keys(statement);
+        // The statement kind is its single key - read it with for-in, which does not allocate a keys array
+        let statementKey;
+        // eslint-disable-next-line guard-for-in, no-unreachable-loop
+        for (statementKey in statement) {
+            break;
+        }
 
         // Increment the statement counter
         const statementCount = options.statementCount + 1;
@@ -166,25 +157,13 @@ async function executeScriptHelperAsync(script, statements, options, locals, lab
             });
 
             // Filter already included
-            let globalIncludes = globals[systemGlobalIncludesName] ?? null;
-            if (globalIncludes === null || typeof globalIncludes !== 'object') {
-                globalIncludes = {};
-                globals[systemGlobalIncludesName] = globalIncludes;
-            }
-            const includeURLs = unfilteredIncludeURLs.filter(({includeKey}) => {
-                if (globalIncludes[includeKey]) {
-                    return false;
-                }
-                return true;
-            });
+            const globalIncludes = systemGlobalIncludes(globals);
+            const includeURLs = unfilteredIncludeURLs.filter(({includeKey}) => !globalIncludes[includeKey]);
 
             // Get the include script text - system includes from the system include map, otherwise fetch.
             // Cache fetches so a nested include of a URL already in this parallel batch shares the GET.
-            let {includeFetch} = options;
-            if (includeFetch === null || typeof includeFetch !== 'object') {
-                includeFetch = {};
-                options.includeFetch = includeFetch;
-            }
+            options.includeFetch ??= {};
+            const {includeFetch} = options;
             const includeTexts = await Promise.all(includeURLs.map(async ({includeURL, includeKey, systemInclude}) => {
                 if (systemInclude) {
                     const includeText = (Object.hasOwn(systemIncludes, includeURL) ? systemIncludes[includeURL] : null);
@@ -235,16 +214,7 @@ async function executeScriptHelperAsync(script, statements, options, locals, lab
                 );
 
                 // Run the bare-script linter?
-                if ('logFn' in options &amp;&amp; options.debug) {
-                    const warnings = barescriptLintScript(includeScript, globals);
-                    const warningPrefix = `BareScript: Include "${includeURL}" static analysis...`;
-                    if (warnings.length) {
-                        options.logFn(`${warningPrefix} ${warnings.length} warning${warnings.length > 1 ? 's' : ''}:`);
-                        for (const warning of warnings) {
-                            options.logFn(`BareScript: ${warning}`);
-                        }
-                    }
-                }
+                lintInclude(options, includeScript, includeURL);
             }
         }
     }
@@ -255,29 +225,7 @@ async function executeScriptHelperAsync(script, statements, options, locals, lab
 
 // Runtime script async function implementation
 function scriptFunctionAsync(script, function_, labelIndexes, args, options) {
-    // Null-prototype object so variable names like "__proto__" are own keys, matching the Python runtime
-    const funcLocals = Object.create(null);
-    const funcArgs = function_.args ?? null;
-    if (funcArgs !== null) {
-        const argsLength = args.length;
-        const funcArgsLength = funcArgs.length;
-        if (function_.lastArgArray) {
-            const ixArgLast = funcArgsLength - 1;
-            for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
-                const argName = funcArgs[ixArg];
-                if (ixArg &lt; argsLength) {
-                    funcLocals[argName] = (ixArg === ixArgLast ? args.slice(ixArg) : args[ixArg]);
-                } else {
-                    funcLocals[argName] = (ixArg === ixArgLast ? [] : null);
-                }
-            }
-        } else {
-            for (let ixArg = 0; ixArg &lt; funcArgsLength; ixArg++) {
-                funcLocals[funcArgs[ixArg]] = (ixArg &lt; argsLength ? args[ixArg] : null);
-            }
-        }
-    }
-    return executeScriptHelperAsync(script, function_.statements, options, funcLocals, labelIndexes);
+    return executeScriptHelperAsync(script, function_.statements, options, scriptFunctionLocals(function_, args), labelIndexes);
 }
 
 
@@ -294,49 +242,19 @@ function scriptFunctionAsync(script, function_, labelIndexes, args, options) {
  * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
 export async function evaluateExpressionAsync(expr, options = null, locals = null, builtins = true, script = null, statement = null) {
-    const [exprKey] = Object.keys(expr);
-    const globals = (options !== null ? (options.globals ?? null) : null);
-
     // If this expression does not require async then evaluate non-async
-    const hasSubExpr = (exprKey !== 'number' &amp;&amp; exprKey !== 'string' &amp;&amp; exprKey !== 'variable');
-    if (hasSubExpr &amp;&amp; !isAsyncExpr(expr, globals, locals)) {
+    const globals = (options !== null ? (options.globals ?? null) : null);
+    if (!isAsyncExpr(expr, globals, locals)) {
         return evaluateExpression(expr, options, locals, builtins, script, statement);
     }
 
-    // Number
-    if (exprKey === 'number') {
-        return expr.number;
-    }
-
-    // String
-    if (exprKey === 'string') {
-        return expr.string;
-    }
-
-    // Variable
-    if (exprKey === 'variable') {
-        const {variable} = expr;
-
-        // Keywords
-        if (variable === 'null') {
-            return null;
-        } else if (variable === 'false') {
-            return false;
-        } else if (variable === 'true') {
-            return true;
-        }
-
-        // Get the local or global variable value or null if undefined. Locals are a null-prototype
-        // object; globals are checked for an own property so inherited names (e.g. "__proto__",
-        // "constructor") do not resolve, matching the Python runtime.
-        let varValue = (locals !== null ? locals[variable] : undefined);
-        if (typeof varValue === 'undefined') {
-            varValue = (globals !== null &amp;&amp; Object.hasOwn(globals, variable) ? (globals[variable] ?? null) : null);
-        }
-        return varValue;
-    }
-
     // Function
+    // The expression kind is its single key - read it with for-in, which does not allocate a keys array
+    let exprKey;
+    // eslint-disable-next-line guard-for-in, no-unreachable-loop
+    for (exprKey in expr) {
+        break;
+    }
     if (exprKey === 'function') {
         const {function: func} = expr;
 
@@ -484,12 +402,14 @@ export async function evaluateExpressionAsync(expr, options = null, locals = nul
             }
             return valueCompare(leftValue, rightValue) >= 0;
         } else if (binOp === '==') {
-            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+            if ((typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') ||
+                (typeof leftValue === 'string' &amp;&amp; typeof rightValue === 'string')) {
                 return leftValue === rightValue;
             }
             return valueCompare(leftValue, rightValue) === 0;
         } else if (binOp === '!=') {
-            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+            if ((typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') ||
+                (typeof leftValue === 'string' &amp;&amp; typeof rightValue === 'string')) {
                 return leftValue !== rightValue;
             }
             return valueCompare(leftValue, rightValue) !== 0;
@@ -561,7 +481,12 @@ export async function evaluateExpressionAsync(expr, options = null, locals = nul
 
 
 function isAsyncExpr(expr, globals, locals) {
-    const [exprKey] = Object.keys(expr);
+    // The expression kind is its single key - read it with for-in, which does not allocate a keys array
+    let exprKey;
+    // eslint-disable-next-line guard-for-in, no-unreachable-loop
+    for (exprKey in expr) {
+        break;
+    }
     if (exprKey === 'function') {
         // Is the global/local function async?
         const funcName = expr.function.name;

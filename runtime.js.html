@@ -31,7 +31,7 @@
 
 /** @module lib/runtime */
 
-import {ValueArgsError, valueBoolean, valueCompare, valueObjectSet, valueString} from './value.js';
+import {ValueArgsError, valueBoolean, valueCompare, valueObjectSet, valueString, valueType} from './value.js';
 import {expressionFunctions, intrinsics, scriptFunctions} from './library.js';
 import {systemIncludes} from './includeSource.js';
 
@@ -61,23 +61,25 @@ export const AsyncFunction = (async () => { /* c8 ignore next */ }).constructor;
  * @throws [BareScriptRuntimeError]{@link module:lib/runtime.BareScriptRuntimeError}
  */
 export function executeScript(script, options = {}) {
-    // Create the global variable object, if necessary
+    executeScriptInit(options);
+    return executeScriptHelper(script, script.statements, options, null, computeLabelIndexes(script.statements));
+}
+
+
+// Initialize the script execution options - create the globals object, if necessary, set the built-in
+// script function globals, and reset the statement counter
+export function executeScriptInit(options) {
     let {globals = null} = options;
     if (globals === null) {
         globals = {};
         options.globals = globals;
     }
-
-    // Set the script function globals variables
     for (const scriptFuncName of Object.keys(scriptFunctions)) {
         if (!(scriptFuncName in globals)) {
             globals[scriptFuncName] = scriptFunctions[scriptFuncName];
         }
     }
-
-    // Execute the script
     options.statementCount = 0;
-    return executeScriptHelper(script, script.statements, options, null, computeLabelIndexes(script.statements));
 }
 
 
@@ -108,7 +110,12 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
     const statementsLength = statements.length;
     for (let ixStatement = 0; ixStatement &lt; statementsLength; ixStatement++) {
         const statement = statements[ixStatement];
-        const [statementKey] = Object.keys(statement);
+        // The statement kind is its single key - read it with for-in, which does not allocate a keys array
+        let statementKey;
+        // eslint-disable-next-line guard-for-in, no-unreachable-loop
+        for (statementKey in statement) {
+            break;
+        }
 
         // Increment the statement counter
         const statementCount = options.statementCount + 1;
@@ -181,11 +188,7 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
 
                 // Already included? System include keys are bracketed so they can't collide with local include URLs.
                 const includeKey = `&lt;${url}>`;
-                let globalIncludes = globals[systemGlobalIncludesName] ?? null;
-                if (globalIncludes === null || typeof globalIncludes !== 'object') {
-                    globalIncludes = {};
-                    globals[systemGlobalIncludesName] = globalIncludes;
-                }
+                const globalIncludes = systemGlobalIncludes(globals);
                 if (globalIncludes[includeKey]) {
                     continue;
                 }
@@ -207,16 +210,7 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
                 executeScriptHelper(includeScript, includeScript.statements, options, null, computeLabelIndexes(includeScript.statements));
 
                 // Run the bare-script linter?
-                if ('logFn' in options &amp;&amp; options.debug) {
-                    const warnings = barescriptLintScript(includeScript, globals);
-                    const warningPrefix = `BareScript: Include "${url}" static analysis...`;
-                    if (warnings.length) {
-                        options.logFn(`${warningPrefix} ${warnings.length} warning${warnings.length > 1 ? 's' : ''}:`);
-                        for (const warning of warnings) {
-                            options.logFn(`BareScript: ${warning}`);
-                        }
-                    }
-                }
+                lintInclude(options, includeScript, url);
             }
         }
     }
@@ -225,20 +219,59 @@ function executeScriptHelper(script, statements, options, locals, labelIndexes) 
 }
 
 
+// Get the globals' system includes object (the map of include key to true), creating it if necessary
+export function systemGlobalIncludes(globals) {
+    let globalIncludes = globals[systemGlobalIncludesName] ?? null;
+    if (globalIncludes === null || typeof globalIncludes !== 'object') {
+        globalIncludes = {};
+        globals[systemGlobalIncludesName] = globalIncludes;
+    }
+    return globalIncludes;
+}
+
+
+// Lint an include script in debug mode and log its warnings
+export function lintInclude(options, includeScript, url) {
+    if ('logFn' in options &amp;&amp; options.debug) {
+        const warnings = barescriptLintScript(includeScript, options.globals);
+        if (warnings.length) {
+            options.logFn(`BareScript: Include "${url}" static analysis... ${warnings.length} warning${warnings.length > 1 ? 's' : ''}:`);
+            for (const warning of warnings) {
+                options.logFn(`BareScript: ${warning}`);
+            }
+        }
+    }
+}
+
+
+// Helper to execute a system include library script into a new globals object
+function systemIncludeGlobals(url) {
+    const globals = {};
+    executeScript({'statements': [{'include': {'includes': [{'url': url, 'system': true}]}}]}, {globals});
+    return globals;
+}
+
+
 // The barescriptParser.bare include library script globals (lazily initialized)
 let parserGlobals = null;
 
 
-// Helper function to execute the barescriptParser.bare include library script, if necessary
+// Helper function to execute the barescriptParser.bare include library script, if necessary. The globals are
+// published only once complete so a concurrent first-use caller never observes a partially-initialized parser.
 function parserGlobalsInit() {
     if (parserGlobals === null) {
-        const parserGlobalsNew = {};
-        executeScript(
-            {'statements': [{'include': {'includes': [{'url': 'barescriptParser.bare', 'system': true}]}}]},
-            {'globals': parserGlobalsNew}
-        );
-        parserGlobals = parserGlobalsNew;
+        parserGlobals = systemIncludeGlobals('barescriptParser.bare');
     }
+}
+
+
+// Helper to unwrap a barescriptParser.bare parse result - throw on error
+function parserResult(result) {
+    if ('error' in result) {
+        const {error} = result;
+        throw new BareScriptParserError(error.error, error.line, error.columnNumber, error.lineNumber, error.scriptName);
+    }
+    return result.result;
 }
 
 
@@ -253,12 +286,7 @@ function parserGlobalsInit() {
  */
 export function barescriptParseScript(scriptText, startLineNumber = 1, scriptName = null) {
     parserGlobalsInit();
-    const result = parserGlobals.barescriptParseScriptEx([scriptText, startLineNumber, scriptName], {'globals': parserGlobals});
-    if ('error' in result) {
-        const {error} = result;
-        throw new BareScriptParserError(error.error, error.line, error.columnNumber, error.lineNumber, error.scriptName);
-    }
-    return result.result;
+    return parserResult(parserGlobals.barescriptParseScriptEx([scriptText, startLineNumber, scriptName], {'globals': parserGlobals}));
 }
 
 
@@ -274,17 +302,22 @@ export function barescriptParseScript(scriptText, startLineNumber = 1, scriptNam
  */
 export function barescriptParseExpression(exprText, lineNumber = null, scriptName = null, arrayLiterals = false) {
     parserGlobalsInit();
-    const result = parserGlobals.barescriptParseExpressionEx([exprText, lineNumber, scriptName, arrayLiterals], {'globals': parserGlobals});
-    if ('error' in result) {
-        const {error} = result;
-        throw new BareScriptParserError(error.error, error.line, error.columnNumber, error.lineNumber, error.scriptName);
-    }
-    return result.result;
+    return parserResult(
+        parserGlobals.barescriptParseExpressionEx([exprText, lineNumber, scriptName, arrayLiterals], {'globals': parserGlobals})
+    );
 }
 
 
 // The barescriptLint.bare include library script globals (lazily initialized)
 let lintGlobals = null;
+
+
+// Helper function to execute the barescriptLint.bare include library script, if necessary (see parserGlobalsInit)
+function lintGlobalsInit() {
+    if (lintGlobals === null) {
+        lintGlobals = systemIncludeGlobals('barescriptLint.bare');
+    }
+}
 
 
 /**
@@ -295,16 +328,6 @@ let lintGlobals = null;
  * @returns {string[]} The array of lint warning strings
  */
 export function barescriptLintScript(script, globals = null) {
-    // Execute the barescriptLint.bare include library script, if necessary
-    if (lintGlobals === null) {
-        const lintGlobalsNew = {};
-        executeScript(
-            {'statements': [{'include': {'includes': [{'url': 'barescriptLint.bare', 'system': true}]}}]},
-            {'globals': lintGlobalsNew}
-        );
-        lintGlobals = lintGlobalsNew;
-    }
-
     // Compute the async global function names
     let asyncFunctions = null;
     if (globals !== null) {
@@ -317,6 +340,7 @@ export function barescriptLintScript(script, globals = null) {
     }
 
     // Call the barescriptLint.bare lint function
+    lintGlobalsInit();
     return lintGlobals.barescriptLintScript([script, globals, asyncFunctions], {'globals': lintGlobals});
 }
 
@@ -356,6 +380,12 @@ export function recordStatementCoverage(script, statement, statementKey, coverag
 
 // Runtime script function implementation
 export function scriptFunction(script, function_, labelIndexes, args, options) {
+    return executeScriptHelper(script, function_.statements, options, scriptFunctionLocals(function_, args), labelIndexes);
+}
+
+
+// Helper to create a script function's local variables object from its call arguments
+export function scriptFunctionLocals(function_, args) {
     // Null-prototype object so variable names like "__proto__" are own keys, matching the Python runtime
     const funcLocals = Object.create(null);
     const funcArgs = function_.args ?? null;
@@ -378,7 +408,7 @@ export function scriptFunction(script, function_, labelIndexes, args, options) {
             }
         }
     }
-    return executeScriptHelper(script, function_.statements, options, funcLocals, labelIndexes);
+    return funcLocals;
 }
 
 
@@ -400,7 +430,12 @@ export function evaluateExpression(expr, options = null, locals = null, builtins
 
 // Expression evaluation helper - threads the globals object to avoid a per-call options lookup
 function evaluateExpressionHelper(expr, options, globals, locals, builtins, script, statement) {
-    const [exprKey] = Object.keys(expr);
+    // The expression kind is its single key - read it with for-in, which does not allocate a keys array
+    let exprKey;
+    // eslint-disable-next-line guard-for-in, no-unreachable-loop
+    for (exprKey in expr) {
+        break;
+    }
 
     // Number
     if (exprKey === 'number') {
@@ -442,7 +477,11 @@ function evaluateExpressionHelper(expr, options, globals, locals, builtins, scri
         // "if" built-in function?
         const funcName = func.name;
         if (funcName === 'if') {
-            const [valueExpr = null, trueExpr = null, falseExpr = null] = func.args ?? [];
+            const argsExpr = func.args ?? null;
+            const argsExprLength = (argsExpr !== null ? argsExpr.length : 0);
+            const valueExpr = (argsExprLength >= 1 ? argsExpr[0] : null);
+            const trueExpr = (argsExprLength >= 2 ? argsExpr[1] : null);
+            const falseExpr = (argsExprLength >= 3 ? argsExpr[2] : null);
             const value =
                 (valueExpr !== null ? evaluateExpressionHelper(valueExpr, options, globals, locals, builtins, script, statement) : false);
             const resultExpr = (valueBoolean(value) ? trueExpr : falseExpr);
@@ -488,6 +527,47 @@ function evaluateExpressionHelper(expr, options, globals, locals, builtins, scri
                         return funcArgs;
                     }
                     const funcArgsLength = funcArgs.length;
+                    if (funcName === 'objectGet') {
+                        const defaultValue = (funcArgsLength >= 3 ? funcArgs[2] : null);
+                        if (funcArgsLength &lt; 1) {
+                            throw new ValueArgsError('object', null, defaultValue);
+                        }
+                        const [object] = funcArgs;
+                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
+                            throw new ValueArgsError('object', object, defaultValue);
+                        }
+                        if (funcArgsLength &lt; 2) {
+                            throw new ValueArgsError('key', null, defaultValue);
+                        }
+                        const [, key] = funcArgs;
+                        if (typeof key !== 'string') {
+                            throw new ValueArgsError('key', key, defaultValue);
+                        }
+                        if (funcArgsLength > 3) {
+                            throw new ValueArgsError(null, funcArgsLength, defaultValue);
+                        }
+                        return (Object.hasOwn(object, key) ? object[key] : defaultValue);
+                    }
+                    if (funcName === 'objectHas') {
+                        if (funcArgsLength &lt; 1) {
+                            throw new ValueArgsError('object', null, false);
+                        }
+                        const [object] = funcArgs;
+                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
+                            throw new ValueArgsError('object', object, false);
+                        }
+                        if (funcArgsLength &lt; 2) {
+                            throw new ValueArgsError('key', null, false);
+                        }
+                        const [, key] = funcArgs;
+                        if (typeof key !== 'string') {
+                            throw new ValueArgsError('key', key, false);
+                        }
+                        if (funcArgsLength > 2) {
+                            throw new ValueArgsError(null, funcArgsLength, false);
+                        }
+                        return Object.hasOwn(object, key);
+                    }
                     if (funcName === 'arrayGet') {
                         if (funcArgsLength &lt; 1) {
                             throw new ValueArgsError('array', null);
@@ -535,6 +615,57 @@ function evaluateExpressionHelper(expr, options, globals, locals, builtins, scri
                         array.push(...funcArgs.slice(1));
                         return array;
                     }
+                    if (funcName === 'objectSet') {
+                        if (funcArgsLength &lt; 1) {
+                            throw new ValueArgsError('object', null);
+                        }
+                        const [object] = funcArgs;
+                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
+                            throw new ValueArgsError('object', object);
+                        }
+                        if (funcArgsLength &lt; 2) {
+                            throw new ValueArgsError('key', null);
+                        }
+                        const [, key] = funcArgs;
+                        if (typeof key !== 'string') {
+                            throw new ValueArgsError('key', key);
+                        }
+                        if (funcArgsLength > 3) {
+                            throw new ValueArgsError(null, funcArgsLength);
+                        }
+                        const value = (funcArgsLength >= 3 ? funcArgs[2] : null);
+                        valueObjectSet(object, key, value);
+                        return value;
+                    }
+                    if (funcName === 'stringLength') {
+                        if (funcArgsLength &lt; 1) {
+                            throw new ValueArgsError('string', null, 0);
+                        }
+                        const [string] = funcArgs;
+                        if (typeof string !== 'string') {
+                            throw new ValueArgsError('string', string, 0);
+                        }
+                        if (funcArgsLength > 1) {
+                            throw new ValueArgsError(null, funcArgsLength, 0);
+                        }
+                        return string.length;
+                    }
+                    if (funcName === 'systemType') {
+                        return valueType(funcArgsLength >= 1 ? funcArgs[0] : null);
+                    }
+                    if (funcName === 'objectKeys') {
+                        if (funcArgsLength &lt; 1) {
+                            throw new ValueArgsError('object', null);
+                        }
+                        const [object] = funcArgs;
+                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
+                            throw new ValueArgsError('object', object);
+                        }
+                        if (funcArgsLength > 1) {
+                            throw new ValueArgsError(null, funcArgsLength);
+                        }
+                        return Object.keys(object);
+                    }
                     if (funcName === 'arraySet') {
                         if (funcArgsLength &lt; 1) {
                             throw new ValueArgsError('array', null);
@@ -572,95 +703,6 @@ function evaluateExpressionHelper(expr, options, globals, locals, builtins, scri
                             throw new ValueArgsError(null, funcArgsLength);
                         }
                         return Math.sqrt(xValue);
-                    }
-                    if (funcName === 'objectGet') {
-                        const defaultValue = (funcArgsLength >= 3 ? funcArgs[2] : null);
-                        if (funcArgsLength &lt; 1) {
-                            throw new ValueArgsError('object', null, defaultValue);
-                        }
-                        const [object] = funcArgs;
-                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
-                            throw new ValueArgsError('object', object, defaultValue);
-                        }
-                        if (funcArgsLength &lt; 2) {
-                            throw new ValueArgsError('key', null, defaultValue);
-                        }
-                        const [, key] = funcArgs;
-                        if (typeof key !== 'string') {
-                            throw new ValueArgsError('key', key, defaultValue);
-                        }
-                        if (funcArgsLength > 3) {
-                            throw new ValueArgsError(null, funcArgsLength, defaultValue);
-                        }
-                        return (Object.hasOwn(object, key) ? object[key] : defaultValue);
-                    }
-                    if (funcName === 'objectHas') {
-                        if (funcArgsLength &lt; 1) {
-                            throw new ValueArgsError('object', null, false);
-                        }
-                        const [object] = funcArgs;
-                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
-                            throw new ValueArgsError('object', object, false);
-                        }
-                        if (funcArgsLength &lt; 2) {
-                            throw new ValueArgsError('key', null, false);
-                        }
-                        const [, key] = funcArgs;
-                        if (typeof key !== 'string') {
-                            throw new ValueArgsError('key', key, false);
-                        }
-                        if (funcArgsLength > 2) {
-                            throw new ValueArgsError(null, funcArgsLength, false);
-                        }
-                        return Object.hasOwn(object, key);
-                    }
-                    if (funcName === 'objectKeys') {
-                        if (funcArgsLength &lt; 1) {
-                            throw new ValueArgsError('object', null);
-                        }
-                        const [object] = funcArgs;
-                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
-                            throw new ValueArgsError('object', object);
-                        }
-                        if (funcArgsLength > 1) {
-                            throw new ValueArgsError(null, funcArgsLength);
-                        }
-                        return Object.keys(object);
-                    }
-                    if (funcName === 'objectSet') {
-                        if (funcArgsLength &lt; 1) {
-                            throw new ValueArgsError('object', null);
-                        }
-                        const [object] = funcArgs;
-                        if (typeof object !== 'object' || object === null || Object.getPrototypeOf(object) !== Object.prototype) {
-                            throw new ValueArgsError('object', object);
-                        }
-                        if (funcArgsLength &lt; 2) {
-                            throw new ValueArgsError('key', null);
-                        }
-                        const [, key] = funcArgs;
-                        if (typeof key !== 'string') {
-                            throw new ValueArgsError('key', key);
-                        }
-                        if (funcArgsLength > 3) {
-                            throw new ValueArgsError(null, funcArgsLength);
-                        }
-                        const value = (funcArgsLength >= 3 ? funcArgs[2] : null);
-                        valueObjectSet(object, key, value);
-                        return value;
-                    }
-                    if (funcName === 'stringLength') {
-                        if (funcArgsLength &lt; 1) {
-                            throw new ValueArgsError('string', null, 0);
-                        }
-                        const [string] = funcArgs;
-                        if (typeof string !== 'string') {
-                            throw new ValueArgsError('string', string, 0);
-                        }
-                        if (funcArgsLength > 1) {
-                            throw new ValueArgsError(null, funcArgsLength, 0);
-                        }
-                        return string.length;
                     }
                 }
                 return funcValue(funcArgs, options) ?? null;
@@ -777,12 +819,14 @@ function evaluateExpressionHelper(expr, options, globals, locals, builtins, scri
             }
             return valueCompare(leftValue, rightValue) >= 0;
         } else if (binOp === '==') {
-            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+            if ((typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') ||
+                (typeof leftValue === 'string' &amp;&amp; typeof rightValue === 'string')) {
                 return leftValue === rightValue;
             }
             return valueCompare(leftValue, rightValue) === 0;
         } else if (binOp === '!=') {
-            if (typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') {
+            if ((typeof leftValue === 'number' &amp;&amp; typeof rightValue === 'number') ||
+                (typeof leftValue === 'string' &amp;&amp; typeof rightValue === 'string')) {
                 return leftValue !== rightValue;
             }
             return valueCompare(leftValue, rightValue) !== 0;

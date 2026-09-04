@@ -32,6 +32,7 @@
 /** @module lib/optionsNode */
 
 import {readFile, writeFile} from 'node:fs/promises';
+import {rURL} from './options.js';
 import {stdout} from 'node:process';
 
 
@@ -40,21 +41,7 @@ import {stdout} from 'node:process';
  * and POST for URLs, otherwise read-only file system access
  */
 export function fetchReadOnly(url, options = null, fetchFn = fetch, readFileFn = readFile) {
-    // URL fetch?
-    if (rURL.test(url)) {
-        return fetchFn(url, options);
-    }
-
-    // File write?
-    if ((options ?? null) !== null &amp;&amp; 'body' in options) {
-        return {'ok': false};
-    }
-
-    // File read
-    return {
-        'ok': true,
-        'text': () => readFileFn(url, 'utf-8')
-    };
+    return fetchHelper(url, options, fetchFn, readFileFn, null);
 }
 
 
@@ -63,6 +50,12 @@ export function fetchReadOnly(url, options = null, fetchFn = fetch, readFileFn =
  * and POST for URLs, otherwise read-write file system access
  */
 export function fetchReadWrite(url, options, fetchFn = fetch, readFileFn = readFile, writeFileFn = writeFile) {
+    return fetchHelper(url, options, fetchFn, readFileFn, writeFileFn);
+}
+
+
+// Helper to fetch a URL or read/write a file - a null write-file function makes file writes fail
+function fetchHelper(url, options, fetchFn, readFileFn, writeFileFn) {
     // URL fetch?
     if (rURL.test(url)) {
         return fetchFn(url, options);
@@ -70,6 +63,9 @@ export function fetchReadWrite(url, options, fetchFn = fetch, readFileFn = readF
 
     // File write?
     if ((options ?? null) !== null &amp;&amp; 'body' in options) {
+        if (writeFileFn === null) {
+            return {'ok': false};
+        }
         return {
             'ok': true,
             'text': async () => {
@@ -85,9 +81,6 @@ export function fetchReadWrite(url, options, fetchFn = fetch, readFileFn = readF
         'text': () => readFileFn(url, 'utf-8')
     };
 }
-
-
-export const rURL = /^[a-z]+:/;
 
 
 /**
