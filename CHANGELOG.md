@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.7 (2026-09-04)
+
+- [2350a87](https://github.com/craigahobbs/bare-script/commit/2350a87) - publish parser/lint globals only once initialized \(mirror of the bare-script-py thread-safety fix\)
+
 ## 5.1.6 (2026-08-31)
 
 - [fa62676](https://github.com/craigahobbs/bare-script/commit/fa62676) - add markdownToString and fix markdown parser escape handling
