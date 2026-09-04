@@ -2687,6 +2687,14 @@ test('executeScript, intrinsic stringLength', () => {
 });
 
 
+test('executeScript, intrinsic systemType', () => {
+    assert.equal(intrCall('systemType', [intrStr('abc')]), 'string');
+    assert.equal(intrCall('systemType', [intrArr(1)]), 'array');
+    assert.equal(intrCall('systemType', []), 'null'); // value missing
+    assert.equal(intrCall('systemType', [intrStr('a'), intrStr('b')]), 'string'); // extra arguments are ignored
+});
+
+
 test('executeScript, intrinsic debug logging', () => {
     const logs = [];
     const options = {'logFn': (message) => logs.push(message), 'debug': true};

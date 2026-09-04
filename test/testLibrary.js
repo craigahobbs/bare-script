@@ -4265,3 +4265,21 @@ test('library, systemType', () => {
 });
 
 
+
+
+test('library, regexMatchAll, empty matches', () => {
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/x*/, 'ab'], null).map((match) => match.index),
+        [0, 1, 2]
+    );
+
+    // Unicode regex - empty matches advance by code point
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/(?:)/u, 'a\u{1F600}b'], null).map((match) => match.index),
+        [0, 1, 3, 4]
+    );
+    assert.deepEqual(
+        scriptFunctions.regexMatchAll([/(?:)/, 'a\u{1F600}b'], null).map((match) => match.index),
+        [0, 1, 2, 3, 4]
+    );
+});
