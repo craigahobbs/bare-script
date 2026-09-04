@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.9 (2026-09-04)
+
+- [db6c5f8](https://github.com/craigahobbs/bare-script/commit/db6c5f8) - embed the include library models with gzip and base64 instead of dictionary compression
+
 ## 5.1.8 (2026-09-04)
 
 - [46c1215](https://github.com/craigahobbs/bare-script/commit/46c1215) - create the include fetch cache with a nullish assignment
