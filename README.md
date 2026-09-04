@@ -284,26 +284,26 @@ native JavaScript program (using the
 [markdown-model](https://www.npmjs.com/package/markdown-model) and
 [schema-markdown](https://www.npmjs.com/package/schema-markdown) packages).
 
-The following results are from `make perf PERF_MERGE=` (Node.js 24, Apple M-series). Times are the
+The following results are from `make perf PERF_MERGE=` (Node.js 26, Apple M-series). Times are the
 best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
 time. Tests without a native JavaScript equivalent are omitted.
 
 | Test             | Language        | Time (ms) | Multiple |
 | ---------------- | --------------- | --------: | -------: |
-| markdownParse    | JavaScript      |     649.1 |          |
-|                  | BareScript (JS) |    3020.0 |     4.7x |
-| schemaParse      | JavaScript      |      72.5 |          |
-|                  | BareScript (JS) |    1192.0 |    16.4x |
-| urlDecode        | JavaScript      |       5.0 |          |
-|                  | BareScript (JS) |      90.0 |    18.0x |
-| urlEncode        | JavaScript      |       2.6 |          |
-|                  | BareScript (JS) |      51.0 |    19.8x |
-| markdownElements | JavaScript      |      32.7 |          |
-|                  | BareScript (JS) |     737.0 |    22.5x |
-| schemaValidate   | JavaScript      |      56.9 |          |
-|                  | BareScript (JS) |    1936.0 |    34.0x |
-| mandelbrot       | JavaScript      |    2037.3 |          |
-|                  | BareScript (JS) |  305000.0 |   149.7x |
+| mandelbrot       | JavaScript      |    1550.0 |          |
+|                  | BareScript (JS) |  264000.0 |   170.3x |
+| markdownElements | JavaScript      |      32.6 |          |
+|                  | BareScript (JS) |     670.0 |    20.5x |
+| markdownParse    | JavaScript      |     615.9 |          |
+|                  | BareScript (JS) |    2208.0 |     3.6x |
+| schemaParse      | JavaScript      |      71.9 |          |
+|                  | BareScript (JS) |    1048.0 |    14.6x |
+| schemaValidate   | JavaScript      |      57.1 |          |
+|                  | BareScript (JS) |    1776.0 |    31.1x |
+| urlDecode        | JavaScript      |       4.8 |          |
+|                  | BareScript (JS) |      76.0 |    15.9x |
+| urlEncode        | JavaScript      |       2.2 |          |
+|                  | BareScript (JS) |      43.0 |    19.4x |
 
 
 ## Using BareScript with an AI Assistant
