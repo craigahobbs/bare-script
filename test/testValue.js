@@ -754,7 +754,16 @@ test('valueArgsModel', () => {
         {'name': 'str', 'type': 'string'},
         {'name': 'num', 'type': 'number', 'default': 0}
     ];
-    assert.equal(valueArgsModel(fnArgs), fnArgs);
+    assert.deepEqual(valueArgsModel(fnArgs), [
+        {
+            'name': 'str', 'type': 'string', 'default': null, 'nullable': false, 'lastArgArray': false,
+            'integer': false, 'lt': null, 'lte': null, 'gt': null, 'gte': null
+        },
+        {
+            'name': 'num', 'type': 'number', 'default': 0, 'nullable': false, 'lastArgArray': false,
+            'integer': false, 'lt': null, 'lte': null, 'gt': null, 'gte': null
+        }
+    ]);
 
     // Null default argument value error
     assert.throws(
