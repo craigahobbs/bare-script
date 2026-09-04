@@ -1,5 +1,39 @@
 # Changelog
 
+## 5.1.8 (2026-09-04)
+
+- [46c1215](https://github.com/craigahobbs/bare-script/commit/46c1215) - create the include fetch cache with a nullish assignment
+
+- [77058be](https://github.com/craigahobbs/bare-script/commit/77058be) - share the include-tracking and include-lint helpers between the sync and async runtimes
+
+- [790742c](https://github.com/craigahobbs/bare-script/commit/790742c) - simplify the include library - normalized option objects, shared storage mocks, and an error helper
+
+- [2ae2ea3](https://github.com/craigahobbs/bare-script/commit/2ae2ea3) - regexMatchAll exec loop, arrayJoin fast path, systemType intrinsic, and intrinsic chain order
+
+- [f97033e](https://github.com/craigahobbs/bare-script/commit/f97033e) - compute the QR code mask penalty with row/column strings and chunked bit arithmetic
+
+- [7fb4c7b](https://github.com/craigahobbs/bare-script/commit/7fb4c7b) - runtime and library micro-optimizations - string equality, if arguments, regex global cache, objectNew key check
+
+- [7510dd1](https://github.com/craigahobbs/bare-script/commit/7510dd1) - normalize argument models once so the validator reads one object shape
+
+- [482dfb0](https://github.com/craigahobbs/bare-script/commit/482dfb0) - read statement and expression kinds with for-in instead of Object.keys
+
+- [e7ff7b1](https://github.com/craigahobbs/bare-script/commit/e7ff7b1) - share the Node fetch implementation and fetch systemFetch resources in one pass
+
+- [f6ea7af](https://github.com/craigahobbs/bare-script/commit/f6ea7af) - simplify the parser's function label depth tracking and the line chart axis computation
+
+- [c219890](https://github.com/craigahobbs/bare-script/commit/c219890) - simplify library helpers - datetimeISOFormat, arrayJoin, regexMatchAll, regexReplace, systemPartial
+
+- [ea4d452](https://github.com/craigahobbs/bare-script/commit/ea4d452) - simplify the include library - shared helpers and merged branches
+
+- [abae92a](https://github.com/craigahobbs/bare-script/commit/abae92a) - share the execute-script prologue and script-function locals between the sync and async runtimes
+
+- [2d15e0c](https://github.com/craigahobbs/bare-script/commit/2d15e0c) - generate the integer-parse radix regex table
+
+- [5b80e8d](https://github.com/craigahobbs/bare-script/commit/5b80e8d) - share the system-include bootstrap between the parser and linter and unwrap parse results in one place
+
+- [a0009bb](https://github.com/craigahobbs/bare-script/commit/a0009bb) - simplify regexEnsureGlobal cache, share rURL with optionsNode, and delegate all non-async expressions in evaluateExpressionAsync
+
 ## 5.1.7 (2026-09-04)
 
 - [2350a87](https://github.com/craigahobbs/bare-script/commit/2350a87) - publish parser/lint globals only once initialized \(mirror of the bare-script-py thread-safety fix\)
