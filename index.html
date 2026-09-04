@@ -256,7 +256,7 @@ parsing and validation, and URL encoding and decoding — and compares each test
 native JavaScript program (using the
 <a href="https://www.npmjs.com/package/markdown-model">markdown-model</a> and
 <a href="https://www.npmjs.com/package/schema-markdown">schema-markdown</a> packages).</p>
-<p>The following results are from <code>make perf PERF_MERGE=</code> (Node.js 24, Apple M-series). Times are the
+<p>The following results are from <code>make perf PERF_MERGE=</code> (Node.js 26, Apple M-series). Times are the
 best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
 time. Tests without a native JavaScript equivalent are omitted.</p>
 <table>
@@ -270,88 +270,88 @@ time. Tests without a native JavaScript equivalent are omitted.</p>
 </thead>
 <tbody>
 <tr>
-<td>markdownParse</td>
+<td>mandelbrot</td>
 <td>JavaScript</td>
-<td style="text-align:right">649.1</td>
+<td style="text-align:right">1550.0</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">3020.0</td>
-<td style="text-align:right">4.7x</td>
-</tr>
-<tr>
-<td>schemaParse</td>
-<td>JavaScript</td>
-<td style="text-align:right">72.5</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">1192.0</td>
-<td style="text-align:right">16.4x</td>
-</tr>
-<tr>
-<td>urlDecode</td>
-<td>JavaScript</td>
-<td style="text-align:right">5.0</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">90.0</td>
-<td style="text-align:right">18.0x</td>
-</tr>
-<tr>
-<td>urlEncode</td>
-<td>JavaScript</td>
-<td style="text-align:right">2.6</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">51.0</td>
-<td style="text-align:right">19.8x</td>
+<td style="text-align:right">264000.0</td>
+<td style="text-align:right">170.3x</td>
 </tr>
 <tr>
 <td>markdownElements</td>
 <td>JavaScript</td>
-<td style="text-align:right">32.7</td>
+<td style="text-align:right">32.6</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">737.0</td>
-<td style="text-align:right">22.5x</td>
+<td style="text-align:right">670.0</td>
+<td style="text-align:right">20.5x</td>
+</tr>
+<tr>
+<td>markdownParse</td>
+<td>JavaScript</td>
+<td style="text-align:right">615.9</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">2208.0</td>
+<td style="text-align:right">3.6x</td>
+</tr>
+<tr>
+<td>schemaParse</td>
+<td>JavaScript</td>
+<td style="text-align:right">71.9</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">1048.0</td>
+<td style="text-align:right">14.6x</td>
 </tr>
 <tr>
 <td>schemaValidate</td>
 <td>JavaScript</td>
-<td style="text-align:right">56.9</td>
+<td style="text-align:right">57.1</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">1936.0</td>
-<td style="text-align:right">34.0x</td>
+<td style="text-align:right">1776.0</td>
+<td style="text-align:right">31.1x</td>
 </tr>
 <tr>
-<td>mandelbrot</td>
+<td>urlDecode</td>
 <td>JavaScript</td>
-<td style="text-align:right">2037.3</td>
+<td style="text-align:right">4.8</td>
 <td style="text-align:right"></td>
 </tr>
 <tr>
 <td></td>
 <td>BareScript (JS)</td>
-<td style="text-align:right">305000.0</td>
-<td style="text-align:right">149.7x</td>
+<td style="text-align:right">76.0</td>
+<td style="text-align:right">15.9x</td>
+</tr>
+<tr>
+<td>urlEncode</td>
+<td>JavaScript</td>
+<td style="text-align:right">2.2</td>
+<td style="text-align:right"></td>
+</tr>
+<tr>
+<td></td>
+<td>BareScript (JS)</td>
+<td style="text-align:right">43.0</td>
+<td style="text-align:right">19.4x</td>
 </tr>
 </tbody>
 </table>
