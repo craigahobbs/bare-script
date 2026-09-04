@@ -221,13 +221,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
 
         # Bases
         if objectHas(struct, 'bases'):
-            bases = objectGet(struct, 'bases')
-            basesLinks = []
-            for base in bases:
-                arrayPush(basesLinks, '[' + markdownEscape(base) + '](#' + schemaDocTypeHref(objectGet(types, base)) + ')')
-            endfor
-            arrayPush(lines, '')
-            arrayPush(lines, 'Bases: ' + arrayJoin(basesLinks, ', '))
+            arrayExtend(lines, schemaDocBasesLines(types, objectGet(struct, 'bases')))
         endif
 
         # Documentation
@@ -287,13 +281,7 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
 
         # Bases
         if objectHas(enum, 'bases'):
-            bases = objectGet(enum, 'bases')
-            basesLinks = []
-            for base in bases:
-                arrayPush(basesLinks, '[' + markdownEscape(base) + '](#' + schemaDocTypeHref(objectGet(types, base)) + ')')
-            endfor
-            arrayPush(lines, '')
-            arrayPush(lines, 'Bases: ' + arrayJoin(basesLinks, ', '))
+            arrayExtend(lines, schemaDocBasesLines(types, objectGet(enum, 'bases')))
         endif
 
         # Documentation
@@ -391,42 +379,18 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
             endfor
         endif
 
-        # Path struct
-        if objectHas(action, 'path'):
-            arrayPush(lines, '')
-            arrayExtend( \
-                lines, \
-                schemaDocUserTypeMarkdown(types, objectGet(action, 'path'), options, headerPrefix + '#', 'Path Parameters') \
-            )
-        endif
-
-        # Query struct
-        if objectHas(action, 'query'):
-            arrayPush(lines, '')
-            arrayExtend( \
-                lines, \
-                schemaDocUserTypeMarkdown(types, objectGet(action, 'query'), options, headerPrefix + '#', 'Query Parameters') \
-            )
-        endif
-
-        # Input struct
-        if objectHas(action, 'input'):
-            arrayPush(lines, '')
-            arrayExtend( \
-                lines, \
-                schemaDocUserTypeMarkdown(types, objectGet(action, 'input'), options, headerPrefix + '#', 'Input Parameters') \
-            )
-        endif
-
-        # Output struct
+        # Path, query, input, and output structs (custom actions have no output struct)
         actionCustom = options != null && objectGet(options, 'actionCustom')
-        if objectHas(action, 'output') && !actionCustom:
-            arrayPush(lines, '')
-            arrayExtend( \
-                lines, \
-                schemaDocUserTypeMarkdown(types, objectGet(action, 'output'), options, headerPrefix + '#', 'Output Parameters') \
-            )
-        endif
+        for actionStruct in schemaDocActionStructs:
+            structMember = arrayGet(actionStruct, 0)
+            if objectHas(action, structMember) && !(actionCustom && structMember == 'output'):
+                arrayPush(lines, '')
+                arrayExtend( \
+                    lines, \
+                    schemaDocUserTypeMarkdown(types, objectGet(action, structMember), options, headerPrefix + '#', arrayGet(actionStruct, 1)) \
+                )
+            endif
+        endfor
 
         # Error enum
         if !actionCustom:
@@ -470,6 +434,25 @@ function schemaDocUserTypeMarkdown(types, typeName, options, headerPrefix, title
     endif
 
     return lines
+endfunction
+
+
+# The action struct members and their documentation titles, in render order
+schemaDocActionStructs = [ \
+    ['path', 'Path Parameters'], \
+    ['query', 'Query Parameters'], \
+    ['input', 'Input Parameters'], \
+    ['output', 'Output Parameters'] \
+]
+
+
+# Helper to render a type's "Bases" lines
+function schemaDocBasesLines(types, bases):
+    basesLinks = []
+    for base in bases:
+        arrayPush(basesLinks, '[' + markdownEscape(base) + '](#' + schemaDocTypeHref(objectGet(types, base)) + ')')
+    endfor
+    return ['', 'Bases: ' + arrayJoin(basesLinks, ', ')]
 endfunction
 
 
@@ -571,35 +554,19 @@ function schemaDocAttrParts(parts, noun, attr, optional):
         if objectHas(attr, 'nullable'):
             arrayPush(parts, 'nullable')
         endif
-        if objectHas(attr, 'gt'):
-            arrayPush(parts, noun + ' > ' + objectGet(attr, 'gt'))
-        endif
-        if objectHas(attr, 'gte'):
-            arrayPush(parts, noun + ' >= ' + objectGet(attr, 'gte'))
-        endif
-        if objectHas(attr, 'lt'):
-            arrayPush(parts, noun + ' < ' + objectGet(attr, 'lt'))
-        endif
-        if objectHas(attr, 'lte'):
-            arrayPush(parts, noun + ' <= ' + objectGet(attr, 'lte'))
-        endif
-        if objectHas(attr, 'eq'):
-            arrayPush(parts, noun + ' == ' + objectGet(attr, 'eq'))
-        endif
-        if objectHas(attr, 'lenGT'):
-            arrayPush(parts, 'len(' + noun + ')' + ' > ' + objectGet(attr, 'lenGT'))
-        endif
-        if objectHas(attr, 'lenGTE'):
-            arrayPush(parts, 'len(' + noun + ')' + ' >= ' + objectGet(attr, 'lenGTE'))
-        endif
-        if objectHas(attr, 'lenLT'):
-            arrayPush(parts, 'len(' + noun + ')' + ' < ' + objectGet(attr, 'lenLT'))
-        endif
-        if objectHas(attr, 'lenLTE'):
-            arrayPush(parts, 'len(' + noun + ')' + ' <= ' + objectGet(attr, 'lenLTE'))
-        endif
-        if objectHas(attr, 'lenEq'):
-            arrayPush(parts, 'len(' + noun + ')' + ' == ' + objectGet(attr, 'lenEq'))
-        endif
+        for attrOp in schemaDocAttrOps:
+            attrName = arrayGet(attrOp, 0)
+            if objectHas(attr, attrName):
+                attrNoun = if(stringStartsWith(attrName, 'len'), 'len(' + noun + ')', noun)
+                arrayPush(parts, attrNoun + ' ' + arrayGet(attrOp, 1) + ' ' + objectGet(attr, attrName))
+            endif
+        endfor
     endif
 endfunction
+
+
+# The attribute comparison operators, in display order - the "len" attributes compare the noun's length
+schemaDocAttrOps = [ \
+    ['gt', '>'], ['gte', '>='], ['lt', '<'], ['lte', '<='], ['eq', '=='], \
+    ['lenGT', '>'], ['lenGTE', '>='], ['lenLT', '<'], ['lenLTE', '<='], ['lenEq', '=='] \
+]

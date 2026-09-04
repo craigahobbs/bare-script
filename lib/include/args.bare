@@ -282,64 +282,40 @@ function argsValidateValue(value, type, global, warn):
         return null
     endif
 
-    # Validate the value's type
+    # Validate the value's type - an invalid value is null
+    valueOrig = value
     valueType = systemType(value)
     if type == 'bool':
         if valueType == 'number' && (value == 0 || value == 1):
             value = !!value
         elif valueType != 'boolean':
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
-            endif
             value = null
         endif
-    elif type == 'date':
-        valueOrig = value
+    elif type == 'date' || type == 'datetime':
         if valueType == 'string':
             value = datetimeISOParse(value)
             valueType = systemType(value)
         endif
-        if valueType != 'datetime' || datetimeHour(value) != 0 || datetimeMinute(value) != 0 || datetimeSecond(value) != 0 || \
-                datetimeMillisecond(value) != 0:
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
-            endif
-            value = null
-        endif
-    elif type == 'datetime':
-        valueOrig = value
-        if valueType == 'string':
-            value = datetimeISOParse(value)
-            valueType = systemType(value)
-        endif
-        if valueType != 'datetime':
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
-            endif
+        if valueType != 'datetime' || (type == 'date' && (datetimeHour(value) != 0 || datetimeMinute(value) != 0 || \
+                datetimeSecond(value) != 0 || datetimeMillisecond(value) != 0)):
             value = null
         endif
     elif type == 'float':
         if valueType != 'number':
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
-            endif
             value = null
         endif
     elif type == 'int':
         if valueType != 'number' || value != mathFloor(value):
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
-            endif
             value = null
         endif
-    else:
+    elif valueType != 'string':
         # type == 'string'
-        if valueType != 'string':
-            if warn != false:
-                systemLogDebug('args.bare: Invalid value ' + jsonStringify(value) + ' for URL argument "' + global + '"')
-            endif
-            value = null
-        endif
+        value = null
+    endif
+
+    # Warn on an invalid value
+    if value == null && warn != false:
+        systemLogDebug('args.bare: Invalid value ' + jsonStringify(valueOrig) + ' for URL argument "' + global + '"')
     endif
 
     return value

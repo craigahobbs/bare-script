@@ -173,66 +173,22 @@ function dataValidateEx(data, csv):
             if csv && value == 'null':
                 objectSet(row, field, null)
 
-            # Number field?
-            elif fieldType == 'number':
-                if csv && valueType == 'string':
-                    if value == '':
-                        numberValue = null
-                    else:
-                        numberValue = numberParseFloat(value)
-                        if numberValue == null:
-                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType}
-                        endif
+            # Parse a CSV string value for a typed (non-string) field
+            elif csv && valueType == 'string' && fieldType != 'string':
+                if value == '':
+                    parsedValue = null
+                else:
+                    parsedValue = if(fieldType == 'number', numberParseFloat(value), \
+                        if(fieldType == 'datetime', datetimeISOParse(value), if(value == 'true', true, if(value == 'false', false))))
+                    if parsedValue == null:
+                        return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType}
                     endif
-                    objectSet(row, field, numberValue)
-                elif value != null && valueType != 'number':
-                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType}
                 endif
+                objectSet(row, field, parsedValue)
 
-            # Datetime field?
-            elif fieldType == 'datetime':
-                if csv && valueType == 'string':
-                    if value == '':
-                        datetimeValue = null
-                    else:
-                        datetimeValue = datetimeISOParse(value)
-                        if datetimeValue == null:
-                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType}
-                        endif
-                    endif
-                    objectSet(row, field, datetimeValue)
-                elif value != null && valueType != 'datetime':
-                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType}
-                endif
-
-            # Boolean field?
-            elif fieldType == 'boolean':
-                if csv && valueType == 'string':
-                    if value == '':
-                        booleanValue = null
-                    else:
-                        booleanValue = if(value == 'true', true, if(value == 'false', false, null))
-                        if booleanValue == null:
-                            return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                                ', expected type ' + fieldType}
-                        endif
-                    endif
-                    objectSet(row, field, booleanValue)
-                elif value != null && valueType != 'boolean':
-                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType}
-                endif
-
-            # String field
-            else:
-                if value != null && valueType != 'string':
-                    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + \
-                        ', expected type ' + fieldType}
-                endif
+            # Invalid value type?
+            elif value != null && valueType != fieldType:
+                return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType}
             endif
         endfor
     endfor
@@ -502,17 +458,9 @@ function dataAggregate(data, aggregation):
                 endfor
                 objectSet(aggregateRow, measureName, minVal)
             elif measureFunc == 'sum':
-                sumVal = 0
-                for val in measureValues:
-                    sumVal = sumVal + val
-                endfor
-                objectSet(aggregateRow, measureName, sumVal)
+                objectSet(aggregateRow, measureName, dataAggregateSum(measureValues))
             elif measureFunc == 'stddev':
-                sumVal = 0
-                for val in measureValues:
-                    sumVal = sumVal + val
-                endfor
-                avgVal = sumVal / arrayLength(measureValues)
+                avgVal = dataAggregateSum(measureValues) / arrayLength(measureValues)
                 sumSqDiff = 0
                 for val in measureValues:
                     sumSqDiff = sumSqDiff + (val - avgVal) ** 2
@@ -520,16 +468,22 @@ function dataAggregate(data, aggregation):
                 objectSet(aggregateRow, measureName, mathSqrt(sumSqDiff / arrayLength(measureValues)))
             else:
                 # measureFunc == 'average'
-                sumVal = 0
-                for val in measureValues:
-                    sumVal = sumVal + val
-                endfor
-                objectSet(aggregateRow, measureName, sumVal / arrayLength(measureValues))
+                objectSet(aggregateRow, measureName, dataAggregateSum(measureValues) / arrayLength(measureValues))
             endif
         endfor
     endfor
 
     return aggregateRows
+endfunction
+
+
+# Helper to sum an array of numbers
+function dataAggregateSum(values):
+    sumVal = 0
+    for val in values:
+        sumVal = sumVal + val
+    endfor
+    return sumVal
 endfunction
 
 

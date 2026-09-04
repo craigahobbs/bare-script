@@ -114,20 +114,7 @@ function dataTableMarkdown(data, model):
     if modelCategories != null:
         arrayExtend(fields, modelCategories)
     endif
-    if modelFields != null:
-        arrayExtend(fields, modelFields)
-    else:
-        # Compute the data's fields (union of all row keys), excluding category fields
-        fieldNames = {}
-        for row in data:
-            for field in objectKeys(row):
-                if modelCategories == null || arrayIndexOf(modelCategories, field) == -1:
-                    objectSet(fieldNames, field, null)
-                endif
-            endfor
-        endfor
-        arrayExtend(fields, objectKeys(fieldNames))
-    endif
+    arrayExtend(fields, if(modelFields != null, modelFields, dataTableComputeFields(data, modelCategories)))
     if !fields:
         return null
     endif
@@ -244,6 +231,20 @@ dataTableMarkdownRegexMultipleNewline = regexNew('\r?\n(?:\r?\n)+')
 dataTableMarkdownRegexSingleNewline = regexNew('\r?\n')
 
 
+# Helper to compute the data's fields (the union of all row keys), excluding any category fields
+function dataTableComputeFields(data, categories):
+    fieldNames = {}
+    for row in data:
+        for field in objectKeys(row):
+            if !categories || arrayIndexOf(categories, field) == -1:
+                objectSet(fieldNames, field, null)
+            endif
+        endfor
+    endfor
+    return objectKeys(fieldNames)
+endfunction
+
+
 # Helper to generate the Markdown field text
 function dataTableMarkdownField(value, width, align, fill):
     spaces = width - stringLength(value)
@@ -280,25 +281,7 @@ function dataTableElements(data, dataTable):
     categories = if(dataTable != null, objectGet(dataTable, 'categories')) || []
     tableFields = if(dataTable != null, objectGet(dataTable, 'fields'))
     if tableFields == null:
-        # Compute the data's fields
-        fieldNames = {}
-        for row in data:
-            for field in objectKeys(row):
-                objectSet(fieldNames, field, null)
-            endfor
-        endfor
-
-        # Exclude category fields from the computed fields
-        if categories:
-            tableFields = []
-            for field in objectKeys(fieldNames):
-                if arrayIndexOf(categories, field) == -1:
-                    arrayPush(tableFields, field)
-                endif
-            endfor
-        else:
-            tableFields = objectKeys(fieldNames)
-        endif
+        tableFields = dataTableComputeFields(data, categories)
     endif
 
     # Data table members

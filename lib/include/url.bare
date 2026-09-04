@@ -9,39 +9,39 @@
 # $arg obj: The object to encode
 # $return: The encoded query string
 function urlEncodeQueryString(obj):
-    return arrayJoin(urlEncodeQueryStringHelper(obj, null, []), '&')
+    return arrayJoin(urlEncodeQueryStringHelper(obj, '', '', []), '&')
 endfunction
 
 
-# Helper function for urlEncodeQueryString
-function urlEncodeQueryStringHelper(obj, memberFqn, keyValues):
+# Helper function for urlEncodeQueryString - "valuePrefix" is the member's fully-qualified key plus "=" and
+# "memberPrefix" is the key plus "." (both are empty at the top level)
+function urlEncodeQueryStringHelper(obj, valuePrefix, memberPrefix, keyValues):
     objType = systemType(obj)
     if objType == 'array':
         if !obj:
-            arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
+            arrayPush(keyValues, valuePrefix)
         else:
             for value, ixValue in obj:
-                urlEncodeQueryStringHelper(value, if(memberFqn != null, memberFqn + '.' + ixValue, '' + ixValue), keyValues)
+                memberFqn = memberPrefix + ixValue
+                urlEncodeQueryStringHelper(value, memberFqn + '=', memberFqn + '.', keyValues)
             endfor
         endif
     elif objType == 'datetime':
-        objEncoded = urlEncodeComponent(datetimeISOFormat(obj))
-        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + objEncoded, objEncoded))
+        arrayPush(keyValues, valuePrefix + urlEncodeComponent(datetimeISOFormat(obj)))
     elif objType == 'object':
         keys = arraySort(objectKeys(obj))
         if !keys:
-            arrayPush(keyValues, if(memberFqn != null, memberFqn + '=', ''))
+            arrayPush(keyValues, valuePrefix)
         else:
             for key in keys:
-                keyEncoded = urlEncodeComponent(key)
-                urlEncodeQueryStringHelper(objectGet(obj, key), if(memberFqn != null, memberFqn + '.' + keyEncoded, keyEncoded), keyValues)
+                memberFqn = memberPrefix + urlEncodeComponent(key)
+                urlEncodeQueryStringHelper(objectGet(obj, key), memberFqn + '=', memberFqn + '.', keyValues)
             endfor
         endif
     elif obj == null || objType == 'boolean' || objType == 'number':
-        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + obj, '' + obj))
+        arrayPush(keyValues, valuePrefix + obj)
     else:
-        objEncoded = urlEncodeComponent(obj)
-        arrayPush(keyValues, if(memberFqn != null, memberFqn + '=' + objEncoded, objEncoded))
+        arrayPush(keyValues, valuePrefix + urlEncodeComponent(obj))
     endif
     return keyValues
 endfunction
@@ -77,26 +77,30 @@ function urlDecodeQueryString(queryString):
 
         # Find/create the object on which to set the value
         parent = result
+        parentIsArray = true
         keyParent = 0
         for keyEncoded in stringSplit(keyFqn, '.'):
             key = urlDecodeComponent(keyEncoded)
             if key == null:
                 return null
             endif
-            obj = if(systemType(parent) == 'array', arrayGet(parent, keyParent), objectGet(parent, keyParent))
+            obj = if(parentIsArray, arrayGet(parent, keyParent), objectGet(parent, keyParent))
 
             # Array key? The first "key" of an array must be "0".
-            if systemType(obj) == 'array' || (obj == null && key == '0'):
-                # Create this key's container, if necessary
-                if obj == null:
-                    obj = []
-                    if systemType(parent) == 'array':
-                        arraySet(parent, keyParent, obj)
-                    else:
-                        objectSet(parent, keyParent, obj)
-                    endif
-                endif
+            isArrayKey = systemType(obj) == 'array' || (obj == null && key == '0')
 
+            # Create this key's container, if necessary
+            if obj == null:
+                obj = if(isArrayKey, [], {})
+                if parentIsArray:
+                    arraySet(parent, keyParent, obj)
+                else:
+                    objectSet(parent, keyParent, obj)
+                endif
+            endif
+
+            # Array key?
+            if isArrayKey:
                 # Parse the key as an array index
                 keyOrig = key
                 key = if(regexMatch(urlDecodeQueryStringRegexIndex, key) != null, numberParseInt(key))
@@ -108,33 +112,23 @@ function urlDecodeQueryString(queryString):
                     systemLogDebug("url.bare: Invalid array index '" + urlTruncate(keyOrig) + "' in key '" + urlTruncate(keyFqn) + "'")
                     return null
                 endif
-            else:
-                # Create this key's container, if necessary
-                if obj == null:
-                    obj = {}
-                    if systemType(parent) == 'array':
-                        arraySet(parent, keyParent, obj)
-                    else:
-                        objectSet(parent, keyParent, obj)
-                    endif
-                elif systemType(obj) != 'object':
-                    systemLogDebug("url.bare: Invalid key '" + urlTruncate(keyFqn) + "'")
-                    return null
-                endif
 
-                # Create the index for this key
-                if !objectHas(obj, key):
-                    objectSet(obj, key, null)
-                endif
+            # Object key - create the key's value placeholder null
+            elif systemType(obj) != 'object':
+                systemLogDebug("url.bare: Invalid key '" + urlTruncate(keyFqn) + "'")
+                return null
+            elif !objectHas(obj, key):
+                objectSet(obj, key, null)
             endif
 
             # Update the parent object and key
             parent = obj
+            parentIsArray = isArrayKey
             keyParent = key
         endfor
 
         # Set the value
-        if systemType(parent) == 'array':
+        if parentIsArray:
             if arrayGet(parent, keyParent) != null:
                 systemLogDebug("url.bare: Duplicate key '" + urlTruncate(keyFqn) + "'")
                 return null
@@ -231,8 +225,7 @@ function urlEncodeBytesNew():
     encodeBytes = []
     byte = 0
     while byte < 256:
-        arrayPush(encodeBytes, '%' + stringSlice(hexDigits, mathFloor(byte / 16), mathFloor(byte / 16) + 1) + \
-            stringSlice(hexDigits, byte % 16, byte % 16 + 1))
+        arrayPush(encodeBytes, '%' + stringCharAt(hexDigits, mathFloor(byte / 16)) + stringCharAt(hexDigits, byte % 16))
         byte = byte + 1
     endwhile
     return encodeBytes

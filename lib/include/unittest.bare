@@ -72,14 +72,8 @@ function unittestEqual(actual, expected, description):
         return
     endif
 
-    # Get the global unittest data
-    unittestData = unittestDataGet()
-    unittestTests = objectGet(unittestData, 'tests')
-    unittestCurrent = objectGet(unittestData, 'current')
-    testFailures = objectGet(unittestTests, unittestCurrent)
-
     # Add the test failure error lines
-    errorLines = [ \
+    unittestFailure([ \
         'Equal:', \
         '', \
         '```', \
@@ -89,12 +83,7 @@ function unittestEqual(actual, expected, description):
         '```', \
         jsonStringify(expected), \
         '```' \
-    ]
-    if description:
-        arrayPush(testFailures, arrayExtend([markdownEscape(description), ''], errorLines))
-    else:
-        arrayPush(testFailures, errorLines)
-    endif
+    ], description)
 endfunction
 
 
@@ -117,22 +106,16 @@ function unittestDeepEqual(actual, expected, description):
     diffErrorLines = []
     for diff in diffLines(actualJSON, expectedJSON):
         diffType = objectGet(diff, 'type')
-        if diffType == 'Remove':
+        if diffType != 'Identical':
+            diffPrefix = if(diffType == 'Remove', '--- ', '+++ ')
             for diffLine in objectGet(diff, 'lines'):
-                arrayPush(diffErrorLines, '--- ' + diffLine)
+                arrayPush(diffErrorLines, diffPrefix + diffLine)
             endfor
-        elif diffType == 'Add':
-            for diffLine in objectGet(diff, 'lines'):
-                arrayPush(diffErrorLines, '+++ ' + diffLine)
-            endfor
-        else:
-            # diffType == 'Identical'
-            if diffErrorLines:
-                arrayExtend(errorLines, ['Deep-equal:', '', '```'])
-                arrayExtend(errorLines, diffErrorLines)
-                arrayPush(errorLines, '```')
-                diffErrorLines = []
-            endif
+        elif diffErrorLines:
+            arrayExtend(errorLines, ['Deep-equal:', '', '```'])
+            arrayExtend(errorLines, diffErrorLines)
+            arrayPush(errorLines, '```')
+            diffErrorLines = []
         endif
     endfor
     if diffErrorLines:
@@ -141,18 +124,16 @@ function unittestDeepEqual(actual, expected, description):
         arrayPush(errorLines, '```')
     endif
 
-    # Get the global unittest data
-    unittestData = unittestDataGet()
-    unittestTests = objectGet(unittestData, 'tests')
-    unittestCurrent = objectGet(unittestData, 'current')
-    testFailures = objectGet(unittestTests, unittestCurrent)
-
     # Add the test failure error lines
-    if description:
-        arrayPush(testFailures, arrayExtend([markdownEscape(description), ''], errorLines))
-    else:
-        arrayPush(testFailures, errorLines)
-    endif
+    unittestFailure(errorLines, description)
+endfunction
+
+
+# Helper to add a test failure's error lines to the current test
+function unittestFailure(errorLines, description):
+    unittestData = unittestDataGet()
+    testFailures = objectGet(objectGet(unittestData, 'tests'), objectGet(unittestData, 'current'))
+    arrayPush(testFailures, if(description, arrayExtend([markdownEscape(description), ''], errorLines), errorLines))
 endfunction
 
 

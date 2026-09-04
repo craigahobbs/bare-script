@@ -109,7 +109,6 @@ async function pagerMain(pagerModel, options):
         return
     endif
     pages = objectGet(pagerModel, 'pages')
-    pagesLength = arrayLength(pages)
 
     # Find the start page and end page
     startPageName = null
@@ -174,35 +173,9 @@ async function pagerMain(pagerModel, options):
         endif
     endfor
 
-    # Find the next page
-    nextPageName = null
-    ixPage = curPageIndex + 1
-    while ixPage < pagesLength:
-        page = arrayGet(pages, ixPage)
-        pageName = objectGet(page, 'name')
-        pageHidden = objectGet(page, 'hidden')
-        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
-        if !pageHidden && pageNavigable:
-            nextPageName = pageName
-            break
-        endif
-        ixPage = ixPage + 1
-    endwhile
-
-    # Find the previous page
-    prevPageName = null
-    ixPage = curPageIndex - 1
-    while ixPage >= 0:
-        page = arrayGet(pages, ixPage)
-        pageName = objectGet(page, 'name')
-        pageHidden = objectGet(page, 'hidden')
-        pageNavigable = !objectHas(objectGet(page, 'type'), 'link')
-        if !pageHidden && pageNavigable:
-            prevPageName = pageName
-            break
-        endif
-        ixPage = ixPage - 1
-    endwhile
+    # Find the next and previous pages
+    nextPageName = pagerFindPage(pages, curPageIndex + 1, 1)
+    prevPageName = pagerFindPage(pages, curPageIndex - 1, -1)
 
     # Render the menu
     if !optionHideMenu:
@@ -280,6 +253,20 @@ async function pagerMain(pagerModel, options):
     if optionKeyboard:
         documentSetKeyDown(systemPartial(pagerKeyDown, arguments, curPageName, startPageName, endPageName, nextPageName, prevPageName))
     endif
+endfunction
+
+
+# Helper to find the name of the nearest visible, navigable page, stepping from a page index (null if none)
+function pagerFindPage(pages, ixPage, ixStep):
+    pagesLength = arrayLength(pages)
+    while ixPage >= 0 && ixPage < pagesLength:
+        page = arrayGet(pages, ixPage)
+        if !objectGet(page, 'hidden') && !objectHas(objectGet(page, 'type'), 'link'):
+            return objectGet(page, 'name')
+        endif
+        ixPage = ixPage + ixStep
+    endwhile
+    return null
 endfunction
 
 
