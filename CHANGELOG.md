@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-05
+
+- [6e0bff7](https://github.com/craigahobbs/bare-script/commit/6e0bff7) - fix Safari include decode - read the decompression stream with a reader instead of async iteration
+
+- [7b0f6da](https://github.com/craigahobbs/bare-script/commit/7b0f6da) - update README performance numbers
+
+- [fd4c60f](https://github.com/craigahobbs/bare-script/commit/fd4c60f) - bare-script 5.1.9
+
 ## 5.1.9 (2026-09-04)
 
 - [db6c5f8](https://github.com/craigahobbs/bare-script/commit/db6c5f8) - embed the include library models with gzip and base64 instead of dictionary compression
