@@ -788,10 +788,15 @@ function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
         return [{'string': barescriptParserStringEscape(string)}, nextText]
     endif
 
-    # Number?
+    # Number? A number past the double range does not parse
     numberStr = objectGet(tokenGroups, 'num')
     if numberStr != null:
         number = if(stringStartsWith(numberStr, '0x'), numberParseInt(stringSlice(numberStr, 2), 16), numberParseFloat(numberStr))
+        if number == null:
+            objectSet(error, 'error', 'Number out of range')
+            objectSet(error, 'line', stringSlice(exprText, stringIndexOf(exprText, numberStr)))
+            return null
+        endif
         return [{'number': number}, nextText]
     endif
 

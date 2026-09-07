@@ -2242,6 +2242,28 @@ endfunction
 unittestRunTest('testBarescriptParserErrorAssignmentExpression')
 
 
+function testBarescriptParserErrorAssignmentNumberRange():
+    unittestMockAll()
+    unittestDeepEqual( \
+        barescriptParseScriptEx([ \
+            '   foo = 2 * 1e999' \
+        ], 5, 'test.bare'), \
+        { \
+            'error': { \
+                'error': 'Number out of range', \
+                'line': '   foo = 2 * 1e999', \
+                'columnNumber': 14, \
+                'lineNumber': 5, \
+                'scriptName': 'test.bare', \
+                'message': 'test.bare:5: Number out of range\n   foo = 2 * 1e999\n             ^\n' \
+            } \
+        } \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptParserErrorAssignmentNumberRange')
+
+
 function testBarescriptParserErrorNonAsciiIdentifier():
     unittestMockAll()
     unittestDeepEqual( \
@@ -2978,6 +3000,29 @@ function testBarescriptParserExpressionError():
     unittestDeepEqual(unittestMockEnd(), [])
 endfunction
 unittestRunTest('testBarescriptParserExpressionError')
+
+
+function testBarescriptParserExpressionErrorNumberRange():
+    unittestMockAll()
+    unittestDeepEqual( \
+        barescriptParseExpressionEx('1 + 1e999', 3, 'expr.bare'), \
+        { \
+            'error': { \
+                'error': 'Number out of range', \
+                'line': '1 + 1e999', \
+                'columnNumber': 5, \
+                'lineNumber': 3, \
+                'scriptName': 'expr.bare', \
+                'message': 'expr.bare:3: Number out of range\n1 + 1e999\n    ^\n' \
+            } \
+        } \
+    )
+    hexError = objectGet(barescriptParseExpressionEx('0x' + stringRepeat('f', 300), 3, 'expr.bare'), 'error')
+    unittestEqual(objectGet(hexError, 'error'), 'Number out of range')
+    unittestEqual(objectGet(hexError, 'columnNumber'), 1)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptParserExpressionErrorNumberRange')
 
 
 function testBarescriptParserExpressionErrorEmpty():

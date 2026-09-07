@@ -785,6 +785,11 @@ test('valueRoundNumber', () => {
     assert.equal(valueRoundNumber(2.5, 0), 3);
     assert.equal(valueRoundNumber(1.25, 1), 1.3);
     assert.equal(valueRoundNumber(1.35, 1), 1.4);
+
+    // Scaled past the double range
+    assert.equal(valueRoundNumber(1e308, 1), null);
+    assert.equal(valueRoundNumber(1, 400), null);
+    assert.equal(valueRoundNumber(0, 400), null);
 });
 
 
@@ -844,6 +849,11 @@ test('valueParseInteger', () => {
     // Special values
     assert.equal(valueParseInteger('NaN'), null);
     assert.equal(valueParseInteger('Infinity'), null);
+
+    // Past the double range
+    assert.equal(valueParseInteger(`1${'0'.repeat(308)}`), 1e308);
+    assert.equal(valueParseInteger(`1${'0'.repeat(309)}`), null);
+    assert.equal(valueParseInteger(`-1${'0'.repeat(309)}`), null);
 
     // Parse failure
     assert.equal(valueParseInteger('invalid'), null);

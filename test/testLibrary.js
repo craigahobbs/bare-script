@@ -1082,6 +1082,12 @@ test('library, datetimeNew', () => {
     // Required arguments only
     assert.deepEqual(scriptFunctions.datetimeNew([2022, 6, 21], null), new Date(2022, 5, 21));
 
+    // Past the Date range
+    assert.equal(scriptFunctions.datetimeNew([275760, 9, 12], null).getFullYear(), 275760);
+    assert.equal(scriptFunctions.datetimeNew([275760, 9, 14], null), null);
+    assert.equal(scriptFunctions.datetimeNew([1e300, 1, 1], null), null);
+    assert.equal(scriptFunctions.datetimeNew([2022, 6, 21, 1e12], null), null);
+
     // Extra months
     assert.deepEqual(
         scriptFunctions.datetimeNew([2022, 26, 21, 12, 30, 15, 100], null),
@@ -1360,6 +1366,16 @@ test('library, datetimeYear', () => {
 test('library, jsonParse', () => {
     assert.deepEqual(scriptFunctions.jsonParse(['{"a": 1, "b": 2}'], null), {'a': 1, 'b': 2});
 
+    // Numbers past the double range are null
+    assert.deepEqual(
+        scriptFunctions.jsonParse(['[1e999, -1e999, 1.5e308, {"a": 1e999, "b": [1E999, "e"]}]'], null),
+        [null, null, 1.5e308, {'a': null, 'b': [null, 'e']}]
+    );
+    assert.equal(scriptFunctions.jsonParse(['1e999'], null), null);
+    assert.equal(scriptFunctions.jsonParse(['"abc"'], null), 'abc');
+    assert.equal(scriptFunctions.jsonParse([`1${'0'.repeat(308)}`], null), 1e308);
+    assert.equal(scriptFunctions.jsonParse([`1${'0'.repeat(309)}`], null), null);
+
     // Invalid JSON
     assert.throws(
         () => {
@@ -1479,6 +1495,18 @@ test('library, mathAbs', () => {
 
 test('library, mathAcos', () => {
     assert.equal(scriptFunctions.mathAcos([1], null), 0);
+    assert.equal(scriptFunctions.mathAcos([-1], null), Math.PI);
+
+    // Out of domain
+    assert.throws(
+        () => {
+            scriptFunctions.mathAcos([2], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, 2'
+        }
+    );
 
     // Non-number
     assert.throws(
@@ -1495,6 +1523,18 @@ test('library, mathAcos', () => {
 
 test('library, mathAsin', () => {
     assert.equal(scriptFunctions.mathAsin([0], null), 0);
+    assert.equal(scriptFunctions.mathAsin([-1], null), -Math.PI / 2);
+
+    // Out of domain
+    assert.throws(
+        () => {
+            scriptFunctions.mathAsin([-2], null);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "x" argument value, -2'
+        }
+    );
 
     // Non-number
     assert.throws(
@@ -1766,6 +1806,10 @@ test('library, mathRound', () => {
     assert.equal(scriptFunctions.mathRound([5.25, 1.], null), 5.3);
     assert.equal(scriptFunctions.mathRound([5.15, 1], null), 5.2);
 
+    // Scaled past the double range
+    assert.equal(scriptFunctions.mathRound([1e308, 1], null), null);
+    assert.equal(scriptFunctions.mathRound([0, 400], null), null);
+
     // Non-number value
     assert.throws(
         () => {
@@ -1933,6 +1977,9 @@ test('library, numberParseInt', () => {
     // Non-ASCII digits and digit separators
     assert.equal(scriptFunctions.numberParseInt(['١٢٣'], null), null);
     assert.equal(scriptFunctions.numberParseInt(['1_000'], null), null);
+
+    // Past the double range
+    assert.equal(scriptFunctions.numberParseInt([`1${'0'.repeat(309)}`], null), null);
 
     // Non-string value
     assert.throws(
