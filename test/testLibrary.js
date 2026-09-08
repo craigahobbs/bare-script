@@ -1938,6 +1938,8 @@ test('library, mathTan', () => {
 
 test('library, numberParseFloat', () => {
     assert.equal(scriptFunctions.numberParseFloat(['123.45'], null), 123.45);
+    assert.equal(scriptFunctions.numberParseFloat(['\ufeff\u3000 123.45\u00a0'], null), 123.45);
+    assert.equal(scriptFunctions.numberParseFloat(['\x85123.45'], null), null);
 
     // Parse failure
     assert.equal(scriptFunctions.numberParseFloat(['invalid'], null), null);
@@ -2827,6 +2829,27 @@ test('library, regexMatchAll', () => {
 
 test('library, regexNew', () => {
     let regex = scriptFunctions.regexNew(['a*b'], null);
+
+    // The Unicode spaces of \s, the ASCII-only \w and \d, "." and the multi-line anchors over every line
+    // terminator, "$" at the end only, and simple case folding under "i"
+    const match = (pattern, flags, text) => {
+        const found = scriptFunctions.regexNew([pattern, flags], null).exec(text);
+        return found === null ? null : found[0];
+    };
+    assert.equal(match('\\s+', null, 'a\u3000\ufeff\u00a0b'), '\u3000\ufeff\u00a0');
+    assert.equal(match('\\s', null, '\x85\x1c'), null);
+    assert.equal(match('\\w', null, '\u00e9\u0434'), null);
+    assert.equal(match('\\d', null, '\u0665\uff15'), null);
+    assert.equal(match('a.b', null, 'a\rb'), null);
+    assert.equal(match('a.b', 's', 'a\u2028b'), 'a\u2028b');
+    assert.equal(match('^b', 'm', 'a\rb'), 'b');
+    assert.equal(match('a$', 'm', 'a\u2029b'), 'a');
+    assert.equal(match('a$', null, 'a\n'), null);
+    assert.equal(match('\u00e9', 'i', 'x\u00c9'), '\u00c9');
+    assert.equal(match('[\u00e0-\u00ff]', 'i', '\u00c0'), '\u00c0');
+    assert.equal(match('\u03c3', 'i', '\u03c2'), '\u03c2');
+    assert.equal(match('\u00df', 'i', '\u1e9e'), null);
+    assert.equal(match('k', 'i', '\u212a'), null);
     assert.equal(regex instanceof RegExp, true);
     assert.equal(regex.source, 'a*b');
     assert.equal(regex.flags, '');
@@ -3436,6 +3459,8 @@ test('library, stringLength', () => {
 
 
 test('library, stringLower', () => {
+    // A capital sigma lowers to the final sigma only where it ends a word
+    assert.equal(scriptFunctions.stringLower(['\u039f\u0394\u039f\u03a3 \u03a3'], null), '\u03bf\u03b4\u03bf\u03c2 \u03c3');
     assert.equal(scriptFunctions.stringLower(['Foo'], null), 'foo');
 
     // Non-string value
@@ -3722,6 +3747,7 @@ test('library, stringSplit', () => {
 
 test('library, stringSplitLines', () => {
     assert.deepEqual(scriptFunctions.stringSplitLines(['foo\nbar'], null), ['foo', 'bar']);
+    assert.deepEqual(scriptFunctions.stringSplitLines(['foo\r\nbar\r'], null), ['foo', 'bar\r']);
     assert.deepEqual(scriptFunctions.stringSplitLines(['foo\n\nbar\nbonk'], null), ['foo', '', 'bar', 'bonk']);
 
     // Single line
@@ -3776,6 +3802,10 @@ test('library, stringStartsWith', () => {
 
 test('library, stringTrim', () => {
     assert.equal(scriptFunctions.stringTrim([' abc  '], null), 'abc');
+
+    // The Unicode spaces
+    assert.equal(scriptFunctions.stringTrim(['\ufeff\u3000\u00a0abc\u2003\u2028'], null), 'abc');
+    assert.equal(scriptFunctions.stringTrim(['\x1cabc\x85'], null), '\x1cabc\x85');
     assert.equal(scriptFunctions.stringTrim(['\tabc\n'], null), 'abc');
     assert.equal(scriptFunctions.stringTrim(['abc'], null), 'abc');
 
@@ -3795,6 +3825,9 @@ test('library, stringTrim', () => {
 
 test('library, stringUpper', () => {
     assert.equal(scriptFunctions.stringUpper(['Foo'], null), 'FOO');
+
+    // Unicode case mapping - the full mapping, so the sharp s and the ligature expand
+    assert.equal(scriptFunctions.stringUpper(['\u00e9\u00df\ufb01 x'], null), '\u00c9SSFI X');
 
     // Non-string value
     assert.throws(
