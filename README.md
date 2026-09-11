@@ -277,33 +277,17 @@ To run a MarkdownUp script (`.bare`) from this package, use `bare -m` (Markdown 
 
 ## Performance
 
-The `make perf` target benchmarks the BareScript runtime with a suite of compute-intensive tests —
-Mandelbrot set computation, Markdown parsing and rendering, QR code generation, Schema Markdown
-parsing and validation, and URL encoding and decoding — and compares each test with an equivalent
-native JavaScript program (using the
+The C, JavaScript, and Python implementations share two benchmark suites: `make perf` (the include
+library, compared with native JavaScript via
 [markdown-model](https://www.npmjs.com/package/markdown-model) and
-[schema-markdown](https://www.npmjs.com/package/schema-markdown) packages).
+[schema-markdown](https://www.npmjs.com/package/schema-markdown)) and `make perfx` (applications
+ported to six languages). Results live on the
+[BareScript (C) Performance](https://craigahobbs.github.io/bare-script-c/perf/).
 
-The following results are from `make perf PERF_MERGE=` (Node.js 26, Apple M-series). Times are the
-best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
-time. Tests without a native JavaScript equivalent are omitted.
-
-| Test             | Language        | Time (ms) | Multiple |
-| ---------------- | --------------- | --------: | -------: |
-| mandelbrot       | JavaScript      |    1550.0 |          |
-|                  | BareScript (JS) |  264000.0 |   170.3x |
-| markdownElements | JavaScript      |      32.6 |          |
-|                  | BareScript (JS) |     670.0 |    20.5x |
-| markdownParse    | JavaScript      |     615.9 |          |
-|                  | BareScript (JS) |    2208.0 |     3.6x |
-| schemaParse      | JavaScript      |      71.9 |          |
-|                  | BareScript (JS) |    1048.0 |    14.6x |
-| schemaValidate   | JavaScript      |      57.1 |          |
-|                  | BareScript (JS) |    1776.0 |    31.1x |
-| urlDecode        | JavaScript      |       4.8 |          |
-|                  | BareScript (JS) |      76.0 |    15.9x |
-| urlEncode        | JavaScript      |       2.2 |          |
-|                  | BareScript (JS) |      43.0 |    19.4x |
+```sh
+make perf
+make perf PERF_MERGE=   # this implementation only
+```
 
 
 ## Using BareScript with an AI Assistant

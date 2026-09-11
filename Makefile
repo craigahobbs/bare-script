@@ -36,6 +36,9 @@ sync:
 	cp SKILL.md ../bare-script-py/
 	rsync -rv --delete --exclude=.git/ lib/include/ ../bare-script-py/src/bare_script/include/
 	rsync -rv --delete --exclude=.git/ static/ ../bare-script-py/static/
+	rsync -rv --delete --exclude=.git/ lib/include/ ../bare-script-c/lib/include/
+	mkdir -p ../bare-script-c/static/perf
+	if [ -d static/perf ]; then rsync -rv --delete static/perf/ ../bare-script-c/static/perf/; fi
 
 
 # Generate the include library source module
@@ -292,6 +295,7 @@ PERF_CSV_TMP := build/perf-$$PPID.csv
 PERF_MERGE := 1
 PERF_REPORT := 1
 PERF_RUNS := 2
+PERF_TIME_FLOOR := 100
 
 
 # Run performance tests - write to a temporary CSV ($$PPID is the make process ID) and move it into
@@ -300,15 +304,19 @@ PERF_RUNS := 2
 perf: build/npm.build
 	mkdir -p $(dir $(PERF_CSV_TMP))
 	echo "language,test,runs,timeMs" > $(PERF_CSV_TMP)
-	set -e; for X in $$(seq 1 $(PERF_RUNS)); do \
+	set -e; set -o pipefail; for X in $$(seq 1 $(PERF_RUNS)); do \
 		echo "Run $$X of $(PERF_RUNS) - BareScript (JS)"; \
-		$(NODE_SHELL) node bin/bare.js perf/test.bare -v vLanguage "'BareScript (JS)'"$(if $(TEST), -v vTest "'$(TEST)'") >> $(PERF_CSV_TMP); \
+		$(NODE_SHELL) node bin/bare.js perf/test.bare -v vLanguage "'BareScript (JS)'" \
+		    -v vTimeFloor $(PERF_TIME_FLOOR)$(if $(TEST), -v vTest "'$(TEST)'") >> $(PERF_CSV_TMP); \
 		echo "Run $$X of $(PERF_RUNS) - JavaScript"; \
 		$(NODE_SHELL) node perf/test.js "JavaScript"$(if $(TEST), "$(TEST)") >> $(PERF_CSV_TMP); \
-	done
+$(if $(TEST),,		echo "Run $$X of $(PERF_RUNS) - BareScript (JS) testSuite"; \
+		{ /usr/bin/time -p $(NODE_SHELL) node bin/bare.js -d -m lib/include/test/runTests.bare > /dev/null; } 2>&1 \
+		    | awk '/^real/ { printf "BareScript (JS),testSuite,1000,%.0f\n", $$2 * 1000 }' >> $(PERF_CSV_TMP); \
+)	done
 ifneq '$(PERF_MERGE)' ''
 ifneq '$(wildcard $(PERF_BARE_PY_DIR))' ''
-	$(MAKE) -C $(PERF_BARE_PY_DIR) perf PERF_RUNS=$(PERF_RUNS) TEST=$(TEST) PERF_MERGE= PERF_REPORT=
+	$(MAKE) -C $(PERF_BARE_PY_DIR) perf PERF_RUNS=$(PERF_RUNS) PERF_TIME_FLOOR=$(PERF_TIME_FLOOR) TEST=$(TEST) PERF_MERGE= PERF_REPORT=
 	tail -n +2 $(PERF_BARE_PY_DIR)/$(PERF_CSV) >> $(PERF_CSV_TMP)
 endif
 endif

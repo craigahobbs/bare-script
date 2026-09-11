@@ -9,8 +9,8 @@ include <schemaParser.bare>
 include <url.bare>
 
 
-# The performance tests and their iteration counts - tuned so the fastest runtime's measurement stays well above
-# millisecond timer resolution while the slowest runtime's measurement doesn't run excessively long
+# The performance tests and their iteration counts - the fixed workload a build-to-build comparison needs, and
+# the count perfMeasure starts from when "make perf" asks it to time a longer run
 perfTests = { \
     'mandelbrot': 1, \
     'schemaParse': 250, \
@@ -25,15 +25,38 @@ perfTests = { \
 async function main():
     language = systemGlobalGet('vLanguage', 'BareScript')
     testArg = systemGlobalGet('vTest')
+    timeFloor = systemGlobalGet('vTimeFloor', 0)
     for test in if(testArg != null, [testArg], objectKeys(perfTests)):
         runs = objectGet(perfTests, test)
         if runs == null:
             systemLog('Unknown test "' + test + '"')
             return 1
         endif
-        timeMs = perfRun(test, runs)
-        systemLog(language + ',' + test + ',' + runs + ',' + timeMs)
+        timing = perfMeasure(test, runs, timeFloor)
+        systemLog(language + ',' + test + ',' + arrayGet(timing, 0) + ',' + arrayGet(timing, 1))
     endfor
+endfunction
+
+
+# Time "runs" of the test. With a "vTimeFloor" of zero - the default, and what a build-to-build comparison
+# needs - that is one timed pass of the fixed count. Given a floor in milliseconds, the count is calibrated
+# from a single iteration instead, growing until the timed run reaches the floor, so that the clock - whole
+# milliseconds, all a BareScript program can read - measures even the fastest runtime to a fraction of a
+# percent. Calibrating up from one rather than down from the fixed count is what keeps the cost the floor
+# and not the count: a slow machine, or a slow runtime, settles on fewer iterations rather than taking
+# proportionally longer. Returns [iterations, elapsed milliseconds].
+async function perfMeasure(test, runs, timeFloor):
+    if timeFloor <= 0:
+        return [runs, perfRun(test, runs)]
+    endif
+    iterations = 1
+    while true:
+        timeMs = perfRun(test, iterations)
+        if timeMs >= timeFloor:
+            return [iterations, timeMs]
+        endif
+        iterations = iterations * if(timeMs > 0, mathCeil(1.5 * timeFloor / timeMs), 16)
+    endwhile
 endfunction
 
 
