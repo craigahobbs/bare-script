@@ -219,22 +219,15 @@ function markdownHighlightElements(highlightRegex, lines, options):
                 arrayPush(codeChildren, {'text': stringSlice(text, ixSearch, highlightIndex)})
             endif
 
-            # Determine the highlight style from which named group matched
-            if objectGet(matchGroups, 'builtin'):
-                attrStyle = 'color: var(--barescript-color-highlight-builtin);'
-            elif objectGet(matchGroups, 'comment'):
-                attrStyle = 'color: var(--barescript-color-highlight-comment);'
-            elif objectGet(matchGroups, 'keyword'):
-                attrStyle = 'color: var(--barescript-color-highlight-keyword);'
-            elif objectGet(matchGroups, 'literal'):
-                attrStyle = 'color: var(--barescript-color-highlight-literal);'
-            elif objectGet(matchGroups, 'preprocessor'):
-                attrStyle = 'color: var(--barescript-color-highlight-preprocessor);'
-            elif objectGet(matchGroups, 'string'):
-                attrStyle = 'color: var(--barescript-color-highlight-string);'
-            elif objectGet(matchGroups, 'tag'):
-                attrStyle = 'color: var(--barescript-color-highlight-tag);'
-            endif
+            # Determine the highlight style from which named group matched - exactly one group matches
+            attrStyle = \
+                if(objectGet(matchGroups, 'string'), 'color: var(--barescript-color-highlight-string);', \
+                if(objectGet(matchGroups, 'keyword'), 'color: var(--barescript-color-highlight-keyword);', \
+                if(objectGet(matchGroups, 'literal'), 'color: var(--barescript-color-highlight-literal);', \
+                if(objectGet(matchGroups, 'comment'), 'color: var(--barescript-color-highlight-comment);', \
+                if(objectGet(matchGroups, 'builtin'), 'color: var(--barescript-color-highlight-builtin);', \
+                if(objectGet(matchGroups, 'tag'), 'color: var(--barescript-color-highlight-tag);', \
+                'color: var(--barescript-color-highlight-preprocessor);'))))))
 
             # Add the highlight span
             arrayPush(codeChildren, { \

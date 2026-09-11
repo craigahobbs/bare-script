@@ -286,14 +286,10 @@ function markdownElementsParagraphSpanElements(spans, options):
             continue
         endif
 
-        # Style span?
-        style = objectGet(span, 'style')
-        if style:
-            styleStyle = objectGet(style, 'style')
-            arrayPush(spanElements, { \
-                'html': if(styleStyle == 'bold', 'strong', if(styleStyle == 'italic', 'em', 'del')), \
-                'elem': markdownElementsParagraphSpanElements(objectGet(style, 'spans'), options) \
-            })
+        # Code span?
+        code = objectGet(span, 'code')
+        if code:
+            arrayPush(spanElements, {'html': 'code', 'elem': {'text': code}})
             continue
         endif
 
@@ -317,17 +313,21 @@ function markdownElementsParagraphSpanElements(spans, options):
             continue
         endif
 
+        # Style span?
+        style = objectGet(span, 'style')
+        if style:
+            styleStyle = objectGet(style, 'style')
+            arrayPush(spanElements, { \
+                'html': if(styleStyle == 'bold', 'strong', if(styleStyle == 'italic', 'em', 'del')), \
+                'elem': markdownElementsParagraphSpanElements(objectGet(style, 'spans'), options) \
+            })
+            continue
+        endif
+
         # Link reference span?
         linkRef = objectGet(span, 'linkRef')
         if linkRef:
             arrayExtend(spanElements, markdownElementsParagraphSpanElements(objectGet(linkRef, 'spans'), options))
-            continue
-        endif
-
-        # Code span?
-        code = objectGet(span, 'code')
-        if code:
-            arrayPush(spanElements, {'html': 'code', 'elem': {'text': code}})
             continue
         endif
 
