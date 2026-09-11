@@ -4,7 +4,7 @@
 
 # Markdown regex
 markdownParserRegexParagraphEmpty = regexNew('^\\s*$')
-markdownParserRegexIndent = regexNew('^(?<indent> *)(?<notIndent>.*)$')
+markdownParserRegexIndent = regexNew('^ *')
 markdownParserRegexHeading = regexNew('^ {0,3}(?<heading>#{1,6})\\s+(?<text>.*?)(?:\\s+#+)?\\s*$')
 markdownParserRegexHeadingAlt = regexNew('^ {0,3}(?<heading>=+|-+)\\s*$')
 markdownParserRegexHorizontal = regexNew('^ {0,3}(?:(?:\\*\\s*){3,}|(?:-\\s*){3,}|(?:_\\s*){3,})$')
@@ -47,13 +47,10 @@ function markdownParseInternal(markdown, startLineNumber, linkRefsRaw):
         if markdownString == null:
             continue
         endif
-        for lineRaw in stringSplitLines(markdownString):
-            line = stringReplace(lineRaw, '\t', '    ')
-            matchLine = regexMatch(markdownParserRegexIndent, line)
-            matchLineGroups = objectGet(matchLine, 'groups')
-            lineIndent = stringLength(objectGet(matchLineGroups, 'indent'))
+        for line in stringSplitLines(stringReplace(markdownString, '\t', '    ')):
+            lineIndent = stringLength(objectGet(objectGet(regexMatch(markdownParserRegexIndent, line), 'groups'), '0'))
             emptyLinePrev = emptyLine
-            emptyLine = objectGet(matchLineGroups, 'notIndent') == ''
+            emptyLine = lineIndent == stringLength(line)
             lineNumber = lineNumber + 1
 
             # Empty line?
@@ -78,9 +75,8 @@ function markdownParseInternal(markdown, startLineNumber, linkRefsRaw):
             if fencedMark != null:
                 # Fenced code block end?
                 matchFencedGroups = if(matchFenced, objectGet(matchFenced, 'groups'))
-                matchFencedFence = if(matchFencedGroups, objectGet(matchFencedGroups, 'fence'))
-                matchFencedLanguage = if(matchFencedGroups, objectGet(matchFencedGroups, 'language'))
-                if matchFenced && stringStartsWith(matchFencedFence, fencedMark) && matchFencedLanguage == null:
+                if matchFencedGroups && stringStartsWith(objectGet(matchFencedGroups, 'fence'), fencedMark) && \
+                        objectGet(matchFencedGroups, 'language') == null:
                     markdownParserCloseParagraph( \
                         markdownParts, paragraphLines, paragraphPart, paragraphLineNumber, fencedMark, linkRefs, null \
                     )
@@ -270,8 +266,8 @@ function markdownParseInternal(markdown, startLineNumber, linkRefsRaw):
             else:
                 # Table delimiter following a table header?
                 tableHeader = if(paragraphLines, arrayGet(paragraphLines, arrayLength(paragraphLines) - 1))
-                matchTable = if(tableHeader != null, regexMatch(markdownParserRegexTable, line))
-                matchTableHeader = if(tableHeader != null && matchTable, regexMatch(markdownParserRegexTableRow, tableHeader))
+                matchTableHeader = if(tableHeader != null && regexMatch(markdownParserRegexTable, line), \
+                    regexMatch(markdownParserRegexTableRow, tableHeader))
                 if matchTableHeader:
                     # Does the table header match the delimiter?
                     headers = []
@@ -518,22 +514,6 @@ function markdownParserParagraphSpans(text, linkRefs):
         endif
         ixSearch = matchIndex + stringLength(matchFullText)
 
-        # Bold style? (bold or boldu)
-        boldStr = objectGet(matchGroups, 'bold') || objectGet(matchGroups, 'boldu')
-        if boldStr:
-            boldText = stringSlice(boldStr, 2, stringLength(boldStr) - 2)
-            arrayPush(spans, {'style': {'style': 'bold', 'spans': markdownParserParagraphSpans(boldText, linkRefs)}})
-            continue
-        endif
-
-        # Italic style? (italic or italicu)
-        italicStr = objectGet(matchGroups, 'italic') || objectGet(matchGroups, 'italicu')
-        if italicStr:
-            italicText = stringSlice(italicStr, 1, stringLength(italicStr) - 1)
-            arrayPush(spans, {'style': {'style': 'italic', 'spans': markdownParserParagraphSpans(italicText, linkRefs)}})
-            continue
-        endif
-
         # Code?
         code = objectGet(matchGroups, 'code')
         if code:
@@ -561,6 +541,22 @@ function markdownParserParagraphSpans(text, linkRefs):
             else:
                 arrayPush(spans, markdownParserCreateLinkSpan(linkHref, linkText, linkTitle, linkRefs))
             endif
+            continue
+        endif
+
+        # Bold style? (bold or boldu)
+        boldStr = objectGet(matchGroups, 'bold') || objectGet(matchGroups, 'boldu')
+        if boldStr:
+            boldText = stringSlice(boldStr, 2, stringLength(boldStr) - 2)
+            arrayPush(spans, {'style': {'style': 'bold', 'spans': markdownParserParagraphSpans(boldText, linkRefs)}})
+            continue
+        endif
+
+        # Italic style? (italic or italicu)
+        italicStr = objectGet(matchGroups, 'italic') || objectGet(matchGroups, 'italicu')
+        if italicStr:
+            italicText = stringSlice(italicStr, 1, stringLength(italicStr) - 1)
+            arrayPush(spans, {'style': {'style': 'italic', 'spans': markdownParserParagraphSpans(italicText, linkRefs)}})
             continue
         endif
 
