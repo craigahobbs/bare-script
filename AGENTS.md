@@ -172,9 +172,9 @@ what the callee handles, or a name that does not match its neighbors. What is sp
   against a baseline captured before the batch - byte-identical, or it is a behavior change.
 - The include tests pass `'coverageMin': 100`, so a removed branch must take its test with it and a
   new one must arrive with a test. Prefer deleting unreachable code to leaving it uncovered.
-- Anything that changes `lib/include/*.bare` needs the same change in `../bare-script-py`, and
-  `lib/include/` is vendored into `../bare-script-c` - run its `make test-include` before assuming a
-  refactor is invisible.
+- Anything that changes `lib/include/*.bare` needs the same change in `../bare-script-py`.
+  `../bare-script-c` vendors its own copy of `lib/include/`, but `make sync` no longer pushes to it -
+  leave that copy alone until the two are reconnected.
 - Confirm the timings did not move: a "simplification" that costs 5% on `schemaValidate` or
   `markdownParse` is an optimization question, not a simplification, and belongs in the other loop.
 
