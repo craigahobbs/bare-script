@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.12 (2026-09-12)
+
+- [da007f6](https://github.com/craigahobbs/bare-script/commit/da007f6) - dataLineChart - an automatic axis spans its data, and a faster drawLineChart
+
 ## 5.1.11 (2026-09-12)
 
 - [13231c0](https://github.com/craigahobbs/bare-script/commit/13231c0) - rework dataLineChart axes, and draw the chart through draw.bare
