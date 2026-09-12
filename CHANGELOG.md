@@ -1,5 +1,25 @@
 # Changelog
 
+## 5.1.11 (2026-09-12)
+
+- [13231c0](https://github.com/craigahobbs/bare-script/commit/13231c0) - rework dataLineChart axes, and draw the chart through draw.bare
+
+- [c91bdbd](https://github.com/craigahobbs/bare-script/commit/c91bdbd) - optimize the markdown element and syntax-highlight passes
+
+- [6b9f9f0](https://github.com/craigahobbs/bare-script/commit/6b9f9f0) - note that the include library no longer syncs to bare-script-c
+
+- [a92abe8](https://github.com/craigahobbs/bare-script/commit/a92abe8) - stop syncing the include library to bare-script-c
+
+- [3a57fb0](https://github.com/craigahobbs/bare-script/commit/3a57fb0) - optimize the markdown parser - markdownParse is 8.9% faster
+
+- [c58bbd2](https://github.com/craigahobbs/bare-script/commit/c58bbd2) - Time the perf suite to a floor, and document the BareScript optimization and simplification loops
+
+- [091d82c](https://github.com/craigahobbs/bare-script/commit/091d82c) - add tests for the Unicode whitespace and case behavior - the \\s set, stringTrim, stringUpper and stringLower, stringSplitLines, numberParseFloat, and the i flag
+
+- [db8ea6c](https://github.com/craigahobbs/bare-script/commit/db8ea6c) - return null instead of Infinity or NaN - mathRound and numberParseInt past the double range, jsonParse numbers past it, datetimeNew past the Date range - bound mathAcos and mathAsin to -1 to 1, and make a number literal past the double range a parse error
+
+- [2b3a12a](https://github.com/craigahobbs/bare-script/commit/2b3a12a) - fix the 5.1.10 changelog entry - version header, drop the release commit line
+
 ## 5.1.10 (2026-09-05)
 
 - [6e0bff7](https://github.com/craigahobbs/bare-script/commit/6e0bff7) - fix Safari include decode - read the decompression stream with a reader instead of async iteration
