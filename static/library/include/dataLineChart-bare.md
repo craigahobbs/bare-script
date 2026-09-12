@@ -24,13 +24,16 @@ dataLineChart(data, { \
 ```
 
 By default each axis computes its own tick marks. The tick step is a "nice" value - one, two, or
-five times a power of ten - chosen so the labels fit the space available, and the axis range is
-rounded outward so the first and last tick marks sit at the axis ends. A constant series has no
-range of its own, so its axis expands around the value - a decade either side on a logarithmic axis,
-a day either side on a datetime axis - and the data is drawn within the chart rather than along its
-edge. A datetime axis steps by calendar units - milliseconds through years - labels each tick at the
-precision of its step, and shows only the part of a label that changes, so a year or a date is not
-repeated across the axis.
+five times a power of ten - chosen so the labels fit the space available, and the axis spans the
+data, taking the tick step boundaries that fall within it. The range is not rounded outward to a
+whole tick step - a step boundary is not a value the axis is expected to open on, and rounding out
+to one can leave most of a step empty, half a year for a six-month step. Only a chart too narrow to
+fit two boundaries within its data range falls back to the rounded-out range, which is labeled at
+both ends. A constant series has no range of its own, so its axis expands around the value - a
+decade either side on a logarithmic axis, a day either side on a datetime axis - and the data is
+drawn within the chart rather than along its edge. A datetime axis steps by calendar units -
+milliseconds through years - labels each tick at the precision of its step, and shows only the part
+of a label that changes, so a year or a date is not repeated across the axis.
 
 To hold an axis to a range of your own, set `xMin`, `xMax`, `yMin` and `yMax`. Each is independent -
 give only `yMin` to fix a zero baseline and let the top follow the data. The tick marks stay
