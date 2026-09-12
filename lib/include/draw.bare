@@ -109,6 +109,20 @@ function drawArc(rx, ry, angle, largeArcFlag, sweepFlag, x, y):
 endfunction
 
 
+# $function: drawAriaLabel
+# $group: draw.bare
+# $doc: Set the current drawing's accessible name. Assistive technology announces the drawing as a
+# $doc: single image with this name, instead of reading the text within it one piece at a time.
+# $arg label: The accessible name, or null for none
+function drawAriaLabel(label):
+    drawing = drawGetCurrentDrawing()
+    svg = objectGet(drawing, 'svg')
+    svgAttr = objectGet(svg, 'attr')
+    objectSet(svgAttr, 'role', if(label != null, 'img'))
+    objectSet(svgAttr, 'aria-label', label)
+endfunction
+
+
 # $function: drawCircle
 # $group: draw.bare
 # $doc: Draw a circle
@@ -367,7 +381,8 @@ endfunction
 # $arg dominantBaseline: Optional (default is 'middle'). The
 # $arg dominantBaseline: [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
 # $arg dominantBaseline: style.
-function drawText(text, x, y, textAnchor, dominantBaseline):
+# $arg rotate: Optional (default is null). The text's clockwise rotation, in degrees, about the text position.
+function drawText(text, x, y, textAnchor, dominantBaseline, rotate):
     drawing = drawGetCurrentDrawing()
     svgElem = drawFinishDrawingPath(drawing)
     arrayPush(svgElem, { \
@@ -380,6 +395,7 @@ function drawText(text, x, y, textAnchor, dominantBaseline):
             'dominant-baseline': if(dominantBaseline != null, dominantBaseline, 'middle'), \
             'font-weight': if(objectGet(drawing, 'fontBold'), 'bold', 'normal'), \
             'font-style': if(objectGet(drawing, 'fontItalic'), 'italic', 'normal'), \
+            'transform': if(rotate, 'rotate(' + rotate + ' ' + x + ' ' + y + ')'), \
             'x': x, \
             'y': y \
         }, \

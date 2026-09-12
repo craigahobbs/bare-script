@@ -484,9 +484,9 @@ the `.bare` source.
 | `barescriptParser.bare` | Parse BareScript text into BareScript models | `barescriptParseScript`, `barescriptParseScriptEx`, `barescriptParseExpression`, `barescriptParseExpressionEx` |
 | `data.bare` | Tabular data manipulation | `dataParseCSV`, `dataFilter`, `dataSort`, `dataAggregate`, `dataJoin`, `dataCalculatedField`, `dataTop`, `dataValidate` |
 | `dataTable.bare` | Render data array as Markdown table | `dataTable`, `dataTableMarkdown`, `dataTableElements`, `dataTableValidate` |
-| `dataLineChart.bare` | Render line charts as SVG | `dataLineChart`, `dataLineChartElements`, `dataLineChartValidate` |
+| `dataLineChart.bare` | Render line charts as SVG (linear/log axes, automatic ticks) | `dataLineChart`, `dataLineChartElements`, `drawLineChart`, `dataLineChartValidate` |
 | `diff.bare` | Line diff between strings/arrays | `diffLines` |
-| `draw.bare` | Imperative SVG drawing | `drawNew`, `drawRect`, `drawCircle`, `drawEllipse`, `drawLine`, `drawMove`, `drawClose`, `drawPathRect`, `drawArc`, `drawText`, `drawTextStyle`, `drawTextWidth`, `drawTextHeight`, `drawImage`, `drawStyle`, `drawOnClick`, `drawWidth`, `drawHeight`, `drawHLine`, `drawVLine`, `drawRender`, `drawElements` |
+| `draw.bare` | Imperative SVG drawing | `drawNew`, `drawRect`, `drawCircle`, `drawEllipse`, `drawLine`, `drawMove`, `drawClose`, `drawPathRect`, `drawArc`, `drawText`, `drawTextStyle`, `drawTextWidth`, `drawTextHeight`, `drawImage`, `drawStyle`, `drawOnClick`, `drawAriaLabel`, `drawWidth`, `drawHeight`, `drawHLine`, `drawVLine`, `drawRender`, `drawElements` |
 | `elementModel.bare` | Validate / stringify element models | `elementModelValidate`, `elementModelToString` |
 | `forms.bare` | Form-control element-model helpers | `formsTextElements`, `formsLinkElements`, `formsLinkButtonElements` |
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |

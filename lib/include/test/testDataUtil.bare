@@ -15,6 +15,10 @@ function testDataUtilFormatValue_date():
     unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12)), '2022-08-30T12:00')
     unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15)), '2022-08-30T12:15')
     unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15, 30)), '2022-08-30T12:15:30')
+
+    # Non-zero milliseconds are significant and are not trimmed
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15, 30, 250)), '2022-08-30T12:15:30.250')
+    unittestEqual(dataUtilFormatValue(datetimeNew(2022, 8, 30, 12, 15, 0, 250)), '2022-08-30T12:15:00.250')
 endfunction
 unittestRunTest('testDataUtilFormatValue_date')
 

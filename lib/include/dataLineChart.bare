@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <dataUtil.bare>
+include <draw.bare>
 include <schema.bare>
 include <schemaParser.bare>
 
@@ -23,10 +24,10 @@ dataLineChartTypes = schemaParse( \
     '    # The chart height', \
     '    optional int height', \
     '', \
-    '    # The numeric formatting precision (default is 2)', \
+    '    # The numeric formatting precision. The default is computed from the axis tick step.', \
     '    optional int(>= 0) precision', \
     '', \
-    '    # The datetime format', \
+    '    # The datetime format. The default is computed from the axis tick step.', \
     '    optional DataLineChartDatetimeFormat datetime', \
     '', \
     "    # The line chart's X-axis field", \
@@ -41,11 +42,29 @@ dataLineChartTypes = schemaParse( \
     '    # The color encoding value order', \
     '    optional string[len > 0] colorOrder', \
     '', \
-    '    # The X-axis tick marks', \
-    '    optional DataLineChartAxisTicks xTicks', \
+    '    # The X-axis scale (default is "linear")', \
+    '    optional DataLineChartAxisScale xScale', \
     '', \
-    '    # The Y-axis tick marks', \
-    '    optional DataLineChartAxisTicks yTicks', \
+    '    # The Y-axis scale (default is "linear")', \
+    '    optional DataLineChartAxisScale yScale', \
+    '', \
+    '    # The X-axis numeric tick label format (default is automatic)', \
+    '    optional DataLineChartNumberFormat xFormat', \
+    '', \
+    '    # The Y-axis numeric tick label format (default is automatic)', \
+    '    optional DataLineChartNumberFormat yFormat', \
+    '', \
+    '    # The X-axis minimum value (default is computed from the data)', \
+    '    optional any xMin', \
+    '', \
+    '    # The X-axis maximum value (default is computed from the data)', \
+    '    optional any xMax', \
+    '', \
+    '    # The Y-axis minimum value (default is computed from the data)', \
+    '    optional any yMin', \
+    '', \
+    '    # The Y-axis maximum value (default is computed from the data)', \
+    '    optional any yMax', \
     '', \
     '    # The X-axis annotations', \
     '    optional DataLineChartAxisAnnotation[len > 0] xLines', \
@@ -54,20 +73,27 @@ dataLineChartTypes = schemaParse( \
     '    optional DataLineChartAxisAnnotation[len > 0] yLines', \
     '', \
     '', \
-    '# The axis tick mark model', \
-    'struct DataLineChartAxisTicks', \
+    '# An axis scale', \
+    'enum DataLineChartAxisScale', \
     '', \
-    '    # The count of evenly-spaced tick marks. The default is 3.', \
-    '    optional int(>= 0) count', \
+    '    # A linear axis scale', \
+    '    linear', \
     '', \
-    '    # The value of the first tick mark. Default is the minimum axis value.', \
-    '    optional any start', \
+    '    # A base-10 logarithmic axis scale. Non-positive values are excluded from the chart.', \
+    '    log', \
     '', \
-    '    # The value of the last tick mark. Default is the maximum axis value.', \
-    '    optional any end', \
     '', \
-    '    # The number of tick mark labels to skip after a rendered label', \
-    '    optional int(> 0) skip', \
+    '# A numeric tick label format', \
+    'enum DataLineChartNumberFormat', \
+    '', \
+    '    # Plain decimal notation (e.g. "12000000")', \
+    '    decimal', \
+    '', \
+    '    # SI prefix notation (e.g. "12M"). Values outside the prefix range use exponential notation.', \
+    '    si', \
+    '', \
+    '    # Exponential notation (e.g. "1.2e7")', \
+    '    exponential', \
     '', \
     '', \
     '# An axis annotation', \
@@ -119,39 +145,49 @@ endfunction
 # Line chart defaults
 dataLineChartDefaultWidth = 640
 dataLineChartDefaultHeight = 320
-dataLineChartDefaultXAxisTickCount = 3
-dataLineChartDefaultYAxisTickCount = 3
 
 
-# The categorical color palette
+# The categorical color palette - semi-precious stone tones: lapis, carnelian, malachite, garnet
+# and amethyst. Color appears in two places in a line chart, both 3 pixels wide: the chart lines
+# themselves and the legend's line samples. Color difference shrinks with mark size - by the model
+# of Stone, Szafir and Setlur ("An Engineering Model for Color Difference as a Function of Size",
+# CIC 2014), extended here to a thin mark by taking the equal-area square of the mark truncated at
+# the extent of chromatic summation. The legend sample is the smaller of the two and is what a
+# reader matches a line against, so it sets the size: 0.21 degrees, where a lightness difference is
+# worth 2.2 times a yellow-blue one of the same magnitude. Five is the most colors that fit at that
+# size once color-vision deficiency and the 3:1 contrast minimum for non-text graphics are
+# accounted for - a sixth costs 31% of the margin, which is why the sixth series takes a dash
+# pattern instead. Within those five the colors are placed as far apart as they will go while
+# staying deep and saturated enough to read as stone rather than as screen primaries: no two are
+# closer than 1.78 noticeable differences under normal, deuteranope or protanope vision, against
+# 1.66 for the palette they replace and 0.11 for Tableau's Classic 10, whose green and red are all
+# but identical to a deuteranope. Each keeps a distinct color name and no two are within 4 of each
+# other in lightness. Tritanopia is the one deficiency this palette does not solve - garnet and
+# amethyst converge there, since purple loses its blue and reads as red - but separating them costs
+# the stone character, and no widely used categorical palette handles it either.
 dataLineChartCategoricalColors = [ \
-    '#1f77b4', \
-    '#ff7f0e', \
-    '#2ca02c', \
-    '#d62728', \
-    '#9467bd', \
-    '#8c564b', \
-    '#e377c2', \
-    '#7f7f7f', \
-    '#bcbd22', \
-    '#17becf', \
-    '#aec7e8', \
-    '#ffbb78', \
-    '#98df8a', \
-    '#ff9896', \
-    '#c5b0d5', \
-    '#c49c94', \
-    '#f7b6d2', \
-    '#c7c7c7', \
-    '#dbdb8d', \
-    '#9edae5' \
+    '#026cba', \
+    '#e86d00', \
+    '#0c9b3f', \
+    '#9c0018', \
+    '#68266f' \
+]
+
+
+# The line dash patterns. Color is the series encoding - a dash pattern is a second one, so it is
+# held back until the colors are used up. Series past the fifth repeat the colors with the next
+# pattern, giving twenty-five series before any two are drawn alike.
+dataLineChartLineDashArrays = [ \
+    'none', \
+    '12,6', \
+    '3,5', \
+    '16,5,3,5', \
+    '8,5,3,5' \
 ]
 
 
 # Line chart constants (all numbers in pixels)
-dataLineChartSvgPrecision = 3
-dataLineChartChartFontFamily = 'Arial, Helvetica, sans-serif'
-dataLineChartChartFontWidthRatio = 0.6
+dataLineChartCoordPrecision = 3
 dataLineChartChartFontDefaultSizePx = 16
 dataLineChartChartBackgroundColor = 'white'
 dataLineChartAxisColor = 'black'
@@ -159,11 +195,20 @@ dataLineChartAxisTickLineColor = 'lightgray'
 dataLineChartAxisLineWidth = 1
 dataLineChartAxisTickWidth = 1
 dataLineChartAxisTickLength = 5
+dataLineChartAxisSubtickLength = 3
 dataLineChartAnnotationBackgroundColor = '#ffffffa0'
 dataLineChartAnnotationTextColor = 'black'
 dataLineChartAnnotationLineColor = 'black'
 dataLineChartAnnotationLineWidth = 2
 dataLineChartChartLineWidth = 3
+dataLineChartAxisSpaceFraction = 0.4
+dataLineChartPlotSpaceFraction = 0.5
+dataLineChartEllipsis = '...'
+dataLineChartClampEpsilon = 1e-9
+
+
+# A sentinel standing in for an unclipped segment, so the drawing loop allocates nothing per segment
+dataLineChartSegmentSentinel = []
 
 
 # $function: dataLineChart
@@ -174,8 +219,9 @@ dataLineChartChartLineWidth = 3
 # $arg options: Optional (default is null). The line chart options object with the following optional members:
 # $arg options: - **fontSize** - The font size, in pixels
 function dataLineChart(data, lineChart, options):
-    elementModelRender = systemGlobalGet('elementModelRender')
-    elementModelRender({'html': 'p', 'elem': dataLineChartElements(data, lineChart, options)})
+    if dataLineChartElements(data, lineChart, options) != null:
+        drawRender()
+    endif
 endfunction
 
 
@@ -188,10 +234,54 @@ endfunction
 # $arg options: - **fontSize** - The font size, in pixels
 # $return: The line chart [element model](https://github.com/craigahobbs/element-model#readme)
 function dataLineChartElements(data, lineChart, options):
+    chartWidth = objectGet(lineChart, 'width', dataLineChartDefaultWidth)
+    chartHeight = objectGet(lineChart, 'height', dataLineChartDefaultHeight)
+    drawNew(chartWidth, chartHeight)
+    if drawLineChart(data, lineChart, 0, 0, chartWidth, chartHeight, options) == null:
+        return null
+    endif
+
+    # Name the chart for assistive technology, which otherwise reads its tick labels one by one.
+    # A chart composed into a drawing of its own is named by whoever owns that drawing.
+    drawAriaLabel(dataLineChartAccessibleLabel(lineChart))
+    return drawElements()
+endfunction
+
+
+# Helper function to compose a chart's accessible name - the chart's own title when it has one,
+# otherwise a description of what the chart plots
+function dataLineChartAccessibleLabel(lineChart):
+    chartTitle = objectGet(lineChart, 'title')
+    if chartTitle != null:
+        return chartTitle
+    endif
+    return 'Line chart of ' + arrayJoin(objectGet(lineChart, 'y'), ', ') + ' by ' + objectGet(lineChart, 'x')
+endfunction
+
+
+# $function: drawLineChart
+# $group: dataLineChart.bare
+# $doc: Draw a line chart within the current drawing
+# $arg data: The data array
+# $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
+# $arg x: The X-coordinate, in pixels, of the left side of the chart
+# $arg y: The Y-coordinate, in pixels, of the top of the chart
+# $arg width: The width of the chart, in pixels
+# $arg height: The height of the chart, in pixels
+# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg options: - **fontSize** - The font size, in pixels
+# $return: true if the chart is drawn, null if the data contains no chartable points
+function drawLineChart(data, lineChart, x, y, width, height, options):
     xField = objectGet(lineChart, 'x')
     yFields = objectGet(lineChart, 'y')
     colorField = objectGet(lineChart, 'color')
     colorOrder = objectGet(lineChart, 'colorOrder')
+    chartPrecision = objectGet(lineChart, 'precision')
+    chartDatetime = objectGet(lineChart, 'datetime')
+    xIsLog = objectGet(lineChart, 'xScale') == 'log'
+    yIsLog = objectGet(lineChart, 'yScale') == 'log'
+    xFormat = objectGet(lineChart, 'xFormat')
+    yFormat = objectGet(lineChart, 'yFormat')
 
     # Determine the font size
     fontSize = objectGet(if(options != null, options, {}), 'fontSize')
@@ -209,8 +299,6 @@ function dataLineChartElements(data, lineChart, options):
     yMin = null
     xMax = null
     yMax = null
-    chartPrecision = objectGet(lineChart, 'precision')
-    chartDatetime = objectGet(lineChart, 'datetime')
     if colorField != null:
         # Determine the set of color encoding values
         isSingleY = (arrayLength(yFields) == 1)
@@ -222,7 +310,7 @@ function dataLineChartElements(data, lineChart, options):
             for yField in yFields:
                 rowKey = if(isSingleY, colorValue, yField + ', ' + colorValue)
                 yRow = objectGet(row, yField)
-                if xRow != null && yRow != null:
+                if xRow != null && yRow != null && (!xIsLog || xRow > 0) && (!yIsLog || yRow > 0):
                     objectSet(colorValueSet, rowKey, true)
                     rowPoints = objectGet(pointsMap, rowKey)
                     if rowPoints == null:
@@ -249,32 +337,57 @@ function dataLineChartElements(data, lineChart, options):
 
         # Add the points
         for colorValue, ixColorValue in colorValues:
-            color = arrayGet(dataLineChartCategoricalColors, ixColorValue % arrayLength(dataLineChartCategoricalColors))
             points = objectGet(pointsMap, colorValue)
-            arrayPush(linePoints, {'label': colorValue, 'color': color, 'points': points})
+            arrayPush(linePoints, { \
+                'label': colorValue, \
+                'color': dataLineChartSeriesColor(ixColorValue), \
+                'dash': dataLineChartSeriesDash(ixColorValue), \
+                'points': points \
+            })
         endfor
     else:
-        # Create a line for each y-field
-        for yField, ixField in yFields:
-            color = arrayGet(dataLineChartCategoricalColors, ixField % arrayLength(dataLineChartCategoricalColors))
+        # Create a line for each y-field. The rows are walked once rather than once per y-field, so
+        # the X field is read and validated a single time for each row however many lines there are.
+        fieldPoints = []
+        for yField in yFields:
+            arrayPush(fieldPoints, [])
+        endfor
+        for row in data:
+            xRow = objectGet(row, xField)
+            if xRow == null || (xIsLog && xRow <= 0):
+                continue
+            endif
 
-            # Add the points - each y-field iterates the sorted rows separately, so compare in full for min/max
-            points = []
-            for row in data:
-                xRow = objectGet(row, xField)
+            rowHasPoint = false
+            for yField, ixField in yFields:
                 yRow = objectGet(row, yField)
-                if xRow != null && yRow != null:
-                    arrayPush(points, [xRow, yRow])
-                    xMin = if(xMin == null, xRow, if(xRow < xMin, xRow, xMin))
+                if yRow != null && (!yIsLog || yRow > 0):
+                    arrayPush(arrayGet(fieldPoints, ixField), [xRow, yRow])
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
-                    xMax = if(xMax == null, xRow, if(xRow > xMax, xRow, xMax))
                     yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                    rowHasPoint = true
                 endif
             endfor
 
-            # Skip y-fields with no points
+            # The X range counts only rows that contributed a point, so a chart whose y-fields are
+            # all missing still reports no data. The rows are sorted by the X field, so the first
+            # such X value is the minimum and the last is the maximum.
+            if rowHasPoint:
+                xMin = if(xMin == null, xRow, xMin)
+                xMax = xRow
+            endif
+        endfor
+
+        # Add a line for each y-field that has points
+        for yField, ixField in yFields:
+            points = arrayGet(fieldPoints, ixField)
             if points:
-                arrayPush(linePoints, {'label': yField, 'color': color, 'points': points})
+                arrayPush(linePoints, { \
+                    'label': yField, \
+                    'color': dataLineChartSeriesColor(ixField), \
+                    'dash': dataLineChartSeriesDash(ixField), \
+                    'points': points \
+                })
             endif
         endfor
     endif
@@ -286,89 +399,116 @@ function dataLineChartElements(data, lineChart, options):
         return null
     endif
 
-    # Compute the chart title, width, and height
-    chartTitle = objectGet(lineChart, 'title')
-    chartWidth = objectGet(lineChart, 'width', dataLineChartDefaultWidth)
-    chartHeight = objectGet(lineChart, 'height', dataLineChartDefaultHeight)
+    # Compute the axis annotations - each is an array of [value, label] pairs that may extend the axis range
+    yAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'yLines'))
+    xAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'xLines'))
+    for valueLabel in yAxisAnnotations:
+        annotationValue = arrayGet(valueLabel, 0)
+        if !yIsLog || annotationValue > 0:
+            yMin = mathMin(yMin, annotationValue)
+            yMax = mathMax(yMax, annotationValue)
+        endif
+    endfor
+    for valueLabel in xAxisAnnotations:
+        annotationValue = arrayGet(valueLabel, 0)
+        if !xIsLog || annotationValue > 0:
+            xMin = mathMin(xMin, annotationValue)
+            xMax = mathMax(xMax, annotationValue)
+        endif
+    endfor
 
-    # Compute the axis tick values and annotations - each is an array of [value, label] pairs that may extend the axis range
-    yAxisTicks = dataLineChartAxisTicks(objectGet(lineChart, 'yTicks'), dataLineChartDefaultYAxisTickCount, yMin, yMax, \
-        chartPrecision, chartDatetime)
-    xAxisTicks = dataLineChartAxisTicks(objectGet(lineChart, 'xTicks'), dataLineChartDefaultXAxisTickCount, xMin, xMax, \
-        chartPrecision, chartDatetime)
-    yAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'yLines'), chartPrecision, chartDatetime)
-    xAxisAnnotations = dataLineChartAxisAnnotations(objectGet(lineChart, 'xLines'), chartPrecision, chartDatetime)
-    for valueLabel in arrayExtend(arrayCopy(yAxisTicks), yAxisAnnotations):
-        yMin = mathMin(yMin, arrayGet(valueLabel, 0))
-        yMax = mathMax(yMax, arrayGet(valueLabel, 0))
-    endfor
-    for valueLabel in arrayExtend(arrayCopy(xAxisTicks), xAxisAnnotations):
-        xMin = mathMin(xMin, arrayGet(valueLabel, 0))
-        xMax = mathMax(xMax, arrayGet(valueLabel, 0))
-    endfor
+    # An explicit axis bound replaces the computed one. It is applied after the annotations so that
+    # a bound the caller asked for is not widened by an annotation outside it.
+    xBounds = dataLineChartAxisBounds(xMin, xMax, objectGet(lineChart, 'xMin'), objectGet(lineChart, 'xMax'))
+    yBounds = dataLineChartAxisBounds(yMin, yMax, objectGet(lineChart, 'yMin'), objectGet(lineChart, 'yMax'))
+    xMinFixed = arrayGet(xBounds, 0)
+    xMaxFixed = arrayGet(xBounds, 1)
+    yMinFixed = arrayGet(yBounds, 0)
+    yMaxFixed = arrayGet(yBounds, 1)
+    xMin = if(xMinFixed != null, xMinFixed, xMin)
+    xMax = if(xMaxFixed != null, xMaxFixed, xMax)
+    yMin = if(yMinFixed != null, yMinFixed, yMin)
+    yMax = if(yMaxFixed != null, yMaxFixed, yMax)
 
     # Chart title calculations
+    chartTitle = objectGet(lineChart, 'title')
     chartBorderSize = fontSize
     chartTitleFontSize = 1.1 * fontSize
     chartTitleHeight = if(chartTitle != null, 1.5 * chartTitleFontSize, 0)
 
-    # Y-axis calculations
-    axisTitleFontSize = 1 * fontSize
+    # Axis calculations
+    axisTitleFontSize = fontSize
     axisLabelFontSize = fontSize
     yAxisTitle = if(arrayLength(yFields) == 1, arrayGet(yFields, 0))
     yAxisTitleWidth = if(yAxisTitle != null, 1.8 * axisTitleFontSize, 0)
+    xAxisTitleHeight = 1.8 * axisTitleFontSize
+    yAxisTickGap = 0.75 * dataLineChartAxisTickLength
+    xAxisTickGap = 0.75 * dataLineChartAxisTickLength
+
+    # Vertical chart area calculations
+    xAxisY = y + height - chartBorderSize - xAxisTitleHeight - \
+        (axisLabelFontSize - xAxisTickGap + dataLineChartAxisTickLength)
+    chartTop = y + chartBorderSize + chartTitleHeight + 0.5 * dataLineChartChartLineWidth
+    chartBottom = xAxisY - 0.5 * dataLineChartAxisLineWidth - 0.5 * dataLineChartChartLineWidth
+
+    # Compute the Y-axis - a Y-axis tick label is one line of text, so its maximum count is known up front
+    yAxis = dataLineChartAxis(yIsLog, yFormat, yMin, yMax, \
+        mathMax(2, mathFloor((chartBottom - chartTop) / (2.5 * axisLabelFontSize))), chartPrecision, chartDatetime)
+    yAxis = dataLineChartAxisClamp(yAxis, yMinFixed, yMaxFixed)
     yAxisLabelWidth = 0
-    for yTickPair in yAxisTicks:
-        yTickLabelText = arrayGet(yTickPair, 1)
-        labelWidth = stringLength(yTickLabelText) * dataLineChartChartFontWidthRatio * axisLabelFontSize
+    for yTickPair in objectGet(yAxis, 'ticks'):
+        labelWidth = drawTextWidth(arrayGet(yTickPair, 1), axisLabelFontSize)
         yAxisLabelWidth = if(labelWidth > yAxisLabelWidth, labelWidth, yAxisLabelWidth)
     endfor
-    yAxisTickGap = 0.75 * dataLineChartAxisTickLength
-    yAxisX = mathMin( \
-        chartBorderSize + yAxisTitleWidth + if(yAxisTicks, yAxisLabelWidth + yAxisTickGap + dataLineChartAxisTickLength, 0), \
-        0.4 * chartWidth \
-    )
-
-    # X-axis calculations
-    xAxisTitleHeight = 1.8 * axisTitleFontSize
-    xAxisTickGap = 0.75 * dataLineChartAxisTickLength
-    xAxisY = chartHeight - chartBorderSize - xAxisTitleHeight - \
-        if(xAxisTicks, axisLabelFontSize - xAxisTickGap + dataLineChartAxisTickLength, 0)
-
-    # Y-axis annotation calculations
-    annotationLabelFontSize = axisLabelFontSize
-    annotationLabelMargin = 0.25 * annotationLabelFontSize
-    annotationLabelHeight = annotationLabelFontSize + 2 * annotationLabelMargin
-    yAnnotationLabelOffsetX = 0.2 * annotationLabelFontSize
-    yAnnotationLabelOffsetY = 0.1 * annotationLabelFontSize
-
-    # X-axis annotation calculations
-    xAnnotationLabelOffsetX = 0.2 * annotationLabelFontSize
-    xAnnotationLabelOffsetY = 0.1 * annotationLabelFontSize
+    # The Y-axis is placed to leave room for its title and tick labels, but never so far right that
+    # the plot area is squeezed away, nor so far left that the tick labels run off the chart
+    yAxisLabelSpace = yAxisLabelWidth + yAxisTickGap + dataLineChartAxisTickLength
+    yAxisSpace = chartBorderSize + yAxisTitleWidth + yAxisLabelSpace
+    yAxisOffset = mathMin(mathMax(mathMin(yAxisSpace, dataLineChartAxisSpaceFraction * width), yAxisLabelSpace), \
+        dataLineChartPlotSpaceFraction * width)
+    yAxisX = x + yAxisOffset
+    yAxisTitleFits = yAxisOffset >= yAxisSpace
 
     # Color legend calculations
     colorLegendFontSize = fontSize
     colorLegendGap = 0.5 * colorLegendFontSize
     colorLegendLabelHeight = colorLegendFontSize
     colorLegendLabelGap = 0.35 * colorLegendLabelHeight
-    colorLegendSampleWidth = 1.35 * colorLegendLabelHeight
+    colorLegendSampleLength = 2 * colorLegendLabelHeight
+    colorLegendSampleWidth = colorLegendSampleLength + 0.4 * colorLegendLabelHeight
+    # The legend reads top-to-bottom with the lines, so it is ordered by where each line ends rather
+    # than by the color encoding order, which orders the colors
+    colorLegendPoints = arraySort(arrayCopy(linePoints), dataLineChartLegendCompare)
     colorLegendLabelWidth = 0
     for linePoint in linePoints:
-        labelWidth = stringLength(objectGet(linePoint, 'label')) * dataLineChartChartFontWidthRatio * colorLegendFontSize
+        labelWidth = drawTextWidth(objectGet(linePoint, 'label'), colorLegendFontSize)
         colorLegendLabelWidth = if(labelWidth > colorLegendLabelWidth, labelWidth, colorLegendLabelWidth)
     endfor
+    # The legend is placed to leave room for its labels, but never so far left that the plot area is
+    # squeezed away, nor so far right that the labels run off the chart
+    colorLegendWidth = colorLegendSampleWidth + colorLegendLabelWidth
     colorLegendX = if(arrayLength(yFields) == 1 && colorField == null, null, \
-        mathMax( \
-            chartWidth - chartBorderSize - colorLegendLabelWidth - colorLegendSampleWidth, \
-            0.6 * chartWidth \
-        ) \
+        mathMax(x + width - chartBorderSize - colorLegendWidth, x + dataLineChartPlotSpaceFraction * width) \
     )
+    colorLegendLabelFit = if(colorLegendX != null, x + width - colorLegendX - colorLegendSampleWidth)
 
-    # Chart area calculations
-    chartTop = chartBorderSize + chartTitleHeight + 0.5 * dataLineChartChartLineWidth
+    # Horizontal chart area calculations
     chartLeft = yAxisX + 0.5 * dataLineChartAxisLineWidth + 0.5 * dataLineChartChartLineWidth
-    chartBottom = xAxisY - 0.5 * dataLineChartAxisLineWidth - 0.5 * dataLineChartChartLineWidth
-    chartRight = if(colorLegendX != null, colorLegendX - colorLegendGap, chartWidth - chartBorderSize)
+    chartRight = if(colorLegendX != null, colorLegendX - colorLegendGap, x + width - chartBorderSize)
+
+    # Compute the X-axis - the tick count is reduced until the tick labels fit without overlapping
+    xAxisMaxCount = mathMax(2, mathFloor((chartRight - chartLeft) / \
+        (drawTextWidth('00000', axisLabelFontSize) + axisLabelFontSize)))
+    xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime)
+    while xAxisMaxCount > 2 && !dataLineChartAxisLabelsFit(xAxis, chartLeft, chartRight, axisLabelFontSize):
+        xAxisMaxCount = xAxisMaxCount - 1
+        xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime)
+    endwhile
+    xAxis = dataLineChartAxisClamp(xAxis, xMinFixed, xMaxFixed)
+
+    # Label the annotations that have no label of their own with their axis's tick label format
+    dataLineChartAxisAnnotationLabels(yAxis, yAxisAnnotations, chartPrecision, chartDatetime)
+    dataLineChartAxisAnnotationLabels(xAxis, xAxisAnnotations, chartPrecision, chartDatetime)
 
     # Axis label limits
     xAxisLabelLeft = chartLeft + 0.5 * axisLabelFontSize
@@ -376,448 +516,936 @@ function dataLineChartElements(data, lineChart, options):
     yAxisLabelTop = chartTop + 0.5 * axisLabelFontSize
     yAxisLabelBottom = chartBottom - 0.5 * axisLabelFontSize
 
-    # Render Y-axis
-    yAxisTickElements = []
-    yAxisLabelElements = []
-    for yTickPair in yAxisTicks:
-        yCoord = arrayGet(yTickPair, 0)
-        yLabel = arrayGet(yTickPair, 1)
-        yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
-        hasLabel = yLabel != ''
-        hasLine = !hasLabel || (yPoint > yAxisLabelTop && yPoint < yAxisLabelBottom)
+    # Compute the axis tick mark coordinates - [coordinate, label] pairs
+    yTickCoords = dataLineChartAxisTickCoords(yAxis, chartBottom, chartTop)
+    xTickCoords = dataLineChartAxisTickCoords(xAxis, chartLeft, chartRight)
 
-        # Add tick
-        arrayPush(yAxisTickElements, [ \
-            if(!hasLabel, null, { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAxisColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
-                        ' H ' + dataLineChartSvgValue(yAxisX - dataLineChartAxisTickLength) \
-                } \
-            }), \
-            if(!hasLine, null, { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAxisTickLineColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
-                        ' H ' + dataLineChartSvgValue(chartRight) \
-                } \
-            }) \
-        ])
+    # The axis positions are fixed from here on, so each is rounded to a chart coordinate once
+    yAxisXCoord = dataLineChartCoord(yAxisX)
+    xAxisYCoord = dataLineChartCoord(xAxisY)
 
-        # Add tick label
-        if !hasLabel:
-            arrayPush(yAxisLabelElements, null)
-        else:
-            arrayPush(yAxisLabelElements, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(axisLabelFontSize) + 'px', \
-                    'fill': dataLineChartAxisColor, \
-                    'x': dataLineChartSvgValue(yAxisX - dataLineChartAxisTickLength - yAxisTickGap), \
-                    'y': dataLineChartSvgValue(yPoint), \
-                    'text-anchor': 'end', \
-                    'dominant-baseline': if(yPoint > yAxisLabelBottom, 'auto', if(yPoint < yAxisLabelTop, 'hanging', 'middle')) \
-                }, \
-                'elem': {'text': yLabel} \
-            })
+    # Draw the chart background
+    drawStyle('none', 0, dataLineChartChartBackgroundColor)
+    drawRect(x, y, width, height)
+
+    # Draw the tick mark grid lines
+    drawStyle(dataLineChartAxisTickLineColor, dataLineChartAxisTickWidth, 'none')
+    for yTickCoord in yTickCoords:
+        yPoint = arrayGet(yTickCoord, 0)
+        if yPoint > yAxisLabelTop && yPoint < yAxisLabelBottom:
+            drawMove(yAxisXCoord, dataLineChartCoord(yPoint))
+            drawHLine(dataLineChartCoord(chartRight))
+        endif
+    endfor
+    for xTickCoord in xTickCoords:
+        xPoint = arrayGet(xTickCoord, 0)
+        if xPoint > xAxisLabelLeft && xPoint < xAxisLabelRight:
+            drawMove(dataLineChartCoord(xPoint), xAxisYCoord)
+            drawVLine(dataLineChartCoord(chartTop))
         endif
     endfor
 
-    # Render X-axis
-    xAxisTickElements = []
-    xAxisLabelElements = []
-    for xTickPair in xAxisTicks:
-        xCoord = arrayGet(xTickPair, 0)
-        xLabel = arrayGet(xTickPair, 1)
-        xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
-        hasLabel = xLabel != ''
-        hasLine = !hasLabel || (xPoint > xAxisLabelLeft && xPoint < xAxisLabelRight)
-
-        # Add tick
-        arrayPush(xAxisTickElements, [ \
-            if(!hasLabel, null, { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAxisColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
-                        ' V ' + dataLineChartSvgValue(xAxisY + dataLineChartAxisTickLength) \
-                } \
-            }), \
-            if(!hasLine, null, { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAxisTickLineColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisTickWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
-                        ' V ' + dataLineChartSvgValue(chartTop) \
-                } \
-            }) \
-        ])
-
-        # Add tick label
-        if !hasLabel:
-            arrayPush(xAxisLabelElements, null)
-        else:
-            arrayPush(xAxisLabelElements, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(axisLabelFontSize) + 'px', \
-                    'fill': dataLineChartAxisColor, \
-                    'x': dataLineChartSvgValue(xPoint), \
-                    'y': dataLineChartSvgValue(xAxisY + dataLineChartAxisTickLength + xAxisTickGap), \
-                    'text-anchor': if(xPoint < xAxisLabelLeft, 'start', if(xPoint > xAxisLabelRight, 'end', 'middle')), \
-                    'dominant-baseline': 'hanging' \
-                }, \
-                'elem': {'text': xLabel} \
-            })
-        endif
+    # Draw the axis lines and tick marks
+    drawStyle(dataLineChartAxisColor, dataLineChartAxisLineWidth, 'none')
+    drawMove(yAxisXCoord, dataLineChartCoord(chartTop - 0.5 * dataLineChartAxisTickWidth))
+    drawVLine(xAxisYCoord)
+    drawHLine(dataLineChartCoord(chartRight + 0.5 * dataLineChartAxisTickWidth))
+    drawStyle(dataLineChartAxisColor, dataLineChartAxisTickWidth, 'none')
+    for yTickCoord in yTickCoords:
+        drawMove(yAxisXCoord, dataLineChartCoord(arrayGet(yTickCoord, 0)))
+        drawHLine(dataLineChartCoord(yAxisX - dataLineChartAxisTickLength))
+    endfor
+    for ySubtick in objectGet(yAxis, 'subticks'):
+        ySubtickPoint = dataLineChartAxisCoord(yAxis, ySubtick, chartBottom, chartTop)
+        drawMove(yAxisXCoord, dataLineChartCoord(ySubtickPoint))
+        drawHLine(dataLineChartCoord(yAxisX - dataLineChartAxisSubtickLength))
+    endfor
+    for xTickCoord in xTickCoords:
+        drawMove(dataLineChartCoord(arrayGet(xTickCoord, 0)), xAxisYCoord)
+        drawVLine(dataLineChartCoord(xAxisY + dataLineChartAxisTickLength))
+    endfor
+    for xSubtick in objectGet(xAxis, 'subticks'):
+        xSubtickPoint = dataLineChartAxisCoord(xAxis, xSubtick, chartLeft, chartRight)
+        drawMove(dataLineChartCoord(xSubtickPoint), xAxisYCoord)
+        drawVLine(dataLineChartCoord(xAxisY + dataLineChartAxisSubtickLength))
     endfor
 
-    # Render lines
-    lineElements = []
-    xRange = xMax - xMin
-    yRange = yMax - yMin
-    xScale = if(xRange == 0, 0, (chartRight - chartLeft) / xRange)
-    yScale = if(yRange == 0, 0, (chartTop - chartBottom) / yRange)
-    svgPrecision = dataLineChartSvgPrecision
-    chartLineWidthValue = numberToFixed(dataLineChartChartLineWidth, svgPrecision)
+    # Draw the chart lines. Clipping is only possible when the caller pinned an axis bound - an
+    # automatic axis is rounded outward from the data, so every point is inside the chart area.
+    chartClip = xMinFixed != null || xMaxFixed != null || yMinFixed != null || yMaxFixed != null
+    xAxisBase = objectGet(xAxis, 'base')
+    yAxisBase = objectGet(yAxis, 'base')
+    xAxisRange = objectGet(xAxis, 'range')
+    yAxisRange = objectGet(yAxis, 'range')
+    xPointScale = if(xAxisRange == 0, 0, (chartRight - chartLeft) / xAxisRange)
+    yPointScale = if(yAxisRange == 0, 0, (chartTop - chartBottom) / yAxisRange)
     for linePoint in linePointsReversed:
-        linePointColor = objectGet(linePoint, 'color')
+        drawStyle(objectGet(linePoint, 'color'), dataLineChartChartLineWidth, 'none', objectGet(linePoint, 'dash'))
         linePointPoints = objectGet(linePoint, 'points')
-        linePointParts = []
         nPoints = arrayLength(linePointPoints)
         if nPoints == 1:
             point = arrayGet(linePointPoints, 0)
-            xPoint = chartLeft + (arrayGet(point, 0) - xMin) * xScale
-            yPoint = chartBottom + (arrayGet(point, 1) - yMin) * yScale
-            yPointStr = numberToFixed(yPoint, svgPrecision)
-            arrayPush(linePointParts, \
-                'M ' + numberToFixed(xPoint - 0.5 * dataLineChartChartLineWidth, svgPrecision) + ' ' + yPointStr + \
-                ' L ' + numberToFixed(xPoint + 0.5 * dataLineChartChartLineWidth, svgPrecision) + ' ' + yPointStr)
+            xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
+            yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
+            # The marker is centered on the point, so it is drawn whole or not at all - clipping it
+            # would render a point at the edge of the axis as a half-width mark
+            if xPoint >= chartLeft && xPoint <= chartRight && yPoint >= chartTop && yPoint <= chartBottom:
+                drawMove(dataLineChartCoord(xPoint - 0.5 * dataLineChartChartLineWidth), dataLineChartCoord(yPoint))
+                drawLine(dataLineChartCoord(xPoint + 0.5 * dataLineChartChartLineWidth), dataLineChartCoord(yPoint))
+            endif
         else:
-            firstPoint = arrayGet(linePointPoints, 0)
-            xPoint = chartLeft + (arrayGet(firstPoint, 0) - xMin) * xScale
-            yPoint = chartBottom + (arrayGet(firstPoint, 1) - yMin) * yScale
-            arrayPush(linePointParts, \
-                'M ' + numberToFixed(xPoint, svgPrecision) + ' ' + numberToFixed(yPoint, svgPrecision))
-            ixPoint = 1
+            # Each segment is clipped to the chart area - an explicit axis range can put data outside it
+            xPrevious = null
+            yPrevious = null
+            xLast = null
+            yLast = null
+            ixPoint = 0
             while ixPoint < nPoints:
                 point = arrayGet(linePointPoints, ixPoint)
-                xPoint = chartLeft + (arrayGet(point, 0) - xMin) * xScale
-                yPoint = chartBottom + (arrayGet(point, 1) - yMin) * yScale
-                arrayPush(linePointParts, \
-                    'L ' + numberToFixed(xPoint, svgPrecision) + ' ' + numberToFixed(yPoint, svgPrecision))
+                xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
+                yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
+                if ixPoint != 0:
+                    segment = if(!chartClip, dataLineChartSegmentSentinel, dataLineChartClipSegment( \
+                        xPrevious, yPrevious, xPoint, yPoint, chartLeft, chartTop, chartRight, chartBottom))
+                    if segment != null:
+                        xStart = if(chartClip, arrayGet(segment, 0), xPrevious)
+                        yStart = if(chartClip, arrayGet(segment, 1), yPrevious)
+                        # Continue the current sub-path when this segment starts where the last one ended
+                        if xLast != xStart || yLast != yStart:
+                            drawMove(mathRound(xStart, dataLineChartCoordPrecision), \
+                                mathRound(yStart, dataLineChartCoordPrecision))
+                        endif
+                        xLast = if(chartClip, arrayGet(segment, 2), xPoint)
+                        yLast = if(chartClip, arrayGet(segment, 3), yPoint)
+                        drawLine(mathRound(xLast, dataLineChartCoordPrecision), \
+                            mathRound(yLast, dataLineChartCoordPrecision))
+                    endif
+                endif
+                xPrevious = xPoint
+                yPrevious = yPoint
                 ixPoint = ixPoint + 1
             endwhile
         endif
-        arrayPush(lineElements, { \
-            'svg': 'path', \
-            'attr': { \
-                'stroke': linePointColor, \
-                'stroke-width': chartLineWidthValue, \
-                'fill': 'none', \
-                'd': arrayJoin(linePointParts, ' ') \
-            } \
-        })
     endfor
 
-    # Render Y-axis annotations
-    yAnnotationElements = []
+    # Annotation label calculations
+    annotationLabelFontSize = axisLabelFontSize
+    annotationLabelMargin = 0.25 * annotationLabelFontSize
+    annotationLabelHeight = annotationLabelFontSize + 2 * annotationLabelMargin
+    annotationLabelOffsetX = 0.2 * annotationLabelFontSize
+    annotationLabelOffsetY = 0.1 * annotationLabelFontSize
+
+    # Compute the annotation coordinates - [coordinate, label, label-x, label-y, label-width, text-x, text-anchor] tuples
+    yAnnotationCoords = []
     for yAxisAnnotation in yAxisAnnotations:
-        yCoord = arrayGet(yAxisAnnotation, 0)
         yLabel = arrayGet(yAxisAnnotation, 1)
-        yPoint = dataLineChartChartPoint(yCoord, yMin, yMax, chartBottom, chartTop)
+        yPoint = dataLineChartAxisCoord(yAxis, arrayGet(yAxisAnnotation, 0), chartBottom, chartTop)
         isUnder = yPoint < 0.5 * (chartTop + chartBottom)
-        labelWidth = 2 * annotationLabelMargin + stringLength(yLabel) * dataLineChartChartFontWidthRatio * annotationLabelFontSize
+        labelWidth = 2 * annotationLabelMargin + drawTextWidth(yLabel, annotationLabelFontSize)
         labelY = if(isUnder, \
-            yPoint + dataLineChartAnnotationLineWidth + yAnnotationLabelOffsetY, \
-            yPoint - dataLineChartAnnotationLineWidth - yAnnotationLabelOffsetY - annotationLabelHeight)
-        arrayPush(yAnnotationElements, [ \
-            if(yLabel == '', null, { \
-                'svg': 'rect', \
-                'attr': { \
-                    'x': dataLineChartSvgValue(chartLeft + yAnnotationLabelOffsetX), \
-                    'y': dataLineChartSvgValue(labelY), \
-                    'width': dataLineChartSvgValue(labelWidth), \
-                    'height': dataLineChartSvgValue(annotationLabelHeight), \
-                    'fill': dataLineChartAnnotationBackgroundColor \
-                } \
-            }), \
-            if(yLabel == '', null, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(annotationLabelFontSize) + 'px', \
-                    'fill': dataLineChartAnnotationTextColor, \
-                    'x': dataLineChartSvgValue(chartLeft + yAnnotationLabelOffsetX + annotationLabelMargin), \
-                    'y': dataLineChartSvgValue(labelY + annotationLabelMargin + 0.5 * annotationLabelFontSize), \
-                    'text-anchor': 'start', \
-                    'dominant-baseline': 'middle' \
-                }, \
-                'elem': {'text': yLabel} \
-            }), \
-            { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAnnotationLineColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAnnotationLineWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(yPoint) + \
-                        ' H ' + dataLineChartSvgValue(chartRight) \
-                } \
-            } \
-        ])
+            yPoint + dataLineChartAnnotationLineWidth + annotationLabelOffsetY, \
+            yPoint - dataLineChartAnnotationLineWidth - annotationLabelOffsetY - annotationLabelHeight)
+        arrayPush(yAnnotationCoords, [yPoint, yLabel, chartLeft + annotationLabelOffsetX, labelY, labelWidth, \
+            chartLeft + annotationLabelOffsetX + annotationLabelMargin, 'start'])
     endfor
-
-    # Render X-axis annotations
-    xAnnotationElements = []
+    xAnnotationCoords = []
     for xAxisAnnotation in xAxisAnnotations:
-        xCoord = arrayGet(xAxisAnnotation, 0)
         xLabel = arrayGet(xAxisAnnotation, 1)
-        xPoint = dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight)
+        xPoint = dataLineChartAxisCoord(xAxis, arrayGet(xAxisAnnotation, 0), chartLeft, chartRight)
         isLeft = xPoint > 0.5 * (chartLeft + chartRight)
-        labelWidth = 2 * annotationLabelMargin + stringLength(xLabel) * dataLineChartChartFontWidthRatio * annotationLabelFontSize
-        labelY = chartBottom - xAnnotationLabelOffsetY - annotationLabelHeight
-        labelX = if(isLeft, \
-            xPoint - 0.5 * dataLineChartAnnotationLineWidth - xAnnotationLabelOffsetX - labelWidth, \
-            xPoint + 0.5 * dataLineChartAnnotationLineWidth + xAnnotationLabelOffsetX)
-        textX = if(isLeft, \
-            xPoint - 0.5 * dataLineChartAnnotationLineWidth - xAnnotationLabelOffsetX - annotationLabelMargin, \
-            xPoint + 0.5 * dataLineChartAnnotationLineWidth + xAnnotationLabelOffsetX + annotationLabelMargin)
-        arrayPush(xAnnotationElements, [ \
-            if(xLabel == '', null, { \
-                'svg': 'rect', \
-                'attr': { \
-                    'x': dataLineChartSvgValue(labelX), \
-                    'y': dataLineChartSvgValue(labelY), \
-                    'width': dataLineChartSvgValue(labelWidth), \
-                    'height': dataLineChartSvgValue(annotationLabelHeight), \
-                    'fill': dataLineChartAnnotationBackgroundColor \
-                } \
-            }), \
-            if(xLabel == '', null, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(annotationLabelFontSize) + 'px', \
-                    'fill': dataLineChartAnnotationTextColor, \
-                    'x': dataLineChartSvgValue(textX), \
-                    'y': dataLineChartSvgValue(labelY + annotationLabelMargin + 0.5 * annotationLabelFontSize), \
-                    'text-anchor': if(isLeft, 'end', 'start'), \
-                    'dominant-baseline': 'middle' \
-                }, \
-                'elem': {'text': xLabel} \
-            }), \
-            { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAnnotationLineColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAnnotationLineWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(xPoint) + ' ' + dataLineChartSvgValue(xAxisY) + \
-                        ' V ' + dataLineChartSvgValue(chartTop) \
-                } \
-            } \
-        ])
+        labelWidth = 2 * annotationLabelMargin + drawTextWidth(xLabel, annotationLabelFontSize)
+        labelOffset = 0.5 * dataLineChartAnnotationLineWidth + annotationLabelOffsetX
+        arrayPush(xAnnotationCoords, [xPoint, xLabel, \
+            if(isLeft, xPoint - labelOffset - labelWidth, xPoint + labelOffset), \
+            chartBottom - annotationLabelOffsetY - annotationLabelHeight, labelWidth, \
+            if(isLeft, xPoint - labelOffset - annotationLabelMargin, xPoint + labelOffset + annotationLabelMargin), \
+            if(isLeft, 'end', 'start')])
     endfor
 
-    # Render color legend
-    colorLegendElements = null
+    # Draw the annotation lines
+    drawStyle(dataLineChartAnnotationLineColor, dataLineChartAnnotationLineWidth, 'none')
+    for yAnnotationCoord in yAnnotationCoords:
+        drawMove(yAxisXCoord, dataLineChartCoord(arrayGet(yAnnotationCoord, 0)))
+        drawHLine(dataLineChartCoord(chartRight))
+    endfor
+    for xAnnotationCoord in xAnnotationCoords:
+        drawMove(dataLineChartCoord(arrayGet(xAnnotationCoord, 0)), xAxisYCoord)
+        drawVLine(dataLineChartCoord(chartTop))
+    endfor
+
+    # Draw the annotation label backgrounds - the Y and X annotations are drawn as one set
+    annotationCoords = arrayExtend(arrayCopy(yAnnotationCoords), xAnnotationCoords)
+    drawStyle('none', 0, dataLineChartAnnotationBackgroundColor)
+    for annotationCoord in annotationCoords:
+        if arrayGet(annotationCoord, 1) != '':
+            drawRect(dataLineChartCoord(arrayGet(annotationCoord, 2)), dataLineChartCoord(arrayGet(annotationCoord, 3)), \
+                dataLineChartCoord(arrayGet(annotationCoord, 4)), dataLineChartCoord(annotationLabelHeight))
+        endif
+    endfor
+
+    # Draw the color legend line samples - a segment of the line itself, so that a reader who cannot
+    # tell the colors apart can still match a legend entry to its line by dash pattern
     if colorLegendX != null:
-        colorLegendElements = []
-        for linePoint, ix in linePoints:
-            linePointLabel = objectGet(linePoint, 'label')
-            linePointColor = objectGet(linePoint, 'color')
-            arrayPush(colorLegendElements, [ \
-                { \
-                    'svg': 'rect', \
-                    'attr': { \
-                        'x': dataLineChartSvgValue(colorLegendX), \
-                        'y': dataLineChartSvgValue(chartTop + ix * (colorLegendLabelHeight + colorLegendLabelGap)), \
-                        'width': dataLineChartSvgValue(colorLegendLabelHeight), \
-                        'height': dataLineChartSvgValue(colorLegendLabelHeight), \
-                        'stroke': 'none', \
-                        'fill': linePointColor \
-                    } \
-                }, \
-                { \
-                    'svg': 'text', \
-                    'attr': { \
-                        'font-family': dataLineChartChartFontFamily, \
-                        'font-size': dataLineChartSvgValue(colorLegendFontSize) + 'px', \
-                        'fill': dataLineChartAxisColor, \
-                        'x': dataLineChartSvgValue(colorLegendX + colorLegendSampleWidth), \
-                        'y': dataLineChartSvgValue(chartTop + ix * (colorLegendLabelHeight + colorLegendLabelGap) + 0.5 * colorLegendLabelHeight), \
-                        'text-anchor': 'start', \
-                        'dominant-baseline': 'middle' \
-                    }, \
-                    'elem': {'text': linePointLabel} \
-                } \
-            ])
+        for linePoint, ixLinePoint in colorLegendPoints:
+            drawStyle(objectGet(linePoint, 'color'), dataLineChartChartLineWidth, 'none', objectGet(linePoint, 'dash'))
+            sampleY = chartTop + ixLinePoint * (colorLegendLabelHeight + colorLegendLabelGap) + \
+                0.5 * colorLegendLabelHeight
+            drawMove(dataLineChartCoord(colorLegendX), dataLineChartCoord(sampleY))
+            drawHLine(dataLineChartCoord(colorLegendX + colorLegendSampleLength))
         endfor
     endif
 
-    # Return the chart element model
+    # Draw the chart title
+    chartTitleFit = chartRight - chartLeft
+    if chartTitle != null:
+        drawTextStyle(chartTitleFontSize, dataLineChartAxisColor, true)
+        drawText(dataLineChartLabelFit(chartTitle, chartTitleFontSize, chartTitleFit), \
+            dataLineChartCoord(0.5 * (chartLeft + chartRight)), dataLineChartCoord(y + chartBorderSize), \
+            'middle', 'hanging')
+    endif
+
+    # Draw the axis titles
+    drawTextStyle(axisTitleFontSize, dataLineChartAxisColor, true)
+    if yAxisTitle != null && yAxisTitleFits:
+        drawText(dataLineChartLabelFit(yAxisTitle, axisTitleFontSize, chartBottom - chartTop), \
+            dataLineChartCoord(x + chartBorderSize), dataLineChartCoord(0.5 * (chartTop + chartBottom)), \
+            'middle', 'hanging', -90)
+    endif
+    drawText(dataLineChartLabelFit(xField, axisTitleFontSize, chartTitleFit), \
+        dataLineChartCoord(0.5 * (chartLeft + chartRight)), dataLineChartCoord(y + height - chartBorderSize), \
+        'middle', 'auto')
+
+    # Draw the axis tick mark labels
+    drawTextStyle(axisLabelFontSize, dataLineChartAxisColor)
+    for yTickCoord in yTickCoords:
+        yPoint = arrayGet(yTickCoord, 0)
+        drawText(arrayGet(yTickCoord, 1), dataLineChartCoord(yAxisX - dataLineChartAxisTickLength - yAxisTickGap), \
+            dataLineChartCoord(yPoint), 'end', \
+            if(yPoint > yAxisLabelBottom, 'auto', if(yPoint < yAxisLabelTop, 'hanging', 'middle')))
+    endfor
+    for xTickCoord in xTickCoords:
+        xPoint = arrayGet(xTickCoord, 0)
+        drawText(arrayGet(xTickCoord, 1), dataLineChartCoord(xPoint), \
+            dataLineChartCoord(xAxisY + dataLineChartAxisTickLength + xAxisTickGap), \
+            if(xPoint < xAxisLabelLeft, 'start', if(xPoint > xAxisLabelRight, 'end', 'middle')), 'hanging')
+    endfor
+
+    # Draw the annotation labels
+    drawTextStyle(annotationLabelFontSize, dataLineChartAnnotationTextColor)
+    for annotationCoord in annotationCoords:
+        annotationLabel = arrayGet(annotationCoord, 1)
+        if annotationLabel != '':
+            drawText(annotationLabel, dataLineChartCoord(arrayGet(annotationCoord, 5)), \
+                dataLineChartCoord(arrayGet(annotationCoord, 3) + annotationLabelMargin + 0.5 * annotationLabelFontSize), \
+                arrayGet(annotationCoord, 6), 'middle')
+        endif
+    endfor
+
+    # Draw the color legend labels
+    if colorLegendX != null:
+        drawTextStyle(colorLegendFontSize, dataLineChartAxisColor)
+        for linePoint, ixLinePoint in colorLegendPoints:
+            drawText(dataLineChartLabelFit(objectGet(linePoint, 'label'), colorLegendFontSize, colorLegendLabelFit), \
+                dataLineChartCoord(colorLegendX + colorLegendSampleWidth), \
+                dataLineChartCoord(chartTop + ixLinePoint * (colorLegendLabelHeight + colorLegendLabelGap) + \
+                    0.5 * colorLegendLabelHeight), \
+                'start', 'middle')
+        endfor
+    endif
+
+    return true
+endfunction
+
+
+# Helper function to get a series' color
+function dataLineChartSeriesColor(ixSeries):
+    return arrayGet(dataLineChartCategoricalColors, ixSeries % arrayLength(dataLineChartCategoricalColors))
+endfunction
+
+
+# Helper function to get a series' line dash pattern
+function dataLineChartSeriesDash(ixSeries):
+    ixDash = mathFloor(ixSeries / arrayLength(dataLineChartCategoricalColors))
+    return arrayGet(dataLineChartLineDashArrays, ixDash % arrayLength(dataLineChartLineDashArrays))
+endfunction
+
+
+# Helper function to fit a label within a width, ending it with an ellipsis when it does not fit.
+# Only category labels are fitted this way - a truncated number would read as a different number.
+function dataLineChartLabelFit(label, fontSize, maxWidth):
+    if drawTextWidth(label, fontSize) <= maxWidth:
+        return label
+    endif
+    labelCount = mathFloor(maxWidth / drawTextWidth('0', fontSize)) - stringLength(dataLineChartEllipsis)
+    return if(labelCount > 0, stringSlice(label, 0, labelCount) + dataLineChartEllipsis, '')
+endfunction
+
+
+# Helper function to round a chart coordinate
+function dataLineChartCoord(value):
+    return mathRound(value, dataLineChartCoordPrecision)
+endfunction
+
+
+# Helper function to test whether an axis's tick mark labels fit without overlapping. A label is
+# centered on its tick mark, except near the axis ends where it is anchored inside the chart - so an
+# end label reaches half a label further toward its neighbor.
+function dataLineChartAxisLabelsFit(axis, coordMin, coordMax, fontSize):
+    labelLimitMin = coordMin + 0.5 * fontSize
+    labelLimitMax = coordMax - 0.5 * fontSize
+    labelGap = 0.5 * fontSize
+    labelEnd = null
+    for tickPair in objectGet(axis, 'ticks'):
+        tickCoord = dataLineChartAxisCoord(axis, arrayGet(tickPair, 0), coordMin, coordMax)
+        labelWidth = drawTextWidth(arrayGet(tickPair, 1), fontSize)
+        labelStart = if(tickCoord < labelLimitMin, tickCoord, \
+            if(tickCoord > labelLimitMax, tickCoord - labelWidth, tickCoord - 0.5 * labelWidth))
+        if labelEnd != null && (labelStart - labelEnd) < labelGap:
+            return false
+        endif
+        labelEnd = labelStart + labelWidth
+    endfor
+    return true
+endfunction
+
+
+# Helper function to validate an axis's explicit bounds against its computed range. A bound pair
+# that is not strictly increasing - a minimum at or above the maximum, whether both were given or
+# only one - leaves the axis no range to scale by, which would divide every chart coordinate by
+# zero. Such a pair is ignored and the computed range kept.
+function dataLineChartAxisBounds(minValue, maxValue, minFixed, maxFixed):
+    if minFixed == null && maxFixed == null:
+        return [null, null]
+    endif
+    if if(minFixed != null, minFixed, minValue) < if(maxFixed != null, maxFixed, maxValue):
+        return [minFixed, maxFixed]
+    endif
+    systemLogDebug('dataLineChart.bare - Ignoring an axis range that is not increasing')
+    return [null, null]
+endfunction
+
+
+# Helper function to hold an axis to its explicit bounds. The axis functions round their range outward to whole tick values, which is right when the range
+# came from the data but wrong when the caller named it - an axis asked for 0 to 100 must end at 0
+# and 100. So the bounds are re-applied afterwards and the tick marks outside them are dropped. The
+# tick step was computed from the bounded range, so at most the outermost tick on each side goes.
+function dataLineChartAxisClamp(axis, minFixed, maxFixed):
+    if minFixed == null && maxFixed == null:
+        return axis
+    endif
+    axisMin = if(minFixed != null, minFixed, objectGet(axis, 'min'))
+    axisMax = if(maxFixed != null, maxFixed, objectGet(axis, 'max'))
+    return dataLineChartAxisNew(axisMin, axisMax, objectGet(axis, 'log'), objectGet(axis, 'label'), \
+        dataLineChartAxisClampValues(objectGet(axis, 'ticks'), axisMin, axisMax), \
+        dataLineChartAxisClampValues(objectGet(axis, 'subticks'), axisMin, axisMax))
+endfunction
+
+
+# Helper function to drop the values outside an axis's range. Tick marks are [value, label] pairs
+# and sub-tick marks are bare values, so both shapes are accepted. The comparison goes through the
+# axis parameter so that it reads the same for numbers and for datetimes.
+function dataLineChartAxisClampValues(valueLabels, axisMin, axisMax):
+    clamped = []
+    for valueLabel in valueLabels:
+        value = if(systemType(valueLabel) == 'array', arrayGet(valueLabel, 0), valueLabel)
+        valueParameter = dataUtilValueParameter(value, axisMin, axisMax)
+        if valueParameter >= -dataLineChartClampEpsilon && valueParameter <= 1 + dataLineChartClampEpsilon:
+            arrayPush(clamped, valueLabel)
+        endif
+    endfor
+    return clamped
+endfunction
+
+
+# Helper function to clip a chart line segment to the chart area, so that data outside an explicit
+# axis range does not draw over the axes, the labels, or the legend. This is the parametric
+# (Liang-Barsky) clip, done in chart coordinates so it serves linear, logarithmic and datetime axes
+# alike. Returns the clipped [x0, y0, x1, y1], or null when the segment is entirely outside.
+function dataLineChartClipSegment(x0, y0, x1, y1, left, top, right, bottom):
+    # Both endpoints inside is the common case, and needs none of the work below
+    if x0 >= left && x0 <= right && y0 >= top && y0 <= bottom && \
+       x1 >= left && x1 <= right && y1 >= top && y1 <= bottom:
+        return [x0, y0, x1, y1]
+    endif
+
+    # The four edges are tested inline - as a loop over an array of pairs this allocated five arrays
+    # per call and was half of the chart's statement count. Each axis contributes the parameter at
+    # which the segment enters the slab and the one at which it leaves.
+    deltaX = x1 - x0
+    deltaY = y1 - y0
+    clipMin = 0
+    clipMax = 1
+    if deltaX > 0:
+        clipMin = mathMax(clipMin, (left - x0) / deltaX)
+        clipMax = mathMin(clipMax, (right - x0) / deltaX)
+    elif deltaX < 0:
+        clipMin = mathMax(clipMin, (right - x0) / deltaX)
+        clipMax = mathMin(clipMax, (left - x0) / deltaX)
+    elif x0 < left || x0 > right:
+        return null
+    endif
+    if deltaY > 0:
+        clipMin = mathMax(clipMin, (top - y0) / deltaY)
+        clipMax = mathMin(clipMax, (bottom - y0) / deltaY)
+    elif deltaY < 0:
+        clipMin = mathMax(clipMin, (bottom - y0) / deltaY)
+        clipMax = mathMin(clipMax, (top - y0) / deltaY)
+    elif y0 < top || y0 > bottom:
+        return null
+    endif
+    if clipMin > clipMax:
+        return null
+    endif
+    return [x0 + clipMin * deltaX, y0 + clipMin * deltaY, x0 + clipMax * deltaX, y0 + clipMax * deltaY]
+endfunction
+
+
+# Helper function to map an axis's tick marks onto the chart, as [coordinate, label] pairs
+function dataLineChartAxisTickCoords(axis, coordMin, coordMax):
+    tickCoords = []
+    for tickPair in objectGet(axis, 'ticks'):
+        arrayPush(tickCoords, \
+            [dataLineChartAxisCoord(axis, arrayGet(tickPair, 0), coordMin, coordMax), arrayGet(tickPair, 1)])
+    endfor
+    return tickCoords
+endfunction
+
+
+# Helper function to compute an axis's chart coordinate for an axis value
+function dataLineChartAxisCoord(axis, value, coordMin, coordMax):
+    # An automatic axis always has a range - a constant series is expanded around its value
+    axisValue = if(objectGet(axis, 'log'), mathLog(value, 10), value)
+    return coordMin + ((axisValue - objectGet(axis, 'base')) / objectGet(axis, 'range')) * (coordMax - coordMin)
+endfunction
+
+
+# Helper function to test whether an axis is drawn on a logarithmic scale. A caller may ask for one
+# on any axis, but only a positive numeric range can carry it.
+function dataLineChartIsLog(isLog, minValue):
+    return isLog && systemType(minValue) == 'number' && minValue > 0
+endfunction
+
+
+# Helper function to create an axis model - the axis range, the [value, label] tick pairs, and the sub-tick values
+function dataLineChartAxisNew(minValue, maxValue, isLog, label, ticks, subticks):
+    isLog = dataLineChartIsLog(isLog, minValue)
+    axisBase = if(isLog, mathLog(minValue, 10), minValue)
+    axisRange = if(isLog, mathLog(maxValue, 10) - axisBase, maxValue - minValue)
     return { \
-        'svg': 'svg', \
-        'attr': { \
-            'width': chartWidth, \
-            'height': chartHeight \
-        }, \
-        'elem': [ \
-            { \
-                'svg': 'rect', \
-                'attr': { \
-                    'width': chartWidth, \
-                    'height': chartHeight, \
-                    'fill': dataLineChartChartBackgroundColor \
-                } \
-            }, \
-
-            # Chart title
-            if(chartTitle == null, null, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(chartTitleFontSize) + 'px', \
-                    'fill': dataLineChartAxisColor, \
-                    'style': 'font-weight: bold', \
-                    'x': dataLineChartSvgValue(0.5 * (chartLeft + chartRight)), \
-                    'y': dataLineChartSvgValue(chartBorderSize), \
-                    'text-anchor': 'middle', \
-                    'dominant-baseline': 'hanging' \
-                }, \
-                'elem': {'text': chartTitle} \
-            }), \
-
-            # Y-Axis title
-            if(yAxisTitle == null, null, { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(axisTitleFontSize) + 'px', \
-                    'fill': dataLineChartAxisColor, \
-                    'style': 'font-weight: bold', \
-                    'x': dataLineChartSvgValue(chartBorderSize), \
-                    'y': dataLineChartSvgValue(0.5 * (chartTop + chartBottom)), \
-                    'transform': 'rotate(-90 ' + dataLineChartSvgValue(chartBorderSize) + ', ' + \
-                        dataLineChartSvgValue(0.5 * (chartTop + chartBottom)) + ')', \
-                    'text-anchor': 'middle', \
-                    'dominant-baseline': 'hanging' \
-                }, \
-                'elem': {'text': yAxisTitle} \
-            }), \
-
-            # Y-axis
-            yAxisTickElements, \
-            yAxisLabelElements, \
-
-            # X-Axis title
-            { \
-                'svg': 'text', \
-                'attr': { \
-                    'font-family': dataLineChartChartFontFamily, \
-                    'font-size': dataLineChartSvgValue(axisTitleFontSize) + 'px', \
-                    'fill': dataLineChartAxisColor, \
-                    'style': 'font-weight: bold', \
-                    'x': dataLineChartSvgValue(0.5 * (chartLeft + chartRight)), \
-                    'y': dataLineChartSvgValue(chartHeight - chartBorderSize), \
-                    'text-anchor': 'middle', \
-                    'dominant-baseline': 'auto' \
-                }, \
-                'elem': {'text': xField} \
-            }, \
-
-            # X-axis
-            xAxisTickElements, \
-            xAxisLabelElements, \
-
-            # Axis lines
-            { \
-                'svg': 'path', \
-                'attr': { \
-                    'stroke': dataLineChartAxisColor, \
-                    'stroke-width': dataLineChartSvgValue(dataLineChartAxisLineWidth), \
-                    'fill': 'none', \
-                    'd': 'M ' + dataLineChartSvgValue(yAxisX) + ' ' + dataLineChartSvgValue(chartTop - 0.5 * dataLineChartAxisTickWidth) + \
-                        ' V ' + dataLineChartSvgValue(xAxisY) + ' H ' + dataLineChartSvgValue(chartRight + 0.5 * dataLineChartAxisTickWidth) \
-                } \
-            }, \
-
-            # Chart lines
-            lineElements, \
-
-            # Annotations
-            yAnnotationElements, \
-            xAnnotationElements, \
-
-            # Color legend
-            colorLegendElements \
-        ] \
+        'min': minValue, \
+        'max': maxValue, \
+        'log': isLog, \
+        'base': axisBase, \
+        'range': axisRange, \
+        'label': label, \
+        'ticks': ticks, \
+        'subticks': subticks \
     }
 endfunction
 
 
-# Helper function to compute an axis's tick marks - the array of [value, label] pairs
-function dataLineChartAxisTicks(ticks, defaultCount, minValue, maxValue, precision, datetime):
-    tickCount = if(ticks != null && objectHas(ticks, 'count'), objectGet(ticks, 'count'), defaultCount)
-    tickSkip = if(ticks != null && objectHas(ticks, 'skip'), objectGet(ticks, 'skip') + 1, 1)
-    tickStart = if(ticks != null && objectHas(ticks, 'start'), objectGet(ticks, 'start'), minValue)
-    tickEnd = if(ticks != null && objectHas(ticks, 'end'), objectGet(ticks, 'end'), maxValue)
-    axisTicks = []
-    ixTick = 0
-    while ixTick < tickCount:
-        tickParam = if(tickCount == 1, 0, ixTick / (tickCount - 1))
-        tickValue = dataUtilParameterValue(tickParam, tickStart, tickEnd)
-        tickLabel = if((ixTick % tickSkip) != 0, '', dataUtilFormatValue(tickValue, precision, datetime))
-        arrayPush(axisTicks, [tickValue, tickLabel])
-        ixTick = ixTick + 1
-    endwhile
-    return axisTicks
+# Helper function to compute an axis's tick marks and range
+function dataLineChartAxis(isLog, format, minValue, maxValue, maxCount, precision, datetime):
+    # A constant series has no range of its own. Expand it around the value so the data is drawn
+    # within the chart rather than flat along its edge, where it would read as the axis minimum.
+    if minValue == maxValue:
+        if dataLineChartIsLog(isLog, minValue):
+            minValue = minValue / 10
+            maxValue = maxValue * 10
+        elif systemType(minValue) == 'datetime':
+            # A datetime supports "+ milliseconds" but not "- milliseconds"
+            minValue = minValue + -dataLineChartSingleValueDuration
+            maxValue = maxValue + dataLineChartSingleValueDuration
+        else:
+            singleValueDelta = if(minValue == 0, 1, mathAbs(minValue))
+            minValue = minValue - singleValueDelta
+            maxValue = maxValue + singleValueDelta
+        endif
+    endif
+
+    # Compute the automatic tick marks for the axis type
+    if dataLineChartIsLog(isLog, minValue):
+        return dataLineChartAxisLog(format, minValue, maxValue, maxCount, precision)
+    elif systemType(minValue) == 'datetime':
+        return dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime)
+    endif
+    return dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision)
 endfunction
 
 
-# Helper function to compute an axis's annotations - the array of [value, label] pairs
-function dataLineChartAxisAnnotations(lines, precision, datetime):
+# Helper function to compute a linear axis's automatic tick marks
+function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision):
+    # Compute the "nice" tick step - one, two, or five times a power of ten
+    stepInfo = dataLineChartNiceStep((maxValue - minValue) / maxCount)
+    step = arrayGet(stepInfo, 0)
+    stepPrecision = mathMax(0, -arrayGet(stepInfo, 1))
+
+    # Round the axis range outward to the nearest tick values
+    axisMin = mathRound(mathFloor(mathRound(minValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
+    axisMax = mathRound(mathCeil(mathRound(maxValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
+
+    # Compute the tick label format - an evenly-spaced axis scales every label by the same power of ten
+    labelSignificant = if(precision != null, -precision, arrayGet(stepInfo, 1))
+    magnitudeExponent = dataLineChartValueExponent(mathMax(mathAbs(axisMin), mathAbs(axisMax)))
+    labelKind = dataLineChartLabelKind(format, magnitudeExponent, magnitudeExponent, labelSignificant)
+    axisLabel = dataLineChartLabelNew(labelKind, dataLineChartLabelExponent(labelKind, magnitudeExponent), \
+        labelSignificant, precision, null)
+
+    # Compute the tick values and the tick labels. Evenly-spaced tick marks need no sub-tick marks -
+    # the eye interpolates between them - so the axis carries none.
+    tickCount = mathRound((axisMax - axisMin) / step) + 1
+    axisTicks = []
+    ixTick = 0
+    while ixTick < tickCount:
+        tickValue = mathRound(axisMin + ixTick * step, stepPrecision)
+        arrayPush(axisTicks, [tickValue, dataLineChartAxisLabel(axisLabel, tickValue)])
+        ixTick = ixTick + 1
+    endwhile
+    return dataLineChartAxisNew(axisMin, axisMax, false, axisLabel, axisTicks, [])
+endfunction
+
+
+# Helper function to compute a logarithmic axis's automatic tick marks
+function dataLineChartAxisLog(format, minValue, maxValue, maxCount, precision):
+    # Round the axis range outward to the nearest decades
+    decadeMin = mathFloor(mathLog(minValue, 10) + dataLineChartLogEpsilon)
+    decadeMax = mathCeil(mathLog(maxValue, 10) - dataLineChartLogEpsilon)
+    decadeCount = mathMax(1, decadeMax - decadeMin)
+
+    # Tick marks span whole decades. Prefer a step that divides the decade count evenly, so that the last
+    # tick is the axis maximum; when that renders too few tick marks, extend the range by less than a step.
+    decadeStep = mathMax(1, mathCeil(decadeCount / maxCount))
+    divisorStep = decadeStep
+    while (decadeCount % divisorStep) != 0:
+        divisorStep = divisorStep + 1
+    endwhile
+    if decadeCount / divisorStep + 1 >= mathMax(2, mathFloor(maxCount / 2) + 1):
+        decadeStep = divisorStep
+    endif
+    decadeCount = decadeStep * mathCeil(decadeCount / decadeStep)
+    decadeMax = decadeMin + decadeCount
+    axisMin = 10 ** decadeMin
+    axisMax = 10 ** decadeMax
+
+    # Determine the tick and sub-tick mantissas - a short axis labels the 1, 2, and 5 of each decade
+    if decadeStep != 1:
+        tickMantissas = [1]
+        subtickMantissas = []
+    elif 3 * decadeCount <= maxCount:
+        tickMantissas = [1, 2, 5]
+        subtickMantissas = [3, 4, 6, 7, 8, 9]
+    else:
+        tickMantissas = [1]
+        subtickMantissas = [2, 3, 4, 5, 6, 7, 8, 9]
+    endif
+
+    # Compute the tick label format - a logarithmic axis spans decades, so each label is scaled by its
+    # own power of ten
+    labelKind = dataLineChartLabelKind(format, decadeMin, decadeMax, decadeMin)
+    axisLabel = dataLineChartLabelNew(labelKind, null, if(precision != null, -precision), precision, null)
+
+    # Compute the tick values, the tick labels, and the sub-tick values
+    axisTicks = []
+    axisSubticks = []
+    decade = decadeMin
+    while decade <= decadeMax:
+        decadeValue = 10 ** decade
+        for tickMantissa in tickMantissas:
+            tickValue = tickMantissa * decadeValue
+            if tickValue > axisMax:
+                break
+            endif
+            arrayPush(axisTicks, [tickValue, dataLineChartAxisLabel(axisLabel, tickValue)])
+        endfor
+        if decade != decadeMax:
+            for subtickMantissa in subtickMantissas:
+                arrayPush(axisSubticks, subtickMantissa * decadeValue)
+            endfor
+        endif
+        decade = decade + decadeStep
+    endwhile
+    return dataLineChartAxisNew(axisMin, axisMax, true, axisLabel, axisTicks, axisSubticks)
+endfunction
+
+
+# Helper function to compute a datetime axis's automatic tick marks
+function dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime):
+    # Select the smallest calendar tick step that renders at most the maximum tick count
+    stepUnit = null
+    stepCount = null
+    rangeMilliseconds = maxValue - minValue
+    for stepInfo in dataLineChartDatetimeSteps:
+        if rangeMilliseconds / arrayGet(stepInfo, 2) <= maxCount:
+            stepUnit = arrayGet(stepInfo, 0)
+            stepCount = arrayGet(stepInfo, 1)
+            break
+        endif
+    endfor
+
+    # Longer ranges step by a "nice" number of years
+    if stepUnit == null:
+        yearStepInfo = dataLineChartNiceStep(rangeMilliseconds / (maxCount * dataLineChartMillisecondsPerYear))
+        stepUnit = 'year'
+        stepCount = mathMax(1, mathRound(arrayGet(yearStepInfo, 0)))
+    endif
+
+    # Round the axis minimum down to a tick step boundary and step to - and past - the axis maximum, so
+    # that every tick interval is a whole tick step
+    tickDatetime = if(datetime != null, datetime, objectGet(dataLineChartDatetimeFormats, stepUnit))
+    axisMin = dataLineChartDatetimeFloor(minValue, stepUnit, stepCount)
+    axisTicks = []
+    tickValue = axisMin
+    tickPrevious = null
+    while true:
+        tickLabel = dataUtilFormatValue(tickValue, precision, tickDatetime)
+        arrayPush(axisTicks, [tickValue, dataLineChartLabelContext(tickLabel, tickPrevious)])
+        if tickValue >= maxValue:
+            break
+        endif
+        tickPrevious = tickLabel
+        tickValue = dataLineChartDatetimeAdd(tickValue, stepUnit, stepCount)
+    endwhile
+    return dataLineChartAxisNew(axisMin, tickValue, false, \
+        dataLineChartLabelNew('default', null, null, precision, tickDatetime), axisTicks, [])
+endfunction
+
+
+# The automatic datetime axis tick steps - [unit, step, approximate milliseconds] tuples
+dataLineChartDatetimeSteps = [ \
+    ['millisecond', 1, 1], \
+    ['millisecond', 2, 2], \
+    ['millisecond', 5, 5], \
+    ['millisecond', 10, 10], \
+    ['millisecond', 20, 20], \
+    ['millisecond', 50, 50], \
+    ['millisecond', 100, 100], \
+    ['millisecond', 200, 200], \
+    ['millisecond', 500, 500], \
+    ['second', 1, 1000], \
+    ['second', 2, 2000], \
+    ['second', 5, 5000], \
+    ['second', 10, 10000], \
+    ['second', 15, 15000], \
+    ['second', 30, 30000], \
+    ['minute', 1, 60000], \
+    ['minute', 2, 120000], \
+    ['minute', 5, 300000], \
+    ['minute', 10, 600000], \
+    ['minute', 15, 900000], \
+    ['minute', 30, 1800000], \
+    ['hour', 1, 3600000], \
+    ['hour', 2, 7200000], \
+    ['hour', 3, 10800000], \
+    ['hour', 6, 21600000], \
+    ['hour', 12, 43200000], \
+    ['day', 1, 86400000], \
+    ['day', 2, 172800000], \
+    ['day', 7, 604800000], \
+    ['day', 14, 1209600000], \
+    ['month', 1, 2629800000], \
+    ['month', 3, 7889400000], \
+    ['month', 6, 15778800000] \
+]
+
+
+# The automatic datetime axis label format by tick step unit
+dataLineChartDatetimeFormats = {'year': 'year', 'month': 'month', 'day': 'day'}
+
+
+# Automatic axis tick constants
+dataLineChartMillisecondsPerYear = 31557600000
+dataLineChartSingleValueDuration = 86400000
+dataLineChartLogEpsilon = 1e-9
+dataLineChartRoundDigits = 9
+
+
+# The SI prefix by power of ten
+dataLineChartSIPrefixes = { \
+    '-15': 'f', \
+    '-12': 'p', \
+    '-9': 'n', \
+    '-6': 'u', \
+    '-3': 'm', \
+    '0': '', \
+    '3': 'k', \
+    '6': 'M', \
+    '9': 'G', \
+    '12': 'T', \
+    '15': 'P' \
+}
+
+
+# Automatic numeric tick label constants - the powers of ten at which plain decimal notation is
+# replaced by SI prefix notation (large values) or exponential notation (small values)
+dataLineChartCompactExponent = 6
+dataLineChartExponentialExponent = -5
+
+
+# Helper function to compute a positive value's power of ten
+function dataLineChartValueExponent(value):
+    if value == 0:
+        return 0
+    endif
+    return mathFloor(mathLog(value, 10) + dataLineChartLogEpsilon)
+endfunction
+
+
+# Helper function to get the SI prefix for a value's power of ten, or null if there is none
+function dataLineChartSIPrefix(valueExponent):
+    return objectGet(dataLineChartSIPrefixes, stringNew(3 * mathFloor(valueExponent / 3)))
+endfunction
+
+
+# Helper function to choose a numeric axis's tick label notation - "decimal", "si", or "exponential".
+# minExponent and maxExponent are the powers of ten of the axis's smallest and largest label
+# magnitudes, and significantExponent is the power of ten of a label's least significant digit.
+function dataLineChartLabelKind(format, minExponent, maxExponent, significantExponent):
+    if format != null:
+        return format
+    endif
+
+    # Large values use SI prefixes, but only when the prefixes cover the whole axis
+    if maxExponent >= dataLineChartCompactExponent:
+        if dataLineChartSIPrefix(minExponent) != null && dataLineChartSIPrefix(maxExponent) != null:
+            return 'si'
+        endif
+        return 'exponential'
+    elif significantExponent <= dataLineChartExponentialExponent:
+        return 'exponential'
+    endif
+    return 'decimal'
+endfunction
+
+
+# Helper function to compute the power of ten factored out of a tick label
+function dataLineChartLabelExponent(kind, valueExponent):
+    return if(kind == 'si', 3 * mathFloor(valueExponent / 3), valueExponent)
+endfunction
+
+
+# Helper function to create an axis's tick label format. "kind" is "default" (the chart's precision
+# and datetime format), "decimal", "si", or "exponential". "exponent" is the power of ten factored out
+# of every label, or null to scale each label by its own; "significant" is the power of ten of a
+# label's least significant digit, or null for the value's own.
+function dataLineChartLabelNew(kind, exponent, significant, precision, datetime):
+    return { \
+        'kind': kind, \
+        'exponent': exponent, \
+        'significant': significant, \
+        'precision': precision, \
+        'datetime': datetime \
+    }
+endfunction
+
+
+# The separators between a datetime label's components
+dataLineChartLabelSeparators = '-T:'
+
+
+# Helper function to drop the leading context a tick label repeats from the previous label - the
+# shared year in "2024-01", "2024-07", or the shared date in "2024-06-12", "2024-06-12T06:00". The
+# label keeps everything after the last separator the two share.
+function dataLineChartLabelContext(label, previous):
+    # A label that reverts to a coarser form - a date after a time of day - starts its own context
+    if previous == null || stringLength(label) < stringLength(previous):
+        return label
+    endif
+
+    # Count the leading characters the two labels share
+    ixShared = 0
+    sharedMax = mathMin(stringLength(label), stringLength(previous))
+    while ixShared < sharedMax && stringCharAt(label, ixShared) == stringCharAt(previous, ixShared):
+        ixShared = ixShared + 1
+    endwhile
+
+    # The shared context ends at a separator - either the next character, or the last one within it
+    if ixShared < stringLength(label) && \
+       stringIndexOf(dataLineChartLabelSeparators, stringCharAt(label, ixShared)) != -1:
+        return stringSlice(label, ixShared + 1)
+    endif
+    ixSeparator = ixShared - 1
+    while ixSeparator >= 0:
+        if stringIndexOf(dataLineChartLabelSeparators, stringCharAt(label, ixSeparator)) != -1:
+            return stringSlice(label, ixSeparator + 1)
+        endif
+        ixSeparator = ixSeparator - 1
+    endwhile
+    return label
+endfunction
+
+
+# Helper function to format an axis tick label
+function dataLineChartAxisLabel(label, value):
+    # An axis with no shared power of ten scales each label by its own
+    kind = objectGet(label, 'kind')
+    labelExponent = objectGet(label, 'exponent')
+    significantExponent = objectGet(label, 'significant')
+    if labelExponent == null || significantExponent == null:
+        valueExponent = dataLineChartValueExponent(mathAbs(value))
+        labelExponent = if(labelExponent != null, labelExponent, dataLineChartLabelExponent(kind, valueExponent))
+        significantExponent = if(significantExponent != null, significantExponent, valueExponent)
+    endif
+    return dataLineChartLabel(value, kind, labelExponent, significantExponent)
+endfunction
+
+
+# Helper function to format an axis annotation label. An annotation names a value of its own rather
+# than a tick mark: a plain decimal or datetime annotation is formatted at the chart's precision, and
+# a compacted one keeps up to three significant digits - but no more decimals than the value needs.
+function dataLineChartAxisAnnotationLabel(label, value, precision, datetime):
+    kind = objectGet(label, 'kind')
+    if kind == 'default' || kind == 'decimal':
+        return dataUtilFormatValue(value, precision, datetime)
+    endif
+    valueExponent = dataLineChartValueExponent(mathAbs(value))
+    labelExponent = objectGet(label, 'exponent')
+    labelExponent = if(labelExponent != null, labelExponent, dataLineChartLabelExponent(kind, valueExponent))
+    labelDecimals = dataLineChartLabelDecimals(value / 10 ** labelExponent, \
+        mathMax(0, labelExponent - valueExponent + 2))
+    return dataLineChartLabel(value, kind, labelExponent, labelExponent - labelDecimals)
+endfunction
+
+
+# Helper function to compute the fewest decimals that represent a scaled value exactly, up to a maximum
+function dataLineChartLabelDecimals(scaledValue, maxDecimals):
+    labelDecimals = 0
+    while labelDecimals < maxDecimals && numberParseFloat(numberToFixed(scaledValue, labelDecimals)) != scaledValue:
+        labelDecimals = labelDecimals + 1
+    endwhile
+    return labelDecimals
+endfunction
+
+
+# Helper function to format a numeric tick label. labelExponent is the power of ten factored out of
+# the value, and significantExponent is the power of ten of the value's least significant digit.
+function dataLineChartLabel(value, kind, labelExponent, significantExponent):
+    if kind == 'decimal':
+        return dataUtilFormatValue(value, mathMax(0, -significantExponent), null, false)
+    endif
+
+    # A scaled zero has no magnitude to name
+    if value == 0:
+        return '0'
+    endif
+    scaledText = numberToFixed(value / 10 ** labelExponent, mathMax(0, labelExponent - significantExponent))
+    if labelExponent == 0:
+        return scaledText
+    endif
+    siPrefix = if(kind == 'si', dataLineChartSIPrefix(labelExponent))
+    return if(siPrefix != null, scaledText + siPrefix, scaledText + 'e' + labelExponent)
+endfunction
+
+
+# Helper function to compute the "nice" tick step at or above a raw step - the [step, exponent] tuple
+function dataLineChartNiceStep(rawStep):
+    exponent = mathFloor(mathLog(rawStep, 10))
+    magnitude = 10 ** exponent
+    residual = rawStep / magnitude
+    if residual > 5:
+        return [10 * magnitude, exponent + 1]
+    elif residual > 2:
+        return [5 * magnitude, exponent]
+    elif residual > 1:
+        return [2 * magnitude, exponent]
+    endif
+    return [magnitude, exponent]
+endfunction
+
+
+# Helper function to round a datetime down to a tick step boundary
+function dataLineChartDatetimeFloor(value, unit, step):
+    year = datetimeYear(value)
+    if unit == 'year':
+        return datetimeNew(mathFloor(year / step) * step, 1, 1)
+    endif
+    month = datetimeMonth(value)
+    if unit == 'month':
+        return datetimeNew(year, mathFloor((month - 1) / step) * step + 1, 1)
+    endif
+    day = datetimeDay(value)
+    if unit == 'day':
+        return datetimeNew(year, month, day)
+    endif
+    hour = datetimeHour(value)
+    if unit == 'hour':
+        return datetimeNew(year, month, day, mathFloor(hour / step) * step)
+    endif
+    minute = datetimeMinute(value)
+    if unit == 'minute':
+        return datetimeNew(year, month, day, hour, mathFloor(minute / step) * step)
+    endif
+    second = datetimeSecond(value)
+    if unit == 'second':
+        return datetimeNew(year, month, day, hour, minute, mathFloor(second / step) * step)
+    endif
+    return datetimeNew(year, month, day, hour, minute, second, mathFloor(datetimeMillisecond(value) / step) * step)
+endfunction
+
+
+# Helper function to add a tick step to a datetime
+function dataLineChartDatetimeAdd(value, unit, step):
+    year = datetimeYear(value)
+    month = datetimeMonth(value)
+    day = datetimeDay(value)
+    hour = datetimeHour(value)
+    minute = datetimeMinute(value)
+    second = datetimeSecond(value)
+    millisecond = datetimeMillisecond(value)
+    if unit == 'year':
+        year = year + step
+    elif unit == 'month':
+        month = month + step
+    elif unit == 'day':
+        day = day + step
+    elif unit == 'hour':
+        hour = hour + step
+    elif unit == 'minute':
+        minute = minute + step
+    elif unit == 'second':
+        second = second + step
+    else:
+        millisecond = millisecond + step
+    endif
+    return datetimeNew(year, month, day, hour, minute, second, millisecond)
+endfunction
+
+
+# Helper function to compute an axis's annotations - the array of [value, label] pairs. An annotation
+# with no label of its own is labeled later, once the axis's tick label format is known.
+function dataLineChartAxisAnnotations(lines):
     axisAnnotations = []
     for annotation in if(lines != null, lines, []):
-        annotationValue = objectGet(annotation, 'value')
-        annotationLabel = objectGet(annotation, 'label')
-        if annotationLabel == null:
-            annotationLabel = dataUtilFormatValue(annotationValue, precision, datetime)
-        endif
-        arrayPush(axisAnnotations, [annotationValue, annotationLabel])
+        arrayPush(axisAnnotations, [objectGet(annotation, 'value'), objectGet(annotation, 'label')])
     endfor
     return axisAnnotations
 endfunction
 
 
-# Helper function to format an SVG number value
-function dataLineChartSvgValue(value):
-    return numberToFixed(value, dataLineChartSvgPrecision)
-endfunction
-
-
-# Helper function to compute a chart point
-function dataLineChartChartPoint(xCoord, xMin, xMax, chartLeft, chartRight):
-    return dataUtilParameterValue(dataUtilValueParameter(xCoord, xMin, xMax), chartLeft, chartRight)
+# Helper function to label an axis's unlabeled annotations with the axis's tick label format
+function dataLineChartAxisAnnotationLabels(axis, annotations, precision, datetime):
+    axisLabel = objectGet(axis, 'label')
+    for annotation in annotations:
+        if arrayGet(annotation, 1) == null:
+            arraySet(annotation, 1, dataLineChartAxisAnnotationLabel(axisLabel, arrayGet(annotation, 0), precision, datetime))
+        endif
+    endfor
 endfunction
 
 
 # Helper sort comparison function for data rows by X field
 function dataLineChartSortCompare(xField, row1, row2):
     return systemCompare(objectGet(row1, xField), objectGet(row2, xField))
+endfunction
+
+
+# Helper sort comparison function to order legend entries by where their lines end, topmost first
+function dataLineChartLegendCompare(linePoint1, linePoint2):
+    points1 = objectGet(linePoint1, 'points')
+    points2 = objectGet(linePoint2, 'points')
+    return systemCompare( \
+        arrayGet(arrayGet(points2, arrayLength(points2) - 1), 1), \
+        arrayGet(arrayGet(points1, arrayLength(points1) - 1), 1) \
+    )
 endfunction
 
 

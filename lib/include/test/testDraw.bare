@@ -57,6 +57,36 @@ endfunction
 unittestRunTest('testDrawArc')
 
 
+function testDrawAriaLabel():
+    drawNew(50, 50)
+    drawAriaLabel('A named drawing')
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': { \
+            'width': 50, \
+            'height': 50, \
+            'role': 'img', \
+            'aria-label': 'A named drawing' \
+        }, \
+        'elem': [] \
+    })
+
+    # A null label removes the name
+    drawAriaLabel(null)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': { \
+            'width': 50, \
+            'height': 50, \
+            'role': null, \
+            'aria-label': null \
+        }, \
+        'elem': [] \
+    })
+endfunction
+unittestRunTest('testDrawAriaLabel')
+
+
 function testDrawCircle():
     drawNew(50, 50)
     drawCircle(25, 25, 25)
@@ -579,6 +609,7 @@ function testDrawText():
                     'font-size': '16.00000000', \
                     'font-style': 'normal', \
                     'font-weight': 'normal', \
+                    'transform': null, \
                     'text-anchor': 'middle' \
                 }, \
                 'elem': {'text': 'Hello'} \
@@ -594,6 +625,7 @@ function testDrawText():
                     'font-size': '16.00000000', \
                     'font-style': 'italic', \
                     'font-weight': 'bold', \
+                    'transform': null, \
                     'text-anchor': 'middle' \
                 }, \
                 'elem': {'text': 'World!'} \
@@ -602,6 +634,35 @@ function testDrawText():
     })
 endfunction
 unittestRunTest('testDrawText')
+
+
+function testDrawText_rotate():
+    drawNew(50, 50)
+    drawText('Hello', 25, 15, 'start', 'hanging', -90)
+    unittestDeepEqual(drawElements(), { \
+        'svg': 'svg', \
+        'attr': {'width': 50, 'height': 50}, \
+        'elem': [ \
+            { \
+                'svg': 'text', \
+                'attr': { \
+                    'x': 25, \
+                    'y': 15, \
+                    'dominant-baseline': 'hanging', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'transform': 'rotate(-90 25 15)', \
+                    'text-anchor': 'start' \
+                }, \
+                'elem': {'text': 'Hello'} \
+            } \
+        ] \
+    })
+endfunction
+unittestRunTest('testDrawText_rotate')
 
 
 function testDrawTextHeight():
@@ -634,6 +695,7 @@ function testDrawTextStyle():
                     'font-size': '16.00000000', \
                     'font-style': 'normal', \
                     'font-weight': 'normal', \
+                    'transform': null, \
                     'text-anchor': 'middle' \
                 }, \
                 'elem': {'text': 'A'} \
@@ -649,6 +711,7 @@ function testDrawTextStyle():
                     'font-size': '10.00000000', \
                     'font-style': 'italic', \
                     'font-weight': 'bold', \
+                    'transform': null, \
                     'text-anchor': 'middle' \
                 }, \
                 'elem': {'text': 'B'} \
@@ -664,6 +727,7 @@ function testDrawTextStyle():
                     'font-size': '16.00000000', \
                     'font-style': 'normal', \
                     'font-weight': 'normal', \
+                    'transform': null, \
                     'text-anchor': 'middle' \
                 }, \
                 'elem': {'text': 'C'} \
