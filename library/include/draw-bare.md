@@ -42,10 +42,24 @@ drawTextStyle(0.1 * drawHeight(), 'black', true)
 drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
 ```
 
+Draw rotated text - the rotation is clockwise, in degrees, about the text position:
+
+```bare-script
+drawText('Sideways', 0.1 * drawWidth(), 0.5 * drawHeight(), 'middle', 'hanging', -90)
+```
+
 Draw images:
 
 ```bare-script
 drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
+```
+
+Name the drawing for assistive technology, which otherwise reads the text within it one piece at a
+time. This also sets `role="img"`, without which `aria-label` on an `<svg>` is inconsistently
+honored:
+
+```bare-script
+drawAriaLabel('Site plan, with the trap position marked')
 ```
 
 Add click handlers to drawing objects:

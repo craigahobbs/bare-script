@@ -1007,7 +1007,7 @@ Compute the arccosine, in radians, of a number
 #### Arguments
 
 **x -**
-The number
+The number, -1 to 1
 
 #### Returns
 
@@ -1022,7 +1022,7 @@ Compute the arcsine, in radians, of a number
 #### Arguments
 
 **x -**
-The number
+The number, -1 to 1
 
 #### Returns
 
@@ -1129,7 +1129,7 @@ Compute the natural logarithm (base e) of a number
 #### Arguments
 
 **x -**
-The number
+The number, greater than 0
 
 #### Returns
 
@@ -1144,10 +1144,10 @@ Compute the logarithm of a number
 #### Arguments
 
 **x -**
-The number
+The number, greater than 0
 
 **base -**
-Optional (default is 10). The logarithm base.
+Optional (default is 10). The logarithm base, greater than 0 and not 1.
 
 #### Returns
 
@@ -1268,7 +1268,7 @@ Compute the square root of a number
 #### Arguments
 
 **x -**
-The number
+The number, 0 or greater
 
 #### Returns
 
@@ -3535,7 +3535,8 @@ On failure, an object with the "error" key set to the validation error message.
 
 ## dataLineChart.bare
 
-The "dataLineChart.bare" include library provides functions for rendering line charts from data arrays.
+The "dataLineChart.bare" include library provides functions for rendering line charts from data
+arrays.
 
 To render a line chart, use the [dataLineChart](#var.vGroup='dataLineChart.bare'&datalinechart)
 function with a data array and a [line chart model](model.html#var.vName='DataLineChart'):
@@ -3559,19 +3560,65 @@ dataLineChart(data, { \
 })
 ```
 
-You can customize axis tick marks, annotations, and the chart dimensions:
+By default each axis computes its own tick marks. The tick step is a "nice" value - one, two, or
+five times a power of ten - chosen so the labels fit the space available, and the axis range is
+rounded outward so the first and last tick marks sit at the axis ends. A constant series has no
+range of its own, so its axis expands around the value - a decade either side on a logarithmic axis,
+a day either side on a datetime axis - and the data is drawn within the chart rather than along its
+edge. A datetime axis steps by calendar units - milliseconds through years - labels each tick at the
+precision of its step, and shows only the part of a label that changes, so a year or a date is not
+repeated across the axis.
+
+To hold an axis to a range of your own, set `xMin`, `xMax`, `yMin` and `yMax`. Each is independent -
+give only `yMin` to fix a zero baseline and let the top follow the data. The tick marks stay
+automatic: the step is the same "nice" value, chosen from the range you asked for, and the tick
+marks are the ones that fall inside it, so the axis begins and ends exactly where you said. Data
+outside the range is clipped to the chart area, and an explicit bound wins over an annotation - a
+`yLines` value outside the range does not widen it:
 
 ```bare-script
 dataLineChart(data, { \
-    'title': 'Sales Trend', \
+    'title': 'Utilization', \
     'x': 'month', \
-    'y': ['sales'], \
-    'yTicks': {'count': 5}, \
-    'yLines': [{'value': 140, 'label': 'Target'}] \
+    'y': ['percent'], \
+    'yMin': 0, \
+    'yMax': 100 \
 })
 ```
 
-You can use a color encoding field to group lines by a category:
+Numeric tick labels are compacted when plain decimal notation would need too many digits: large
+values take an SI prefix (`12M`, `1.5G`) and small values - or values beyond the SI prefix range -
+use exponential notation (`3e-5`, `1e20`). Set `xFormat` or `yFormat` to `decimal`, `si`, or
+`exponential` to choose an axis's notation yourself. An annotation with no label of its own is
+labeled in its axis's notation too, keeping up to three significant digits:
+
+```bare-script
+dataLineChart(data, { \
+    'title': 'Revenue', \
+    'x': 'month', \
+    'y': ['revenue'], \
+    'yFormat': 'si' \
+})
+```
+
+Either axis can use a base-10 logarithmic scale, which plots data spanning many orders of magnitude
+- growth curves, response curves, algorithmic complexity - as straight lines. Tick marks land on
+whole decades, with sub-tick marks at the intermediate multiples - the one place sub-ticks earn
+their ink, since they show the scale's nonlinearity - and a narrow range labels the 1, 2, and 5 of
+each decade. Non-positive values cannot be plotted on a logarithmic axis, so they are excluded from
+the chart:
+
+```bare-script
+dataLineChart(data, { \
+    'title': 'Response Curve', \
+    'x': 'dose', \
+    'y': ['response'], \
+    'xScale': 'log' \
+})
+```
+
+A color encoding field groups lines by a category. The legend is ordered by where each line ends, so
+it reads top-to-bottom with the lines; `colorOrder` orders the color assignment, not the legend:
 
 ```bare-script
 data = [ \
@@ -3601,6 +3648,37 @@ elementModelRender(dataLineChartElements(data, { \
 }))
 ```
 
+Every label stays on the chart. A tick label is never shortened - a truncated number would read as a
+different number - so the Y-axis makes room for its tick labels and gives up its axis title when
+both will not fit. Titles and legend labels are text, so where they must fit they are ellipsized
+rather than dropped. The plot area never gives up more than half the chart.
+
+Each series is drawn in its own color. The palette is five semi-precious stone tones - lapis,
+carnelian, malachite, garnet and amethyst - placed as far apart as they will go at the width of a
+chart line, since color difference shrinks with mark size and a line is a thin mark. Five is as many
+as fit there, so past the fifth series the colors repeat with a line dash pattern, giving
+twenty-five series before any two are drawn alike. The color legend shows a segment of each line,
+dash pattern included.
+
+A chart names itself for assistive technology - `role="img"` with the chart's title as its
+accessible name, or a description of what it plots when it has no title. A chart drawn into a
+drawing of your own with `drawLineChart` is named by whoever owns that drawing.
+
+Line charts are drawn with the [draw.bare](#var.vGroup='draw.bare') include library. To compose a
+chart with other drawing content - several charts on one canvas, or a chart alongside a legend,
+annotation, or logo of your own - draw it into the current drawing with the
+[drawLineChart](#var.vGroup='dataLineChart.bare'&drawlinechart) function, which takes the chart's
+position and size:
+
+```bare-script
+include <dataLineChart.bare>
+
+drawNew(640, 720)
+drawLineChart(data, {'title': 'Sales', 'x': 'month', 'y': ['sales']}, 0, 0, 640, 360)
+drawLineChart(data, {'title': 'Costs', 'x': 'month', 'y': ['costs']}, 0, 360, 640, 360)
+drawRender()
+```
+
 
 ### Function Index
 
@@ -3608,6 +3686,7 @@ elementModelRender(dataLineChartElements(data, { \
 - [dataLineChartElements](#var.vPublish=true&var.vSingle=true&datalinechartelements)
 - [dataLineChartValidate](#var.vPublish=true&var.vSingle=true&datalinechartvalidate)
 - [dataLineChartValidateEx](#var.vPublish=true&var.vSingle=true&datalinechartvalidateex)
+- [drawLineChart](#var.vPublish=true&var.vSingle=true&drawlinechart)
 
 ---
 
@@ -3684,6 +3763,40 @@ The [line chart model](model.html#var.vName='DataLineChart')
 On success, an object with the "result" key set to the validated [line chart model](model.html#var.vName='DataLineChart').
 On failure, an object with the "error" key set to the validation error message and the
 "memberFqn" key set to the fully-qualified member name (or null).
+
+---
+
+### drawLineChart
+
+Draw a line chart within the current drawing
+
+#### Arguments
+
+**data -**
+The data array
+
+**lineChart -**
+The [line chart model](model.html#var.vName='DataLineChart')
+
+**x -**
+The X-coordinate, in pixels, of the left side of the chart
+
+**y -**
+The Y-coordinate, in pixels, of the top of the chart
+
+**width -**
+The width of the chart, in pixels
+
+**height -**
+The height of the chart, in pixels
+
+**options -**
+Optional (default is null). The line chart options object with the following optional members:
+- **fontSize** - The font size, in pixels
+
+#### Returns
+
+true if the chart is drawn, null if the data contains no chartable points
 
 ---
 
@@ -3922,10 +4035,24 @@ drawTextStyle(0.1 * drawHeight(), 'black', true)
 drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
 ```
 
+Draw rotated text - the rotation is clockwise, in degrees, about the text position:
+
+```bare-script
+drawText('Sideways', 0.1 * drawWidth(), 0.5 * drawHeight(), 'middle', 'hanging', -90)
+```
+
 Draw images:
 
 ```bare-script
 drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
+```
+
+Name the drawing for assistive technology, which otherwise reads the text within it one piece at a
+time. This also sets `role="img"`, without which `aria-label` on an `<svg>` is inconsistently
+honored:
+
+```bare-script
+drawAriaLabel('Site plan, with the trap position marked')
 ```
 
 Add click handlers to drawing objects:
@@ -3944,6 +4071,7 @@ drawOnClick(myClickHandler)
 ### Function Index
 
 - [drawArc](#var.vPublish=true&var.vSingle=true&drawarc)
+- [drawAriaLabel](#var.vPublish=true&var.vSingle=true&drawarialabel)
 - [drawCircle](#var.vPublish=true&var.vSingle=true&drawcircle)
 - [drawClose](#var.vPublish=true&var.vSingle=true&drawclose)
 - [drawElements](#var.vPublish=true&var.vSingle=true&drawelements)
@@ -3994,6 +4122,22 @@ The x-coordinate of the end point
 
 **y -**
 The y-coordinate of the end point
+
+#### Returns
+
+Nothing
+
+---
+
+### drawAriaLabel
+
+Set the current drawing's accessible name. Assistive technology announces the drawing as a
+single image with this name, instead of reading the text within it one piece at a time.
+
+#### Arguments
+
+**label -**
+The accessible name, or null for none
 
 #### Returns
 
@@ -4316,6 +4460,9 @@ Optional (default is 'middle'). The
 Optional (default is 'middle'). The
 [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
 style.
+
+**rotate -**
+Optional (default is null). The text's clockwise rotation, in degrees, about the text position.
 
 #### Returns
 

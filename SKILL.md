@@ -484,9 +484,9 @@ the `.bare` source.
 | `barescriptParser.bare` | Parse BareScript text into BareScript models | `barescriptParseScript`, `barescriptParseScriptEx`, `barescriptParseExpression`, `barescriptParseExpressionEx` |
 | `data.bare` | Tabular data manipulation | `dataParseCSV`, `dataFilter`, `dataSort`, `dataAggregate`, `dataJoin`, `dataCalculatedField`, `dataTop`, `dataValidate` |
 | `dataTable.bare` | Render data array as Markdown table | `dataTable`, `dataTableMarkdown`, `dataTableElements`, `dataTableValidate` |
-| `dataLineChart.bare` | Render line charts as SVG | `dataLineChart`, `dataLineChartElements`, `dataLineChartValidate` |
+| `dataLineChart.bare` | Render line charts as SVG (linear/log axes, automatic ticks) | `dataLineChart`, `dataLineChartElements`, `drawLineChart`, `dataLineChartValidate` |
 | `diff.bare` | Line diff between strings/arrays | `diffLines` |
-| `draw.bare` | Imperative SVG drawing | `drawNew`, `drawRect`, `drawCircle`, `drawEllipse`, `drawLine`, `drawMove`, `drawClose`, `drawPathRect`, `drawArc`, `drawText`, `drawTextStyle`, `drawTextWidth`, `drawTextHeight`, `drawImage`, `drawStyle`, `drawOnClick`, `drawWidth`, `drawHeight`, `drawHLine`, `drawVLine`, `drawRender`, `drawElements` |
+| `draw.bare` | Imperative SVG drawing | `drawNew`, `drawRect`, `drawCircle`, `drawEllipse`, `drawLine`, `drawMove`, `drawClose`, `drawPathRect`, `drawArc`, `drawText`, `drawTextStyle`, `drawTextWidth`, `drawTextHeight`, `drawImage`, `drawStyle`, `drawOnClick`, `drawAriaLabel`, `drawWidth`, `drawHeight`, `drawHLine`, `drawVLine`, `drawRender`, `drawElements` |
 | `elementModel.bare` | Validate / stringify element models | `elementModelValidate`, `elementModelToString` |
 | `forms.bare` | Form-control element-model helpers | `formsTextElements`, `formsLinkElements`, `formsLinkButtonElements` |
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |
@@ -1566,7 +1566,111 @@ and non-system includes directly. See the
 
 ---
 
-## 7. Idioms and pitfalls — the model's checklist
+## 7. Optimizing and simplifying BareScript
+
+Two different jobs, and mixing them is how both go wrong. An optimization pass
+changes how the code runs and must leave the output identical; a simplification
+pass changes how the code reads and must leave the output *and* the timings
+alone. Do one at a time, and measure.
+
+### Finding the hot statements: the coverage profiler
+
+The runtime's coverage recorder keeps an execution **count** per statement, so
+it doubles as a profiler. It works the same way in every implementation - C,
+JavaScript, Python - and needs no CLI flag:
+
+```bare-script
+include <unittest.bare>
+include 'target.bare'              # a local path - see the gotcha below
+
+unittestCoverageStart()
+targetEntryPoint(input)            # one representative workload
+unittestCoverageStop()
+
+scripts = objectGet(unittestCoverageGlobal(), 'scripts')
+for scriptName in objectKeys(scripts):
+    covered = objectGet(objectGet(scripts, scriptName), 'covered')
+    for lineNumber in objectKeys(covered):
+        systemLog(scriptName + ':' + lineNumber + ' ' + \
+            objectGet(objectGet(covered, lineNumber), 'count'))
+    endfor
+endfor
+```
+
+Pipe that into a script that maps each line to the `function` header above it
+and you have a profile by function, which is what tells you where to look.
+Gotchas:
+
+- **Coverage skips system includes.** `include <foo.bare>` records nothing, so a
+  library file has to be copied in and included by local path to be profiled.
+  Including it locally also overrides the system definitions loaded earlier.
+- **Loop bookkeeping inflates the count.** A `for ... in` costs about four
+  recorded statements per iteration and each `elif` about two, so those lines
+  read as hot even when the body is trivial.
+- **Counts are not time.** This is the one that costs hours. Built-in calls
+  (`regexMatch`, `jsonParse`, `mathLn`, `stringRepeat`), allocations, and
+  interpreted function calls dominate; jumps, `endif` labels, and plain
+  assignments are nearly free. Removing 6% of the statements can deliver 0.4%
+  when they were bookkeeping, and removing far fewer can halve the run when each
+  one was a built-in call. Read the profile to find *where* the iterations are,
+  then confirm every candidate on the clock.
+
+### The optimization loop
+
+1. **Fix a baseline.** Time the workload in a loop inside one process, enough
+   iterations that the whole run is hundreds of milliseconds. Note the number.
+2. **Profile.** Take candidates from the top of the profile, not from reading.
+3. **One candidate at a time.** Apply it alone.
+4. **Check the output first.** Diff the program's output against the baseline's.
+   For a report or a page, that means byte-identical text; if the change is
+   meant to alter output, this is not an optimization pass.
+5. **Measure A/B in one session.** System load drifts a few percent between runs
+   minutes apart - enough to fake or mask a win - so interleave baseline and
+   candidate in one loop and compare best-of-N. Treat anything under ~2% as
+   noise.
+6. **Keep or revert the same hour.** A candidate that moves nothing but makes
+   the code harder to read is a loss; revert it. Write down what measured
+   neutral so nobody tries it again.
+
+Three kinds of win, in the order they usually pay:
+
+- **Hoist work out of a loop.** A value that does not change across iterations -
+  a logarithm, a length, a lookup - computed once into a local or an array.
+- **Do the work fewer times.** A value derived in several places across one run
+  can be computed once and carried; an iteration that has converged can stop. A
+  loop with a fixed iteration count is worth a look - it may be reaching its
+  answer long before it stops.
+- **Do less work per element.** Prefer one built-in call over an interpreted
+  loop, and one array read over an object lookup, in the innermost loop.
+
+And a trap worth naming: memoizing is not free. A memo keyed by
+`jsonStringify(value)` can cost more than recomputing the thing it caches, and a
+per-call memo only pays when one call does repeated work.
+
+### The simplification loop
+
+The aim is less code, more consistency, and clearer expression - nothing else.
+Performance belongs to the loop above; behavior changes belong to neither, and
+should be raised as questions rather than slipped in.
+
+- **Review the whole file, not the diff.** Two scans find what reading misses: a
+  repeated-window scan (normalize whitespace, hash every four-line window, and
+  report the windows that occur more than once) and an unused-declaration scan
+  (count the references to every name you declare).
+- **A candidate is one of these:** a shared helper for a sequence written more
+  than once; an unread parameter, field, or variable; a special case that a
+  general path already covers; a guard that restates what the callee already
+  handles; a flag that restates state another value already carries; a name or
+  a control-flow shape that does not match its neighbors.
+- **Not a candidate:** anything whose purpose is speed or memory, and anything
+  that trades an invariant the rest of the code relies on for a few lines.
+- **Work in batches and gate each one.** Run the tests, and diff the program's
+  output against the baseline - a simplification that changes the output is a
+  behavior change wearing a disguise. Where a suite holds coverage at 100%,
+  prefer deleting unreachable code to excluding it; and remember that removing a
+  branch removes the test that covered it.
+
+## 8. Idioms and pitfalls — the model's checklist
 
 Before declaring code "done," scan it for these. They are the failures models
 most commonly produce when writing BareScript for the first time.
@@ -1607,7 +1711,7 @@ most commonly produce when writing BareScript for the first time.
 
 ---
 
-## 8. Notes for the model
+## 9. Notes for the model
 
 - **Examples beat prose.** Pattern-match on the concrete examples above, and
   match their style — 4-space indent, trailing `\` for continuation inside
@@ -1636,7 +1740,7 @@ most commonly produce when writing BareScript for the first time.
 
 ---
 
-## 9. Links
+## 10. Links
 
 Fetchable Markdown (best for loading into context):
 

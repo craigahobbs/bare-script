@@ -268,7 +268,7 @@ Compute the arccosine, in radians, of a number
 #### Arguments
 
 **x -**
-The number
+The number, -1 to 1
 
 #### Returns
 
@@ -283,7 +283,7 @@ Compute the arcsine, in radians, of a number
 #### Arguments
 
 **x -**
-The number
+The number, -1 to 1
 
 #### Returns
 
@@ -376,7 +376,7 @@ Compute the natural logarithm (base e) of a number
 #### Arguments
 
 **x -**
-The number
+The number, greater than 0
 
 #### Returns
 
@@ -391,10 +391,10 @@ Compute the logarithm of a number
 #### Arguments
 
 **x -**
-The number
+The number, greater than 0
 
 **base -**
-Optional (default is 10). The logarithm base.
+Optional (default is 10). The logarithm base, greater than 0 and not 1.
 
 #### Returns
 
@@ -515,7 +515,7 @@ Compute the square root of a number
 #### Arguments
 
 **x -**
-The number
+The number, 0 or greater
 
 #### Returns
 

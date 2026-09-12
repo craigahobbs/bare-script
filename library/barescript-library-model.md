@@ -160,21 +160,27 @@ The aggregation measure model
 
 A line chart model
 
-| Name       | Type                                                                  | Attributes                 | Description                                     |
-|------------|-----------------------------------------------------------------------|----------------------------|-------------------------------------------------|
-| title      | string                                                                | optional                   | The chart title                                 |
-| width      | int                                                                   | optional                   | The chart width                                 |
-| height     | int                                                                   | optional                   | The chart height                                |
-| precision  | int                                                                   | optional<br>value >= 0     | The numeric formatting precision (default is 2) |
-| datetime   | [DataLineChartDatetimeFormat](#enum-datalinechartdatetimeformat)      | optional                   | The datetime format                             |
-| x          | string                                                                |                            | The line chart's X-axis field                   |
-| y          | string []                                                             | len(array) > 0             | The line chart's Y-axis fields                  |
-| color      | string                                                                | optional                   | The color encoding field                        |
-| colorOrder | string []                                                             | optional<br>len(array) > 0 | The color encoding value order                  |
-| xTicks     | [DataLineChartAxisTicks](#struct-datalinechartaxisticks)              | optional                   | The X-axis tick marks                           |
-| yTicks     | [DataLineChartAxisTicks](#struct-datalinechartaxisticks)              | optional                   | The Y-axis tick marks                           |
-| xLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The X-axis annotations                          |
-| yLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The Y-axis annotations                          |
+| Name       | Type                                                                  | Attributes                 | Description                                                                        |
+|------------|-----------------------------------------------------------------------|----------------------------|------------------------------------------------------------------------------------|
+| title      | string                                                                | optional                   | The chart title                                                                    |
+| width      | int                                                                   | optional                   | The chart width                                                                    |
+| height     | int                                                                   | optional                   | The chart height                                                                   |
+| precision  | int                                                                   | optional<br>value >= 0     | The numeric formatting precision. The default is computed from the axis tick step. |
+| datetime   | [DataLineChartDatetimeFormat](#enum-datalinechartdatetimeformat)      | optional                   | The datetime format. The default is computed from the axis tick step.              |
+| x          | string                                                                |                            | The line chart's X-axis field                                                      |
+| y          | string []                                                             | len(array) > 0             | The line chart's Y-axis fields                                                     |
+| color      | string                                                                | optional                   | The color encoding field                                                           |
+| colorOrder | string []                                                             | optional<br>len(array) > 0 | The color encoding value order                                                     |
+| xScale     | [DataLineChartAxisScale](#enum-datalinechartaxisscale)                | optional                   | The X-axis scale (default is "linear")                                             |
+| yScale     | [DataLineChartAxisScale](#enum-datalinechartaxisscale)                | optional                   | The Y-axis scale (default is "linear")                                             |
+| xFormat    | [DataLineChartNumberFormat](#enum-datalinechartnumberformat)          | optional                   | The X-axis numeric tick label format (default is automatic)                        |
+| yFormat    | [DataLineChartNumberFormat](#enum-datalinechartnumberformat)          | optional                   | The Y-axis numeric tick label format (default is automatic)                        |
+| xMin       | any                                                                   | optional                   | The X-axis minimum value (default is computed from the data)                       |
+| xMax       | any                                                                   | optional                   | The X-axis maximum value (default is computed from the data)                       |
+| yMin       | any                                                                   | optional                   | The Y-axis minimum value (default is computed from the data)                       |
+| yMax       | any                                                                   | optional                   | The Y-axis maximum value (default is computed from the data)                       |
+| xLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The X-axis annotations                                                             |
+| yLines     | [DataLineChartAxisAnnotation](#struct-datalinechartaxisannotation) [] | optional<br>len(array) > 0 | The Y-axis annotations                                                             |
 
 ### struct DataLineChartAxisAnnotation
 
@@ -185,16 +191,14 @@ An axis annotation
 | value | any    |            | The axis value       |
 | label | string | optional   | The annotation label |
 
-### struct DataLineChartAxisTicks
+### enum DataLineChartAxisScale
 
-The axis tick mark model
+An axis scale
 
-| Name  | Type | Attributes             | Description                                                          |
-|-------|------|------------------------|----------------------------------------------------------------------|
-| count | int  | optional<br>value >= 0 | The count of evenly-spaced tick marks. The default is 3.             |
-| start | any  | optional               | The value of the first tick mark. Default is the minimum axis value. |
-| end   | any  | optional               | The value of the last tick mark. Default is the maximum axis value.  |
-| skip  | int  | optional<br>value > 0  | The number of tick mark labels to skip after a rendered label        |
+| Value  | Description                                                                        |
+|--------|------------------------------------------------------------------------------------|
+| linear | A linear axis scale                                                                |
+| log    | A base-10 logarithmic axis scale. Non-positive values are excluded from the chart. |
 
 ### enum DataLineChartDatetimeFormat
 
@@ -205,6 +209,16 @@ A datetime format
 | year  | ISO datetime year format  |
 | month | ISO datetime month format |
 | day   | ISO datetime day format   |
+
+### enum DataLineChartNumberFormat
+
+A numeric tick label format
+
+| Value       | Description                                                                                |
+|-------------|--------------------------------------------------------------------------------------------|
+| decimal     | Plain decimal notation (e.g. "12000000")                                                   |
+| si          | SI prefix notation (e.g. "12M"). Values outside the prefix range use exponential notation. |
+| exponential | Exponential notation (e.g. "1.2e7")                                                        |
 
 ---
 

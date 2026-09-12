@@ -250,111 +250,15 @@ markdownPrint('Hello, Markdown!')
 <a href="https://github.com/craigahobbs/markdown-up-py#readme">markdown-up</a> viewer or open the file in the
 <a href="https://craigahobbs.github.io/markdown-up/">MarkdownUp web app</a>.</p>
 <h2>Performance</h2>
-<p>The <code>make perf</code> target benchmarks the BareScript runtime with a suite of compute-intensive tests —
-Mandelbrot set computation, Markdown parsing and rendering, QR code generation, Schema Markdown
-parsing and validation, and URL encoding and decoding — and compares each test with an equivalent
-native JavaScript program (using the
+<p>The C, JavaScript, and Python implementations share two benchmark suites: <code>make perf</code> (the include
+library, compared with native JavaScript via
 <a href="https://www.npmjs.com/package/markdown-model">markdown-model</a> and
-<a href="https://www.npmjs.com/package/schema-markdown">schema-markdown</a> packages).</p>
-<p>The following results are from <code>make perf PERF_MERGE=</code> (Node.js 26, Apple M-series). Times are the
-best per-run timing in milliseconds per 1,000 runs. Multiples are relative to the native JavaScript
-time. Tests without a native JavaScript equivalent are omitted.</p>
-<table>
-<thead>
-<tr>
-<th>Test</th>
-<th>Language</th>
-<th style="text-align:right">Time (ms)</th>
-<th style="text-align:right">Multiple</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>mandelbrot</td>
-<td>JavaScript</td>
-<td style="text-align:right">1550.0</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">264000.0</td>
-<td style="text-align:right">170.3x</td>
-</tr>
-<tr>
-<td>markdownElements</td>
-<td>JavaScript</td>
-<td style="text-align:right">32.6</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">670.0</td>
-<td style="text-align:right">20.5x</td>
-</tr>
-<tr>
-<td>markdownParse</td>
-<td>JavaScript</td>
-<td style="text-align:right">615.9</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">2208.0</td>
-<td style="text-align:right">3.6x</td>
-</tr>
-<tr>
-<td>schemaParse</td>
-<td>JavaScript</td>
-<td style="text-align:right">71.9</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">1048.0</td>
-<td style="text-align:right">14.6x</td>
-</tr>
-<tr>
-<td>schemaValidate</td>
-<td>JavaScript</td>
-<td style="text-align:right">57.1</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">1776.0</td>
-<td style="text-align:right">31.1x</td>
-</tr>
-<tr>
-<td>urlDecode</td>
-<td>JavaScript</td>
-<td style="text-align:right">4.8</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">76.0</td>
-<td style="text-align:right">15.9x</td>
-</tr>
-<tr>
-<td>urlEncode</td>
-<td>JavaScript</td>
-<td style="text-align:right">2.2</td>
-<td style="text-align:right"></td>
-</tr>
-<tr>
-<td></td>
-<td>BareScript (JS)</td>
-<td style="text-align:right">43.0</td>
-<td style="text-align:right">19.4x</td>
-</tr>
-</tbody>
-</table>
+<a href="https://www.npmjs.com/package/schema-markdown">schema-markdown</a>) and <code>make perfx</code> (applications
+ported to six languages). Results live on the
+<a href="https://craigahobbs.github.io/bare-script-c/perf/">BareScript (C) Performance</a>.</p>
+<pre class="prettyprint source lang-sh"><code>make perf
+make perf PERF_MERGE=   # this implementation only
+</code></pre>
 <h2>Using BareScript with an AI Assistant</h2>
 <p>This repository ships a
 <a href="https://github.com/craigahobbs/bare-script/blob/main/SKILL.md"><code>SKILL.md</code></a>
