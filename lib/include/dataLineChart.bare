@@ -166,11 +166,11 @@ dataLineChartDefaultHeight = 320
 # amethyst converge there, since purple loses its blue and reads as red - but separating them costs
 # the stone character, and no widely used categorical palette handles it either.
 dataLineChartCategoricalColors = [ \
-    '#026cba', \
-    '#e86d00', \
-    '#0c9b3f', \
-    '#9c0018', \
-    '#68266f' \
+    '#1f77b4', \
+    '#ff7f0e', \
+    '#2ca02c', \
+    '#d62728', \
+    '#9467bd' \
 ]
 
 
@@ -206,9 +206,6 @@ dataLineChartPlotSpaceFraction = 0.5
 dataLineChartEllipsis = '...'
 dataLineChartClampEpsilon = 1e-9
 
-
-# A sentinel standing in for an unclipped segment, so the drawing loop allocates nothing per segment
-dataLineChartSegmentSentinel = []
 
 
 # $function: dataLineChart
@@ -284,7 +281,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     yFormat = objectGet(lineChart, 'yFormat')
 
     # Determine the font size
-    fontSize = objectGet(if(options != null, options, {}), 'fontSize')
+    fontSize = if(options != null, objectGet(options, 'fontSize'))
     if !fontSize:
         documentFontSize = systemGlobalGet('documentFontSize')
         fontSize = if(documentFontSize, documentFontSize(), dataLineChartChartFontDefaultSizePx)
@@ -300,17 +297,22 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     xMax = null
     yMax = null
     if colorField != null:
-        # Determine the set of color encoding values
-        isSingleY = (arrayLength(yFields) == 1)
+        # Determine the set of color encoding values. The rows are sorted by the X field, so the
+        # first X value that contributes a point is the minimum and the last is the maximum. A
+        # single y-field - the common case - is walked without the per-row field loop, and only a
+        # row that contributes a point pays for formatting its color value. A string color value
+        # formats to itself, so the format call is skipped for it.
         colorValueSet = {}
         pointsMap = {}
-        for row in data:
-            xRow = objectGet(row, xField)
-            colorValue = dataUtilFormatValue(objectGet(row, colorField), chartPrecision, chartDatetime)
-            for yField in yFields:
-                rowKey = if(isSingleY, colorValue, yField + ', ' + colorValue)
-                yRow = objectGet(row, yField)
+        if arrayLength(yFields) == 1:
+            singleField = arrayGet(yFields, 0)
+            for row in data:
+                xRow = objectGet(row, xField)
+                yRow = objectGet(row, singleField)
                 if xRow != null && yRow != null && (!xIsLog || xRow > 0) && (!yIsLog || yRow > 0):
+                    colorRaw = objectGet(row, colorField)
+                    rowKey = if(systemType(colorRaw) == 'string', colorRaw, \
+                        dataUtilFormatValue(colorRaw, chartPrecision, chartDatetime))
                     objectSet(colorValueSet, rowKey, true)
                     rowPoints = objectGet(pointsMap, rowKey)
                     if rowPoints == null:
@@ -318,15 +320,37 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                         objectSet(pointsMap, rowKey, rowPoints)
                     endif
                     arrayPush(rowPoints, [xRow, yRow])
-
-                    # The rows are sorted by the X field, so the first X value is the min and the last is the max
                     xMin = if(xMin == null, xRow, xMin)
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
                     xMax = xRow
                     yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
                 endif
             endfor
-        endfor
+        else:
+            for row in data:
+                xRow = objectGet(row, xField)
+                colorRaw = objectGet(row, colorField)
+                colorValue = if(systemType(colorRaw) == 'string', colorRaw, \
+                    dataUtilFormatValue(colorRaw, chartPrecision, chartDatetime))
+                for yField in yFields:
+                    rowKey = yField + ', ' + colorValue
+                    yRow = objectGet(row, yField)
+                    if xRow != null && yRow != null && (!xIsLog || xRow > 0) && (!yIsLog || yRow > 0):
+                        objectSet(colorValueSet, rowKey, true)
+                        rowPoints = objectGet(pointsMap, rowKey)
+                        if rowPoints == null:
+                            rowPoints = []
+                            objectSet(pointsMap, rowKey, rowPoints)
+                        endif
+                        arrayPush(rowPoints, [xRow, yRow])
+                        xMin = if(xMin == null, xRow, xMin)
+                        yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                        xMax = xRow
+                        yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                    endif
+                endfor
+            endfor
+        endif
 
         # Sort color values
         if colorOrder != null:
@@ -352,31 +376,51 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
         for yField in yFields:
             arrayPush(fieldPoints, [])
         endfor
-        for row in data:
-            xRow = objectGet(row, xField)
-            if xRow == null || (xIsLog && xRow <= 0):
-                continue
-            endif
-
-            rowHasPoint = false
-            for yField, ixField in yFields:
-                yRow = objectGet(row, yField)
+        # The X range counts only rows that contributed a point, so a chart whose y-fields are all
+        # missing still reports no data. The rows are sorted by the X field, so the first such X
+        # value is the minimum and the last is the maximum. A single y-field - the common case - is
+        # walked without the per-row field loop.
+        if arrayLength(yFields) == 1:
+            singleField = arrayGet(yFields, 0)
+            singlePoints = arrayGet(fieldPoints, 0)
+            for row in data:
+                xRow = objectGet(row, xField)
+                if xRow == null || (xIsLog && xRow <= 0):
+                    continue
+                endif
+                yRow = objectGet(row, singleField)
                 if yRow != null && (!yIsLog || yRow > 0):
-                    arrayPush(arrayGet(fieldPoints, ixField), [xRow, yRow])
+                    arrayPush(singlePoints, [xRow, yRow])
                     yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
                     yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
-                    rowHasPoint = true
+                    xMin = if(xMin == null, xRow, xMin)
+                    xMax = xRow
                 endif
             endfor
+        else:
+            for row in data:
+                xRow = objectGet(row, xField)
+                if xRow == null || (xIsLog && xRow <= 0):
+                    continue
+                endif
 
-            # The X range counts only rows that contributed a point, so a chart whose y-fields are
-            # all missing still reports no data. The rows are sorted by the X field, so the first
-            # such X value is the minimum and the last is the maximum.
-            if rowHasPoint:
-                xMin = if(xMin == null, xRow, xMin)
-                xMax = xRow
-            endif
-        endfor
+                rowHasPoint = false
+                for yField, ixField in yFields:
+                    yRow = objectGet(row, yField)
+                    if yRow != null && (!yIsLog || yRow > 0):
+                        arrayPush(arrayGet(fieldPoints, ixField), [xRow, yRow])
+                        yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                        yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                        rowHasPoint = true
+                    endif
+                endfor
+
+                if rowHasPoint:
+                    xMin = if(xMin == null, xRow, xMin)
+                    xMax = xRow
+                endif
+            endfor
+        endif
 
         # Add a line for each y-field that has points
         for yField, ixField in yFields:
@@ -571,7 +615,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     endfor
 
     # Draw the chart lines. Clipping is only possible when the caller pinned an axis bound - an
-    # automatic axis is rounded outward from the data, so every point is inside the chart area.
+    # automatic axis spans the data, so every point is inside the chart area.
     chartClip = xMinFixed != null || xMaxFixed != null || yMinFixed != null || yMaxFixed != null
     xAxisBase = objectGet(xAxis, 'base')
     yAxisBase = objectGet(yAxis, 'base')
@@ -593,6 +637,20 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                 drawMove(dataLineChartCoord(xPoint - 0.5 * dataLineChartChartLineWidth), dataLineChartCoord(yPoint))
                 drawLine(dataLineChartCoord(xPoint + 0.5 * dataLineChartChartLineWidth), dataLineChartCoord(yPoint))
             endif
+        elif !chartClip:
+            # Nothing to clip - every point is inside the chart area, so the line is one sub-path
+            point = arrayGet(linePointPoints, 0)
+            xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
+            yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
+            drawMove(mathRound(xPoint, dataLineChartCoordPrecision), mathRound(yPoint, dataLineChartCoordPrecision))
+            ixPoint = 1
+            while ixPoint < nPoints:
+                point = arrayGet(linePointPoints, ixPoint)
+                xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
+                yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
+                drawLine(mathRound(xPoint, dataLineChartCoordPrecision), mathRound(yPoint, dataLineChartCoordPrecision))
+                ixPoint = ixPoint + 1
+            endwhile
         else:
             # Each segment is clipped to the chart area - an explicit axis range can put data outside it
             xPrevious = null
@@ -605,18 +663,18 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                 xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
                 yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
                 if ixPoint != 0:
-                    segment = if(!chartClip, dataLineChartSegmentSentinel, dataLineChartClipSegment( \
-                        xPrevious, yPrevious, xPoint, yPoint, chartLeft, chartTop, chartRight, chartBottom))
+                    segment = dataLineChartClipSegment( \
+                        xPrevious, yPrevious, xPoint, yPoint, chartLeft, chartTop, chartRight, chartBottom)
                     if segment != null:
-                        xStart = if(chartClip, arrayGet(segment, 0), xPrevious)
-                        yStart = if(chartClip, arrayGet(segment, 1), yPrevious)
+                        xStart = arrayGet(segment, 0)
+                        yStart = arrayGet(segment, 1)
                         # Continue the current sub-path when this segment starts where the last one ended
                         if xLast != xStart || yLast != yStart:
                             drawMove(mathRound(xStart, dataLineChartCoordPrecision), \
                                 mathRound(yStart, dataLineChartCoordPrecision))
                         endif
-                        xLast = if(chartClip, arrayGet(segment, 2), xPoint)
-                        yLast = if(chartClip, arrayGet(segment, 3), yPoint)
+                        xLast = arrayGet(segment, 2)
+                        yLast = arrayGet(segment, 3)
                         drawLine(mathRound(xLast, dataLineChartCoordPrecision), \
                             mathRound(yLast, dataLineChartCoordPrecision))
                     endif
@@ -825,10 +883,11 @@ function dataLineChartAxisBounds(minValue, maxValue, minFixed, maxFixed):
 endfunction
 
 
-# Helper function to hold an axis to its explicit bounds. The axis functions round their range outward to whole tick values, which is right when the range
-# came from the data but wrong when the caller named it - an axis asked for 0 to 100 must end at 0
-# and 100. So the bounds are re-applied afterwards and the tick marks outside them are dropped. The
-# tick step was computed from the bounded range, so at most the outermost tick on each side goes.
+# Helper function to hold an axis to its explicit bounds. An axis spans the range it is given, so this
+# usually changes nothing - but the tick mark fallback rounds the range outward when too few tick step
+# boundaries fall within it, and an axis the caller asked to run from 0 to 100 must end at 0 and 100.
+# So the bounds are re-applied afterwards and the tick marks outside them are dropped. The tick step
+# was computed from the bounded range, so at most the outermost tick on each side goes.
 function dataLineChartAxisClamp(axis, minFixed, maxFixed):
     if minFixed == null && maxFixed == null:
         return axis
@@ -973,6 +1032,26 @@ function dataLineChartAxis(isLog, format, minValue, maxValue, maxCount, precisio
 endfunction
 
 
+# Helper function to take the tick step boundaries that fall within an axis's range. A tick step
+# boundary is not a value the axis is expected to open on, and rounding out to one can leave most of
+# a tick step empty - half a year, for a six-month step - so an automatic axis spans the data. Fewer
+# than two boundaries fall within it when a narrow chart selects a tick step as long as the data
+# range; the axis then uses the rounded-out range, which is labeled at both ends. Returns the axis's
+# [minimum, maximum, tick values].
+function dataLineChartAxisTickValues(boundsTicks, minValue, maxValue):
+    tickValues = []
+    for boundsTick in boundsTicks:
+        if boundsTick >= minValue && boundsTick <= maxValue:
+            arrayPush(tickValues, boundsTick)
+        endif
+    endfor
+    if arrayLength(tickValues) < 2:
+        return [arrayGet(boundsTicks, 0), arrayGet(boundsTicks, arrayLength(boundsTicks) - 1), boundsTicks]
+    endif
+    return [minValue, maxValue, tickValues]
+endfunction
+
+
 # Helper function to compute a linear axis's automatic tick marks
 function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision):
     # Compute the "nice" tick step - one, two, or five times a power of ten
@@ -980,27 +1059,38 @@ function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision
     step = arrayGet(stepInfo, 0)
     stepPrecision = mathMax(0, -arrayGet(stepInfo, 1))
 
-    # Round the axis range outward to the nearest tick values
-    axisMin = mathRound(mathFloor(mathRound(minValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
-    axisMax = mathRound(mathCeil(mathRound(maxValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
+    # Walk the tick step boundaries, from the one at or below the minimum value to the one at or
+    # above the maximum value, so that every tick interval is a whole tick step
+    boundsMin = mathRound(mathFloor(mathRound(minValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
+    boundsMax = mathRound(mathCeil(mathRound(maxValue / step, dataLineChartRoundDigits)) * step, stepPrecision)
+    boundsTicks = []
+    ixTick = 0
+    boundsCount = mathRound((boundsMax - boundsMin) / step) + 1
+    while ixTick < boundsCount:
+        arrayPush(boundsTicks, mathRound(boundsMin + ixTick * step, stepPrecision))
+        ixTick = ixTick + 1
+    endwhile
 
-    # Compute the tick label format - an evenly-spaced axis scales every label by the same power of ten
+    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue)
+    axisMin = arrayGet(axisValues, 0)
+    axisMax = arrayGet(axisValues, 1)
+    tickValues = arrayGet(axisValues, 2)
+
+    # Compute the tick label format - an evenly-spaced axis scales every label by the same power of
+    # ten, the one of the largest-magnitude tick mark
     labelSignificant = if(precision != null, -precision, arrayGet(stepInfo, 1))
-    magnitudeExponent = dataLineChartValueExponent(mathMax(mathAbs(axisMin), mathAbs(axisMax)))
+    magnitudeExponent = dataLineChartValueExponent(mathMax( \
+        mathAbs(arrayGet(tickValues, 0)), mathAbs(arrayGet(tickValues, arrayLength(tickValues) - 1))))
     labelKind = dataLineChartLabelKind(format, magnitudeExponent, magnitudeExponent, labelSignificant)
     axisLabel = dataLineChartLabelNew(labelKind, dataLineChartLabelExponent(labelKind, magnitudeExponent), \
         labelSignificant, precision, null)
 
-    # Compute the tick values and the tick labels. Evenly-spaced tick marks need no sub-tick marks -
-    # the eye interpolates between them - so the axis carries none.
-    tickCount = mathRound((axisMax - axisMin) / step) + 1
+    # Compute the tick labels. Evenly-spaced tick marks need no sub-tick marks - the eye interpolates
+    # between them - so the axis carries none.
     axisTicks = []
-    ixTick = 0
-    while ixTick < tickCount:
-        tickValue = mathRound(axisMin + ixTick * step, stepPrecision)
+    for tickValue in tickValues:
         arrayPush(axisTicks, [tickValue, dataLineChartAxisLabel(axisLabel, tickValue)])
-        ixTick = ixTick + 1
-    endwhile
+    endfor
     return dataLineChartAxisNew(axisMin, axisMax, false, axisLabel, axisTicks, [])
 endfunction
 
@@ -1089,23 +1179,34 @@ function dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, date
         stepCount = mathMax(1, mathRound(arrayGet(yearStepInfo, 0)))
     endif
 
-    # Round the axis minimum down to a tick step boundary and step to - and past - the axis maximum, so
-    # that every tick interval is a whole tick step
+    # Walk the tick step boundaries, from the one at or before the minimum value to the one at or
+    # after the maximum value, so that every tick interval is a whole tick step
     tickDatetime = if(datetime != null, datetime, objectGet(dataLineChartDatetimeFormats, stepUnit))
-    axisMin = dataLineChartDatetimeFloor(minValue, stepUnit, stepCount)
-    axisTicks = []
-    tickValue = axisMin
-    tickPrevious = null
+    boundsMin = dataLineChartDatetimeFloor(minValue, stepUnit, stepCount)
+    boundsTicks = []
+    boundsValue = boundsMin
     while true:
-        tickLabel = dataUtilFormatValue(tickValue, precision, tickDatetime)
-        arrayPush(axisTicks, [tickValue, dataLineChartLabelContext(tickLabel, tickPrevious)])
-        if tickValue >= maxValue:
+        arrayPush(boundsTicks, boundsValue)
+        if boundsValue >= maxValue:
             break
         endif
-        tickPrevious = tickLabel
-        tickValue = dataLineChartDatetimeAdd(tickValue, stepUnit, stepCount)
+        boundsValue = dataLineChartDatetimeAdd(boundsValue, stepUnit, stepCount)
     endwhile
-    return dataLineChartAxisNew(axisMin, tickValue, false, \
+
+    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue)
+    axisMin = arrayGet(axisValues, 0)
+    axisMax = arrayGet(axisValues, 1)
+    tickValues = arrayGet(axisValues, 2)
+
+    # Label the tick marks - each label drops the leading components its predecessor already showed
+    axisTicks = []
+    tickPrevious = null
+    for tickValue in tickValues:
+        tickLabel = dataUtilFormatValue(tickValue, precision, tickDatetime)
+        arrayPush(axisTicks, [tickValue, dataLineChartLabelContext(tickLabel, tickPrevious)])
+        tickPrevious = tickLabel
+    endfor
+    return dataLineChartAxisNew(axisMin, axisMax, false, \
         dataLineChartLabelNew('default', null, null, precision, tickDatetime), axisTicks, [])
 endfunction
 
