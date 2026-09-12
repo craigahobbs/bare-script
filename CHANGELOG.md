@@ -2,6 +2,8 @@
 
 ## 5.1.12 (2026-09-12)
 
+- [9394643](https://github.com/craigahobbs/bare-script/commit/9394643) - document that an automatic axis spans its data
+
 - [da007f6](https://github.com/craigahobbs/bare-script/commit/da007f6) - dataLineChart - an automatic axis spans its data, and a faster drawLineChart
 
 ## 5.1.11 (2026-09-12)
