@@ -3184,13 +3184,14 @@ endfunction
 unittestRunTest('testDataLineChartElements_labelOverflow')
 
 function testDataLineChartElements_colorField():
+    # The last row's value is below the first's, so the Y-axis minimum moves after the first point
     data = [ \
         {'A': 1, 'B': 1, 'C': 'abc'}, \
         {'B': 3, 'C': 'abc'}, \
         {'A': 3, 'B': 2, 'C': 'abc'}, \
         {'A': 1, 'B': 2, 'C': 'def'}, \
         {'A': 2, 'C': 'def'}, \
-        {'A': 3, 'B': 3} \
+        {'A': 3, 'B': 0} \
     ]
     lineChart = dataLineChartValidate({'x': 'A', 'y': ['B'], 'color': 'C'})
     unittestDeepEqual(dataLineChartElements(data, lineChart), { \
@@ -3239,7 +3240,7 @@ function testDataLineChartElements_colorField():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 547.58800000 17.50000000 L 550.58800000 17.50000000', \
+                    'd': 'M 547.58800000 255.95000000 L 550.58800000 255.95000000', \
                     'fill': 'none', \
                     'stroke': '#2ca02c', \
                     'stroke-dasharray': 'none', \
@@ -3249,7 +3250,7 @@ function testDataLineChartElements_colorField():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 76.37000000 136.72500000 L 79.37000000 136.72500000', \
+                    'd': 'M 76.37000000 17.50000000 L 79.37000000 17.50000000', \
                     'fill': 'none', \
                     'stroke': '#ff7f0e', \
                     'stroke-dasharray': 'none', \
@@ -3259,7 +3260,7 @@ function testDataLineChartElements_colorField():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 77.87000000 255.95000000 L 549.08800000 136.72500000', \
+                    'd': 'M 77.87000000 136.72500000 L 549.08800000 17.50000000', \
                     'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
@@ -3271,7 +3272,7 @@ function testDataLineChartElements_colorField():
                 'attr': { \
                     'd': 'M 557.08800000 25.50000000 H 589.08800000', \
                     'fill': 'none', \
-                    'stroke': '#2ca02c', \
+                    'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -3281,7 +3282,7 @@ function testDataLineChartElements_colorField():
                 'attr': { \
                     'd': 'M 557.08800000 47.10000000 H 589.08800000', \
                     'fill': 'none', \
-                    'stroke': '#1f77b4', \
+                    'stroke': '#ff7f0e', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -3291,7 +3292,7 @@ function testDataLineChartElements_colorField():
                 'attr': { \
                     'd': 'M 557.08800000 68.70000000 H 589.08800000', \
                     'fill': 'none', \
-                    'stroke': '#ff7f0e', \
+                    'stroke': '#2ca02c', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -3342,7 +3343,7 @@ function testDataLineChartElements_colorField():
                     'x': 67.12, \
                     'y': 255.95 \
                 }, \
-                'elem': {'text': '1.0'}, \
+                'elem': {'text': '0.0'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3358,7 +3359,7 @@ function testDataLineChartElements_colorField():
                     'x': 67.12, \
                     'y': 196.337 \
                 }, \
-                'elem': {'text': '1.5'}, \
+                'elem': {'text': '0.5'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3374,7 +3375,7 @@ function testDataLineChartElements_colorField():
                     'x': 67.12, \
                     'y': 136.725 \
                 }, \
-                'elem': {'text': '2.0'}, \
+                'elem': {'text': '1.0'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3390,7 +3391,7 @@ function testDataLineChartElements_colorField():
                     'x': 67.12, \
                     'y': 77.113 \
                 }, \
-                'elem': {'text': '2.5'}, \
+                'elem': {'text': '1.5'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3406,7 +3407,7 @@ function testDataLineChartElements_colorField():
                     'x': 67.12, \
                     'y': 17.5 \
                 }, \
-                'elem': {'text': '3.0'}, \
+                'elem': {'text': '2.0'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3502,7 +3503,7 @@ function testDataLineChartElements_colorField():
                     'x': 595.488, \
                     'y': 25.5 \
                 }, \
-                'elem': {'text': 'null'}, \
+                'elem': {'text': 'abc'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3518,7 +3519,7 @@ function testDataLineChartElements_colorField():
                     'x': 595.488, \
                     'y': 47.1 \
                 }, \
-                'elem': {'text': 'abc'}, \
+                'elem': {'text': 'def'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -3534,7 +3535,7 @@ function testDataLineChartElements_colorField():
                     'x': 595.488, \
                     'y': 68.7 \
                 }, \
-                'elem': {'text': 'def'}, \
+                'elem': {'text': 'null'}, \
                 'svg': 'text' \
             } \
         ], \

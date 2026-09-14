@@ -27,7 +27,6 @@ drawFontWidths = [ \
     611, 611, 390, 557, 334, 611, 557, 778, 557, 557, 500, 390, 280, 390, 584 \
 ]
 drawFontWidthFirst = 32
-drawFontWidthCount = arrayLength(drawFontWidths)
 
 
 # The same for the Latin-1 supplement, the sixteen characters from the non-breaking space, then from
@@ -42,7 +41,6 @@ drawFontWidthsLatin = [ \
     611, 611, 611, 611, 611, 611, 611, 549, 611, 611, 611, 611, 611, 557, 611, 557 \
 ]
 drawFontWidthLatinFirst = 160
-drawFontWidthLatinCount = arrayLength(drawFontWidthsLatin)
 
 
 # The same again for the characters that turn up in chart titles, labels, and annotations beyond
@@ -71,25 +69,48 @@ drawFontWidthsOther = { \
 drawFontWidthOther = 1200
 
 
+# The character advance widths by character code - the three tables above as one array, so that a
+# text is measured with one array read per character code. A code past the end of the array, like
+# a code in none of the tables, is measured at the unknown-glyph width.
+drawFontWidthTableLength = 0
+for char in objectKeys(drawFontWidthsOther):
+    drawFontWidthTableLength = mathMax(drawFontWidthTableLength, stringCharCodeAt(char, 0) + 1)
+endfor
+drawFontWidthTable = arrayNewSize(drawFontWidthTableLength, drawFontWidthOther)
+for charWidth, ixChar in drawFontWidths:
+    arraySet(drawFontWidthTable, drawFontWidthFirst + ixChar, charWidth)
+endfor
+for charWidth, ixChar in drawFontWidthsLatin:
+    arraySet(drawFontWidthTable, drawFontWidthLatinFirst + ixChar, charWidth)
+endfor
+for char in objectKeys(drawFontWidthsOther):
+    arraySet(drawFontWidthTable, stringCharCodeAt(char, 0), objectGet(drawFontWidthsOther, char))
+endfor
+
+
 # The global drawing state
 drawCurrentDrawing = null
 
 
 # Helper to get or create the global drawing state
 function drawGetCurrentDrawing():
-    drawing = systemGlobalGet('drawCurrentDrawing')
+    drawing = drawCurrentDrawing
     if drawing == null:
         drawNew()
-        drawing = systemGlobalGet('drawCurrentDrawing')
+        drawing = drawCurrentDrawing
     endif
     return drawing
 endfunction
 
 
-# Helper method to start an SVG drawing path
-function drawSetDrawingPath(drawing):
-    drawingPath = objectGet(drawing, 'path')
+# Helper to get the current drawing's path, starting one if there is none. The path primitives
+# call this once per segment, so the common case - a drawing with a path in progress - reads the
+# drawing state directly rather than through drawGetCurrentDrawing.
+function drawGetDrawingPath():
+    drawing = drawCurrentDrawing
+    drawingPath = if(drawing != null, objectGet(drawing, 'path'))
     if drawingPath == null:
+        drawing = drawGetCurrentDrawing()
         svg = objectGet(drawing, 'svg')
         svgElem = objectGet(svg, 'elem')
         arrayPush(svgElem, { \
@@ -109,18 +130,23 @@ function drawSetDrawingPath(drawing):
 endfunction
 
 
-# Helper method to finish the current SVG drawing path
-function drawFinishDrawingPath(drawing):
-    drawingPath = objectGet(drawing, 'path')
-    svg = objectGet(drawing, 'svg')
-    svgElem = objectGet(svg, 'elem')
+# Helper to finish the current drawing's path, if there is one, and get the drawing. The shape and
+# text primitives call this once per element, so the common case - a drawing with no path in
+# progress - reads the drawing state directly rather than through drawGetCurrentDrawing.
+function drawFinishDrawingPath():
+    drawing = drawCurrentDrawing
+    drawingPath = if(drawing != null, objectGet(drawing, 'path'))
     if drawingPath:
+        svg = objectGet(drawing, 'svg')
+        svgElem = objectGet(svg, 'elem')
         path = arrayGet(svgElem, arrayLength(svgElem) - 1)
         pathAttr = objectGet(path, 'attr')
         objectSet(pathAttr, 'd', arrayJoin(drawingPath, ' '))
         objectSet(drawing, 'path', null)
+    elif drawing == null:
+        drawing = drawGetCurrentDrawing()
     endif
-    return svgElem
+    return drawing
 endfunction
 
 
@@ -128,8 +154,7 @@ endfunction
 # $group: draw.bare
 # $doc: Render the current drawing
 function drawRender():
-    drawing = drawGetCurrentDrawing()
-    drawFinishDrawingPath(drawing)
+    drawing = drawFinishDrawingPath()
     elementModelRender = systemGlobalGet('elementModelRender')
     elementModelRender({'html': 'p', 'elem': objectGet(drawing, 'svg')})
 endfunction
@@ -140,8 +165,7 @@ endfunction
 # $doc: Get the current drawing's SVG element model
 # $return: The current drawing's SVG element model
 function drawElements():
-    drawing = drawGetCurrentDrawing()
-    drawFinishDrawingPath(drawing)
+    drawing = drawFinishDrawingPath()
     return objectGet(drawing, 'svg')
 endfunction
 
@@ -157,8 +181,7 @@ endfunction
 # $arg x: The x-coordinate of the end point
 # $arg y: The y-coordinate of the end point
 function drawArc(rx, ry, angle, largeArcFlag, sweepFlag, x, y):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush( \
         drawingPath, \
         'A ' + numberToFixed(rx, drawSVGPrecision) + ' ' + numberToFixed(ry, drawSVGPrecision) + ' ' +  \
@@ -189,9 +212,9 @@ endfunction
 # $arg cy: The y-coordinate of the center of the circle
 # $arg r: The radius of the circle
 function drawCircle(cx, cy, r):
-    drawing = drawGetCurrentDrawing()
-    svgElem = drawFinishDrawingPath(drawing)
-    arrayPush(svgElem, { \
+    drawing = drawFinishDrawingPath()
+    svg = objectGet(drawing, 'svg')
+    arrayPush(objectGet(svg, 'elem'), { \
         'svg': 'circle', \
         'attr': { \
             'fill': objectGet(drawing, 'fill'), \
@@ -210,8 +233,7 @@ endfunction
 # $group: draw.bare
 # $doc: Close the current drawing path
 function drawClose():
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'Z')
 endfunction
 
@@ -224,9 +246,9 @@ endfunction
 # $arg rx: The x-radius of the ellipse
 # $arg ry: The y-radius of the ellipse
 function drawEllipse(cx, cy, rx, ry):
-    drawing = drawGetCurrentDrawing()
-    svgElem = drawFinishDrawingPath(drawing)
-    arrayPush(svgElem, { \
+    drawing = drawFinishDrawingPath()
+    svg = objectGet(drawing, 'svg')
+    arrayPush(objectGet(svg, 'elem'), { \
         'svg': 'ellipse', \
         'attr': { \
             'fill': objectGet(drawing, 'fill'), \
@@ -247,8 +269,7 @@ endfunction
 # $doc: Draw a horizontal line from the current point to the end point
 # $arg x: The x-coordinate of the end point
 function drawHLine(x):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'H ' + numberToFixed(x, drawSVGPrecision))
 endfunction
 
@@ -272,9 +293,9 @@ endfunction
 # $arg height: The height of the image
 # $arg href: The image resource URL
 function drawImage(x, y, width, height, href):
-    drawing = drawGetCurrentDrawing()
-    svgElem = drawFinishDrawingPath(drawing)
-    arrayPush(svgElem, { \
+    drawing = drawFinishDrawingPath()
+    svg = objectGet(drawing, 'svg')
+    arrayPush(objectGet(svg, 'elem'), { \
         'svg': 'image', \
         'attr': { \
             'x': x, \
@@ -293,8 +314,7 @@ endfunction
 # $arg x: The x-coordinate of the end point
 # $arg y: The y-coordinate of the end point
 function drawLine(x, y):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'L ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
 endfunction
 
@@ -305,8 +325,7 @@ endfunction
 # $arg x: The x-coordinate of the new drawing point
 # $arg y: The y-coordinate of the new drawing point
 function drawMove(x, y):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'M ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
 endfunction
 
@@ -362,8 +381,7 @@ endfunction
 # $arg width: The width of the rectangle
 # $arg height: The height of the rectangle
 function drawPathRect(x, y, width, height):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'M ' + numberToFixed(x, drawSVGPrecision) + ' ' + numberToFixed(y, drawSVGPrecision))
     arrayPush(drawingPath, 'H ' + numberToFixed(x + width, drawSVGPrecision))
     arrayPush(drawingPath, 'V ' + numberToFixed(y + height, drawSVGPrecision))
@@ -382,9 +400,9 @@ endfunction
 # $arg rx: Optional (default is null). The horizontal corner radius of the rectangle.
 # $arg ry: Optional (default is null). The vertical corner radius of the rectangle.
 function drawRect(x, y, width, height, rx, ry):
-    drawing = drawGetCurrentDrawing()
-    svgElem = drawFinishDrawingPath(drawing)
-    arrayPush(svgElem, { \
+    drawing = drawFinishDrawingPath()
+    svg = objectGet(drawing, 'svg')
+    arrayPush(objectGet(svg, 'elem'), { \
         'svg': 'rect', \
         'attr': { \
             'fill': objectGet(drawing, 'fill'), \
@@ -420,7 +438,7 @@ function drawStyle(stroke, strokeWidth, fill, strokeDashArray):
     strokeDashArray = if(strokeDashArray != null, strokeDashArray, 'none')
     if stroke != objectGet(drawing, 'stroke') || strokeWidth != objectGet(drawing, 'strokeWidth') || \
        strokeDashArray != objectGet(drawing, 'strokeDashArray') || fill != objectGet(drawing, 'fill'):
-        drawFinishDrawingPath(drawing)
+        drawFinishDrawingPath()
         objectSet(drawing, 'stroke', stroke)
         objectSet(drawing, 'strokeWidth', strokeWidth)
         objectSet(drawing, 'strokeDashArray', strokeDashArray)
@@ -442,9 +460,9 @@ endfunction
 # $arg dominantBaseline: style.
 # $arg rotate: Optional (default is null). The text's clockwise rotation, in degrees, about the text position.
 function drawText(text, x, y, textAnchor, dominantBaseline, rotate):
-    drawing = drawGetCurrentDrawing()
-    svgElem = drawFinishDrawingPath(drawing)
-    arrayPush(svgElem, { \
+    drawing = drawFinishDrawingPath()
+    svg = objectGet(drawing, 'svg')
+    arrayPush(objectGet(svg, 'elem'), { \
         'svg': 'text', \
         'attr': { \
             'fill': objectGet(drawing, 'fontFill'), \
@@ -519,19 +537,10 @@ function drawTextWidthEm(text):
     textLength = stringLength(text)
     while ixChar < textLength:
         charCode = stringCharCodeAt(text, ixChar)
-        ixWidth = charCode - drawFontWidthFirst
-        if ixWidth >= 0 && ixWidth < drawFontWidthCount:
-            charWidth = arrayGet(drawFontWidths, ixWidth)
-        else:
-            ixLatin = charCode - drawFontWidthLatinFirst
-            charWidth = if(ixLatin >= 0 && ixLatin < drawFontWidthLatinCount, \
-                arrayGet(drawFontWidthsLatin, ixLatin), \
-                objectGet(drawFontWidthsOther, stringCharAt(text, ixChar), drawFontWidthOther))
-        endif
-        widthEm = widthEm + 1 + charWidth
+        widthEm = widthEm + if(charCode < drawFontWidthTableLength, arrayGet(drawFontWidthTable, charCode), drawFontWidthOther)
         ixChar = ixChar + 1
     endwhile
-    return widthEm
+    return widthEm + textLength
 endfunction
 
 
@@ -540,8 +549,7 @@ endfunction
 # $doc: Draw a vertical line from the current point to the end point
 # $arg y: The y-coordinate of the end point
 function drawVLine(y):
-    drawing = drawGetCurrentDrawing()
-    drawingPath = drawSetDrawingPath(drawing)
+    drawingPath = drawGetDrawingPath()
     arrayPush(drawingPath, 'V ' + numberToFixed(y, drawSVGPrecision))
 endfunction
 

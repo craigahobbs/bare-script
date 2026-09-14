@@ -292,6 +292,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     yFormat = objectGet(lineChart, 'yFormat')
     xPad = objectGet(lineChart, 'xPad', false)
     yPad = objectGet(lineChart, 'yPad', true)
+    nFields = arrayLength(yFields)
 
     # Determine the font size
     fontSize = if(options != null, objectGet(options, 'fontSize'))
@@ -315,30 +316,38 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
         # single y-field - the common case - is walked without the per-row field loop, and only a
         # row that contributes a point pays for formatting its color value. A string color value
         # formats to itself, so the format call is skipped for it.
-        colorValueSet = {}
         pointsMap = {}
-        if arrayLength(yFields) == 1:
+        if nFields == 1:
             singleField = arrayGet(yFields, 0)
-            for row in data:
+            ixRow = 0
+            nRows = arrayLength(data)
+            while ixRow < nRows:
+                row = arrayGet(data, ixRow)
+                ixRow = ixRow + 1
                 xRow = objectGet(row, xField)
                 yRow = objectGet(row, singleField)
                 if xRow != null && yRow != null && (!xIsLog || xRow > 0) && (!yIsLog || yRow > 0):
                     colorRaw = objectGet(row, colorField)
                     rowKey = if(systemType(colorRaw) == 'string', colorRaw, \
                         dataUtilFormatValue(colorRaw, chartPrecision, chartDatetime))
-                    objectSet(colorValueSet, rowKey, true)
                     rowPoints = objectGet(pointsMap, rowKey)
                     if rowPoints == null:
                         rowPoints = []
                         objectSet(pointsMap, rowKey, rowPoints)
                     endif
                     arrayPush(rowPoints, [xRow, yRow])
-                    xMin = if(xMin == null, xRow, xMin)
-                    yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                    if yMin == null:
+                        xMin = xRow
+                        yMin = yRow
+                        yMax = yRow
+                    elif yRow < yMin:
+                        yMin = yRow
+                    elif yRow > yMax:
+                        yMax = yRow
+                    endif
                     xMax = xRow
-                    yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
                 endif
-            endfor
+            endwhile
         else:
             for row in data:
                 xRow = objectGet(row, xField)
@@ -349,17 +358,22 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                     rowKey = yField + ', ' + colorValue
                     yRow = objectGet(row, yField)
                     if xRow != null && yRow != null && (!xIsLog || xRow > 0) && (!yIsLog || yRow > 0):
-                        objectSet(colorValueSet, rowKey, true)
                         rowPoints = objectGet(pointsMap, rowKey)
                         if rowPoints == null:
                             rowPoints = []
                             objectSet(pointsMap, rowKey, rowPoints)
                         endif
                         arrayPush(rowPoints, [xRow, yRow])
-                        xMin = if(xMin == null, xRow, xMin)
-                        yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
+                        if yMin == null:
+                            xMin = xRow
+                            yMin = yRow
+                            yMax = yRow
+                        elif yRow < yMin:
+                            yMin = yRow
+                        elif yRow > yMax:
+                            yMax = yRow
+                        endif
                         xMax = xRow
-                        yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
                     endif
                 endfor
             endfor
@@ -367,9 +381,9 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
 
         # Sort color values
         if colorOrder != null:
-            colorValues = arraySort(objectKeys(colorValueSet), systemPartial(dataLineChartColorOrderCompare, colorOrder))
+            colorValues = arraySort(objectKeys(pointsMap), systemPartial(dataLineChartColorOrderCompare, colorOrder))
         else:
-            colorValues = arraySort(objectKeys(colorValueSet))
+            colorValues = arraySort(objectKeys(pointsMap))
         endif
 
         # Add the points
@@ -393,10 +407,14 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
         # missing still reports no data. The rows are sorted by the X field, so the first such X
         # value is the minimum and the last is the maximum. A single y-field - the common case - is
         # walked without the per-row field loop.
-        if arrayLength(yFields) == 1:
+        if nFields == 1:
             singleField = arrayGet(yFields, 0)
             singlePoints = arrayGet(fieldPoints, 0)
-            for row in data:
+            ixRow = 0
+            nRows = arrayLength(data)
+            while ixRow < nRows:
+                row = arrayGet(data, ixRow)
+                ixRow = ixRow + 1
                 xRow = objectGet(row, xField)
                 if xRow == null || (xIsLog && xRow <= 0):
                     continue
@@ -404,35 +422,53 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                 yRow = objectGet(row, singleField)
                 if yRow != null && (!yIsLog || yRow > 0):
                     arrayPush(singlePoints, [xRow, yRow])
-                    yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
-                    yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
-                    xMin = if(xMin == null, xRow, xMin)
+                    if yMin == null:
+                        yMin = yRow
+                        yMax = yRow
+                        xMin = xRow
+                    elif yRow < yMin:
+                        yMin = yRow
+                    elif yRow > yMax:
+                        yMax = yRow
+                    endif
                     xMax = xRow
                 endif
-            endfor
+            endwhile
         else:
-            for row in data:
+            ixRow = 0
+            nRows = arrayLength(data)
+            while ixRow < nRows:
+                row = arrayGet(data, ixRow)
+                ixRow = ixRow + 1
                 xRow = objectGet(row, xField)
                 if xRow == null || (xIsLog && xRow <= 0):
                     continue
                 endif
 
                 rowHasPoint = false
-                for yField, ixField in yFields:
-                    yRow = objectGet(row, yField)
+                ixField = 0
+                while ixField < nFields:
+                    yRow = objectGet(row, arrayGet(yFields, ixField))
                     if yRow != null && (!yIsLog || yRow > 0):
                         arrayPush(arrayGet(fieldPoints, ixField), [xRow, yRow])
-                        yMin = if(yMin == null, yRow, if(yRow < yMin, yRow, yMin))
-                        yMax = if(yMax == null, yRow, if(yRow > yMax, yRow, yMax))
+                        if yMin == null:
+                            yMin = yRow
+                            yMax = yRow
+                        elif yRow < yMin:
+                            yMin = yRow
+                        elif yRow > yMax:
+                            yMax = yRow
+                        endif
                         rowHasPoint = true
                     endif
-                endfor
+                    ixField = ixField + 1
+                endwhile
 
                 if rowHasPoint:
                     xMin = if(xMin == null, xRow, xMin)
                     xMax = xRow
                 endif
-            endfor
+            endwhile
         endif
 
         # Add a line for each y-field that has points
@@ -482,6 +518,12 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     xMaxFixed = arrayGet(xBounds, 1)
     yMinFixed = arrayGet(yBounds, 0)
     yMaxFixed = arrayGet(yBounds, 1)
+
+    # The chart lines are clipped only when an explicit bound cuts the data. An automatic axis spans
+    # the data, and so does an explicit one the data lies within, so every point is then inside the
+    # chart area and the lines are drawn without the per-segment clip.
+    chartClip = (xMinFixed != null && xMin < xMinFixed) || (xMaxFixed != null && xMax > xMaxFixed) || \
+        (yMinFixed != null && yMin < yMinFixed) || (yMaxFixed != null && yMax > yMaxFixed)
     xMin = if(xMinFixed != null, xMinFixed, xMin)
     xMax = if(xMaxFixed != null, xMaxFixed, xMax)
     yMin = if(yMinFixed != null, yMinFixed, yMin)
@@ -496,15 +538,14 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     # Axis calculations
     axisTitleFontSize = fontSize
     axisLabelFontSize = fontSize
-    yAxisTitle = if(arrayLength(yFields) == 1, arrayGet(yFields, 0))
+    yAxisTitle = if(nFields == 1, arrayGet(yFields, 0))
     yAxisTitleWidth = if(yAxisTitle != null, 1.8 * axisTitleFontSize, 0)
     xAxisTitleHeight = 1.8 * axisTitleFontSize
-    yAxisTickGap = 0.75 * dataLineChartAxisTickLength
-    xAxisTickGap = 0.75 * dataLineChartAxisTickLength
+    axisTickGap = 0.75 * dataLineChartAxisTickLength
 
     # Vertical chart area calculations
     xAxisY = y + height - chartBorderSize - xAxisTitleHeight - \
-        (axisLabelFontSize - xAxisTickGap + dataLineChartAxisTickLength)
+        (axisLabelFontSize - axisTickGap + dataLineChartAxisTickLength)
     chartTop = y + chartBorderSize + chartTitleHeight + 0.5 * dataLineChartChartLineWidth
     chartBottom = xAxisY - 0.5 * dataLineChartAxisLineWidth - 0.5 * dataLineChartChartLineWidth
 
@@ -519,7 +560,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     endfor
     # The Y-axis is placed to leave room for its title and tick labels, but never so far right that
     # the plot area is squeezed away, nor so far left that the tick labels run off the chart
-    yAxisLabelSpace = yAxisLabelWidth + yAxisTickGap + dataLineChartAxisTickLength
+    yAxisLabelSpace = yAxisLabelWidth + axisTickGap + dataLineChartAxisTickLength
     yAxisSpace = chartBorderSize + yAxisTitleWidth + yAxisLabelSpace
     yAxisOffset = mathMin(mathMax(mathMin(yAxisSpace, dataLineChartAxisSpaceFraction * width), yAxisLabelSpace), \
         dataLineChartPlotSpaceFraction * width)
@@ -544,7 +585,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     # The legend is placed to leave room for its labels, but never so far left that the plot area is
     # squeezed away, nor so far right that the labels run off the chart
     colorLegendWidth = colorLegendSampleWidth + colorLegendLabelWidth
-    colorLegendX = if(arrayLength(yFields) == 1 && colorField == null, null, \
+    colorLegendX = if(nFields == 1 && colorField == null, null, \
         mathMax(x + width - chartBorderSize - colorLegendWidth, x + dataLineChartPlotSpaceFraction * width) \
     )
     colorLegendLabelFit = if(colorLegendX != null, x + width - colorLegendX - colorLegendSampleWidth)
@@ -627,9 +668,10 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
         drawVLine(dataLineChartCoord(xAxisY + dataLineChartAxisSubtickLength))
     endfor
 
-    # Draw the chart lines. Clipping is only possible when the caller pinned an axis bound - an
-    # automatic axis spans the data, so every point is inside the chart area.
-    chartClip = xMinFixed != null || xMaxFixed != null || yMinFixed != null || yMaxFixed != null
+    # Draw the chart lines. The point loops below round their coordinates with mathRound rather than
+    # through dataLineChartCoord, which every other drawing statement here uses - a call per point is
+    # worth avoiding, and the precision is read once into a local for the same reason
+    coordPrecision = dataLineChartCoordPrecision
     xAxisBase = objectGet(xAxis, 'base')
     yAxisBase = objectGet(yAxis, 'base')
     xAxisRange = objectGet(xAxis, 'range')
@@ -655,15 +697,25 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
             point = arrayGet(linePointPoints, 0)
             xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
             yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
-            drawMove(mathRound(xPoint, dataLineChartCoordPrecision), mathRound(yPoint, dataLineChartCoordPrecision))
+            drawMove(mathRound(xPoint, coordPrecision), mathRound(yPoint, coordPrecision))
             ixPoint = 1
-            while ixPoint < nPoints:
-                point = arrayGet(linePointPoints, ixPoint)
-                xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
-                yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
-                drawLine(mathRound(xPoint, dataLineChartCoordPrecision), mathRound(yPoint, dataLineChartCoordPrecision))
-                ixPoint = ixPoint + 1
-            endwhile
+            if !xIsLog && !yIsLog:
+                while ixPoint < nPoints:
+                    point = arrayGet(linePointPoints, ixPoint)
+                    drawLine( \
+                        mathRound(chartLeft + (arrayGet(point, 0) - xAxisBase) * xPointScale, coordPrecision), \
+                        mathRound(chartBottom + (arrayGet(point, 1) - yAxisBase) * yPointScale, coordPrecision))
+                    ixPoint = ixPoint + 1
+                endwhile
+            else:
+                while ixPoint < nPoints:
+                    point = arrayGet(linePointPoints, ixPoint)
+                    xPoint = chartLeft + (if(xIsLog, mathLog(arrayGet(point, 0), 10), arrayGet(point, 0)) - xAxisBase) * xPointScale
+                    yPoint = chartBottom + (if(yIsLog, mathLog(arrayGet(point, 1), 10), arrayGet(point, 1)) - yAxisBase) * yPointScale
+                    drawLine(mathRound(xPoint, coordPrecision), mathRound(yPoint, coordPrecision))
+                    ixPoint = ixPoint + 1
+                endwhile
+            endif
         else:
             # Each segment is clipped to the chart area - an explicit axis range can put data outside it
             xPrevious = null
@@ -683,13 +735,13 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
                         yStart = arrayGet(segment, 1)
                         # Continue the current sub-path when this segment starts where the last one ended
                         if xLast != xStart || yLast != yStart:
-                            drawMove(mathRound(xStart, dataLineChartCoordPrecision), \
-                                mathRound(yStart, dataLineChartCoordPrecision))
+                            drawMove(mathRound(xStart, coordPrecision), \
+                                mathRound(yStart, coordPrecision))
                         endif
                         xLast = arrayGet(segment, 2)
                         yLast = arrayGet(segment, 3)
-                        drawLine(mathRound(xLast, dataLineChartCoordPrecision), \
-                            mathRound(yLast, dataLineChartCoordPrecision))
+                        drawLine(mathRound(xLast, coordPrecision), \
+                            mathRound(yLast, coordPrecision))
                     endif
                 endif
                 xPrevious = xPoint
@@ -790,14 +842,14 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     drawTextStyle(axisLabelFontSize, dataLineChartAxisColor)
     for yTickCoord in yTickCoords:
         yPoint = arrayGet(yTickCoord, 0)
-        drawText(arrayGet(yTickCoord, 1), dataLineChartCoord(yAxisX - dataLineChartAxisTickLength - yAxisTickGap), \
+        drawText(arrayGet(yTickCoord, 1), dataLineChartCoord(yAxisX - dataLineChartAxisTickLength - axisTickGap), \
             dataLineChartCoord(yPoint), 'end', \
             if(yPoint > yAxisLabelBottom, 'auto', if(yPoint < yAxisLabelTop, 'hanging', 'middle')))
     endfor
     for xTickCoord in xTickCoords:
         xPoint = arrayGet(xTickCoord, 0)
         drawText(arrayGet(xTickCoord, 1), dataLineChartCoord(xPoint), \
-            dataLineChartCoord(xAxisY + dataLineChartAxisTickLength + xAxisTickGap), \
+            dataLineChartCoord(xAxisY + dataLineChartAxisTickLength + axisTickGap), \
             if(xPoint < xAxisLabelLeft, 'start', if(xPoint > xAxisLabelRight, 'end', 'middle')), 'hanging')
     endfor
 
