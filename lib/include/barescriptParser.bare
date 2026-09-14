@@ -748,26 +748,35 @@ function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
             return [{'variable': variableName}, nextText]
         endif
 
-        # Function call - parse the arguments
+        # Function call - parse the arguments. A close or separator directly after an argument - the
+        # common case - is found with a string comparison; the regexes handle whitespace before it.
         argText = nextText
         args = []
         while true:
             # Function close?
-            matchFunctionClose = regexMatch(barescriptParserRegexFunctionClose, argText)
-            if matchFunctionClose != null:
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionClose, 'groups'), '0')))
+            if stringStartsWith(argText, ')'):
+                argText = stringSlice(argText, 1)
                 break
             endif
 
-            # Function argument separator
-            if arrayLength(args) != 0:
-                matchFunctionSeparator = regexMatch(barescriptParserRegexFunctionSeparator, argText)
-                if matchFunctionSeparator == null:
-                    objectSet(error, 'error', 'Syntax error')
-                    objectSet(error, 'line', argText)
-                    return null
+            # Function argument separator?
+            if arrayLength(args) != 0 && stringStartsWith(argText, ','):
+                argText = stringSlice(argText, 1)
+            else:
+                matchFunctionClose = regexMatch(barescriptParserRegexFunctionClose, argText)
+                if matchFunctionClose != null:
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionClose, 'groups'), '0')))
+                    break
                 endif
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionSeparator, 'groups'), '0')))
+                if arrayLength(args) != 0:
+                    matchFunctionSeparator = regexMatch(barescriptParserRegexFunctionSeparator, argText)
+                    if matchFunctionSeparator == null:
+                        objectSet(error, 'error', 'Syntax error')
+                        objectSet(error, 'line', argText)
+                        return null
+                    endif
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchFunctionSeparator, 'groups'), '0')))
+                endif
             endif
 
             # Get the argument
@@ -834,21 +843,29 @@ function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
         args = []
         while true:
             # Object close?
-            matchObjectClose = regexMatch(barescriptParserRegexObjectClose, argText)
-            if matchObjectClose != null:
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectClose, 'groups'), '0')))
+            if stringStartsWith(argText, '}'):
+                argText = stringSlice(argText, 1)
                 break
             endif
 
-            # Key/value pair separator
-            if arrayLength(args) != 0:
-                matchObjectSeparator = regexMatch(barescriptParserRegexObjectSeparator, argText)
-                if matchObjectSeparator == null:
-                    objectSet(error, 'error', 'Syntax error')
-                    objectSet(error, 'line', argText)
-                    return null
+            # Key/value pair separator?
+            if arrayLength(args) != 0 && stringStartsWith(argText, ','):
+                argText = stringSlice(argText, 1)
+            else:
+                matchObjectClose = regexMatch(barescriptParserRegexObjectClose, argText)
+                if matchObjectClose != null:
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectClose, 'groups'), '0')))
+                    break
                 endif
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectSeparator, 'groups'), '0')))
+                if arrayLength(args) != 0:
+                    matchObjectSeparator = regexMatch(barescriptParserRegexObjectSeparator, argText)
+                    if matchObjectSeparator == null:
+                        objectSet(error, 'error', 'Syntax error')
+                        objectSet(error, 'line', argText)
+                        return null
+                    endif
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchObjectSeparator, 'groups'), '0')))
+                endif
             endif
 
             # Get the key
@@ -860,7 +877,9 @@ function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
             arrayPush(args, arrayGet(keyAndNext, 0))
 
             # Key/value separator
-            if arrayLength(args) != 0:
+            if stringStartsWith(argText, ':'):
+                argText = stringSlice(argText, 1)
+            else:
                 matchObjectSeparatorKey = regexMatch(barescriptParserRegexObjectSeparatorKey, argText)
                 if matchObjectSeparatorKey == null:
                     objectSet(error, 'error', 'Syntax error')
@@ -887,21 +906,29 @@ function barescriptParserUnaryExpression(exprText, arrayLiterals, error):
         args = []
         while true:
             # Array close?
-            matchArrayClose = regexMatch(barescriptParserRegexArrayClose, argText)
-            if matchArrayClose != null:
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArrayClose, 'groups'), '0')))
+            if stringStartsWith(argText, ']'):
+                argText = stringSlice(argText, 1)
                 break
             endif
 
-            # Array value separator
-            if arrayLength(args) != 0:
-                matchArraySeparator = regexMatch(barescriptParserRegexArraySeparator, argText)
-                if matchArraySeparator == null:
-                    objectSet(error, 'error', 'Syntax error')
-                    objectSet(error, 'line', argText)
-                    return null
+            # Array value separator?
+            if arrayLength(args) != 0 && stringStartsWith(argText, ','):
+                argText = stringSlice(argText, 1)
+            else:
+                matchArrayClose = regexMatch(barescriptParserRegexArrayClose, argText)
+                if matchArrayClose != null:
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArrayClose, 'groups'), '0')))
+                    break
                 endif
-                argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArraySeparator, 'groups'), '0')))
+                if arrayLength(args) != 0:
+                    matchArraySeparator = regexMatch(barescriptParserRegexArraySeparator, argText)
+                    if matchArraySeparator == null:
+                        objectSet(error, 'error', 'Syntax error')
+                        objectSet(error, 'line', argText)
+                        return null
+                    endif
+                    argText = stringSlice(argText, stringLength(objectGet(objectGet(matchArraySeparator, 'groups'), '0')))
+                endif
             endif
 
             # Get the value

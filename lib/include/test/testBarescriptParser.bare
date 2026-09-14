@@ -1708,6 +1708,32 @@ endfunction
 unittestRunTest('testBarescriptParserExprLiterals')
 
 
+function testBarescriptParserExprWhitespaceSeparators():
+    unittestMockAll()
+
+    # Whitespace before a function call's argument separators and close
+    unittestDeepEqual( \
+        barescriptParseExpressionEx('foo( a , b )'), \
+        {'result': {'function': {'name': 'foo', 'args': [{'variable': 'a'}, {'variable': 'b'}]}}} \
+    )
+
+    # Whitespace before an array literal's separators and close
+    unittestDeepEqual( \
+        barescriptParseExpressionEx('[ 1 , 2 ]', null, null, true), \
+        {'result': {'function': {'name': 'arrayNew', 'args': [{'number': 1}, {'number': 2}]}}} \
+    )
+
+    # Whitespace before an object literal's key separators, pair separators, and close
+    unittestDeepEqual( \
+        barescriptParseExpressionEx("{ 'a' : 1 , 'b' : 2 }"), \
+        {'result': {'function': {'name': 'objectNew', 'args': [{'string': 'a'}, {'number': 1}, {'string': 'b'}, {'number': 2}]}}} \
+    )
+
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptParserExprWhitespaceSeparators')
+
+
 function testBarescriptParserExprComment():
     unittestMockAll()
     unittestDeepEqual( \
