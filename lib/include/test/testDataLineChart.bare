@@ -52,6 +52,13 @@ endfunction
 unittestRunTest('testDataLineChartValidate_scale')
 
 
+function testDataLineChartValidate_pad():
+    lineChart = {'x': 'A', 'y': ['B'], 'xPad': true, 'yPad': false}
+    unittestDeepEqual(dataLineChartValidate(lineChart), lineChart)
+endfunction
+unittestRunTest('testDataLineChartValidate_pad')
+
+
 #
 # dataLineChart tests
 #
@@ -1176,7 +1183,7 @@ function testDataLineChartElements_autoTicks():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 63.15000000 106.33700000 H 304.00000000 M 63.15000000 47.11300000 H 304.00000000 M 124.86300000' + \
+                    'd': 'M 63.15000000 96.46700000 H 304.00000000 M 63.15000000 56.98300000 H 304.00000000 M 124.86300000' + \
                         ' 137.95000000 V 17.50000000 M 244.28800000 137.95000000 V 17.50000000', \
                     'fill': 'none', \
                     'stroke': 'lightgray', \
@@ -1187,9 +1194,10 @@ function testDataLineChartElements_autoTicks():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 63.15000000 17.00000000 V 137.95000000 H 304.50000000 M 63.15000000 106.33700000 H 58.15000000 M' + \
-                        ' 63.15000000 47.11300000 H 58.15000000 M 124.86300000 137.95000000 V 142.95000000 M 244.28800000' + \
-                        ' 137.95000000 V 142.95000000', \
+                    'd': 'M 63.15000000 17.00000000 V 137.95000000 H 304.50000000 M 63.15000000 135.95000000 H 58.15000000 M' + \
+                        ' 63.15000000 96.46700000 H 58.15000000 M 63.15000000 56.98300000 H 58.15000000 M 63.15000000' + \
+                        ' 17.50000000 H 58.15000000 M 124.86300000 137.95000000 V 142.95000000 M 244.28800000 137.95000000 V' + \
+                        ' 142.95000000', \
                     'fill': 'none', \
                     'stroke': 'black', \
                     'stroke-dasharray': 'none', \
@@ -1199,7 +1207,7 @@ function testDataLineChartElements_autoTicks():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 65.15000000 17.50000000 L 304.00000000 135.95000000', \
+                    'd': 'M 65.15000000 37.24200000 L 304.00000000 116.20800000', \
                     'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
@@ -1241,6 +1249,22 @@ function testDataLineChartElements_autoTicks():
             }, \
             { \
                 'attr': { \
+                    'dominant-baseline': 'auto', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'end', \
+                    'transform': null, \
+                    'x': 54.4, \
+                    'y': 135.95 \
+                }, \
+                'elem': {'text': '0'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
                     'dominant-baseline': 'middle', \
                     'fill': 'black', \
                     'font-family': 'Arial, Helvetica, sans-serif', \
@@ -1250,7 +1274,7 @@ function testDataLineChartElements_autoTicks():
                     'text-anchor': 'end', \
                     'transform': null, \
                     'x': 54.4, \
-                    'y': 106.337 \
+                    'y': 96.467 \
                 }, \
                 'elem': {'text': '2'}, \
                 'svg': 'text' \
@@ -1266,9 +1290,25 @@ function testDataLineChartElements_autoTicks():
                     'text-anchor': 'end', \
                     'transform': null, \
                     'x': 54.4, \
-                    'y': 47.113 \
+                    'y': 56.983 \
                 }, \
                 'elem': {'text': '4'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'hanging', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'end', \
+                    'transform': null, \
+                    'x': 54.4, \
+                    'y': 17.5 \
+                }, \
+                'elem': {'text': '6'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -2759,7 +2799,7 @@ function testDataLineChartElements_labelsFit():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 82.35000000 54.26000000 H 304.00000000', \
+                    'd': 'M 82.35000000 76.72500000 H 304.00000000', \
                     'fill': 'none', \
                     'stroke': 'lightgray', \
                     'stroke-dasharray': 'none', \
@@ -2770,8 +2810,8 @@ function testDataLineChartElements_labelsFit():
             { \
                 'attr': { \
                     'd': 'M 82.35000000 17.00000000 V 137.95000000 H 304.50000000 M 82.35000000 135.95000000 H 77.35000000 M' + \
-                        ' 82.35000000 54.26000000 H 77.35000000 M 84.35000000 137.95000000 V 142.95000000 M 304.00000000' + \
-                        ' 137.95000000 V 142.95000000', \
+                        ' 82.35000000 76.72500000 H 77.35000000 M 82.35000000 17.50000000 H 77.35000000 M 84.35000000' + \
+                        ' 137.95000000 V 142.95000000 M 304.00000000 137.95000000 V 142.95000000', \
                     'fill': 'none', \
                     'stroke': 'black', \
                     'stroke-dasharray': 'none', \
@@ -2781,15 +2821,15 @@ function testDataLineChartElements_labelsFit():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 84.35000000 135.95000000 L 91.67200000 131.86600000 L 98.99300000 127.78100000 L 106.31500000' + \
-                        ' 123.69700000 L 113.63700000 119.61200000 L 120.95800000 115.52800000 L 128.28000000 111.44300000 L' + \
-                        ' 135.60200000 107.35900000 L 142.92300000 103.27400000 L 150.24500000 99.19000000 L 157.56700000' + \
-                        ' 95.10500000 L 164.88800000 91.02100000 L 172.21000000 86.93600000 L 179.53200000 82.85200000 L' + \
-                        ' 186.85300000 78.76700000 L 194.17500000 74.68300000 L 201.49700000 70.59800000 L 208.81800000' + \
-                        ' 66.51400000 L 216.14000000 62.42900000 L 223.46200000 58.34500000 L 230.78300000 54.26000000 L' + \
-                        ' 238.10500000 50.17600000 L 245.42700000 46.09100000 L 252.74800000 42.00700000 L 260.07000000' + \
-                        ' 37.92200000 L 267.39200000 33.83800000 L 274.71300000 29.75300000 L 282.03500000 25.66900000 L' + \
-                        ' 289.35700000 21.58400000 L 296.67800000 17.50000000', \
+                    'd': 'M 84.35000000 135.95000000 L 91.67200000 132.98900000 L 98.99300000 130.02700000 L 106.31500000' + \
+                        ' 127.06600000 L 113.63700000 124.10500000 L 120.95800000 121.14400000 L 128.28000000 118.18200000 L' + \
+                        ' 135.60200000 115.22100000 L 142.92300000 112.26000000 L 150.24500000 109.29900000 L 157.56700000' + \
+                        ' 106.33700000 L 164.88800000 103.37600000 L 172.21000000 100.41500000 L 179.53200000 97.45400000 L' + \
+                        ' 186.85300000 94.49200000 L 194.17500000 91.53100000 L 201.49700000 88.57000000 L 208.81800000' + \
+                        ' 85.60900000 L 216.14000000 82.64800000 L 223.46200000 79.68600000 L 230.78300000 76.72500000 L' + \
+                        ' 238.10500000 73.76400000 L 245.42700000 70.80300000 L 252.74800000 67.84100000 L 260.07000000' + \
+                        ' 64.88000000 L 267.39200000 61.91900000 L 274.71300000 58.95700000 L 282.03500000 55.99600000 L' + \
+                        ' 289.35700000 53.03500000 L 296.67800000 50.07400000', \
                     'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
@@ -2856,9 +2896,25 @@ function testDataLineChartElements_labelsFit():
                     'text-anchor': 'end', \
                     'transform': null, \
                     'x': 73.6, \
-                    'y': 54.26 \
+                    'y': 76.725 \
                 }, \
                 'elem': {'text': '120'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'hanging', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'end', \
+                    'transform': null, \
+                    'x': 73.6, \
+                    'y': 17.5 \
+                }, \
+                'elem': {'text': '140'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -2935,7 +2991,7 @@ function testDataLineChartElements_labelOverflow():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 104.00000000 62.31000000 H 122.00000000', \
+                    'd': 'M 104.00000000 89.92500000 H 122.00000000', \
                     'fill': 'none', \
                     'stroke': 'lightgray', \
                     'stroke-dasharray': 'none', \
@@ -2946,8 +3002,8 @@ function testDataLineChartElements_labelOverflow():
             { \
                 'attr': { \
                     'd': 'M 104.00000000 43.40000000 V 137.95000000 H 122.50000000 M 104.00000000 135.95000000 H 99.00000000 M' + \
-                        ' 104.00000000 62.31000000 H 99.00000000 M 110.00000000 137.95000000 V 142.95000000 M 118.00000000' + \
-                        ' 137.95000000 V 142.95000000', \
+                        ' 104.00000000 89.92500000 H 99.00000000 M 104.00000000 43.90000000 H 99.00000000 M 110.00000000' + \
+                        ' 137.95000000 V 142.95000000 M 118.00000000 137.95000000 V 142.95000000', \
                     'fill': 'none', \
                     'stroke': 'black', \
                     'stroke-dasharray': 'none', \
@@ -2957,7 +3013,7 @@ function testDataLineChartElements_labelOverflow():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 106.00000000 135.95000000 L 122.00000000 43.90000000', \
+                    'd': 'M 106.00000000 135.95000000 L 122.00000000 78.41900000', \
                     'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
@@ -3034,9 +3090,25 @@ function testDataLineChartElements_labelOverflow():
                     'text-anchor': 'end', \
                     'transform': null, \
                     'x': 95.25, \
-                    'y': 62.31 \
+                    'y': 89.925 \
                 }, \
                 'elem': {'text': '200000000'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'hanging', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'end', \
+                    'transform': null, \
+                    'x': 95.25, \
+                    'y': 43.9 \
+                }, \
+                'elem': {'text': '400000000'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -4914,7 +4986,7 @@ function testDataLineChartElements_lines():
                     'stroke': 'none', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': '0.00000000', \
-                    'width': 17.6, \
+                    'width': 36.8, \
                     'x': 69.35, \
                     'y': 230.35 \
                 }, \
@@ -5236,7 +5308,7 @@ function testDataLineChartElements_lines():
                     'x': 73.35, \
                     'y': 242.35 \
                 }, \
-                'elem': {'text': '1'}, \
+                'elem': {'text': '1.0'}, \
                 'svg': 'text' \
             }, \
             { \
@@ -6459,6 +6531,22 @@ endfunction
 unittestRunTest('testDataLineChartAxisLinear')
 
 
+function testDataLineChartAxisLinear_pad():
+    # A padded axis takes the data range rounded outward to whole tick steps
+    unittestDeepEqual(dataLineChartAxis(false, null, 3.2, 47.8, 5, null, null, true), { \
+        'base': 0, \
+        'label': {'datetime': null, 'exponent': 1, 'kind': 'decimal', 'precision': null, 'significant': 1}, \
+        'log': false, \
+        'max': 50, \
+        'min': 0, \
+        'range': 50, \
+        'subticks': [], \
+        'ticks': [[0, '0'], [10, '10'], [20, '20'], [30, '30'], [40, '40'], [50, '50']] \
+    })
+endfunction
+unittestRunTest('testDataLineChartAxisLinear_pad')
+
+
 function testDataLineChartAxisLinear_fewTicks():
     # Fewer than two tick step boundaries fall within the data - a narrow chart selects a tick step
     # as long as the data range - so the axis falls back to the rounded-out range
@@ -6794,17 +6882,33 @@ unittestRunTest('testDataLineChartLabelDecimals')
 
 
 function testDataLineChartAxisAnnotationLabel():
-    # A plain decimal or datetime annotation is formatted at the chart's precision
+    # A plain decimal or datetime annotation keeps the decimals its value needs
     decimalLabel = dataLineChartLabelNew('decimal', 0, 0, null, null)
     unittestEqual(dataLineChartAxisAnnotationLabel(decimalLabel, 2.25, null, null), '2.25')
     defaultLabel = dataLineChartLabelNew('default', null, null, null, 'month')
     unittestEqual(dataLineChartAxisAnnotationLabel(defaultLabel, datetimeNew(2024, 3, 15), null, null), '2024-03-15')
+
+    # An annotation takes no fewer decimals than its axis's tick labels
+    tenthsLabel = dataLineChartLabelNew('decimal', 0, -1, null, null)
+    unittestEqual(dataLineChartAxisAnnotationLabel(tenthsLabel, 1, null, null), '1.0')
+    unittestEqual(dataLineChartAxisAnnotationLabel(tenthsLabel, 1.25, null, null), '1.25')
+    precisionLabel = dataLineChartLabelNew('decimal', 0, -4, 4, null)
+    unittestEqual(dataLineChartAxisAnnotationLabel(precisionLabel, 1.07, 4, null), '1.0700')
+
+    # A logarithmic axis shares no decimal count - each annotation takes its value's own
+    logDecimalLabel = dataLineChartLabelNew('decimal', null, null, null, null)
+    unittestEqual(dataLineChartAxisAnnotationLabel(logDecimalLabel, 0.5, null, null), '0.5')
+    unittestEqual(dataLineChartAxisAnnotationLabel(logDecimalLabel, 100, null, null), '100')
 
     # A compacted annotation keeps up to three significant digits, and no more decimals than it needs
     siLabel = dataLineChartLabelNew('si', 6, 6, null, null)
     unittestEqual(dataLineChartAxisAnnotationLabel(siLabel, 15000000, null, null), '15M')
     unittestEqual(dataLineChartAxisAnnotationLabel(siLabel, 12500000, null, null), '12.5M')
     unittestEqual(dataLineChartAxisAnnotationLabel(siLabel, 12345678, null, null), '12.3M')
+
+    # A compacted annotation, too, takes no fewer decimals than its axis's tick labels
+    siTenthsLabel = dataLineChartLabelNew('si', 6, 5, null, null)
+    unittestEqual(dataLineChartAxisAnnotationLabel(siTenthsLabel, 15000000, null, null), '15.0M')
 
     # A logarithmic axis scales each annotation by its own power of ten
     logLabel = dataLineChartLabelNew('si', null, null, null, null)
@@ -6853,6 +6957,24 @@ function testDataLineChartAxisDatetime():
     unittestEqual(arrayLength(objectGet(axis, 'subticks')), 0)
 endfunction
 unittestRunTest('testDataLineChartAxisDatetime')
+
+
+function testDataLineChartAxisDatetime_pad():
+    # A padded datetime axis rounds outward to the tick step boundaries either side of the data
+    axis = dataLineChartAxis(false, null, datetimeNew(2024, 1, 15), datetimeNew(2024, 5, 20), 6, null, null, true)
+    unittestEqual(objectGet(axis, 'min'), datetimeNew(2024, 1, 1))
+    unittestEqual(objectGet(axis, 'max'), datetimeNew(2024, 6, 1))
+    unittestDeepEqual(testDataLineChartAxisValues(axis), [ \
+        datetimeNew(2024, 1, 1), \
+        datetimeNew(2024, 2, 1), \
+        datetimeNew(2024, 3, 1), \
+        datetimeNew(2024, 4, 1), \
+        datetimeNew(2024, 5, 1), \
+        datetimeNew(2024, 6, 1) \
+    ])
+    unittestDeepEqual(testDataLineChartAxisLabels(axis), ['2024-01', '02', '03', '04', '05', '06'])
+endfunction
+unittestRunTest('testDataLineChartAxisDatetime_pad')
 
 
 function testDataLineChartAxisDatetime_noGap():

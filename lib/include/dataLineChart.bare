@@ -54,6 +54,16 @@ dataLineChartTypes = schemaParse( \
     '    # The Y-axis numeric tick label format (default is automatic)', \
     '    optional DataLineChartNumberFormat yFormat', \
     '', \
+    '    # If true, the X-axis range is rounded outward to a whole tick step, so that the data', \
+    '    # does not reach the ends of the axis (default is false). A logarithmic axis always', \
+    '    # rounds its range outward to whole decades.', \
+    '    optional bool xPad', \
+    '', \
+    '    # If true, the Y-axis range is rounded outward to a whole tick step, so that the data', \
+    '    # does not reach the ends of the axis (default is true). A logarithmic axis always', \
+    '    # rounds its range outward to whole decades.', \
+    '    optional bool yPad', \
+    '', \
     '    # The X-axis minimum value (default is computed from the data)', \
     '    optional any xMin', \
     '', \
@@ -279,6 +289,8 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     yIsLog = objectGet(lineChart, 'yScale') == 'log'
     xFormat = objectGet(lineChart, 'xFormat')
     yFormat = objectGet(lineChart, 'yFormat')
+    xPad = objectGet(lineChart, 'xPad', false)
+    yPad = objectGet(lineChart, 'yPad', true)
 
     # Determine the font size
     fontSize = if(options != null, objectGet(options, 'fontSize'))
@@ -497,7 +509,7 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
 
     # Compute the Y-axis - a Y-axis tick label is one line of text, so its maximum count is known up front
     yAxis = dataLineChartAxis(yIsLog, yFormat, yMin, yMax, \
-        mathMax(2, mathFloor((chartBottom - chartTop) / (2.5 * axisLabelFontSize))), chartPrecision, chartDatetime)
+        mathMax(2, mathFloor((chartBottom - chartTop) / (2.5 * axisLabelFontSize))), chartPrecision, chartDatetime, yPad)
     yAxis = dataLineChartAxisClamp(yAxis, yMinFixed, yMaxFixed)
     yAxisLabelWidth = 0
     for yTickPair in objectGet(yAxis, 'ticks'):
@@ -543,10 +555,10 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
     # Compute the X-axis - the tick count is reduced until the tick labels fit without overlapping
     xAxisMaxCount = mathMax(2, mathFloor((chartRight - chartLeft) / \
         (drawTextWidth('00000', axisLabelFontSize) + axisLabelFontSize)))
-    xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime)
+    xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime, xPad)
     while xAxisMaxCount > 2 && !dataLineChartAxisLabelsFit(xAxis, chartLeft, chartRight, axisLabelFontSize):
         xAxisMaxCount = xAxisMaxCount - 1
-        xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime)
+        xAxis = dataLineChartAxis(xIsLog, xFormat, xMin, xMax, xAxisMaxCount, chartPrecision, chartDatetime, xPad)
     endwhile
     xAxis = dataLineChartAxisClamp(xAxis, xMinFixed, xMaxFixed)
 
@@ -1004,7 +1016,7 @@ endfunction
 
 
 # Helper function to compute an axis's tick marks and range
-function dataLineChartAxis(isLog, format, minValue, maxValue, maxCount, precision, datetime):
+function dataLineChartAxis(isLog, format, minValue, maxValue, maxCount, precision, datetime, pad):
     # A constant series has no range of its own. Expand it around the value so the data is drawn
     # within the chart rather than flat along its edge, where it would read as the axis minimum.
     if minValue == maxValue:
@@ -1022,38 +1034,43 @@ function dataLineChartAxis(isLog, format, minValue, maxValue, maxCount, precisio
         endif
     endif
 
-    # Compute the automatic tick marks for the axis type
+    # Compute the automatic tick marks for the axis type. A logarithmic axis takes no padding
+    # argument - it always rounds its range outward to whole decades, which its 1, 2, and 5 tick
+    # marks are laid out from.
     if dataLineChartIsLog(isLog, minValue):
         return dataLineChartAxisLog(format, minValue, maxValue, maxCount, precision)
     elif systemType(minValue) == 'datetime':
-        return dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime)
+        return dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime, pad)
     endif
-    return dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision)
+    return dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision, pad)
 endfunction
 
 
 # Helper function to take the tick step boundaries that fall within an axis's range. A tick step
 # boundary is not a value the axis is expected to open on, and rounding out to one can leave most of
-# a tick step empty - half a year, for a six-month step - so an automatic axis spans the data. Fewer
-# than two boundaries fall within it when a narrow chart selects a tick step as long as the data
-# range; the axis then uses the rounded-out range, which is labeled at both ends. Returns the axis's
-# [minimum, maximum, tick values].
-function dataLineChartAxisTickValues(boundsTicks, minValue, maxValue):
-    tickValues = []
-    for boundsTick in boundsTicks:
-        if boundsTick >= minValue && boundsTick <= maxValue:
-            arrayPush(tickValues, boundsTick)
+# a tick step empty - half a year, for a six-month step - so an unpadded axis spans the data. A
+# padded axis takes the rounded-out range instead, which is labeled at both ends, so that the data
+# does not reach the ends of the axis. An unpadded axis falls back to that range when fewer than two
+# boundaries fall within the data, which a narrow chart selecting a tick step as long as its data
+# range can produce. Returns the axis's [minimum, maximum, tick values].
+function dataLineChartAxisTickValues(boundsTicks, minValue, maxValue, pad):
+    if !pad:
+        tickValues = []
+        for boundsTick in boundsTicks:
+            if boundsTick >= minValue && boundsTick <= maxValue:
+                arrayPush(tickValues, boundsTick)
+            endif
+        endfor
+        if arrayLength(tickValues) >= 2:
+            return [minValue, maxValue, tickValues]
         endif
-    endfor
-    if arrayLength(tickValues) < 2:
-        return [arrayGet(boundsTicks, 0), arrayGet(boundsTicks, arrayLength(boundsTicks) - 1), boundsTicks]
     endif
-    return [minValue, maxValue, tickValues]
+    return [arrayGet(boundsTicks, 0), arrayGet(boundsTicks, arrayLength(boundsTicks) - 1), boundsTicks]
 endfunction
 
 
 # Helper function to compute a linear axis's automatic tick marks
-function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision):
+function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision, pad):
     # Compute the "nice" tick step - one, two, or five times a power of ten
     stepInfo = dataLineChartNiceStep((maxValue - minValue) / maxCount)
     step = arrayGet(stepInfo, 0)
@@ -1071,7 +1088,7 @@ function dataLineChartAxisLinear(format, minValue, maxValue, maxCount, precision
         ixTick = ixTick + 1
     endwhile
 
-    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue)
+    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue, pad)
     axisMin = arrayGet(axisValues, 0)
     axisMax = arrayGet(axisValues, 1)
     tickValues = arrayGet(axisValues, 2)
@@ -1159,7 +1176,7 @@ endfunction
 
 
 # Helper function to compute a datetime axis's automatic tick marks
-function dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime):
+function dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, datetime, pad):
     # Select the smallest calendar tick step that renders at most the maximum tick count
     stepUnit = null
     stepCount = null
@@ -1193,7 +1210,7 @@ function dataLineChartAxisDatetime(minValue, maxValue, maxCount, precision, date
         boundsValue = dataLineChartDatetimeAdd(boundsValue, stepUnit, stepCount)
     endwhile
 
-    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue)
+    axisValues = dataLineChartAxisTickValues(boundsTicks, minValue, maxValue, pad)
     axisMin = arrayGet(axisValues, 0)
     axisMax = arrayGet(axisValues, 1)
     tickValues = arrayGet(axisValues, 2)
@@ -1391,19 +1408,33 @@ endfunction
 
 
 # Helper function to format an axis annotation label. An annotation names a value of its own rather
-# than a tick mark: a plain decimal or datetime annotation is formatted at the chart's precision, and
-# a compacted one keeps up to three significant digits - but no more decimals than the value needs.
+# than a tick mark, so it keeps the decimals that value needs - a compacted one up to three
+# significant digits - but never fewer than the axis's tick labels, so that an annotation and the
+# ticks beside it are written alike. A datetime annotation is formatted at the chart's datetime
+# format rather than the axis's, which is a tick step and may be coarser than the annotation's value.
 function dataLineChartAxisAnnotationLabel(label, value, precision, datetime):
     kind = objectGet(label, 'kind')
-    if kind == 'default' || kind == 'decimal':
+    if kind == 'default':
         return dataUtilFormatValue(value, precision, datetime)
     endif
+    axisSignificant = objectGet(label, 'significant')
+
+    # A plain decimal label is not scaled by a power of ten, so its decimals are the value's own
+    if kind == 'decimal':
+        decimalSignificant = -dataLineChartLabelDecimals(value, \
+            if(precision != null, precision, dataUtilDefaultPrecision))
+        return dataLineChartLabel(value, kind, 0, \
+            if(axisSignificant != null, mathMin(axisSignificant, decimalSignificant), decimalSignificant))
+    endif
+
     valueExponent = dataLineChartValueExponent(mathAbs(value))
     labelExponent = objectGet(label, 'exponent')
     labelExponent = if(labelExponent != null, labelExponent, dataLineChartLabelExponent(kind, valueExponent))
     labelDecimals = dataLineChartLabelDecimals(value / 10 ** labelExponent, \
         mathMax(0, labelExponent - valueExponent + 2))
-    return dataLineChartLabel(value, kind, labelExponent, labelExponent - labelDecimals)
+    labelSignificant = labelExponent - labelDecimals
+    return dataLineChartLabel(value, kind, labelExponent, \
+        if(axisSignificant != null, mathMin(axisSignificant, labelSignificant), labelSignificant))
 endfunction
 
 
