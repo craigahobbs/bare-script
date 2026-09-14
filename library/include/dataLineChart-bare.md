@@ -119,12 +119,11 @@ different number - so the Y-axis makes room for its tick labels and gives up its
 both will not fit. Titles and legend labels are text, so where they must fit they are ellipsized
 rather than dropped. The plot area never gives up more than half the chart.
 
-Each series is drawn in its own color. The palette is five semi-precious stone tones - lapis,
-carnelian, malachite, garnet and amethyst - placed as far apart as they will go at the width of a
-chart line, since color difference shrinks with mark size and a line is a thin mark. Five is as many
-as fit there, so past the fifth series the colors repeat with a line dash pattern, giving
-twenty-five series before any two are drawn alike. The color legend shows a segment of each line,
-dash pattern included.
+Each series is drawn in its own color. The palette is the first ten of Tableau's twenty - blue,
+orange, green, red, purple, brown, pink, gray, olive and cyan - the colors most readers have already
+seen in a chart. Past the tenth series the colors repeat with a line dash pattern, giving fifty
+series before any two are drawn alike. The color legend shows a segment of each line, dash pattern
+included, and lists the series in the order their lines end.
 
 A chart names itself for assistive technology - `role="img"` with the chart's title as its
 accessible name, or a description of what it plots when it has no title. A chart drawn into a
