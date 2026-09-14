@@ -350,7 +350,9 @@ generationSources = { \
     'Solar': [1, 4, 18, 36, 63, 89, 146, 219], \
     'Hydro': [260, 276, 259, 268, 292, 285, 254, 242], \
     'Petroleum': [37, 23, 30, 24, 25, 17, 23, 17], \
-    'Other': [56, 57, 64, 62, 63, 57, 55, 53] \
+    'Biomass': [56, 57, 64, 62, 63, 57, 55, 53], \
+    'Geothermal': [17, 17, 17, 16, 16, 16, 16, 16], \
+    'Other Gases': [11, 12, 12, 12, 12, 11, 10, 10] \
 }
 generationData = []
 for generationSource in objectKeys(generationSources):
@@ -404,9 +406,10 @@ demoChart(generationMajor, { \
 
 ## 9. Many series
 
-The palette is five colors. A sixth series repeats the first color with a dash pattern, a
-seventh the second color with that pattern, and so on - twenty-five series before any two are
-drawn alike. All eight generation sources:
+The palette is eight colors, ordered so that a chart with a few series takes the best-separated of
+them. A ninth series repeats the first color with a dash pattern, a tenth the second color with that
+pattern, and so on - forty series before any two are drawn alike. All ten generation sources, so the
+last two are dashed:
 
 ```markdown-script
 demoChart(generationData, { \

@@ -157,36 +157,37 @@ dataLineChartDefaultWidth = 640
 dataLineChartDefaultHeight = 320
 
 
-# The categorical color palette - semi-precious stone tones: lapis, carnelian, malachite, garnet
-# and amethyst. Color appears in two places in a line chart, both 3 pixels wide: the chart lines
+# The categorical color palette - eight of Tableau's twenty, the colors most readers have already
+# seen in a chart. Color appears in two places in a line chart, both 3 pixels wide: the lines
 # themselves and the legend's line samples. Color difference shrinks with mark size - by the model
 # of Stone, Szafir and Setlur ("An Engineering Model for Color Difference as a Function of Size",
-# CIC 2014), extended here to a thin mark by taking the equal-area square of the mark truncated at
-# the extent of chromatic summation. The legend sample is the smaller of the two and is what a
-# reader matches a line against, so it sets the size: 0.21 degrees, where a lightness difference is
-# worth 2.2 times a yellow-blue one of the same magnitude. Five is the most colors that fit at that
-# size once color-vision deficiency and the 3:1 contrast minimum for non-text graphics are
-# accounted for - a sixth costs 31% of the margin, which is why the sixth series takes a dash
-# pattern instead. Within those five the colors are placed as far apart as they will go while
-# staying deep and saturated enough to read as stone rather than as screen primaries: no two are
-# closer than 1.78 noticeable differences under normal, deuteranope or protanope vision, against
-# 1.66 for the palette they replace and 0.11 for Tableau's Classic 10, whose green and red are all
-# but identical to a deuteranope. Each keeps a distinct color name and no two are within 4 of each
-# other in lightness. Tritanopia is the one deficiency this palette does not solve - garnet and
-# amethyst converge there, since purple loses its blue and reads as red - but separating them costs
-# the stone character, and no widely used categorical palette handles it either.
+# CIC 2014), applied to a thin mark by taking the equal-area square of the mark - so the first six
+# are ordered greedily, each the one most distinct from those before it, and brown and pink hold the
+# last two slots, where a palette this size is rarely read. A chart of two or three series, which
+# most charts are, therefore draws from the best-separated colors in the palette.
+#
+# Color never carries the chart alone. The legend reads top to bottom in the order the lines end, so
+# a series is found by position as much as by hue; each legend sample is a segment of the line
+# itself, dash pattern and all; and past the eighth series the colors repeat with the next dash
+# pattern rather than being stretched thinner. Those three are what let the palette hold eight deep,
+# separately nameable colors - blue, orange, green, red, cyan, olive, brown, pink - including the
+# pairs a protanope sees converge, orange with green and red with brown. Purple and gray are left
+# out, and so are the twenty's light tints, which a 3 pixel line is too thin to carry.
 dataLineChartCategoricalColors = [ \
     '#1f77b4', \
     '#ff7f0e', \
     '#2ca02c', \
     '#d62728', \
-    '#9467bd' \
+    '#17becf', \
+    '#bcbd22', \
+    '#8c564b', \
+    '#e377c2' \
 ]
 
 
 # The line dash patterns. Color is the series encoding - a dash pattern is a second one, so it is
-# held back until the colors are used up. Series past the fifth repeat the colors with the next
-# pattern, giving twenty-five series before any two are drawn alike.
+# held back until the colors are used up. Series past the eighth repeat the colors with the next
+# pattern, giving forty series before any two are drawn alike.
 dataLineChartLineDashArrays = [ \
     'none', \
     '12,6', \

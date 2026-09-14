@@ -4468,6 +4468,8 @@ endfunction
 unittestRunTest('testDataLineChartElements_colorFieldMultipleFields')
 
 function testDataLineChartElements_colorFieldMultipleFieldsOrder():
+    # Ten color values - two more than the palette has colors, so the last two take the first two
+    # colors with the next dash pattern
     data = [ \
         {'A': 1, 'B': 1, 'C': 'b'}, \
         {'A': 1, 'B': 1, 'C': 'a'}, \
@@ -4475,7 +4477,10 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
         {'A': 1, 'B': 1, 'C': 'd'}, \
         {'A': 1, 'B': 1, 'C': 'g'}, \
         {'A': 1, 'B': 1, 'C': 'e'}, \
-        {'A': 1, 'B': 1, 'C': 'f'} \
+        {'A': 1, 'B': 1, 'C': 'f'}, \
+        {'A': 1, 'B': 1, 'C': 'h'}, \
+        {'A': 1, 'B': 1, 'C': 'i'}, \
+        {'A': 1, 'B': 1, 'C': 'j'} \
     ]
     lineChart = dataLineChartValidate({'x': 'A', 'y': ['B'], 'color': 'C', 'colorOrder': ['d', 'b', 'f']})
     unittestDeepEqual(dataLineChartElements(data, lineChart), { \
@@ -4546,7 +4551,37 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
                 'attr': { \
                     'd': 'M 321.33900000 136.72500000 L 324.33900000 136.72500000', \
                     'fill': 'none', \
-                    'stroke': '#9467bd', \
+                    'stroke': '#e377c2', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 321.33900000 136.72500000 L 324.33900000 136.72500000', \
+                    'fill': 'none', \
+                    'stroke': '#8c564b', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 321.33900000 136.72500000 L 324.33900000 136.72500000', \
+                    'fill': 'none', \
+                    'stroke': '#bcbd22', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 321.33900000 136.72500000 L 324.33900000 136.72500000', \
+                    'fill': 'none', \
+                    'stroke': '#17becf', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -4636,7 +4671,7 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
                 'attr': { \
                     'd': 'M 575.80800000 111.90000000 H 607.80800000', \
                     'fill': 'none', \
-                    'stroke': '#9467bd', \
+                    'stroke': '#17becf', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -4646,6 +4681,36 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
                 'attr': { \
                     'd': 'M 575.80800000 133.50000000 H 607.80800000', \
                     'fill': 'none', \
+                    'stroke': '#bcbd22', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 575.80800000 155.10000000 H 607.80800000', \
+                    'fill': 'none', \
+                    'stroke': '#8c564b', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 575.80800000 176.70000000 H 607.80800000', \
+                    'fill': 'none', \
+                    'stroke': '#e377c2', \
+                    'stroke-dasharray': 'none', \
+                    'stroke-width': 3 \
+                }, \
+                'svg': 'path' \
+            }, \
+            { \
+                'attr': { \
+                    'd': 'M 575.80800000 198.30000000 H 607.80800000', \
+                    'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': '12,6', \
                     'stroke-width': 3 \
@@ -4654,7 +4719,7 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 575.80800000 155.10000000 H 607.80800000', \
+                    'd': 'M 575.80800000 219.90000000 H 607.80800000', \
                     'fill': 'none', \
                     'stroke': '#ff7f0e', \
                     'stroke-dasharray': '12,6', \
@@ -4964,6 +5029,54 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
                     'y': 155.1 \
                 }, \
                 'elem': {'text': 'g'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'start', \
+                    'transform': null, \
+                    'x': 614.208, \
+                    'y': 176.7 \
+                }, \
+                'elem': {'text': 'h'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'start', \
+                    'transform': null, \
+                    'x': 614.208, \
+                    'y': 198.3 \
+                }, \
+                'elem': {'text': 'i'}, \
+                'svg': 'text' \
+            }, \
+            { \
+                'attr': { \
+                    'dominant-baseline': 'middle', \
+                    'fill': 'black', \
+                    'font-family': 'Arial, Helvetica, sans-serif', \
+                    'font-size': '16.00000000', \
+                    'font-style': 'normal', \
+                    'font-weight': 'normal', \
+                    'text-anchor': 'start', \
+                    'transform': null, \
+                    'x': 614.208, \
+                    'y': 219.9 \
+                }, \
+                'elem': {'text': 'j'}, \
                 'svg': 'text' \
             } \
         ], \
