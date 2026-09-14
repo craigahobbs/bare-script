@@ -46,10 +46,8 @@ function barescriptLintScript(script, globals, asyncFunctions):
     labelsDefined = {}
     labelsUsed = {}
     for statement, ixStatement in statements:
-        statementKey = arrayGet(objectKeys(statement), 0)
-
         # Function definition checks
-        if statementKey == 'function':
+        if objectHas(statement, 'function'):
             statementFunction = objectGet(statement, 'function')
             functionName = objectGet(statementFunction, 'name')
 
@@ -66,7 +64,8 @@ function barescriptLintScript(script, globals, asyncFunctions):
             args = objectGet(statementFunction, 'args')
             fnStatements = objectGet(statementFunction, 'statements')
             barescriptLintGetVariableAssignmentsAndUses(fnStatements, fnVarAssigns, fnVarUses)
-            for varName in arraySort(objectKeys(fnVarAssigns)):
+            fnVarAssignNames = arraySort(objectKeys(fnVarAssigns))
+            for varName in fnVarAssignNames:
                 # Ignore re-assigned function arguments
                 if args != null && arrayIndexOf(args, varName) != -1:
                     continue
@@ -78,7 +77,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
             endfor
 
             # Unused variables?
-            for varName in arraySort(objectKeys(fnVarAssigns)):
+            for varName in fnVarAssignNames:
                 if !objectHas(fnVarUses, varName):
                     barescriptLintWarning(warnings, script, arrayGet(fnStatements, objectGet(fnVarAssigns, varName)), \
                         'Unused variable "' + varName + '" defined in function "' + functionName + '"')
@@ -119,18 +118,17 @@ function barescriptLintScript(script, globals, asyncFunctions):
             # Iterate function statements
             fnLabelsDefined = {}
             fnLabelsUsed = {}
+            isAsyncFunction = objectGet(statementFunction, 'async', false)
             hasAsyncStatement = false
             for fnStatement, ixFnStatement in fnStatements:
-                fnStatementKey = arrayGet(objectKeys(fnStatement), 0)
-
                 # Any async statements?
                 if globals != null && asyncFunctions != null:
                     hasAsyncStatement = hasAsyncStatement || barescriptLintIsAsyncStatement( \
-                        fnStatement, globals, asyncFunctions, objectGet(statementFunction, 'async', false))
+                        fnStatement, globals, asyncFunctions, isAsyncFunction)
                 endif
 
                 # Function expression statement checks
-                if fnStatementKey == 'expr':
+                if objectHas(fnStatement, 'expr'):
                     # Pointless function expression statement?
                     fnStatementExpr = objectGet(fnStatement, 'expr')
                     if !objectHas(fnStatementExpr, 'name') && barescriptLintIsPointlessExpression(objectGet(fnStatementExpr, 'expr')):
@@ -138,7 +136,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
                     endif
 
                 # Function label statement checks
-                elif fnStatementKey == 'label':
+                elif objectHas(fnStatement, 'label'):
                     # Label redefinition?
                     fnStatementLabel = objectGet(objectGet(fnStatement, 'label'), 'name')
                     if objectHas(fnLabelsDefined, fnStatementLabel):
@@ -149,7 +147,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
                     endif
 
                 # Function jump statement checks
-                elif fnStatementKey == 'jump':
+                elif objectHas(fnStatement, 'jump'):
                     fnStatementJumpLabel = objectGet(objectGet(fnStatement, 'jump'), 'label')
                     if !objectHas(fnLabelsUsed, fnStatementJumpLabel):
                         objectSet(fnLabelsUsed, fnStatementJumpLabel, ixFnStatement)
@@ -183,7 +181,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
             endif
 
         # Global expression statement checks
-        elif statementKey == 'expr':
+        elif objectHas(statement, 'expr'):
             # Pointless global expression statement?
             statementExpr = objectGet(statement, 'expr')
             if !objectHas(statementExpr, 'name') && barescriptLintIsPointlessExpression(objectGet(statementExpr, 'expr')):
@@ -191,7 +189,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
             endif
 
         # Global label statement checks
-        elif statementKey == 'label':
+        elif objectHas(statement, 'label'):
             # Label redefinition?
             statementLabel = objectGet(objectGet(statement, 'label'), 'name')
             if objectHas(labelsDefined, statementLabel):
@@ -201,7 +199,7 @@ function barescriptLintScript(script, globals, asyncFunctions):
             endif
 
         # Global jump statement checks
-        elif statementKey == 'jump':
+        elif objectHas(statement, 'jump'):
             statementJumpLabel = objectGet(objectGet(statement, 'jump'), 'label')
             if !objectHas(labelsUsed, statementJumpLabel):
                 objectSet(labelsUsed, statementJumpLabel, ixStatement)
@@ -243,17 +241,21 @@ endfunction
 
 # Helper function to determine if an expression statement's expression is pointless
 function barescriptLintIsPointlessExpression(expr):
-    exprKey = arrayGet(objectKeys(expr), 0)
-    if exprKey == 'function':
+    if objectHas(expr, 'function'):
         return false
-    elif exprKey == 'binary':
-        exprBinary = objectGet(expr, 'binary')
+    endif
+    exprBinary = objectGet(expr, 'binary')
+    if exprBinary != null:
         return barescriptLintIsPointlessExpression(objectGet(exprBinary, 'left')) && \
             barescriptLintIsPointlessExpression(objectGet(exprBinary, 'right'))
-    elif exprKey == 'unary':
-        return barescriptLintIsPointlessExpression(objectGet(objectGet(expr, 'unary'), 'expr'))
-    elif exprKey == 'group':
-        return barescriptLintIsPointlessExpression(objectGet(expr, 'group'))
+    endif
+    exprUnary = objectGet(expr, 'unary')
+    if exprUnary != null:
+        return barescriptLintIsPointlessExpression(objectGet(exprUnary, 'expr'))
+    endif
+    exprGroup = objectGet(expr, 'group')
+    if exprGroup != null:
+        return barescriptLintIsPointlessExpression(exprGroup)
     endif
     return true
 endfunction
@@ -261,28 +263,28 @@ endfunction
 
 # Helper function to determine if a statement requires async
 function barescriptLintIsAsyncStatement(statement, globals, asyncFunctions, isAsyncScope):
-    statementKey = arrayGet(objectKeys(statement), 0)
-    if statementKey == 'expr':
-        return barescriptLintIsAsyncExpression(objectGet(objectGet(statement, 'expr'), 'expr'), globals, asyncFunctions, isAsyncScope)
-    elif statementKey == 'return':
-        statementReturn = objectGet(statement, 'return')
+    statementExpr = objectGet(statement, 'expr')
+    if statementExpr != null:
+        return barescriptLintIsAsyncExpression(objectGet(statementExpr, 'expr'), globals, asyncFunctions, isAsyncScope)
+    endif
+    statementReturn = objectGet(statement, 'return')
+    if statementReturn != null:
         return if(objectHas(statementReturn, 'expr'), \
             barescriptLintIsAsyncExpression(objectGet(statementReturn, 'expr'), globals, asyncFunctions, isAsyncScope), false)
-    elif statementKey == 'jump':
-        statementJump = objectGet(statement, 'jump')
+    endif
+    statementJump = objectGet(statement, 'jump')
+    if statementJump != null:
         return if(objectHas(statementJump, 'expr'), \
             barescriptLintIsAsyncExpression(objectGet(statementJump, 'expr'), globals, asyncFunctions, isAsyncScope), false)
     endif
-    return statementKey == 'include'
+    return objectHas(statement, 'include')
 endfunction
 
 
 # Helper function to determine if an expression requires async
 function barescriptLintIsAsyncExpression(expr, globals, asyncFunctions, isAsyncScope):
-    exprKey = arrayGet(objectKeys(expr), 0)
-    if exprKey == 'function':
-        exprFunction = objectGet(expr, 'function')
-
+    exprFunction = objectGet(expr, 'function')
+    if exprFunction != null:
         # Builtin function?
         funcName = objectGet(exprFunction, 'name')
         if objectHas(barescriptLintBuiltinGlobals, funcName):
@@ -291,13 +293,14 @@ function barescriptLintIsAsyncExpression(expr, globals, asyncFunctions, isAsyncS
 
         # Is function async? Assume unknown OK for the scope
         isAsync = isAsyncScope
-        funcValue = if(objectHas(globals, funcName), objectGet(globals, funcName))
+        funcValue = objectGet(globals, funcName)
         if systemType(funcValue) == 'function':
             isAsync = objectHas(asyncFunctions, funcName)
-            if !isAsync && objectHas(exprFunction, 'args'):
-                for argExpr in objectGet(exprFunction, 'args'):
-                    argKey = arrayGet(objectKeys(argExpr), 0)
-                    if argKey != 'number' && argKey != 'string' && argKey != 'variable' && \
+            args = objectGet(exprFunction, 'args')
+            if !isAsync && args != null:
+                for argExpr in args:
+                    # A variable or literal argument is not async - only a nested expression is tested
+                    if !objectHas(argExpr, 'variable') && !objectHas(argExpr, 'string') && !objectHas(argExpr, 'number') && \
                             barescriptLintIsAsyncExpression(argExpr, globals, asyncFunctions, isAsyncScope):
                         isAsync = true
                         break
@@ -306,14 +309,19 @@ function barescriptLintIsAsyncExpression(expr, globals, asyncFunctions, isAsyncS
             endif
         endif
         return isAsync
-    elif exprKey == 'binary':
-        exprBinary = objectGet(expr, 'binary')
+    endif
+    exprBinary = objectGet(expr, 'binary')
+    if exprBinary != null:
         return barescriptLintIsAsyncExpression(objectGet(exprBinary, 'left'), globals, asyncFunctions, isAsyncScope) || \
             barescriptLintIsAsyncExpression(objectGet(exprBinary, 'right'), globals, asyncFunctions, isAsyncScope)
-    elif exprKey == 'unary':
-        return barescriptLintIsAsyncExpression(objectGet(objectGet(expr, 'unary'), 'expr'), globals, asyncFunctions, isAsyncScope)
-    elif exprKey == 'group':
-        return barescriptLintIsAsyncExpression(objectGet(expr, 'group'), globals, asyncFunctions, isAsyncScope)
+    endif
+    exprUnary = objectGet(expr, 'unary')
+    if exprUnary != null:
+        return barescriptLintIsAsyncExpression(objectGet(exprUnary, 'expr'), globals, asyncFunctions, isAsyncScope)
+    endif
+    exprGroup = objectGet(expr, 'group')
+    if exprGroup != null:
+        return barescriptLintIsAsyncExpression(exprGroup, globals, asyncFunctions, isAsyncScope)
     endif
     return false
 endfunction
@@ -322,20 +330,21 @@ endfunction
 # Helper function to set variable assignments/uses for a statements array
 function barescriptLintGetVariableAssignmentsAndUses(statements, assigns, uses):
     for statement, ixStatement in statements:
-        statementKey = arrayGet(objectKeys(statement), 0)
-        if statementKey == 'expr':
-            statementExpr = objectGet(statement, 'expr')
-            if objectHas(statementExpr, 'name'):
-                exprName = objectGet(statementExpr, 'name')
-                if !objectHas(assigns, exprName):
-                    objectSet(assigns, exprName, ixStatement)
-                endif
+        statementExpr = objectGet(statement, 'expr')
+        if statementExpr != null:
+            exprName = objectGet(statementExpr, 'name')
+            if exprName != null && !objectHas(assigns, exprName):
+                objectSet(assigns, exprName, ixStatement)
             endif
             barescriptLintGetExpressionVariableUses(objectGet(statementExpr, 'expr'), uses, ixStatement)
-        elif statementKey == 'jump' && objectHas(objectGet(statement, 'jump'), 'expr'):
-            barescriptLintGetExpressionVariableUses(objectGet(objectGet(statement, 'jump'), 'expr'), uses, ixStatement)
-        elif statementKey == 'return' && objectHas(objectGet(statement, 'return'), 'expr'):
-            barescriptLintGetExpressionVariableUses(objectGet(objectGet(statement, 'return'), 'expr'), uses, ixStatement)
+        else:
+            # A jump or return statement's expression, if it has one
+            statementJumpReturn = objectGet(statement, 'jump')
+            statementJumpReturn = if(statementJumpReturn != null, statementJumpReturn, objectGet(statement, 'return'))
+            jumpReturnExpr = if(statementJumpReturn != null, objectGet(statementJumpReturn, 'expr'))
+            if jumpReturnExpr != null:
+                barescriptLintGetExpressionVariableUses(jumpReturnExpr, uses, ixStatement)
+            endif
         endif
     endfor
 endfunction
@@ -343,38 +352,48 @@ endfunction
 
 # Helper function to set variable uses for an expression
 function barescriptLintGetExpressionVariableUses(expr, uses, ixStatement):
-    exprKey = arrayGet(objectKeys(expr), 0)
-    if exprKey == 'function':
-        exprFunction = objectGet(expr, 'function')
+    exprFunction = objectGet(expr, 'function')
+    if exprFunction != null:
         funcName = objectGet(exprFunction, 'name')
         if !objectHas(uses, funcName):
             objectSet(uses, funcName, ixStatement)
         endif
-        if objectHas(exprFunction, 'args'):
-            for argExpr in objectGet(exprFunction, 'args'):
-                argKey = arrayGet(objectKeys(argExpr), 0)
-                if argKey == 'variable':
-                    argVariable = objectGet(argExpr, 'variable')
+        args = objectGet(exprFunction, 'args')
+        if args != null:
+            for argExpr in args:
+                # A variable argument is recorded here, a literal is skipped, and a nested expression is walked
+                argVariable = objectGet(argExpr, 'variable')
+                if argVariable != null:
                     if !objectHas(uses, argVariable):
                         objectSet(uses, argVariable, ixStatement)
                     endif
-                elif argKey != 'number' && argKey != 'string':
+                elif !objectHas(argExpr, 'string') && !objectHas(argExpr, 'number'):
                     barescriptLintGetExpressionVariableUses(argExpr, uses, ixStatement)
                 endif
             endfor
         endif
-    elif exprKey == 'variable':
-        exprVariable = objectGet(expr, 'variable')
+        return
+    endif
+    exprVariable = objectGet(expr, 'variable')
+    if exprVariable != null:
         if !objectHas(uses, exprVariable):
             objectSet(uses, exprVariable, ixStatement)
         endif
-    elif exprKey == 'binary':
-        exprBinary = objectGet(expr, 'binary')
+        return
+    endif
+    exprBinary = objectGet(expr, 'binary')
+    if exprBinary != null:
         barescriptLintGetExpressionVariableUses(objectGet(exprBinary, 'left'), uses, ixStatement)
         barescriptLintGetExpressionVariableUses(objectGet(exprBinary, 'right'), uses, ixStatement)
-    elif exprKey == 'unary':
-        barescriptLintGetExpressionVariableUses(objectGet(objectGet(expr, 'unary'), 'expr'), uses, ixStatement)
-    elif exprKey == 'group':
-        barescriptLintGetExpressionVariableUses(objectGet(expr, 'group'), uses, ixStatement)
+        return
+    endif
+    exprUnary = objectGet(expr, 'unary')
+    if exprUnary != null:
+        barescriptLintGetExpressionVariableUses(objectGet(exprUnary, 'expr'), uses, ixStatement)
+        return
+    endif
+    exprGroup = objectGet(expr, 'group')
+    if exprGroup != null:
+        barescriptLintGetExpressionVariableUses(exprGroup, uses, ixStatement)
     endif
 endfunction
