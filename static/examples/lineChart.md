@@ -889,11 +889,11 @@ drawRect(0, 0, 800, 460)
 drawLineChart(latencyData, incidentLineChart, 0, 0, 800, 400)
 
 # The 14:00 peak and the plot area, in the drawing's pixels, measured from this chart
-incidentPeakX = 427.7
-incidentPeakY = 43.9
+incidentPeakX = 433.2
+incidentPeakY = 67.3
 incidentPlotTop = 43.4
 incidentPlotBottom = 338
-incidentHourWidth = 25.9
+incidentHourWidth = 26.5
 
 # The incident window, shaded
 drawStyle('none', 0, '#d6272818')
@@ -905,15 +905,15 @@ drawStyle('#d62728', 2, 'none')
 drawCircle(incidentPeakX, incidentPeakY, 8)
 
 # The leader line from the callout to the ring, and its arrow head
-demoArrow(322, 78, incidentPeakX, incidentPeakY, 10, '#d62728')
+demoArrow(322, 118, incidentPeakX, incidentPeakY, 10, '#d62728')
 
 # The callout
 drawStyle('#d62728', 1, '#ffffffe6')
-drawRect(90, 58, 232, 52, 4, 4)
+drawRect(90, 98, 232, 52, 4, 4)
 drawTextStyle(14, '#d62728', true)
-drawText('14:00 deploy', 102, 76, 'start', 'middle')
+drawText('14:00 deploy', 102, 116, 'start', 'middle')
 drawTextStyle(12, '#333333')
-drawText('p99 1.84 s - 2.0x the next worst hour', 102, 96, 'start', 'middle')
+drawText('p99 1.84 s - 2.0x the next worst hour', 102, 136, 'start', 'middle')
 
 # The note below the chart
 drawTextStyle(12, '#555555')

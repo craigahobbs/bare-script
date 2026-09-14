@@ -7,9 +7,68 @@ drawDefaultDrawingWidth = 300
 drawDefaultDrawingHeight = 200
 drawDefaultFontFamily = 'Arial, Helvetica, sans-serif'
 drawDefaultFontSize = 12
-drawFontWidthRatio = 0.6
 drawPixelsPerPoint = 4 / 3
 drawSVGPrecision = 8
+
+
+# The default font family's character advance widths, in thousandths of an em, for the printable
+# ASCII range - the sixteen characters from space, then from "0", "@", "P", "`", and "p". Each is
+# the widest that Arial and Helvetica draw the character, in either the regular or the bold weight,
+# rounded up to the next thousandth - so text is measured no narrower than it draws, whichever of
+# the family's faces renders it. The oblique faces have the regular ones' widths. This range covers
+# the letters, the digits, and every punctuation mark a keyboard types - the parentheses, brackets,
+# braces, and the period among them.
+drawFontWidths = [ \
+    278, 334, 475, 557, 557, 890, 723, 238, 334, 334, 390, 584, 278, 334, 278, 278, \
+    557, 557, 557, 557, 557, 557, 557, 557, 557, 557, 334, 334, 584, 584, 584, 611, \
+    1016, 723, 723, 723, 723, 667, 611, 778, 723, 278, 557, 723, 611, 834, 723, 778, \
+    667, 778, 723, 667, 611, 723, 667, 944, 667, 667, 611, 334, 278, 334, 584, 557, \
+    334, 557, 611, 557, 611, 557, 334, 611, 611, 278, 278, 557, 278, 890, 611, 611, \
+    611, 611, 390, 557, 334, 611, 557, 778, 557, 557, 500, 390, 280, 390, 584 \
+]
+drawFontWidthFirst = 32
+drawFontWidthCount = arrayLength(drawFontWidths)
+
+
+# The same for the Latin-1 supplement, the sixteen characters from the non-breaking space, then from
+# the degree sign, "A-grave", "Eth", "a-grave", and "eth". The soft hyphen measures nothing, so it is
+# measured as the hyphen a renderer draws in its place.
+drawFontWidthsLatin = [ \
+    278, 334, 557, 557, 557, 557, 280, 557, 334, 737, 371, 557, 584, 334, 737, 553, \
+    400, 549, 334, 334, 334, 577, 557, 334, 334, 334, 366, 557, 834, 834, 834, 611, \
+    723, 723, 723, 723, 723, 723, 1000, 723, 667, 667, 667, 667, 278, 278, 278, 278, \
+    723, 723, 778, 778, 778, 778, 778, 584, 778, 723, 723, 723, 723, 667, 667, 611, \
+    557, 557, 557, 557, 557, 557, 890, 557, 557, 557, 557, 557, 278, 278, 278, 278, \
+    611, 611, 611, 611, 611, 611, 611, 549, 611, 611, 611, 611, 611, 557, 611, 557 \
+]
+drawFontWidthLatinFirst = 160
+drawFontWidthLatinCount = arrayLength(drawFontWidthsLatin)
+
+
+# The same again for the characters that turn up in chart titles, labels, and annotations beyond
+# those ranges - the typographic punctuation and currency, the mathematical operators and arrows,
+# and the Greek letters used as symbols.
+drawFontWidthsOther = { \
+    '–': 557, '—': 1000, '‘': 278, '’': 278, '‚': 278, '“': 500, '”': 500, '„': 500, \
+    '†': 557, '‡': 557, '•': 351, '…': 1000, '‰': 1000, '′': 334, '″': 611, '‹': 334, \
+    '›': 334, '€': 745, '™': 1000, \
+    '−': 584, '≠': 549, '≤': 549, '≥': 549, '≈': 549, '∞': 713, '∂': 554, '∆': 612, \
+    '∑': 713, '∏': 824, '√': 549, '∫': 274, '←': 1000, '↑': 723, '→': 1000, '↓': 723, \
+    '↔': 1000, \
+    'Α': 723, 'Β': 723, 'Γ': 611, 'Δ': 723, 'Ε': 667, 'Θ': 778, 'Λ': 668, 'Ξ': 650, \
+    'Π': 723, 'Σ': 619, 'Φ': 821, 'Ψ': 836, 'Ω': 802, \
+    'α': 615, 'β': 611, 'γ': 557, 'δ': 611, 'ε': 557, 'ζ': 461, 'η': 611, 'θ': 612, \
+    'κ': 558, 'λ': 557, 'μ': 612, 'ν': 557, 'ξ': 500, 'π': 766, 'ρ': 619, 'σ': 685, \
+    'τ': 500, 'φ': 723, 'χ': 576, 'ψ': 754, 'ω': 845 \
+}
+
+
+# The width of a character in none of the above. It stands in for a glyph the font family does not
+# have, which a fallback font supplies at a width this library cannot know, so it is set wider than
+# anything in the tables: the widest measured across CJK, kana, full-width, emoji, arrow and symbol
+# samples is the numero sign, at 1115 in bold, and a run of CJK is shaped about 2% wider than its
+# characters measure one at a time.
+drawFontWidthOther = 1200
 
 
 # The global drawing state
@@ -412,7 +471,7 @@ endfunction
 # $return: The text's height, in pixels
 function drawTextHeight(text, width):
     drawing = drawGetCurrentDrawing()
-    return if(width > 0, width / (drawFontWidthRatio * stringLength(text)), objectGet(drawing, 'fontSizePx'))
+    return if(width > 0, 1000 * width / drawTextWidthEm(text), objectGet(drawing, 'fontSizePx'))
 endfunction
 
 
@@ -436,12 +495,43 @@ endfunction
 
 # $function: drawTextWidth
 # $group: draw.bare
-# $doc: Compute the text's width
+# $doc: Compute the text's width. The width is the sum of the default font family's character
+# $doc: advance widths - printable ASCII, the Latin-1 supplement, and the punctuation, operators,
+# $doc: arrows, and Greek letters that chart text uses - taking the wider of the regular and the
+# $doc: bold weight for each character, and the width of a glyph from an unknown font for a
+# $doc: character in none of those. So text is measured no narrower than it draws, which is what
+# $doc: fitting a label to a space needs: kerning only ever draws a pair of characters closer
+# $doc: together and is not counted, and each character carries a thousandth of an em of slack for
+# $doc: the fraction of a pixel a renderer adds when it quantizes a glyph's advance.
 # $arg text: The text
 # $arg fontSizePx: The text font size, in pixels
 # $return: The text's width, in pixels
 function drawTextWidth(text, fontSizePx):
-    return drawFontWidthRatio * fontSizePx * stringLength(text)
+    return 0.001 * fontSizePx * drawTextWidthEm(text)
+endfunction
+
+
+# Helper function to compute a text's width in thousandths of an em. Each character is counted with
+# a thousandth of slack, since a renderer rounds a glyph's advance up to its own quantum.
+function drawTextWidthEm(text):
+    widthEm = 0
+    ixChar = 0
+    textLength = stringLength(text)
+    while ixChar < textLength:
+        charCode = stringCharCodeAt(text, ixChar)
+        ixWidth = charCode - drawFontWidthFirst
+        if ixWidth >= 0 && ixWidth < drawFontWidthCount:
+            charWidth = arrayGet(drawFontWidths, ixWidth)
+        else:
+            ixLatin = charCode - drawFontWidthLatinFirst
+            charWidth = if(ixLatin >= 0 && ixLatin < drawFontWidthLatinCount, \
+                arrayGet(drawFontWidthsLatin, ixLatin), \
+                objectGet(drawFontWidthsOther, stringCharAt(text, ixChar), drawFontWidthOther))
+        endif
+        widthEm = widthEm + 1 + charWidth
+        ixChar = ixChar + 1
+    endwhile
+    return widthEm
 endfunction
 
 

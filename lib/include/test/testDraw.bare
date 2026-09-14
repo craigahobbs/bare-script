@@ -667,7 +667,7 @@ unittestRunTest('testDrawText_rotate')
 
 function testDrawTextHeight():
     drawNew()
-    unittestEqual(mathRound(drawTextHeight('Hello', 50) * 1000) / 1000, 16.667)
+    unittestEqual(mathRound(drawTextHeight('Hello', 50) * 1000) / 1000, 20.392)
     unittestEqual(drawTextHeight('', 0), 16)
 endfunction
 unittestRunTest('testDrawTextHeight')
@@ -740,7 +740,21 @@ unittestRunTest('testDrawTextStyle')
 
 function testDrawTextWidth():
     drawNew()
-    unittestEqual(drawTextWidth('Hello', 16), 48)
+    unittestEqual(drawTextWidth('Hello', 16), 39.232)
+
+    # Text is measured no narrower than it draws - "W" is wider than a flat per-character estimate,
+    # "i" narrower
+    unittestEqual(mathRound(drawTextWidth('WWWWW', 16) * 1000) / 1000, 75.6)
+    unittestEqual(mathRound(drawTextWidth('iiiii', 16) * 1000) / 1000, 22.32)
+
+    # The Latin-1 supplement, and the punctuation, operators, and Greek letters of chart text
+    unittestEqual(mathRound(drawTextWidth('°', 16) * 1000) / 1000, 6.416)
+    unittestEqual(mathRound(drawTextWidth('é', 16) * 1000) / 1000, 8.928)
+    unittestEqual(mathRound(drawTextWidth('–', 16) * 1000) / 1000, 8.928)
+    unittestEqual(mathRound(drawTextWidth('σ', 16) * 1000) / 1000, 10.976)
+
+    # A character in none of the tables is measured as the width of a glyph from an unknown font
+    unittestEqual(mathRound(drawTextWidth('中', 16) * 1000) / 1000, 19.216)
 endfunction
 unittestRunTest('testDrawTextWidth')
 
