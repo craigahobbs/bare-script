@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.1.13 (2026-09-14)
+
+- [c4d4dec](https://github.com/craigahobbs/bare-script/commit/c4d4dec) - barescriptLint - dispatch on a node's member directly
+
+- [972f155](https://github.com/craigahobbs/bare-script/commit/972f155) - barescriptParser - find an element's terminator with a string comparison
+
+- [95eaf45](https://github.com/craigahobbs/bare-script/commit/95eaf45) - dataLineChart - the first ten of Tableau's twenty as the categorical palette
+
+- [96b7ac5](https://github.com/craigahobbs/bare-script/commit/96b7ac5) - dataLineChart and draw.bare - profile-guided optimizations
+
+- [4d8e0be](https://github.com/craigahobbs/bare-script/commit/4d8e0be) - dataLineChart - an eight color categorical palette
+
+- [ad5d70f](https://github.com/craigahobbs/bare-script/commit/ad5d70f) - draw.bare - measure text with per-character font metrics
+
+- [8a28c86](https://github.com/craigahobbs/bare-script/commit/8a28c86) - dataLineChart - axis padding, and annotation labels that match their axis
+
 ## 5.1.12 (2026-09-12)
 
 - [9394643](https://github.com/craigahobbs/bare-script/commit/9394643) - document that an automatic axis spans its data
