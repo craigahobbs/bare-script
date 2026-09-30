@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.14 (2026-09-30)
+
+- [6be86b1](https://github.com/craigahobbs/bare-script/commit/6be86b1) - binary data, the base64, gzip, and tar includes, and the BareScript Creator
+
 ## 5.1.13 (2026-09-14)
 
 - [c4d4dec](https://github.com/craigahobbs/bare-script/commit/c4d4dec) - barescriptLint - dispatch on a node's member directly
