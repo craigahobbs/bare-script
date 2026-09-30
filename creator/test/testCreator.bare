@@ -1,0 +1,738 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <args.bare>
+include <forms.bare>
+include <unittest.bare>
+include <unittestMock.bare>
+include '../creator.bare'
+
+
+# A fixed "now" for project creation
+testCreatorNow = datetimeISOParse('2026-09-29T12:00:00Z')
+
+function testCreatorDatetimeNow():
+    return testCreatorNow
+endfunction
+
+
+# The frontend form values and mock data of a valid application
+testCreatorValues = { \
+    'copyright': 'Jane Doe', \
+    'name': 'My App', \
+    'description': 'A test application', \
+    'spec': 'Show a list of items.\nLet the user add items.' \
+}
+testCreatorData = { \
+    'documentInputValue': { \
+        'creator-frontend-copyright': ' Jane Doe ', \
+        'creator-frontend-name': 'My App', \
+        'creator-frontend-description': 'A test application', \
+        'creator-frontend-spec': 'Show a list of items.\nLet the user add items.' \
+    }, \
+    'systemFetch': {'../SKILL.md': '# Skill\n'} \
+}
+
+
+# The expected landing page call log
+function testCreatorLandingLog(error, history):
+    return testCreatorLandingLogEx(error, history, false)
+endfunction
+
+
+function testCreatorLandingLogEx(error, history, confirmClear):
+    log = [ \
+        ['documentSetTitle', ['BareScript Creator']], \
+        ['markdownPrint', [ \
+            '# BareScript Creator', \
+            '', \
+            'BareScript Creator generates a [BareScript](https://craigahobbs.github.io/bare-script/) project from your ' + \
+            'specification. Choose a project type, fill in its form, and download the project archive. Its Makefile has ' + \
+            '[Claude Code](https://claude.com/product/claude-code#featureTerminal) write the code.' \
+        ]] \
+    ]
+    if error != null:
+        arrayPush(log, ['markdownPrint', ['', '**Error:** ' + error]])
+    endif
+    arrayPush(log, ['markdownPrint', ['', '## Project Types']])
+    arrayPush(log, ['markdownPrint', ['', "- [Frontend Application](#var.vType='frontend') - " + objectGet(creatorFrontendType, 'description')]])
+    arrayPush(log, ['markdownPrint', [ \
+        '', \
+        '## How It Works', \
+        '', \
+        '1. Fill in a project type\'s form and click **Create**. Your entries are kept for the browser session, and each', \
+        '   project you create is added to the history below.', \
+        '2. Extract the archive: `tar xzf <project>.tar.gz`.', \
+        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the `bare`', \
+        '   CLI and MarkdownUp, then runs Claude Code in your terminal:', \
+        '', \
+        '   ```', \
+        '   claude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
+        '   ```', \
+        '', \
+        '   Claude Code asks you to trust the new project directory, then reads `SPEC.md` (your specification plus', \
+        '   implementation instructions), `CLAUDE.md`, and the bundled bare-script skill, writes the code and its unit', \
+        '   tests, and runs `make commit` until they pass. File edits are pre-approved. When it finishes, exit the', \
+        '   session and `make run` serves the application.', \
+        '   [Claude Code](https://claude.com/product/claude-code#featureTerminal) must be installed and signed in.', \
+        '4. To improve the result, load the project from the history, refine the specification, and create it again -', \
+        '   or edit the project\'s `SPEC.md`, delete the generated code, and run `make run` again.', \
+        '', \
+        '## History' \
+    ]])
+    if !history:
+        arrayPush(log, ['markdownPrint', ['', 'No projects have been created yet.']])
+        return log
+    endif
+    for entry in history:
+        elements = [ \
+            {'text': objectGet(entry, 'display')}, \
+            {'html': 'b', 'elem': {'text': objectGet(entry, 'title')}}, \
+            {'text': ' '} \
+        ]
+        if !objectGet(entry, 'unknown'):
+            arrayPush(elements, formsLinkButtonElements('Load', '<function>'), {'text': ' | '})
+        endif
+        arrayPush(elements, formsLinkButtonElements('Remove', '<function>'))
+        arrayPush(log, ['elementModelRender', [{'html': 'p', 'elem': elements}]])
+    endfor
+    if confirmClear:
+        arrayPush(log, ['elementModelRender', [{'html': 'p', 'elem': [ \
+            {'text': 'Clear the history? '}, \
+            formsLinkButtonElements('Yes, Clear History', '<function>'), \
+            {'text': ' | '}, \
+            formsLinkButtonElements('Cancel', '<function>') \
+        ]}]])
+    else:
+        arrayPush(log, ['elementModelRender', [{'html': 'p', 'elem': formsLinkButtonElements('Clear History', '<function>')}]])
+    endif
+    return log
+endfunction
+
+
+# The expected frontend form render call log
+function testCreatorFormLog(values, errorLines):
+    log = [ \
+        ['documentSetTitle', ['Frontend Application']], \
+        ['markdownPrint', ['[Back](#var=)', '', '# Frontend Application', '', objectGet(creatorFrontendType, 'description')]] \
+    ]
+    for errorLine in errorLines:
+        arrayPush(log, ['markdownPrint', ['', '**Error:** ' + errorLine]])
+    endfor
+    elements = []
+    for field in objectGet(creatorFrontendType, 'fields'):
+        arrayPush(elements, creatorFieldElements(creatorFrontendType, field, objectGet(values, objectGet(field, 'name'), '')))
+    endfor
+    arrayPush(elements, {'html': 'p', 'elem': [ \
+        formsLinkButtonElements('Create', '<function>'), \
+        {'text': ' | '}, \
+        formsLinkButtonElements('Reset', '<function>') \
+    ]})
+    arrayPush(log, ['elementModelRender', [elements]])
+    return log
+endfunction
+
+
+# The expected call log prefix of a form create - the input reads and the session save
+function testCreatorCreateLog(values):
+    return [ \
+        ['documentInputValue', ['creator-frontend-copyright']], \
+        ['documentInputValue', ['creator-frontend-name']], \
+        ['documentInputValue', ['creator-frontend-description']], \
+        ['documentInputValue', ['creator-frontend-spec']], \
+        ['sessionStorageSet', ['creator.frontend', jsonStringify(values)]] \
+    ]
+endfunction
+
+
+# The expected project tree lines
+testCreatorTree = [ \
+    'myApp', \
+    '├── .gitignore', \
+    '├── .nojekyll', \
+    '├── CLAUDE.md', \
+    '├── index.html', \
+    '├── LICENSE', \
+    '├── Makefile', \
+    '├── myApp.bare (generated by make)', \
+    '├── myApp.md', \
+    '├── SPEC.md', \
+    '├── .claude', \
+    '│   └── skills', \
+    '│       └── bare-script', \
+    '│           └── SKILL.md', \
+    '└── test', \
+    '    ├── index.html', \
+    '    ├── runTests.bare', \
+    '    ├── runTests.md', \
+    '    └── testMyApp.bare' \
+]
+
+
+# The expected project render call log - "archive" is the download file name or the written file path
+function testCreatorProjectLog(archive, output):
+    log = [ \
+        ['documentSetTitle', ['My App']], \
+        ['markdownPrint', ["[Back](#var.vType='frontend')", '', '# My App']] \
+    ]
+    if output != null:
+        arrayPush(log, ['markdownPrint', ['', 'Wrote `' + output + '`']])
+    else:
+        # The download URL is the mock's, from the archive's first bytes (the gzip header)
+        arrayPush(log, ['elementModelRender', [{ \
+            'html': 'p', \
+            'elem': { \
+                'html': 'a', \
+                'attr': {'href': 'blob:application/gzip-31,139,8,0,0,0,0,0', 'download': archive}, \
+                'elem': {'text': 'Download ' + archive} \
+            } \
+        }]])
+    endif
+    arrayExtend(log, [ \
+        ['markdownPrint', ['', '```']], \
+        ['markdownPrint', [testCreatorTree]], \
+        ['markdownPrint', ['```']], \
+        ['markdownPrint', ['', 'To generate the code:', '', '```']], \
+        ['markdownPrint', [['tar xzf ' + archive, 'cd myApp', 'make run']]], \
+        ['markdownPrint', ['```']], \
+        ['markdownPrint', ['', 'The first `make run` has Claude Code generate `myApp.bare` from `SPEC.md`, then serves the ' + \
+            'application in your browser.']], \
+        ['markdownPrint', [ \
+            '', \
+            'Claude Code asks you to trust the project directory when it starts; exit the session when it finishes. ' + \
+            'See [BareScript Creator](#var=) for details.' \
+        ]] \
+    ])
+    return log
+endfunction
+
+
+# The expected history entry of the test values
+function testCreatorHistoryEntry():
+    return {'type': 'frontend', 'title': 'My App', 'date': datetimeISOFormat(testCreatorNow), 'values': testCreatorValues}
+endfunction
+
+
+# Helper to mock all and the creation datetime
+function testCreatorMockAll(data):
+    unittestMockAll(data)
+    unittestMockOne('datetimeNow', testCreatorDatetimeNow)
+endfunction
+
+
+# Call the "Create" button click handler on the created project page (a form re-rendered with errors, whose Create
+# button creates the project directly)
+async function testCreatorCreatePageOnCreate():
+    systemGlobalSet('vType', 'frontend')
+    systemGlobalSet('vCreate', true)
+    creatorOnCreate(creatorFrontendType)
+    systemGlobalSet('vType', null)
+    systemGlobalSet('vCreate', null)
+endfunction
+
+
+#
+# Callback-binding helpers
+#
+
+
+# Find an element's event callback in a call log - "matchFn" tests an element model for the one wanted
+function testFindCallback(model, event, matchFn):
+    type = systemType(model)
+    if type == 'array':
+        for item in model:
+            found = testFindCallback(item, event, matchFn)
+            if found != null:
+                return found
+            endif
+        endfor
+    elif type == 'object':
+        callback = objectGet(model, 'callback')
+        if callback != null && matchFn(model):
+            return objectGet(callback, event)
+        endif
+        return testFindCallback(objectGet(model, 'elem'), event, matchFn)
+    endif
+    return null
+endfunction
+
+
+# Element model match functions - a link button by its text, and an input by its ID
+function testMatchText(text, model):
+    elem = objectGet(model, 'elem')
+    return systemType(elem) == 'object' && objectGet(elem, 'text') == text
+endfunction
+
+function testMatchId(id, model):
+    attr = objectGet(model, 'attr')
+    return attr != null && objectGet(attr, 'id') == id
+endfunction
+
+
+# Verify a callback has the same effect as its handler - the optional "setupFn" seeds each mock scope
+async function testSameEffect(actualFn, expectedFn, data, setupFn):
+    unittestMockAll(data)
+    if(setupFn != null, setupFn())
+    expectedFn()
+    expected = unittestMockEnd()
+    unittestMockAll(data)
+    if(setupFn != null, setupFn())
+    actualFn()
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+
+
+# Verify a rendered link button's click callback has the same effect as its handler
+async function testVerifyClick(renderFn, text, expectedFn, data, setupFn):
+    unittestMockAll(data)
+    if(setupFn != null, setupFn())
+    renderFn()
+    found = testFindCallback(unittestMockEnd(), 'click', systemPartial(testMatchText, text))
+    testSameEffect(found, expectedFn, data, setupFn)
+endfunction
+
+
+#
+# The landing page
+#
+
+
+async function testCreatorMainLanding():
+    unittestMockAll()
+    creatorMain()
+    unittestDeepEqual(unittestMockEnd(), testCreatorLandingLog(null, []))
+endfunction
+unittestRunTest('testCreatorMainLanding')
+
+
+async function testCreatorMainLandingUnknownType():
+    systemGlobalSet('vType', 'x')
+    unittestMockAll()
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    unittestDeepEqual(calls, testCreatorLandingLog('Unknown project type \\"x\\"', []))
+endfunction
+unittestRunTest('testCreatorMainLandingUnknownType')
+
+
+# Seed the history with two entries - one of an unknown project type
+function testCreatorHistorySeed():
+    localStorageSet('creator.history', jsonStringify([ \
+        {'type': 'frontend', 'title': 'My App', 'date': '2026-09-29T12:00:00+00:00', 'values': testCreatorValues}, \
+        {'type': 'backend', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
+    ]))
+endfunction
+
+
+testCreatorHistoryDisplay = [ \
+    {'display': '2026-09-29 12:00 - Frontend Application - ', 'title': 'My App'}, \
+    {'display': '2026-09-28 08:30 - Unknown project type "backend" - ', 'title': 'Old Service', 'unknown': true} \
+]
+
+
+async function testCreatorMainLandingHistory():
+    unittestMockAll()
+    testCreatorHistorySeed()
+    creatorMain()
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    unittestDeepEqual(calls, testCreatorLandingLog(null, testCreatorHistoryDisplay))
+endfunction
+unittestRunTest('testCreatorMainLandingHistory')
+
+
+async function testCreatorMainLandingHistoryInvalid():
+    # The history is validated against its schema - an invalid history is empty
+    unittestMockAll()
+    localStorageSet('creator.history', '{"not": "an array"}')
+    creatorMain()
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    expected = testCreatorLandingLog(null, [])
+    lastCall = arrayPop(expected)
+    arrayPush(expected, ['systemLogDebug', ['schema.bare: Invalid value {"not":"an array"} (type "object"), expected type "array"']], lastCall)
+    unittestDeepEqual(calls, expected)
+
+    # Malformed entry
+    unittestMockAll()
+    localStorageSet('creator.history', jsonStringify([ \
+        {'type': 'frontend', 'title': 'My App', 'date': '2026-09-29T12:00:00+00:00', 'values': {'name': 1}} \
+    ]))
+    creatorMain()
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    expected = testCreatorLandingLog(null, [])
+    lastCall = arrayPop(expected)
+    arrayPush(expected, \
+        ['systemLogDebug', ['schema.bare: Invalid value 1 (type "number") for member "0.values.name", expected type "string"']], lastCall)
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorMainLandingHistoryInvalid')
+
+
+function testCreatorOnHistoryLoad():
+    unittestMockAll()
+    testCreatorHistorySeed()
+    creatorOnHistoryLoad(0)
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    unittestDeepEqual(calls, [ \
+        ['sessionStorageSet', ['creator.frontend', jsonStringify(testCreatorValues)]], \
+        ['windowSetLocation', ["#var.vType='frontend'"]] \
+    ])
+endfunction
+unittestRunTest('testCreatorOnHistoryLoad')
+
+
+function testCreatorOnHistoryRemove():
+    unittestMockAll()
+    testCreatorHistorySeed()
+    creatorOnHistoryRemove(0)
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    expected = [['localStorageSet', ['creator.history', jsonStringify([ \
+        {'type': 'backend', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
+    ])]]]
+    arrayExtend(expected, testCreatorLandingLog(null, arraySlice(testCreatorHistoryDisplay, 1)))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorOnHistoryRemove')
+
+
+function testCreatorOnHistoryClear():
+    # The "Clear History" button asks for confirmation
+    unittestMockAll()
+    testCreatorHistorySeed()
+    creatorRenderLanding(null, true)
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    unittestDeepEqual(calls, testCreatorLandingLogEx(null, testCreatorHistoryDisplay, true))
+
+    # Confirm
+    unittestMockAll()
+    testCreatorHistorySeed()
+    creatorOnHistoryClearConfirm()
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    expected = [['localStorageRemove', ['creator.history']]]
+    arrayExtend(expected, testCreatorLandingLog(null, []))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorOnHistoryClear')
+
+
+async function testCreatorHistoryBindings():
+    # The history is seeded in every mock scope
+    confirmFn = systemPartial(creatorRenderLanding, null, true)
+    testVerifyClick(creatorMain, 'Load', systemPartial(creatorOnHistoryLoad, 0), null, testCreatorHistorySeed)
+    testVerifyClick(creatorMain, 'Remove', systemPartial(creatorOnHistoryRemove, 0), null, testCreatorHistorySeed)
+    testVerifyClick(creatorMain, 'Clear History', confirmFn, null, testCreatorHistorySeed)
+    testVerifyClick(confirmFn, 'Yes, Clear History', creatorOnHistoryClearConfirm, null, testCreatorHistorySeed)
+    testVerifyClick(confirmFn, 'Cancel', systemPartial(creatorRenderLanding, null, false), null, testCreatorHistorySeed)
+endfunction
+unittestRunTest('testCreatorHistoryBindings')
+
+
+function testCreatorHistoryAdd():
+    unittestMockAll()
+    now = testCreatorNow
+    ix = 0
+    while ix < creatorHistoryMax + 1:
+        creatorHistoryAdd(creatorFrontendType, 'App ' + ix, {'name': 'App ' + ix}, now + ix * 60000)
+        ix = ix + 1
+    endwhile
+    history = creatorHistoryLoad()
+    unittestMockEnd()
+    unittestEqual(arrayLength(history), creatorHistoryMax)
+    unittestEqual(objectGet(arrayGet(history, 0), 'title'), 'App ' + creatorHistoryMax)
+    unittestEqual(objectGet(arrayGet(history, creatorHistoryMax - 1), 'title'), 'App 1')
+endfunction
+unittestRunTest('testCreatorHistoryAdd')
+
+
+function testCreatorHistoryAddDuplicate():
+    # A project created again with the same values replaces its entry, newest first
+    unittestMockAll()
+    now = testCreatorNow
+    creatorHistoryAdd(creatorFrontendType, 'App A', {'name': 'App A', 'spec': 'a'}, now)
+    creatorHistoryAdd(creatorFrontendType, 'App B', {'name': 'App B', 'spec': 'b'}, now + 60000)
+    creatorHistoryAdd(creatorFrontendType, 'App A', {'spec': 'a', 'name': 'App A'}, now + 120000)
+    history = creatorHistoryLoad()
+    unittestMockEnd()
+    unittestDeepEqual(history, [ \
+        {'type': 'frontend', 'title': 'App A', 'date': datetimeISOFormat(now + 120000), 'values': {'name': 'App A', 'spec': 'a'}}, \
+        {'type': 'frontend', 'title': 'App B', 'date': datetimeISOFormat(now + 60000), 'values': {'name': 'App B', 'spec': 'b'}} \
+    ])
+
+    # The same values of a different project type are a separate entry
+    unittestMockAll()
+    otherType = {'name': 'other'}
+    creatorHistoryAdd(creatorFrontendType, 'App A', {'name': 'App A'}, now)
+    creatorHistoryAdd(otherType, 'App A', {'name': 'App A'}, now + 60000)
+    history = creatorHistoryLoad()
+    unittestMockEnd()
+    unittestEqual(arrayLength(history), 2)
+endfunction
+unittestRunTest('testCreatorHistoryAddDuplicate')
+
+
+#
+# The project type form page
+#
+
+
+async function testCreatorMainForm():
+    systemGlobalSet('vType', 'frontend')
+    unittestMockAll()
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    unittestDeepEqual(calls, testCreatorFormLog({}, []))
+endfunction
+unittestRunTest('testCreatorMainForm')
+
+
+async function testCreatorMainFormSession():
+    # The form is pre-filled from the browser session
+    systemGlobalSet('vType', 'frontend')
+    unittestMockAll()
+    sessionStorageSet('creator.frontend', jsonStringify({'name': 'Fungus Simulator', 'spec': 'Grow.'}))
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    arrayDelete(calls, 0)
+    unittestDeepEqual(calls, testCreatorFormLog({'name': 'Fungus Simulator', 'spec': 'Grow.'}, []))
+
+    # Invalid session values are ignored
+    systemGlobalSet('vType', 'frontend')
+    unittestMockAll()
+    sessionStorageSet('creator.frontend', '[1, 2]')
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    arrayDelete(calls, 0)
+    expected = [['systemLogDebug', ['schema.bare: Invalid value [1,2] (type "array"), expected type "dict"']]]
+    arrayExtend(expected, testCreatorFormLog({}, []))
+    unittestDeepEqual(calls, expected)
+
+    # Session values must be strings
+    systemGlobalSet('vType', 'frontend')
+    unittestMockAll()
+    sessionStorageSet('creator.frontend', '{"name": 1}')
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    arrayDelete(calls, 0)
+    expected = [['systemLogDebug', ['schema.bare: Invalid value 1 (type "number") for member "name", expected type "string"']]]
+    arrayExtend(expected, testCreatorFormLog({}, []))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorMainFormSession')
+
+
+function testCreatorOnReset():
+    unittestMockAll()
+    sessionStorageSet('creator.frontend', jsonStringify(testCreatorValues))
+    creatorOnReset(creatorFrontendType)
+    calls = unittestMockEnd()
+    arrayDelete(calls, 0)
+    expected = [['sessionStorageRemove', ['creator.frontend']]]
+    arrayExtend(expected, testCreatorFormLog({}, []))
+    arrayPush(expected, ['windowSetLocation', ["#var.vType='frontend'"]])
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorOnReset')
+
+
+async function testCreatorResetBinding():
+    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, testCreatorValues, null), 'Reset', \
+        systemPartial(creatorOnReset, creatorFrontendType), null)
+endfunction
+unittestRunTest('testCreatorResetBinding')
+
+
+function testCreatorOnChange():
+    unittestMockAll(testCreatorData)
+    creatorOnChange(creatorFrontendType)
+    unittestDeepEqual(unittestMockEnd(), testCreatorCreateLog(testCreatorValues))
+endfunction
+unittestRunTest('testCreatorOnChange')
+
+
+async function testCreatorChangeBinding():
+    unittestMockAll()
+    creatorRenderForm(creatorFrontendType, {}, [])
+    found = testFindCallback(unittestMockEnd(), 'change', systemPartial(testMatchId, 'creator-frontend-spec'))
+    testSameEffect(found, systemPartial(creatorOnChange, creatorFrontendType), testCreatorData)
+endfunction
+unittestRunTest('testCreatorChangeBinding')
+
+
+
+
+#
+# Project creation
+#
+
+
+async function testCreatorOnCreate():
+    # The form page's Create button saves the values and opens the created project page
+    unittestMockAll(testCreatorData)
+    creatorOnCreate(creatorFrontendType)
+    expected = testCreatorCreateLog(testCreatorValues)
+    arrayPush(expected, ['windowSetLocation', ["#var.vCreate=true&var.vType='frontend'"]])
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreate')
+
+
+async function testCreatorMainCreate():
+    # The created project page creates the project from the session values
+    systemGlobalSet('vType', 'frontend')
+    systemGlobalSet('vCreate', true)
+    testCreatorMockAll({'systemFetch': {'../SKILL.md': '# Skill\n'}})
+    sessionStorageSet('creator.frontend', jsonStringify(testCreatorValues))
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    systemGlobalSet('vCreate', null)
+    arrayDelete(calls, 0)
+    expected = [ \
+        ['systemFetch', ['../SKILL.md']], \
+        ['localStorageSet', ['creator.history', jsonStringify([testCreatorHistoryEntry()])]] \
+    ]
+    arrayExtend(expected, testCreatorProjectLog('myApp.tar.gz', null))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorMainCreate')
+
+
+async function testCreatorOnCreatePage():
+    # The Create button on the created project page (a form with errors) creates the project directly
+    testCreatorMockAll(testCreatorData)
+    testCreatorCreatePageOnCreate()
+    expected = testCreatorCreateLog(testCreatorValues)
+    arrayExtend(expected, [ \
+        ['systemFetch', ['../SKILL.md']], \
+        ['localStorageSet', ['creator.history', jsonStringify([testCreatorHistoryEntry()])]] \
+    ])
+    arrayExtend(expected, testCreatorProjectLog('myApp.tar.gz', null))
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreatePage')
+
+
+async function testCreatorOnCreateRepoFetch():
+    # The skill is two directories up when the repository's static directory is served
+    data = jsonParse(jsonStringify(testCreatorData))
+    objectSet(data, 'systemFetch', {'../../SKILL.md': '# Skill\n'})
+    testCreatorMockAll(data)
+    testCreatorCreatePageOnCreate()
+    expected = testCreatorCreateLog(testCreatorValues)
+    arrayExtend(expected, [ \
+        ['systemFetch', ['../SKILL.md']], \
+        ['systemFetch', ['../../SKILL.md']], \
+        ['localStorageSet', ['creator.history', jsonStringify([testCreatorHistoryEntry()])]] \
+    ])
+    arrayExtend(expected, testCreatorProjectLog('myApp.tar.gz', null))
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreateRepoFetch')
+
+
+async function testCreatorOnCreateEmpty():
+    unittestMockAll()
+    testCreatorCreatePageOnCreate()
+    values = {'copyright': '', 'name': '', 'description': '', 'spec': ''}
+    expected = testCreatorCreateLog(values)
+    arrayExtend(expected, testCreatorFormLog(values, [ \
+        'Copyright holder is required', \
+        'Application name is required', \
+        'Description is required', \
+        'Specification is required' \
+    ]))
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreateEmpty')
+
+
+async function testCreatorOnCreateInvalidName():
+    data = jsonParse(jsonStringify(testCreatorData))
+    objectSet(objectGet(data, 'documentInputValue'), 'creator-frontend-name', '3D Viewer')
+    unittestMockAll(data)
+    testCreatorCreatePageOnCreate()
+    values = objectCopy(testCreatorValues)
+    objectSet(values, 'name', '3D Viewer')
+    expected = testCreatorCreateLog(values)
+    arrayExtend(expected, testCreatorFormLog(values, ['The application name must start with a letter (e.g. "Fungus Simulator")']))
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreateInvalidName')
+
+
+async function testCreatorOnCreateFetchError():
+    data = jsonParse(jsonStringify(testCreatorData))
+    objectSet(data, 'systemFetch', {})
+    unittestMockAll(data)
+    testCreatorCreatePageOnCreate()
+    expected = testCreatorCreateLog(testCreatorValues)
+    arrayExtend(expected, [['systemFetch', ['../SKILL.md']], ['systemFetch', ['../../SKILL.md']]])
+    arrayExtend(expected, testCreatorFormLog(testCreatorValues, ['Failed to fetch the bare-script skill']))
+    unittestDeepEqual(unittestMockEnd(), expected)
+endfunction
+unittestRunTest('testCreatorOnCreateFetchError')
+
+
+async function testCreatorMainOutput():
+    # The "output" argument writes the archive to the file, with the form values from the browser session
+    systemGlobalSet('vType', 'frontend')
+    systemGlobalSet('vOutput', 'out/myApp.tar.gz')
+    testCreatorMockAll({'systemFetch': {'../SKILL.md': '# Skill\n', 'out/myApp.tar.gz': '{}'}})
+    sessionStorageSet('creator.frontend', jsonStringify(testCreatorValues))
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    systemGlobalSet('vOutput', null)
+    arrayDelete(calls, 0)
+
+    # The write's request model carries the archive bytes - check its shape, then compare the rest of the log
+    writeCall = arrayGet(calls, 1)
+    request = arrayGet(arrayGet(writeCall, 1), 0)
+    unittestEqual(arrayGet(writeCall, 0), 'systemFetch')
+    unittestEqual(objectGet(request, 'url'), 'out/myApp.tar.gz')
+    unittestDeepEqual(arraySlice(objectGet(request, 'body'), 0, 3), [31, 139, 8])
+    arrayDelete(calls, 1)
+    expected = [ \
+        ['systemFetch', ['../SKILL.md']], \
+        ['localStorageSet', ['creator.history', jsonStringify([testCreatorHistoryEntry()])]] \
+    ]
+    arrayExtend(expected, testCreatorProjectLog('out/myApp.tar.gz', 'out/myApp.tar.gz'))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorMainOutput')
+
+
+async function testCreatorMainOutputError():
+    systemGlobalSet('vType', 'frontend')
+    systemGlobalSet('vOutput', 'out/myApp.tar.gz')
+    testCreatorMockAll({'systemFetch': {'../SKILL.md': '# Skill\n'}})
+    sessionStorageSet('creator.frontend', jsonStringify(testCreatorValues))
+    creatorMain()
+    calls = unittestMockEnd()
+    systemGlobalSet('vType', null)
+    systemGlobalSet('vOutput', null)
+    arrayDelete(calls, 0)
+    arrayDelete(calls, 1)
+    expected = [['systemFetch', ['../SKILL.md']]]
+    arrayExtend(expected, testCreatorFormLog(testCreatorValues, ['Failed to write "out/myApp.tar.gz"']))
+    unittestDeepEqual(calls, expected)
+endfunction
+unittestRunTest('testCreatorMainOutputError')
+
+
+async function testCreatorCreateBinding():
+    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, {}, null), 'Create', \
+        systemPartial(creatorOnCreate, creatorFrontendType), testCreatorData)
+endfunction
+unittestRunTest('testCreatorCreateBinding')

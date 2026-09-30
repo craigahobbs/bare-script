@@ -1,0 +1,206 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+#
+# Shared helpers for the BareScript Creator's project types
+#
+
+
+# The application name word separator regular expression
+creatorWordsRegex = regexNew('[^A-Za-z0-9]+')
+
+
+# Compute an application's identifier from its name - the name's words in camel case. The first word is lowercased
+# whole if it is all caps (e.g. "NASA Tracker" is "nasaTracker"), and by its first letter otherwise ("MyApp" is "myApp").
+function creatorAppId(name):
+    id = ''
+    for word in regexSplit(creatorWordsRegex, name):
+        if word == '':
+            continue
+        elif id == '':
+            id = if(word == stringUpper(word), stringLower(word), stringLower(stringSlice(word, 0, 1)) + stringSlice(word, 1))
+        else:
+            id = id + stringUpper(stringSlice(word, 0, 1)) + stringSlice(word, 1)
+        endif
+    endfor
+    return id
+endfunction
+
+
+# Helper to join a file's lines with a trailing newline
+function creatorText(lines):
+    return arrayJoin(lines, '\n') + '\n'
+endfunction
+
+
+# Helper to create a MarkdownUp application Markdown file with a single markdown-script code block
+function creatorFileMarkdownLines(lines):
+    text = ['~~~ markdown-script']
+    arrayExtend(text, lines)
+    arrayPush(text, '~~~')
+    return creatorText(text)
+endfunction
+
+
+# Escape text for HTML content and attribute values
+function creatorEscapeHTML(text):
+    text = stringReplace(text, '&', '&amp;')
+    text = stringReplace(text, '<', '&lt;')
+    text = stringReplace(text, '>', '&gt;')
+    return stringReplace(text, '"', '&quot;')
+endfunction
+
+
+# Create a MarkdownUp page shell HTML file for the given Markdown URL
+function creatorFileIndex(title, description, url):
+    return creatorText([ \
+        '<!DOCTYPE html>', \
+        '<html lang="en">', \
+        '    <head>', \
+        '        <title>' + creatorEscapeHTML(title) + '</title>', \
+        '        <meta charset="utf-8">', \
+        '        <meta name="description" content="' + creatorEscapeHTML(description) + '">', \
+        '        <meta name="viewport" content="width=device-width, initial-scale=1">', \
+        '        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">', \
+        '        <link rel="preload" href="https://craigahobbs.github.io/markdown-up/bare-script/static/markdown.css" as="style">', \
+        '        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/appImports.js" as="script">', \
+        '    </head>', \
+        '    <script type="module">', \
+        '        import {MarkdownUp} from \'https://craigahobbs.github.io/markdown-up/lib/appImports.js\';', \
+        '        const app = new MarkdownUp(window, {\'url\': \'' + url + '\'});', \
+        '        app.run();', \
+        '    </script>', \
+        '</html>' \
+    ])
+endfunction
+
+
+# Create the MIT license file text
+function creatorFileLICENSE(copyright, year):
+    return creatorText([ \
+        'The MIT License (MIT)', \
+        '', \
+        'Copyright (c) ' + year + ' ' + copyright, \
+        '', \
+        'Permission is hereby granted, free of charge, to any person obtaining a copy', \
+        'of this software and associated documentation files (the "Software"), to deal', \
+        'in the Software without restriction, including without limitation the rights', \
+        'to use, copy, modify, merge, publish, distribute, sublicense, and/or sell', \
+        'copies of the Software, and to permit persons to whom the Software is', \
+        'furnished to do so, subject to the following conditions:', \
+        '', \
+        'The above copyright notice and this permission notice shall be included in all', \
+        'copies or substantial portions of the Software.', \
+        '', \
+        'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR', \
+        'IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,', \
+        'FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE', \
+        'AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER', \
+        'LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,', \
+        'OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE', \
+        'SOFTWARE.' \
+    ])
+endfunction
+
+
+# Compute a directory tree's text lines from an array of file paths
+function creatorTreeLines(name, paths):
+    root = {'files': [], 'dirs': {}}
+    for path in paths:
+        parts = stringSplit(path, '/')
+        node = root
+        for part, ixPart in parts:
+            if ixPart < arrayLength(parts) - 1:
+                dirs = objectGet(node, 'dirs')
+                if !objectHas(dirs, part):
+                    objectSet(dirs, part, {'files': [], 'dirs': {}})
+                endif
+                node = objectGet(dirs, part)
+            else:
+                arrayPush(objectGet(node, 'files'), part)
+            endif
+        endfor
+    endfor
+    lines = [name]
+    creatorTreeLinesHelper(root, '', lines)
+    return lines
+endfunction
+
+
+# Helper to add a directory tree node's lines - files first, then directories, each in name order
+function creatorTreeLinesHelper(node, prefix, lines):
+    files = arraySort(objectGet(node, 'files'), creatorCompareNames)
+    dirs = objectGet(node, 'dirs')
+    dirNames = arraySort(objectKeys(dirs), creatorCompareNames)
+    count = arrayLength(files) + arrayLength(dirNames)
+    ix = 0
+    for file in files:
+        ix = ix + 1
+        arrayPush(lines, prefix + if(ix == count, '└── ', '├── ') + file)
+    endfor
+    for dirName in dirNames:
+        ix = ix + 1
+        arrayPush(lines, prefix + if(ix == count, '└── ', '├── ') + dirName)
+        creatorTreeLinesHelper(objectGet(dirs, dirName), prefix + if(ix == count, '    ', '│   '), lines)
+    endfor
+endfunction
+
+
+# Compare two file names, ignoring case
+function creatorCompareNames(name1, name2):
+    return systemCompare(stringLower(name1), stringLower(name2))
+endfunction
+
+
+#
+# Makefile builders - every project type's Makefile includes python-build's Makefile.tool and has Claude Code
+# generate its code from SPEC.md in an interactive session
+#
+
+
+# The Makefile lines that download and include python-build's Makefile.tool, with the given development
+# dependencies (the "bare" CLI is required)
+function creatorMakefilePythonBuildLines(testsRequire):
+    return [ \
+        '# Download python-build', \
+        'PYTHON_BUILD_DIR ?= ../python-build', \
+        'define WGET', \
+        'ifeq \'$$(wildcard $(notdir $(1)))\' \'\'', \
+        '$$(info Downloading $(notdir $(1)))', \
+        '$$(shell [ -f $(PYTHON_BUILD_DIR)/$(notdir $(1)) ] && cp $(PYTHON_BUILD_DIR)/$(notdir $(1)) . || $(call WGET_CMD, $(1)))', \
+        'endif', \
+        'endef', \
+        'WGET_CMD = if command -v wget >/dev/null 2>&1; then wget -q -c $(1); else curl -f -Os $(1); fi', \
+        '$(eval $(call WGET, https://craigahobbs.github.io/python-build/Makefile.tool))', \
+        '', \
+        '', \
+        '# Include python-build', \
+        'include Makefile.tool', \
+        '', \
+        '', \
+        '# Development dependencies', \
+        'TESTS_REQUIRE := ' + testsRequire, \
+        '', \
+        '' \
+    ]
+endfunction
+
+
+# The Makefile rule lines that generate "target" from SPEC.md with Claude Code - "what" names the generated
+# code in the rule's comment (e.g. "the application")
+function creatorMakefileClaudeRuleLines(target, what):
+    return [ \
+        '# Generate ' + what + ' from its specification, if it doesn\'t exist. Claude Code runs interactively with', \
+        '# file edits pre-approved - exit the session when it finishes', \
+        target + ': | $(DEFAULT_VENV_BUILD)', \
+        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }', \
+        '\t@echo', \
+        '\t@echo "========================================================================"', \
+        '\t@echo "  Generating $@ from SPEC.md with Claude Code..."', \
+        '\t@echo "========================================================================"', \
+        '\t@echo', \
+        '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
+        '\ttest -f $@' \
+    ]
+endfunction

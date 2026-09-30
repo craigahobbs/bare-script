@@ -454,6 +454,34 @@ async function loadDocs():
 endfunction
 ```
 
+**Binary data is a byte value array** — an ordinary array of integers 0 to 255,
+the same representation `stringEncode` / `stringDecode` use. A request model's
+`'binary': true` returns the response as a byte value array instead of text,
+and an array `'body'` is sent (or, in the CLI, written to the file) as raw
+bytes. `base64.bare`, `gzip.bare`, and `tar.bare` (Section 3) work on the same
+arrays. In the CLI, a byte-array body writes a binary file and a binary request reads one:
+
+```bare-script
+async function saveArchive(files):
+    systemFetch({'url': 'files.tar.gz', 'body': gzipCompress(tarCreate(files))})
+endfunction
+
+async function loadArchive(url):
+    return tarExtract(gzipUncompress(systemFetch({'url': url, 'binary': true})))
+endfunction
+```
+
+In MarkdownUp, `windowURLObject` accepts a byte value array to make a download link:
+
+```bare-script
+tarGzBytes = gzipCompress(tarCreate(files))
+elementModelRender({ \
+    'html': 'a', \
+    'attr': {'href': windowURLObject(tarGzBytes, 'application/gzip'), 'download': 'files.tar.gz'}, \
+    'elem': {'text': 'Download'} \
+})
+```
+
 `systemType` returns one of `'null'`, `'boolean'`, `'number'`, `'string'`,
 `'datetime'`, `'array'`, `'object'`, `'function'`, `'regex'`.
 
@@ -482,6 +510,7 @@ the `.bare` source.
 | `barescriptLint.bare` | Lint a BareScript model | `barescriptLintScript` |
 | `barescriptModel.bare` | The BareScript type model + model validation | `barescriptTypeModel`, `barescriptValidateScript`, `barescriptValidateExpression` |
 | `barescriptParser.bare` | Parse BareScript text into BareScript models | `barescriptParseScript`, `barescriptParseScriptEx`, `barescriptParseExpression`, `barescriptParseExpressionEx` |
+| `base64.bare` | Base64 text encoding of byte value arrays | `base64Encode`, `base64Decode` |
 | `data.bare` | Tabular data manipulation | `dataParseCSV`, `dataFilter`, `dataSort`, `dataAggregate`, `dataJoin`, `dataCalculatedField`, `dataTop`, `dataValidate` |
 | `dataTable.bare` | Render data array as Markdown table | `dataTable`, `dataTableMarkdown`, `dataTableElements`, `dataTableValidate` |
 | `dataLineChart.bare` | Render line charts as SVG (linear/log axes, automatic ticks) | `dataLineChart`, `dataLineChartElements`, `drawLineChart`, `dataLineChartValidate` |
@@ -489,6 +518,7 @@ the `.bare` source.
 | `draw.bare` | Imperative SVG drawing | `drawNew`, `drawRect`, `drawCircle`, `drawEllipse`, `drawLine`, `drawMove`, `drawClose`, `drawPathRect`, `drawArc`, `drawText`, `drawTextStyle`, `drawTextWidth`, `drawTextHeight`, `drawImage`, `drawStyle`, `drawOnClick`, `drawAriaLabel`, `drawWidth`, `drawHeight`, `drawHLine`, `drawVLine`, `drawRender`, `drawElements` |
 | `elementModel.bare` | Validate / stringify element models | `elementModelValidate`, `elementModelToString` |
 | `forms.bare` | Form-control element-model helpers | `formsTextElements`, `formsLinkElements`, `formsLinkButtonElements` |
+| `gzip.bare` | gzip compression of byte value arrays (pure BareScript DEFLATE) | `gzipCompress`, `gzipUncompress` |
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
 | `markdownString.bare` | Markdown model → Markdown text | `markdownToString` |
@@ -500,6 +530,7 @@ the `.bare` source.
 | `schemaDoc.bare` | Schema-markdown documentation app | `schemaDocMain`, `schemaDocMarkdown` |
 | `schemaParser.bare` | Parse Schema Markdown text into type models | `schemaParse`, `schemaParseEx` |
 | `schemaTypeModel.bare` | The Schema Markdown type model + validation | `schemaTypeModel`, `schemaTypeModelValidate`, `schemaTypeModelValidateEx` |
+| `tar.bare` | Create and extract tar archives of byte value arrays | `tarCreate`, `tarExtract` |
 | `unittest.bare` | Unit-test framework | `unittestRunTest`, `unittestEqual`, `unittestDeepEqual`, `unittestCoverageStart`, `unittestCoverageStop`, `unittestReport` |
 | `unittestMock.bare` | Mock library functions during tests | `unittestMockAll`, `unittestMockOne`, `unittestMockOneGeneric`, `unittestMockEnd` |
 | `url.bare` | Encode/decode URLs and URL query strings | `urlEncode`, `urlEncodeComponent`, `urlEncodeQueryString`, `urlDecodeQueryString`, `urlDecodeComponent` |
@@ -747,8 +778,8 @@ When code runs inside MarkdownUp, these "document" / "window"
   `documentInputValue(id)`, `documentFontSize()`, `documentSetFocus(id)`,
   `documentSetKeyDown(fn)`, `documentSetReset(id)`.
 - **Window:** `windowWidth()`, `windowHeight()`, `windowSetLocation(url)`,
-  `windowSetResize(fn)`, `windowSetTimeout(fn, ms)`, `windowURLObject(url)`,
-  `windowClipboardRead()`, `windowClipboardWrite(s)`,
+  `windowSetResize(fn)`, `windowSetTimeout(fn, ms)`, `windowURLObject(data, contentType?)`,
+  `windowClipboardRead()`, `windowClipboardWrite(textOrBytes, type?)`,
   `windowKeyState(code, ctrl?, shift?, alt?, meta?)`,
   `windowPlaySound(name)`.
 - **Storage:** `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear`.
@@ -1243,8 +1274,10 @@ Patterns:
   succeeds and returns `[]`, so consider guarding with `if arrayLength(urls):`
   before fetching to skip a wasted no-op call. A **request object**
   (`{'url': '...', 'body': '...'}`) is looked up by its `'url'` key — the body
-  is not part of the mock key. An unmocked URL returns `null` (that's the
-  error-path fixture: `unittestMockAll({})`).
+  and the `'binary'` flag are not part of the mock key, and the seeded value is
+  returned as-is, so seed a byte value array for a URL the app fetches with
+  `'binary': true`. An unmocked URL returns `null` (that's the error-path
+  fixture: `unittestMockAll({})`).
 - **`unittestMockOne(funcName, mockFunc)`** — replace one library function
   with `mockFunc` (a function value). `mockFunc` is called instead of the
   real implementation; its return value is what callers see. The call is
@@ -1260,7 +1293,8 @@ Patterns:
   (`documentFontSize` = 16, `windowWidth` = 1024, `windowHeight` = 768),
   `documentURL` (identity), `localStorageGet` / `sessionStorageGet`,
   `windowClipboardRead`, and `windowURLObject` (returns
-  `'blob:' + urlEncode(type) + '-' + urlEncode(first 20 chars)`) are mocked
+  `'blob:' + urlEncode(type) + '-' + urlEncode(first 20 chars)`, or the first
+  8 bytes comma-joined for a byte value array) are mocked
   but **not recorded**. Write expected pixel styles against those defaults.
   Seed storage *after* `unittestMockAll` so the mock store is the one being
   written; Set/Remove/Clear *are* recorded.

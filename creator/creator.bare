@@ -1,0 +1,441 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <args.bare>
+include <forms.bare>
+include <gzip.bare>
+include <markdown.bare>
+include <schema.bare>
+include <schemaParser.bare>
+include <tar.bare>
+include 'creatorFrontend.bare'
+include 'creatorUtil.bare'
+
+
+# The application arguments - "type" is the project type page (the landing page when absent), "create" is the
+# project type's created project page (the project is created from the form values kept for the browser session,
+# so the page survives a refresh), and "output" is a file path the project archive is written to instead of
+# creating a download link (for creating a project from the command line with "bare -m")
+creatorArguments = [ \
+    {'name': 'type'}, \
+    {'name': 'create', 'type': 'bool', 'explicit': true}, \
+    {'name': 'output', 'explicit': true} \
+]
+
+
+# The project types
+creatorTypes = [ \
+    creatorFrontendType \
+]
+
+
+# The project generation history's local storage key and maximum length
+creatorHistoryKey = 'creator.history'
+creatorHistoryMax = 50
+
+
+# The browser storage types - the generation history (local storage) and a project type's form values (session storage)
+creatorStorageTypes = schemaParse( \
+    '# A project generation history entry', \
+    'struct CreatorHistoryEntry', \
+    '', \
+    '    # The project type name - a string rather than an enum of the project types so that an entry of a project', \
+    '    # type that no longer exists is kept (the landing page shows it as unknown, with a remove control)', \
+    '    string type', \
+    '', \
+    '    # The project title', \
+    '    string title', \
+    '', \
+    '    # The generation datetime, ISO-formatted', \
+    '    string date', \
+    '', \
+    '    # The project type\'s form values', \
+    '    CreatorValues values', \
+    '', \
+    '', \
+    '# The project generation history, newest first', \
+    'typedef CreatorHistoryEntry[] CreatorHistory', \
+    '', \
+    '', \
+    '# A project type\'s form values, by field name', \
+    'typedef string{} CreatorValues' \
+)
+
+
+# The BareScript Creator main entry point
+async function creatorMain():
+    args = argsParse(creatorArguments)
+    typeName = objectGet(args, 'type')
+    type = creatorTypeFind(typeName)
+    if type == null:
+        creatorRenderLanding(if(typeName != null, 'Unknown project type "' + typeName + '"'), false)
+    elif objectGet(args, 'output') != null:
+        creatorCreate(type, creatorValuesLoad(type), objectGet(args, 'output'))
+    elif objectGet(args, 'create'):
+        creatorCreate(type, creatorValuesLoad(type), null)
+    else:
+        creatorRenderForm(type, creatorValuesLoad(type), [])
+    endif
+endfunction
+
+
+# Find a project type by name
+function creatorTypeFind(typeName):
+    for type in creatorTypes:
+        if objectGet(type, 'name') == typeName:
+            return type
+        endif
+    endfor
+    return null
+endfunction
+
+
+#
+# The landing page
+#
+
+
+# Render the landing page - the introduction, the project types, how it works, and the generation history.
+# If "confirmClear" is true, the history's clear control asks for confirmation.
+function creatorRenderLanding(error, confirmClear):
+    documentSetTitle('BareScript Creator')
+    markdownPrint( \
+        '# BareScript Creator', \
+        '', \
+        'BareScript Creator generates a [BareScript](https://craigahobbs.github.io/bare-script/) project from your ' + \
+        'specification. Choose a project type, fill in its form, and download the project archive. Its Makefile has ' + \
+        '[Claude Code](https://claude.com/product/claude-code#featureTerminal) write the code.' \
+    )
+    if error != null:
+        markdownPrint('', '**Error:** ' + markdownEscape(error))
+    endif
+    markdownPrint('', '## Project Types')
+    for type in creatorTypes:
+        markdownPrint('', '- ' + argsLink(creatorArguments, objectGet(type, 'title'), {'type': objectGet(type, 'name')}) + \
+            ' - ' + objectGet(type, 'description'))
+    endfor
+    markdownPrint( \
+        '', \
+        '## How It Works', \
+        '', \
+        '1. Fill in a project type\'s form and click **Create**. Your entries are kept for the browser session, and each', \
+        '   project you create is added to the history below.', \
+        '2. Extract the archive: `tar xzf <project>.tar.gz`.', \
+        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the `bare`', \
+        '   CLI and MarkdownUp, then runs Claude Code in your terminal:', \
+        '', \
+        '   ```', \
+        '   claude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
+        '   ```', \
+        '', \
+        '   Claude Code asks you to trust the new project directory, then reads `SPEC.md` (your specification plus', \
+        '   implementation instructions), `CLAUDE.md`, and the bundled bare-script skill, writes the code and its unit', \
+        '   tests, and runs `make commit` until they pass. File edits are pre-approved. When it finishes, exit the', \
+        '   session and `make run` serves the application.', \
+        '   [Claude Code](https://claude.com/product/claude-code#featureTerminal) must be installed and signed in.', \
+        '4. To improve the result, load the project from the history, refine the specification, and create it again -', \
+        '   or edit the project\'s `SPEC.md`, delete the generated code, and run `make run` again.', \
+        '', \
+        '## History' \
+    )
+    history = creatorHistoryLoad()
+    if !history:
+        markdownPrint('', 'No projects have been created yet.')
+        return
+    endif
+    for entry, ixEntry in history:
+        # An entry of an unknown project type can only be removed
+        type = creatorTypeFind(objectGet(entry, 'type'))
+        elements = [ \
+            {'text': stringReplace(stringSlice(objectGet(entry, 'date'), 0, 16), 'T', ' ') + ' - ' + \
+                if(type != null, objectGet(type, 'title'), 'Unknown project type "' + objectGet(entry, 'type') + '"') + ' - '}, \
+            {'html': 'b', 'elem': {'text': objectGet(entry, 'title')}}, \
+            {'text': ' '} \
+        ]
+        if type != null:
+            arrayPush(elements, formsLinkButtonElements('Load', systemPartial(creatorOnHistoryLoad, ixEntry)), {'text': ' | '})
+        endif
+        arrayPush(elements, formsLinkButtonElements('Remove', systemPartial(creatorOnHistoryRemove, ixEntry)))
+        elementModelRender({'html': 'p', 'elem': elements})
+    endfor
+    if confirmClear:
+        elementModelRender({'html': 'p', 'elem': [ \
+            {'text': 'Clear the history? '}, \
+            formsLinkButtonElements('Yes, Clear History', creatorOnHistoryClearConfirm), \
+            {'text': ' | '}, \
+            formsLinkButtonElements('Cancel', systemPartial(creatorRenderLanding, null, false)) \
+        ]})
+    else:
+        elementModelRender({'html': 'p', 'elem': formsLinkButtonElements('Clear History', systemPartial(creatorRenderLanding, null, true))})
+    endif
+endfunction
+
+
+# The history "Load" button click handler - restore the project's form values and open its project type page
+function creatorOnHistoryLoad(ixEntry):
+    entry = arrayGet(creatorHistoryLoad(), ixEntry)
+    type = creatorTypeFind(objectGet(entry, 'type'))
+    creatorValuesSave(type, objectGet(entry, 'values'))
+    windowSetLocation(argsURL(creatorArguments, {'type': objectGet(type, 'name')}))
+endfunction
+
+
+# The history "Remove" button click handler
+function creatorOnHistoryRemove(ixEntry):
+    history = creatorHistoryLoad()
+    arrayDelete(history, ixEntry)
+    creatorHistorySave(history)
+    creatorRenderLanding(null, false)
+endfunction
+
+
+# The "Yes, Clear History" button click handler
+function creatorOnHistoryClearConfirm():
+    localStorageRemove(creatorHistoryKey)
+    creatorRenderLanding(null, false)
+endfunction
+
+
+# Load the project generation history - newest first
+function creatorHistoryLoad():
+    historyJSON = localStorageGet(creatorHistoryKey)
+    history = if(historyJSON != null, schemaValidate(creatorStorageTypes, 'CreatorHistory', jsonParse(historyJSON)))
+    return if(history != null, history, [])
+endfunction
+
+
+function creatorHistorySave(history):
+    localStorageSet(creatorHistoryKey, jsonStringify(history))
+endfunction
+
+
+# Add a project to the generation history - a project created again with the same values replaces its entry
+function creatorHistoryAdd(type, title, values, datetime):
+    typeName = objectGet(type, 'name')
+    valuesJSON = jsonStringify(values)
+    history = [{'type': typeName, 'title': title, 'date': datetimeISOFormat(datetime), 'values': values}]
+    for entry in creatorHistoryLoad():
+        if objectGet(entry, 'type') != typeName || jsonStringify(objectGet(entry, 'values')) != valuesJSON:
+            arrayPush(history, entry)
+            if arrayLength(history) == creatorHistoryMax:
+                break
+            endif
+        endif
+    endfor
+    creatorHistorySave(history)
+endfunction
+
+
+#
+# The project type form page
+#
+
+
+# Render a project type's form with the current values and the error messages
+function creatorRenderForm(type, values, errors):
+    documentSetTitle(objectGet(type, 'title'))
+    markdownPrint( \
+        argsLink(creatorArguments, 'Back', {'type': null}), \
+        '', \
+        '# ' + objectGet(type, 'title'), \
+        '', \
+        objectGet(type, 'description') \
+    )
+    for error in errors:
+        markdownPrint('', '**Error:** ' + error)
+    endfor
+    elements = []
+    for field in objectGet(type, 'fields'):
+        arrayPush(elements, creatorFieldElements(type, field, objectGet(values, objectGet(field, 'name'), '')))
+    endfor
+    arrayPush(elements, {'html': 'p', 'elem': [ \
+        formsLinkButtonElements('Create', systemPartial(creatorOnCreate, type)), \
+        {'text': ' | '}, \
+        formsLinkButtonElements('Reset', systemPartial(creatorOnReset, type)) \
+    ]})
+    elementModelRender(elements)
+endfunction
+
+
+# The "Reset" button click handler - clear the form and its saved values, and return to the form page
+function creatorOnReset(type):
+    sessionStorageRemove(creatorValuesKey(type))
+    creatorRenderForm(type, {}, [])
+    windowSetLocation(argsURL(creatorArguments, {'type': objectGet(type, 'name')}))
+endfunction
+
+
+# Helper to create a form field's element model - a labeled text input or textarea that saves the form values on change
+function creatorFieldElements(type, field, value):
+    hint = objectGet(field, 'hint')
+    label = [{'html': 'b', 'elem': {'text': objectGet(field, 'label') + ':'}}]
+    if hint != null:
+        arrayPush(label, {'text': ' (' + hint + ')'})
+    endif
+    arrayPush(label, {'html': 'br'})
+    callback = {'change': systemPartial(creatorOnChange, type)}
+    if objectGet(field, 'multiline'):
+        input = { \
+            'html': 'textarea', \
+            'attr': {'id': creatorInputId(type, field), 'rows': '16', 'cols': '80'}, \
+            'elem': {'text': value}, \
+            'callback': callback \
+        }
+    else:
+        input = formsTextElements(creatorInputId(type, field), value, 50)
+        objectSet(input, 'callback', callback)
+    endif
+    arrayPush(label, input)
+    return {'html': 'p', 'elem': label}
+endfunction
+
+
+# Helper to compute a form field's input element ID
+function creatorInputId(type, field):
+    return 'creator-' + objectGet(type, 'name') + '-' + objectGet(field, 'name')
+endfunction
+
+
+# The form input change handler - save the form values for the browser session
+function creatorOnChange(type):
+    creatorValuesSave(type, creatorValuesRead(type))
+endfunction
+
+
+# The "Create" button click handler - save the form values and open the created project page. On the created
+# project page (a form with errors), create the project directly.
+async function creatorOnCreate(type):
+    values = creatorValuesRead(type)
+    creatorValuesSave(type, values)
+    if objectGet(argsParse(creatorArguments), 'create'):
+        creatorCreate(type, values, null)
+    else:
+        windowSetLocation(argsURL(creatorArguments, {'type': objectGet(type, 'name'), 'create': true}))
+    endif
+endfunction
+
+
+# Read a project type's trimmed form values from its inputs
+function creatorValuesRead(type):
+    values = {}
+    for field in objectGet(type, 'fields'):
+        value = documentInputValue(creatorInputId(type, field))
+        objectSet(values, objectGet(field, 'name'), if(value != null, stringTrim(value), ''))
+    endfor
+    return values
+endfunction
+
+
+# Load a project type's form values from the browser session
+function creatorValuesLoad(type):
+    valuesJSON = sessionStorageGet(creatorValuesKey(type))
+    values = if(valuesJSON != null, schemaValidate(creatorStorageTypes, 'CreatorValues', jsonParse(valuesJSON)))
+    return if(values != null, values, {})
+endfunction
+
+
+function creatorValuesSave(type, values):
+    sessionStorageSet(creatorValuesKey(type), jsonStringify(values))
+endfunction
+
+
+function creatorValuesKey(type):
+    return 'creator.' + objectGet(type, 'name')
+endfunction
+
+
+#
+# Project creation
+#
+
+
+# Create a project - the archive is written to the "output" file path, if any, or offered as a download
+async function creatorCreate(type, values, output):
+    # Validate the form values - every field is required, and then the project type validates
+    errors = []
+    for field in objectGet(type, 'fields'):
+        if !objectGet(values, objectGet(field, 'name')):
+            arrayPush(errors, objectGet(field, 'label') + ' is required')
+        endif
+    endfor
+    if !errors:
+        validateFn = objectGet(type, 'validate')
+        errors = validateFn(values)
+    endif
+    if errors:
+        creatorRenderForm(type, values, errors)
+        return
+    endif
+
+    # Fetch the bare-script skill - published beside the creator's parent directory, or two levels up in the
+    # repository (when the repository root is served by the markdown-up local server)
+    skillText = systemFetch('../SKILL.md')
+    if skillText == null:
+        skillText = systemFetch('../../SKILL.md')
+    endif
+    if skillText == null:
+        creatorRenderForm(type, values, ['Failed to fetch the bare-script skill'])
+        return
+    endif
+
+    # Create the project and its archive, and add the project to the history
+    projectFn = objectGet(type, 'project')
+    now = datetimeNow()
+    project = projectFn(values, skillText, now)
+    tarGzBytes = gzipCompress(tarCreate(objectGet(project, 'files')))
+    if output != null && systemFetch({'url': output, 'body': tarGzBytes}) == null:
+        creatorRenderForm(type, values, ['Failed to write "' + output + '"'])
+        return
+    endif
+    creatorHistoryAdd(type, objectGet(project, 'title'), values, now)
+    if output != null:
+        creatorRenderProject(type, project, null, output)
+    else:
+        creatorRenderProject(type, project, windowURLObject(tarGzBytes, 'application/gzip'), null)
+    endif
+endfunction
+
+
+# Render the created project - its download link (or the written file path), directory tree, and instructions
+function creatorRenderProject(type, project, url, output):
+    id = objectGet(project, 'id')
+    title = objectGet(project, 'title')
+    archive = if(output != null, output, id + '.tar.gz')
+    documentSetTitle(title)
+    markdownPrint(argsLink(creatorArguments, 'Back', {'type': objectGet(type, 'name')}), '', '# ' + markdownEscape(title))
+    if output != null:
+        markdownPrint('', 'Wrote `' + output + '`')
+    else:
+        elementModelRender({ \
+            'html': 'p', \
+            'elem': {'html': 'a', 'attr': {'href': url, 'download': archive}, 'elem': {'text': 'Download ' + archive}} \
+        })
+    endif
+
+    # The project directory tree
+    paths = []
+    for file in objectGet(project, 'files'):
+        arrayPush(paths, stringSlice(objectGet(file, 'name'), stringLength(id) + 1))
+    endfor
+    for generated in objectGet(project, 'generated'):
+        arrayPush(paths, generated + ' (generated by make)')
+    endfor
+    markdownPrint('', '```')
+    markdownPrint(creatorTreeLines(id, paths))
+    markdownPrint('```')
+
+    # The instructions
+    commands = ['tar xzf ' + archive, 'cd ' + id]
+    arrayExtend(commands, objectGet(project, 'commands'))
+    markdownPrint('', 'To generate the code:', '', '```')
+    markdownPrint(commands)
+    markdownPrint('```')
+    for note in objectGet(project, 'notes'):
+        markdownPrint('', note)
+    endfor
+    markdownPrint( \
+        '', \
+        'Claude Code asks you to trust the project directory when it starts; exit the session when it finishes. ' + \
+        'See [BareScript Creator](' + argsURL(creatorArguments, {'type': null}) + ') for details.' \
+    )
+endfunction

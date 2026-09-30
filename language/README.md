@@ -638,6 +638,7 @@ The operator type rules are as follows:
 
 - Multiplication (`*`), division (`/`), modulo (`%`), and exponentiation (`**`) work with:
   - number operator number
+  - The modulo result has the sign of the dividend (`-7 % 3` is `-1`)
 
 - Bitwise operators (`&`, `|`, `^`, `<<`, `>>`) require integer operands and return integers
 

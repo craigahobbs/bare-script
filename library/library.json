@@ -93,6 +93,11 @@
                     "description": "Parse BareScript text into BareScript models"
                 },
                 {
+                    "name": "base64.bare",
+                    "content": "include/base64-bare.md",
+                    "description": "Encode and decode base64 text"
+                },
+                {
                     "name": "data.bare",
                     "content": "include/data-bare.md",
                     "description": "Filter, sort, aggregate, and join tabular data"
@@ -126,6 +131,11 @@
                     "name": "forms.bare",
                     "content": "include/forms-bare.md",
                     "description": "Web forms and controls element model helpers"
+                },
+                {
+                    "name": "gzip.bare",
+                    "content": "include/gzip-bare.md",
+                    "description": "Compress and uncompress gzip data"
                 },
                 {
                     "name": "markdown.bare",
@@ -181,6 +191,11 @@
                     "name": "schemaTypeModel.bare",
                     "content": "include/schemaTypeModel-bare.md",
                     "description": "The Schema Markdown type model and type model validation"
+                },
+                {
+                    "name": "tar.bare",
+                    "content": "include/tar-bare.md",
+                    "description": "Create and extract tar archives"
                 },
                 {
                     "name": "unittest.bare",
