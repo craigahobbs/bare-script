@@ -9,6 +9,7 @@ include <baredocCLI.bare>
 include <barescriptLint.bare>
 include <barescriptModel.bare>
 include <barescriptParser.bare>
+include <base64.bare>
 include <data.bare>
 include <dataLineChart.bare>
 include <dataTable.bare>
@@ -17,6 +18,7 @@ include <diff.bare>
 include <draw.bare>
 include <elementModel.bare>
 include <forms.bare>
+include <gzip.bare>
 include <markdown.bare>
 include <markdownElements.bare>
 include <markdownHighlight.bare>
@@ -29,6 +31,7 @@ include <schemaDoc.bare>
 include <schemaParser.bare>
 include <schemaTypeModel.bare>
 include <schemaUtil.bare>
+include <tar.bare>
 include <unittest.bare>
 include <unittestMock.bare>
 include <url.bare>
@@ -43,6 +46,7 @@ include '../baredocCLI.bare'
 include '../barescriptLint.bare'
 include '../barescriptModel.bare'
 include '../barescriptParser.bare'
+include '../base64.bare'
 include '../data.bare'
 include '../dataLineChart.bare'
 include '../dataTable.bare'
@@ -51,6 +55,7 @@ include '../diff.bare'
 include '../draw.bare'
 include '../elementModel.bare'
 include '../forms.bare'
+include '../gzip.bare'
 include '../markdown.bare'
 include '../markdownElements.bare'
 include '../markdownHighlight.bare'
@@ -63,6 +68,7 @@ include '../schemaDoc.bare'
 include '../schemaParser.bare'
 include '../schemaTypeModel.bare'
 include '../schemaUtil.bare'
+include '../tar.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
 include '../url.bare'
@@ -74,6 +80,7 @@ include 'testBaredocCLI.bare'
 include 'testBarescriptLint.bare'
 include 'testBarescriptModel.bare'
 include 'testBarescriptParser.bare'
+include 'testBase64.bare'
 include 'testData.bare'
 include 'testDataLineChart.bare'
 include 'testDataTable.bare'
@@ -82,6 +89,7 @@ include 'testDiff.bare'
 include 'testDraw.bare'
 include 'testElementModel.bare'
 include 'testForms.bare'
+include 'testGzip.bare'
 include 'testMarkdown.bare'
 include 'testMarkdownElements.bare'
 include 'testMarkdownHighlight.bare'
@@ -97,6 +105,7 @@ include 'testSchemaDoc.bare'
 include 'testSchemaDocMain.bare'
 include 'testSchemaParser.bare'
 include 'testSchemaTypeModel.bare'
+include 'testTar.bare'
 include 'testUnittest.bare'
 include 'testUnittestMock.bare'
 include 'testUrl.bare'

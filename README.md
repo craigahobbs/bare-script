@@ -21,6 +21,7 @@ confident that BareScript will execute the same regardless of the underlying run
 
 - [The BareScript Language](https://craigahobbs.github.io/bare-script/language/)
 - [The BareScript Library](https://craigahobbs.github.io/bare-script/library/)
+- [BareScript Creator](https://craigahobbs.github.io/bare-script/creator/)
 - [API Documentation](https://craigahobbs.github.io/bare-script/)
 - [Source code](https://github.com/craigahobbs/bare-script)
 
@@ -273,6 +274,17 @@ To run a MarkdownUp script (`.bare`) from this package, use `bare -m` (Markdown 
 (HTML). To view a MarkdownUp document (`.md` with `markdown-script` blocks), install the
 [markdown-up](https://github.com/craigahobbs/markdown-up-py#readme) viewer or open the file in the
 [MarkdownUp web app](https://craigahobbs.github.io/markdown-up/).
+
+
+## BareScript Creator
+
+[BareScript Creator](https://craigahobbs.github.io/bare-script/creator/) generates a ready-to-build
+BareScript project from a specification you write. Choose a project type (a MarkdownUp frontend
+application, to start), fill in its form, and download the project as a `.tar.gz` archive with a
+Makefile, a unit test suite, and the bare-script skill. In the project directory, `make run` has
+[Claude Code](https://claude.com/product/claude-code#featureTerminal), in your terminal, write the
+code and its tests from your specification, then serves the application in your browser. The
+creator keeps a history of your projects so you can refine a specification and create it again.
 
 
 ## Performance

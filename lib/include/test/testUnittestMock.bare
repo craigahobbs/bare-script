@@ -70,6 +70,8 @@ async function testUnittestMockAll():
     windowSetTimeout(null, 1000)
     unittestEqual(windowURLObject('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
     unittestEqual(windowURLObject('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
+    unittestEqual(windowURLObject([0, 128, 255], 'application/octet-stream'), 'blob:application/octet-stream-0,128,255')
+    unittestEqual(windowURLObject(arrayNewSize(30, 7), 'application/gzip'), 'blob:application/gzip-7,7,7,7,7,7,7,7')
     unittestEqual(windowWidth(), 1024)
 
     # Reset mocks

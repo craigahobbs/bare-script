@@ -2,6 +2,7 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {fetchReadOnly, fetchReadWrite, logStdout} from '../lib/optionsNode.js';
+import {Buffer} from 'node:buffer';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
 
@@ -91,6 +92,50 @@ test('fetchReadWrite, file write', async () => {
     assert.equal(await response.text(), '{}');
     assert.deepEqual(calls, [
         ['writeFile', ['test.txt', 'Hello']]
+    ]);
+});
+
+
+test('fetchReadWrite, file read binary', async () => {
+    const calls = [];
+    const mockReadFile = (...args) => {
+        calls.push(['readFile', args]);
+        // A Buffer slice of a larger pool - the bytes must be copied from its offset
+        return Buffer.from('xxHelloxx').subarray(2, 7);
+    };
+
+    const response = await fetchReadWrite('test.bin', null, null, mockReadFile, null);
+    assert.equal(response.ok, true);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [72, 101, 108, 108, 111]);
+    assert.deepEqual(calls, [
+        ['readFile', ['test.bin']]
+    ]);
+});
+
+
+test('fetchReadWrite, file write binary response', async () => {
+    const calls = [];
+    const mockWriteFile = (...args) => calls.push(['writeFile', args]);
+
+    const response = await fetchReadWrite('test.txt', {'body': 'Hello'}, null, null, mockWriteFile);
+    assert.equal(response.ok, true);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [123, 125]);
+    assert.deepEqual(calls, [
+        ['writeFile', ['test.txt', 'Hello']]
+    ]);
+});
+
+
+test('fetchReadWrite, file write binary', async () => {
+    const calls = [];
+    const mockWriteFile = (...args) => calls.push(['writeFile', args]);
+
+    const bytes = new Uint8Array([0, 128, 255]);
+    const response = await fetchReadWrite('test.bin', {'body': bytes}, null, null, mockWriteFile);
+    assert.equal(response.ok, true);
+    assert.equal(await response.text(), '{}');
+    assert.deepEqual(calls, [
+        ['writeFile', ['test.bin', bytes]]
     ]);
 });
 

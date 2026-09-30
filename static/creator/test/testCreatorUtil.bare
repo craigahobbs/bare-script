@@ -1,0 +1,104 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include '../creatorUtil.bare'
+
+
+function testCreatorAppId():
+    unittestEqual(creatorAppId('Fungus Simulator'), 'fungusSimulator')
+    unittestEqual(creatorAppId('fungus simulator'), 'fungusSimulator')
+    unittestEqual(creatorAppId('myApp'), 'myApp')
+    unittestEqual(creatorAppId('MyApp'), 'myApp')
+    unittestEqual(creatorAppId('NASA Tracker'), 'nasaTracker')
+    unittestEqual(creatorAppId('HTML Viewer'), 'htmlViewer')
+    unittestEqual(creatorAppId('Viewer HTML'), 'viewerHTML')
+    unittestEqual(creatorAppId("  Bob's To-Do List!  "), 'bobSToDoList')
+    unittestEqual(creatorAppId('3D Viewer'), '3dViewer')
+    unittestEqual(creatorAppId('---'), '')
+    unittestEqual(creatorAppId(''), '')
+endfunction
+unittestRunTest('testCreatorAppId')
+
+
+function testCreatorText():
+    unittestEqual(creatorText(['a', 'b']), 'a\nb\n')
+    unittestEqual(creatorText([]), '\n')
+endfunction
+unittestRunTest('testCreatorText')
+
+
+function testCreatorFileMarkdownLines():
+    unittestEqual(creatorFileMarkdownLines(["include 'app.bare'", '', 'appMain()']), "~~~ markdown-script\ninclude 'app.bare'\n\nappMain()\n~~~\n")
+endfunction
+unittestRunTest('testCreatorFileMarkdownLines')
+
+
+function testCreatorEscapeHTML():
+    unittestEqual(creatorEscapeHTML('Says "hi" & <bye>'), 'Says &quot;hi&quot; &amp; &lt;bye&gt;')
+    unittestEqual(creatorEscapeHTML('plain'), 'plain')
+endfunction
+unittestRunTest('testCreatorEscapeHTML')
+
+
+function testCreatorFileIndex():
+    text = creatorFileIndex('My App', 'A test application', 'myApp.md')
+    unittestEqual(stringIndexOf(text, '<title>My App</title>') >= 0, true)
+    unittestEqual(stringIndexOf(text, '<meta name="description" content="A test application">') >= 0, true)
+    unittestEqual(stringIndexOf(text, "new MarkdownUp(window, {'url': 'myApp.md'})") >= 0, true)
+
+    # Escaped title and description
+    text = creatorFileIndex('A & B', 'Says "hi"', 'ab.md')
+    unittestEqual(stringIndexOf(text, '<title>A &amp; B</title>') >= 0, true)
+    unittestEqual(stringIndexOf(text, '<meta name="description" content="Says &quot;hi&quot;">') >= 0, true)
+endfunction
+unittestRunTest('testCreatorFileIndex')
+
+
+function testCreatorFileLICENSE():
+    lines = stringSplitLines(creatorFileLICENSE('Jane Doe', 2026))
+    unittestEqual(arrayGet(lines, 0), 'The MIT License (MIT)')
+    unittestEqual(arrayGet(lines, 2), 'Copyright (c) 2026 Jane Doe')
+    unittestEqual(arrayLength(lines), 22)
+endfunction
+unittestRunTest('testCreatorFileLICENSE')
+
+
+function testCreatorTreeLines():
+    unittestDeepEqual(creatorTreeLines('app', ['b.txt', 'A.txt', 'dir/c.txt', 'dir/sub/d.txt', 'dir/sub/e.txt', '.hidden/f.txt']), [ \
+        'app', \
+        '├── A.txt', \
+        '├── b.txt', \
+        '├── .hidden', \
+        '│   └── f.txt', \
+        '└── dir', \
+        '    ├── c.txt', \
+        '    └── sub', \
+        '        ├── d.txt', \
+        '        └── e.txt' \
+    ])
+    unittestDeepEqual(creatorTreeLines('app', []), ['app'])
+endfunction
+unittestRunTest('testCreatorTreeLines')
+
+
+function testCreatorMakefilePythonBuildLines():
+    lines = creatorMakefilePythonBuildLines('bare-script pylint')
+    unittestEqual(arrayGet(lines, 0), '# Download python-build')
+    unittestEqual(arrayIndexOf(lines, 'include Makefile.tool') > 0, true)
+    unittestEqual(arrayGet(lines, arrayLength(lines) - 3), 'TESTS_REQUIRE := bare-script pylint')
+    unittestDeepEqual(arraySlice(lines, arrayLength(lines) - 2), ['', ''])
+endfunction
+unittestRunTest('testCreatorMakefilePythonBuildLines')
+
+
+function testCreatorMakefileClaudeRuleLines():
+    lines = creatorMakefileClaudeRuleLines('service.py', 'the service')
+    unittestEqual(arrayGet(lines, 0), "# Generate the service from its specification, if it doesn't exist. Claude Code runs interactively with")
+    unittestEqual(arrayGet(lines, 2), 'service.py: | $(DEFAULT_VENV_BUILD)')
+    unittestEqual(arrayGet(lines, 3), \
+        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }')
+    unittestEqual(arrayGet(lines, arrayLength(lines) - 1), '\ttest -f $@')
+    unittestEqual(arrayIndexOf(lines, '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md') > 0, true)
+endfunction
+unittestRunTest('testCreatorMakefileClaudeRuleLines')

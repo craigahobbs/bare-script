@@ -2105,6 +2105,12 @@ test('evaluateExpression, binary modulus', () => {
     let expr = barescriptValidateExpression({'binary': {'op': '%', 'left': {'number': 10}, 'right': {'function': {'name': 'testNumber'}}}});
     assert.equal(evaluateExpression(expr, options), 0);
 
+    // The remainder has the dividend's sign (a negative dividend's zero remainder is JavaScript's negative zero)
+    for (const [left, right, expected] of [[7, 512, 7], [-7, 512, -7], [7, -512, 7], [-7, -512, -7], [-7.5, 2, -1.5], [-4, 2, -0]]) {
+        expr = barescriptValidateExpression({'binary': {'op': '%', 'left': {'number': left}, 'right': {'number': right}}});
+        assert.equal(evaluateExpression(expr, options), expected, `${left} % ${right}`);
+    }
+
     // Invalid - bool % number
     expr = barescriptValidateExpression({'binary': {
         'op': '%',

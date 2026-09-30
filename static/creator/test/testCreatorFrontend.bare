@@ -1,0 +1,134 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include '../creatorFrontend.bare'
+
+
+testCreatorFrontendValues = { \
+    'copyright': 'Jane Doe', \
+    'name': 'My App', \
+    'description': 'A test application', \
+    'spec': 'Show a list of items.\nLet the user add items.' \
+}
+
+
+function testCreatorFrontendType():
+    unittestEqual(objectGet(creatorFrontendType, 'name'), 'frontend')
+    unittestEqual(objectGet(creatorFrontendType, 'title'), 'Frontend Application')
+    fieldNames = []
+    for field in objectGet(creatorFrontendType, 'fields'):
+        arrayPush(fieldNames, objectGet(field, 'name'))
+    endfor
+    unittestDeepEqual(fieldNames, ['copyright', 'name', 'description', 'spec'])
+    unittestEqual(objectGet(creatorFrontendType, 'validate'), creatorFrontendValidate)
+    unittestEqual(objectGet(creatorFrontendType, 'project'), creatorFrontendProject)
+endfunction
+unittestRunTest('testCreatorFrontendType')
+
+
+function testCreatorFrontendValidate():
+    unittestDeepEqual(creatorFrontendValidate(testCreatorFrontendValues), [])
+    unittestDeepEqual(creatorFrontendValidate({'name': '3D Viewer'}), \
+        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
+    unittestDeepEqual(creatorFrontendValidate({}), \
+        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
+endfunction
+unittestRunTest('testCreatorFrontendValidate')
+
+
+function testCreatorFrontendProject():
+    mtime = datetimeISOParse('2026-09-29T12:00:00Z')
+    project = creatorFrontendProject(testCreatorFrontendValues, '# Skill\n', mtime)
+    unittestEqual(objectGet(project, 'id'), 'myApp')
+    unittestEqual(objectGet(project, 'title'), 'My App')
+    unittestDeepEqual(objectGet(project, 'generated'), ['myApp.bare'])
+    unittestDeepEqual(objectGet(project, 'commands'), ['make run'])
+    unittestDeepEqual(objectGet(project, 'notes'), [ \
+        'The first `make run` has Claude Code generate `myApp.bare` from `SPEC.md`, then serves the application in your browser.' \
+    ])
+    files = objectGet(project, 'files')
+    names = []
+    for file in files:
+        arrayPush(names, objectGet(file, 'name'))
+        unittestEqual(objectGet(file, 'mtime'), mtime)
+    endfor
+    unittestDeepEqual(names, [ \
+        'myApp/.gitignore', \
+        'myApp/.nojekyll', \
+        'myApp/CLAUDE.md', \
+        'myApp/index.html', \
+        'myApp/LICENSE', \
+        'myApp/Makefile', \
+        'myApp/myApp.md', \
+        'myApp/SPEC.md', \
+        'myApp/.claude/skills/bare-script/SKILL.md', \
+        'myApp/test/index.html', \
+        'myApp/test/runTests.bare', \
+        'myApp/test/runTests.md', \
+        'myApp/test/testMyApp.bare' \
+    ])
+    texts = {}
+    for file in files:
+        objectSet(texts, objectGet(file, 'name'), objectGet(file, 'bytes'))
+    endfor
+
+    # .gitignore and .nojekyll
+    unittestEqual(objectGet(texts, 'myApp/.gitignore'), '/build/\n/Makefile.tool\n')
+    unittestEqual(objectGet(texts, 'myApp/.nojekyll'), '')
+
+    # CLAUDE.md
+    claudeLines = stringSplitLines(objectGet(texts, 'myApp/CLAUDE.md'))
+    unittestEqual(arrayGet(claudeLines, 0), '# CLAUDE.md')
+    unittestEqual(arrayGet(claudeLines, 7), '[MarkdownUp](https://craigahobbs.github.io/markdown-up/). A test application')
+    unittestEqual(arrayGet(claudeLines, 10), '`myAppMain()` is called from `myApp.md`, and its unit tests are in `test/testMyApp.bare`.')
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/CLAUDE.md'), 'publishable as-is on GitHub Pages') >= 0, true)
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/CLAUDE.md'), 'not for a coding agent') >= 0, true)
+
+    # index.html
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/index.html'), "new MarkdownUp(window, {'url': 'myApp.md'})") >= 0, true)
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/index.html'), '<title>My App</title>') >= 0, true)
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/test/index.html'), "new MarkdownUp(window, {'url': 'runTests.md'})") >= 0, true)
+
+    # LICENSE
+    unittestEqual(arrayGet(stringSplitLines(objectGet(texts, 'myApp/LICENSE')), 2), 'Copyright (c) 2026 Jane Doe')
+
+    # Makefile
+    makefile = objectGet(texts, 'myApp/Makefile')
+    unittestEqual(stringIndexOf(makefile, 'include Makefile.tool\n') >= 0, true)
+    unittestEqual(stringIndexOf(makefile, 'TESTS_REQUIRE := bare-script markdown-up\n') >= 0, true)
+    unittestEqual(stringIndexOf(makefile, 'APP := myApp\n') >= 0, true)
+    rule = '$(APP).bare: | $(DEFAULT_VENV_BUILD)\n' + \
+        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }\n' + \
+        '\t@echo\n\t@echo "========================================================================"\n' + \
+        '\t@echo "  Generating $@ from SPEC.md with Claude Code..."\n' + \
+        '\t@echo "========================================================================"\n\t@echo\n' + \
+        '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md\n\ttest -f $@\n'
+    unittestEqual(stringIndexOf(makefile, rule) >= 0, true)
+    unittestEqual(stringIndexOf(makefile, 'test: $(DEFAULT_VENV_BUILD) $(APP).bare\n') >= 0, true)
+    unittestEqual(stringIndexOf(makefile, 'run: $(DEFAULT_VENV_BUILD) $(APP).bare\n\t$(DEFAULT_VENV_BIN)/markdown-up $(APP).md\n') >= 0, true)
+
+    # myApp.md and runTests.md
+    unittestEqual(objectGet(texts, 'myApp/myApp.md'), "~~~ markdown-script\ninclude 'myApp.bare'\n\nmyAppMain()\n~~~\n")
+    unittestEqual(objectGet(texts, 'myApp/test/runTests.md'), "~~~ markdown-script\ninclude 'runTests.bare'\n~~~\n")
+
+    # SPEC.md
+    specLines = stringSplitLines(objectGet(texts, 'myApp/SPEC.md'))
+    unittestEqual(arrayGet(specLines, 0), '# My App')
+    unittestEqual(arrayGet(specLines, 2), 'A test application')
+    unittestEqual(arrayGet(specLines, 6), 'Show a list of items.')
+    unittestEqual(arrayGet(specLines, 7), 'Let the user add items.')
+    unittestEqual(arrayGet(specLines, 14), '- Implement the application in `myApp.bare` with the main function `myAppMain()`, which')
+    unittestEqual(arrayGet(specLines, 20), '- Do not run `make run` - it starts a web server that never returns. The user runs it after this session ends.')
+
+    # The skill
+    unittestEqual(objectGet(texts, 'myApp/.claude/skills/bare-script/SKILL.md'), '# Skill\n')
+
+    # The tests
+    unittestEqual(stringIndexOf(objectGet(texts, 'myApp/test/runTests.bare'), "include 'testMyApp.bare'\n") >= 0, true)
+    unittestEqual(objectGet(texts, 'myApp/test/testMyApp.bare'), \
+        "include <unittest.bare>\ninclude <unittestMock.bare>\ninclude '../myApp.bare'\n\n\n" + \
+        "function testMyAppMain():\n    unittestMockAll()\n    myAppMain()\n" + \
+        "    unittestEqual(arrayLength(unittestMockEnd()) > 0, true)\nendfunction\nunittestRunTest('testMyAppMain')\n")
+endfunction
+unittestRunTest('testCreatorFrontendProject')

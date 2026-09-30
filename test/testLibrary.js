@@ -158,6 +158,10 @@ test('library, arrayExtend', () => {
     assert.deepEqual(result, [1, 2, 3, 4, 5, 6]);
     assert.equal(result, array);
 
+    // Large array
+    const large = new Array(200000).fill(0);
+    assert.equal(scriptFunctions.arrayExtend([[1], large], null).length, 200001);
+
     // Non-array
     assert.throws(
         () => {
@@ -3905,16 +3909,18 @@ test('library, systemFetch', async () => {
         const body = fetchOptions.body ?? null;
         const headers = fetchOptions.headers ?? null;
         const method = fetchOptions.method ?? 'GET';
-        const bodyMsg = body !== null ? ` - ${body}` : '';
+        const bodyMsg = body !== null ? ` - ${body instanceof Uint8Array ? `bytes ${[...body]}` : body}` : '';
         const headersMsg = headers !== null ? ` - ${valueJSON(headers)}` : '';
+        const responseText = `${method} ${fetchURL}${bodyMsg}${headersMsg}`;
         return {
             'ok': true,
             'text': () => {
                 if (fetchURL.startsWith('textRaise')) {
                     throw Error(fetchURL);
                 }
-                return `${method} ${fetchURL}${bodyMsg}${headersMsg}`;
-            }
+                return responseText;
+            },
+            'arrayBuffer': () => new TextEncoder().encode(responseText).buffer
         };
     };
 
@@ -3957,6 +3963,40 @@ test('library, systemFetch', async () => {
     logs = [];
     assert.deepEqual(await scriptFunctions.systemFetch([[]], options), []);
     assert.deepEqual(logs, []);
+
+    // Binary response
+    logs = [];
+    assert.deepEqual(
+        await scriptFunctions.systemFetch([{'url': 'test.bin', 'binary': true}], options),
+        [...new TextEncoder().encode('GET test.bin')]
+    );
+    assert.deepEqual(logs, []);
+
+    // Binary false
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.bin', 'binary': false}], options), 'GET test.bin');
+    assert.deepEqual(logs, []);
+
+    // Byte array body
+    logs = [];
+    assert.equal(
+        await scriptFunctions.systemFetch([{'url': 'test.bin', 'body': [0, 128, 255]}], options),
+        'POST test.bin - bytes 0,128,255'
+    );
+    assert.deepEqual(logs, []);
+
+    // Byte array body, empty
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.bin', 'body': []}], options), 'POST test.bin - bytes ');
+    assert.deepEqual(logs, []);
+
+    // Binary response error
+    logs = [];
+    assert.equal(
+        await scriptFunctions.systemFetch([{'url': 'test.bin', 'binary': true}], {'debug': true, 'fetchFn': () => ({'ok': true}), logFn}),
+        null
+    );
+    assert.deepEqual(logs, ['BareScript: Function "systemFetch" failed for resource "test.bin"']);
 
     // URL function
     logs = [];
@@ -4001,7 +4041,7 @@ test('library, systemFetch', async () => {
 
     // Invalid request model
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([{}], options);
             /* c8 ignore next */
@@ -4016,7 +4056,7 @@ test('library, systemFetch', async () => {
 
     // Invalid array of request models
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([[{}]], options);
             /* c8 ignore next */
@@ -4031,7 +4071,7 @@ test('library, systemFetch', async () => {
 
     // Invalid request model body
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([{'url': 'test.txt', 'body': 7}], options);
             /* c8 ignore next */
@@ -4044,9 +4084,41 @@ test('library, systemFetch', async () => {
     );
     assert.deepEqual(logs, []);
 
+    // Invalid request model body byte
+    logs = [];
+    for (const byte of [256, -1, 1.5, 'x', null, true, Infinity, NaN]) {
+        await assert.rejects(
+            async () => {
+                await scriptFunctions.systemFetch([{'url': 'test.txt', 'body': [0, byte]}], options);
+                /* c8 ignore next */
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "url" argument value, {"body":[0,${valueJSON(byte)}],"url":"test.txt"}`,
+                'returnValue': null
+            }
+        );
+    }
+    assert.deepEqual(logs, []);
+
+    // Invalid request model binary
+    logs = [];
+    await assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{'url': 'test.txt', 'binary': 1}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {"binary":1,"url":"test.txt"}',
+            'returnValue': null
+        }
+    );
+    assert.deepEqual(logs, []);
+
     // Invalid request model headers
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([{'url': 'test.txt', 'headers': 7}], options);
             /* c8 ignore next */
@@ -4061,7 +4133,7 @@ test('library, systemFetch', async () => {
 
     // Invalid request model header value
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([{'url': 'test.txt', 'headers': {'HEADER': 7}}], options);
             /* c8 ignore next */
@@ -4076,7 +4148,7 @@ test('library, systemFetch', async () => {
 
     // Unexpected input type
     logs = [];
-    assert.rejects(
+    await assert.rejects(
         async () => {
             await scriptFunctions.systemFetch([null], {logFn});
             /* c8 ignore next */

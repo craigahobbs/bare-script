@@ -2,13 +2,13 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, dataAggregate, dataCalculatedField, dataFilter, dataJoin,
-    dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop,
-    dataValidate, elementModelToString, elementModelValidate, includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape,
-    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownToString, markdownValidate, qrcodeElements,
-    qrcodeMatrix,
-    schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel,
-    schemaTypeModelValidate, schemaValidate, urlDecodeComponent, urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
+    barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, base64Decode, base64Encode, dataAggregate,
+    dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort, dataTableElements,
+    dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString, elementModelValidate, gzipCompress, gzipUncompress,
+    includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape, markdownHeaderId, markdownParagraphText, markdownParse,
+    markdownTitle, markdownToString, markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues,
+    schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel, schemaTypeModelValidate, schemaValidate, tarCreate,
+    tarExtract, urlDecodeComponent, urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
 import {strict as assert} from 'node:assert';
 import test from 'node:test';
@@ -389,6 +389,57 @@ test('schemaTypeModel, schemaTypeModelValidate error', () => {
             'memberFqn': null
         }
     );
+});
+
+
+test('base64, base64Decode', () => {
+    assert.deepEqual(base64Decode('aGVsbG8='), [104, 101, 108, 108, 111]);
+    assert.equal(base64Decode('!!!!'), null);
+});
+
+
+test('base64, base64Encode', () => {
+    assert.equal(base64Encode([104, 101, 108, 108, 111]), 'aGVsbG8=');
+    assert.equal(base64Encode('hello'), 'aGVsbG8=');
+    assert.equal(base64Encode([256]), null);
+});
+
+
+test('gzip, gzipCompress', () => {
+    const bytes = [...new TextEncoder().encode('hello hello hello')];
+    const compressed = gzipCompress(bytes);
+    assert.deepEqual(compressed.slice(0, 3), [31, 139, 8]);
+    assert.deepEqual(gzipUncompress(compressed), bytes);
+    assert.deepEqual(gzipUncompress(gzipCompress(bytes, 0)), bytes);
+    assert.deepEqual(gzipUncompress(gzipCompress('hello hello hello')), bytes);
+    assert.equal(gzipCompress(bytes, 10), null);
+});
+
+
+test('gzip, gzipUncompress', () => {
+    assert.deepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAC/8tIzcnJBwCGphA2BQAAAA==')), [104, 101, 108, 108, 111]);
+    assert.equal(gzipUncompress([1, 2, 3]), null);
+});
+
+
+test('tar, tarCreate', () => {
+    const files = [{'name': 'hello.txt', 'bytes': [104, 105]}];
+    const tarBytes = tarCreate(files);
+    assert.equal(tarBytes.length, 2048);
+    assert.deepEqual(tarExtract(tarBytes), [{'name': 'hello.txt', 'bytes': [104, 105], 'mtime': new Date(0)}]);
+    assert.deepEqual(tarCreate([{'name': 'hello.txt', 'bytes': 'hi'}]), tarBytes);
+    const mtime = new Date(Date.UTC(2024, 2, 5, 12, 34, 56));
+    assert.deepEqual(
+        tarExtract(tarCreate([{'name': 'hello.txt', 'bytes': [104, 105], mtime}])),
+        [{'name': 'hello.txt', 'bytes': [104, 105], mtime}]
+    );
+    assert.equal(tarCreate([{'name': 'hello.txt'}]), null);
+});
+
+
+test('tar, tarExtract', () => {
+    assert.deepEqual(tarExtract(new Array(1024).fill(0)), []);
+    assert.equal(tarExtract(new Array(512).fill(1)), null);
 });
 
 

@@ -1,0 +1,806 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../base64.bare'
+include '../gzip.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testGzipBytes(values):
+    bytes = []
+    for value in values:
+        arrayPush(bytes, value)
+    endfor
+    return bytes
+endfunction
+
+
+function testGzipRange(start, end):
+    bytes = []
+    value = start
+    while value < end:
+        arrayPush(bytes, value)
+        value = value + 1
+    endwhile
+    return bytes
+endfunction
+
+
+function testGzipRepeat(byte, count):
+    return arrayNewSize(count, byte)
+endfunction
+
+
+# Write a Huffman table's code for a symbol
+function testGzipHuffmanWrite(writer, table, symbol):
+    gzipWriteBits(writer, arrayGet(arrayGet(table, 3), symbol), arrayGet(arrayGet(table, 4), symbol))
+endfunction
+
+
+function testGzipRoundTrip(bytes):
+    encoded = gzipCompress(bytes)
+    unittestEqual(systemType(encoded), 'array')
+    unittestDeepEqual(gzipUncompress(encoded), bytes)
+endfunction
+
+
+function testGzipWrap(deflateBytes):
+    bytes = [31, 139, 8, 0, 0, 0, 0, 0, 0, 255]
+    arrayExtend(bytes, deflateBytes)
+    arrayExtend(bytes, [0, 0, 0, 0, 0, 0, 0, 0])
+    return gzipUncompress(bytes)
+endfunction
+
+
+function testGzipBitsToBytes(bitString):
+    bytes = []
+    length = stringLength(bitString)
+    ix = 0
+    while ix < length:
+        value = 0
+        k = 0
+        while k < 8 && ix + k < length:
+            if stringCharAt(bitString, ix + k) == '1':
+                value = value + (1 << k)
+            endif
+            k = k + 1
+        endwhile
+        arrayPush(bytes, value)
+        ix = ix + 8
+    endwhile
+    return bytes
+endfunction
+
+
+#
+# Round-trip
+#
+
+
+function testGzipCompressEmpty():
+    testGzipRoundTrip([])
+endfunction
+unittestRunTest('testGzipCompressEmpty')
+
+
+function testGzipCompressHello():
+    testGzipRoundTrip(stringEncode('hello'))
+endfunction
+unittestRunTest('testGzipCompressHello')
+
+
+function testGzipCompressString():
+    unittestDeepEqual(gzipCompress('hello'), gzipCompress(stringEncode('hello')))
+    unittestDeepEqual(gzipUncompress(gzipCompress('ünïcödé', 1)), stringEncode('ünïcödé'))
+    unittestDeepEqual(gzipUncompress(gzipCompress('')), [])
+endfunction
+unittestRunTest('testGzipCompressString')
+
+
+function testGzipCompressOneByte():
+    testGzipRoundTrip([0])
+    testGzipRoundTrip([255])
+    testGzipRoundTrip([97])
+endfunction
+unittestRunTest('testGzipCompressOneByte')
+
+
+function testGzipCompressTwoBytes():
+    testGzipRoundTrip([1, 2])
+endfunction
+unittestRunTest('testGzipCompressTwoBytes')
+
+
+function testGzipCompressThreeBytes():
+    testGzipRoundTrip([1, 2, 3])
+endfunction
+unittestRunTest('testGzipCompressThreeBytes')
+
+
+function testGzipCompressAllBytes():
+    testGzipRoundTrip(testGzipRange(0, 256))
+endfunction
+unittestRunTest('testGzipCompressAllBytes')
+
+
+function testGzipCompressRepeats():
+    testGzipRoundTrip(testGzipRepeat(0, 64))
+    testGzipRoundTrip(testGzipRepeat(97, 300))
+    testGzipRoundTrip(stringEncode(stringRepeat('{"lineNumber":1}', 50)))
+endfunction
+unittestRunTest('testGzipCompressRepeats')
+
+
+function testGzipCompressMatch():
+    testGzipRoundTrip(stringEncode('abcabcabcabc'))
+    testGzipRoundTrip(stringEncode('The quick brown fox jumps over the lazy dog. ' + \
+        'The quick brown fox jumps over the lazy dog.'))
+endfunction
+unittestRunTest('testGzipCompressMatch')
+
+
+function testGzipCompressLevel():
+    bytes = stringEncode(stringRepeat('{"lineNumber":1}', 50))
+    unittestDeepEqual(gzipCompress(bytes), gzipCompress(bytes, 6))
+    unittestDeepEqual(gzipUncompress(gzipCompress(bytes, 0)), bytes)
+    unittestDeepEqual(gzipUncompress(gzipCompress(bytes, 1)), bytes)
+    unittestDeepEqual(gzipUncompress(gzipCompress(bytes, 9)), bytes)
+    unittestEqual(arrayLength(gzipCompress(bytes, 0)) > arrayLength(gzipCompress(bytes, 9)), true)
+    unittestEqual(arrayGet(gzipCompress([1], 1), 8), 4)
+    unittestEqual(arrayGet(gzipCompress([1], 9), 8), 2)
+    unittestEqual(arrayGet(gzipCompress([1], 6), 8), 0)
+endfunction
+unittestRunTest('testGzipCompressLevel')
+
+
+function testGzipCompressLevel0():
+    unittestDeepEqual(gzipUncompress(gzipCompress([], 0)), [])
+    unittestDeepEqual(gzipUncompress(gzipCompress(stringEncode('hello'), 0)), stringEncode('hello'))
+    unittestDeepEqual(gzipUncompress(gzipCompress(arrayNewSize(65536, 0), 0)), arrayNewSize(65536, 0))
+endfunction
+unittestRunTest('testGzipCompressLevel0')
+
+
+function testGzipCompressLarge():
+    # Stored blocks of 200000 bytes - four blocks, and a deflate stream larger than an array spread allows
+    bytes = arrayNewSize(200000, 0)
+    gzipBytes = gzipCompress(bytes, 0)
+    unittestEqual(arrayLength(gzipBytes), 200038)
+    unittestDeepEqual(gzipUncompress(gzipBytes), bytes)
+endfunction
+unittestRunTest('testGzipCompressLarge')
+
+
+function testGzipCompressBlockTypes():
+    # Text with skewed symbol frequencies compresses to a dynamic Huffman block
+    text = ''
+    number = 0
+    while number < 1000:
+        text = text + number + ' '
+        number = number + 1
+    endwhile
+    bytes = stringEncode(text)
+    compressed = gzipCompress(bytes)
+    unittestEqual(arrayGet(compressed, 10) & 6, 4)
+    unittestDeepEqual(gzipUncompress(compressed), bytes)
+    unittestEqual(arrayLength(compressed) < arrayLength(bytes) / 2, true)
+
+    # A tiny input compresses to a static Huffman block
+    compressed = gzipCompress('hello')
+    unittestEqual(arrayGet(compressed, 10) & 6, 2)
+    compressed = gzipCompress([])
+    unittestEqual(arrayGet(compressed, 10) & 6, 2)
+
+    # A run of one byte - no distance symbol but one
+    bytes = testGzipRepeat(97, 300)
+    compressed = gzipCompress(bytes)
+    unittestDeepEqual(gzipUncompress(compressed), bytes)
+
+    # Incompressible input is stored
+    bytes = testGzipRange(0, 256)
+    compressed = gzipCompress(bytes)
+    unittestEqual(arrayGet(compressed, 10) & 6, 0)
+    unittestDeepEqual(gzipUncompress(compressed), bytes)
+    unittestEqual(arrayLength(compressed), 256 + 5 + 18)
+endfunction
+unittestRunTest('testGzipCompressBlockTypes')
+
+
+function testGzipHuffmanLengths():
+    # Fibonacci frequencies make a tree deeper than the limit - the lengths are limited and the code complete
+    freqs = []
+    fib1 = 1
+    fib2 = 1
+    while arrayLength(freqs) < 40:
+        arrayPush(freqs, fib1)
+        fib2 = fib1 + fib2
+        fib1 = fib2 - fib1
+    endwhile
+    for maxBits in [15, 7]:
+        lengths = gzipHuffmanLengths(freqs, maxBits)
+        kraft = 0
+        for length in lengths:
+            unittestEqual(length >= 1 && length <= maxBits, true)
+            kraft = kraft + 2 ** -length
+        endfor
+        unittestEqual(kraft, 1)
+    endfor
+
+    # Unlimited depth
+    unittestDeepEqual(gzipHuffmanLengths([1, 1, 2, 4, 8], 15), [4, 4, 3, 2, 1])
+
+    # At least two symbols get a code so that the code is complete
+    unittestDeepEqual(gzipHuffmanLengths([0, 0, 5, 0], 15), [1, 0, 1, 0])
+    unittestDeepEqual(gzipHuffmanLengths([0, 0, 0], 15), [1, 1, 0])
+    unittestDeepEqual(gzipHuffmanLengths([3, 0, 1], 15), [1, 0, 1])
+
+    # Ties are broken by symbol
+    unittestDeepEqual(gzipHuffmanLengths([1, 1, 1, 1], 15), [2, 2, 2, 2])
+    unittestDeepEqual(gzipHuffmanLengths([1, 1, 2], 15), [2, 2, 1])
+    unittestDeepEqual(gzipHuffmanLengths([2, 1, 1], 15), [1, 2, 2])
+endfunction
+unittestRunTest('testGzipHuffmanLengths')
+
+
+function testGzipRunLengthSymbols():
+    unittestDeepEqual(gzipRunLengthSymbols([]), [])
+    unittestDeepEqual(gzipRunLengthSymbols([5]), [[5, 0, 0]])
+    unittestDeepEqual(gzipRunLengthSymbols([5, 5]), [[5, 0, 0], [5, 0, 0]])
+    unittestDeepEqual(gzipRunLengthSymbols([5, 5, 5, 5]), [[5, 0, 0], [16, 0, 2]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(8, 5)), [[5, 0, 0], [16, 3, 2], [5, 0, 0]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(11, 5)), [[5, 0, 0], [16, 3, 2], [16, 1, 2]])
+    unittestDeepEqual(gzipRunLengthSymbols([0, 0]), [[0, 0, 0], [0, 0, 0]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(3, 0)), [[17, 0, 3]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(10, 0)), [[17, 7, 3]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(11, 0)), [[18, 0, 7]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(138, 0)), [[18, 127, 7]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(139, 0)), [[18, 127, 7], [0, 0, 0]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(141, 0)), [[18, 127, 7], [17, 0, 3]])
+    unittestDeepEqual(gzipRunLengthSymbols(arrayNewSize(150, 0)), [[18, 127, 7], [18, 1, 7]])
+    unittestDeepEqual(gzipRunLengthSymbols([1, 0, 0, 0, 0, 2, 2, 2, 2, 2, 3]), \
+        [[1, 0, 0], [17, 1, 3], [2, 0, 0], [16, 1, 2], [3, 0, 0]])
+endfunction
+unittestRunTest('testGzipRunLengthSymbols')
+
+
+#
+# Interoperability with Python/zlib gzip
+#
+
+
+function testGzipUncompressPythonHello():
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAC/8tIzcnJBwCGphA2BQAAAA==')), \
+        stringEncode('hello'))
+endfunction
+unittestRunTest('testGzipUncompressPythonHello')
+
+
+function testGzipUncompressPythonEmpty():
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAC/wMAAAAAAAAAAAA=')), [])
+endfunction
+unittestRunTest('testGzipUncompressPythonEmpty')
+
+
+function testGzipUncompressPythonStored():
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAE/wEFAPr/aGVsbG+GphA2BQAAAA==')), \
+        stringEncode('hello'))
+endfunction
+unittestRunTest('testGzipUncompressPythonStored')
+
+
+function testGzipUncompressPythonZeros():
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAC/2NgoAwAADZjjXVAAAAA')), \
+        testGzipRepeat(0, 64))
+endfunction
+unittestRunTest('testGzipUncompressPythonZeros')
+
+
+function testGzipUncompressPythonDynamic():
+    encoded = 'H4sIAAAAAAAC/+3L0QnAIAwFwFXeAKWTuIRokIAaSeL+3aO8+79iLgt64i50m+YITdQl+aDZDmkpeR' + \
+        '2169Fougdkar4ojIyMjIyMjIyMjH+MH02JfGoiCwAA'
+    unittestDeepEqual(gzipUncompress(base64Decode(encoded)), \
+        stringEncode(stringRepeat('Lorem ipsum dolor sit amet, consectetur adipiscing elit. ', 50)))
+endfunction
+unittestRunTest('testGzipUncompressPythonDynamic')
+
+
+function testGzipUncompressFilename():
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sICAAAAAAC/3gudHh0AMtIzcnJBwCGphA2BQAAAA==')), \
+        stringEncode('hello'))
+endfunction
+unittestRunTest('testGzipUncompressFilename')
+
+
+function testGzipUncompressHeaderFlags():
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 1, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 4, 0, 0, 0, 0, 0, 255, 2, 0, 65, 66, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 16, 0, 0, 0, 0, 0, 255, 104, 105, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 2, 0, 0, 0, 0, 0, 255, 144, 201, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 31, 0, 0, 0, 0, 0, 255, 2, 0, 88, 89, 110, 0, 99, 0, 16, 191, 3, 0, \
+        0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+endfunction
+unittestRunTest('testGzipUncompressHeaderFlags')
+
+
+function testGzipUncompressStoredEmpty():
+    unittestDeepEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 1, 0, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), [])
+endfunction
+unittestRunTest('testGzipUncompressStoredEmpty')
+
+
+#
+# Invalid arguments
+#
+
+
+function testGzipCompressInvalid():
+    unittestMockAll()
+    unittestEqual(gzipCompress(null), null)
+    unittestEqual(gzipCompress({}), null)
+    unittestEqual(gzipCompress([256]), null)
+    unittestEqual(gzipCompress([-1]), null)
+    unittestEqual(gzipCompress([1.5]), null)
+    unittestEqual(gzipCompress(['x']), null)
+    unittestEqual(gzipCompress([1], -1), null)
+    unittestEqual(gzipCompress([1], 10), null)
+    unittestEqual(gzipCompress([1], 1.5), null)
+    unittestEqual(gzipCompress([1], 'x'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "level" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "level" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "level" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipCompress - Invalid "level" argument']] \
+    ])
+endfunction
+unittestRunTest('testGzipCompressInvalid')
+
+
+function testGzipUncompressInvalidArgument():
+    unittestMockAll()
+    unittestEqual(gzipUncompress(null), null)
+    unittestEqual(gzipUncompress(1), null)
+    unittestEqual(gzipUncompress('abc'), null)
+    unittestEqual(gzipUncompress([256]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid "bytes" argument']] \
+    ])
+endfunction
+unittestRunTest('testGzipUncompressInvalidArgument')
+
+
+function testGzipUncompressInvalidGzip():
+    unittestMockAll()
+    unittestEqual(gzipUncompress([]), null)
+    unittestEqual(gzipUncompress(testGzipRange(0, 9)), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        30, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 138, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 0, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 32, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0 \
+    ])), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']] \
+    ])
+endfunction
+unittestRunTest('testGzipUncompressInvalidGzip')
+
+
+function testGzipUncompressTruncatedHeader():
+    unittestMockAll()
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 4, 0, 0, 0, 0, 0, 255, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 8, 0, 0, 0, 0, 0, 255, 97, 98 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 16, 0, 0, 0, 0, 0, 255, 97 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 2, 0, 0, 0, 0, 0, 255, 0 \
+    ])), null)
+    unittestEqual(gzipUncompress(testGzipBytes([ \
+        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0 \
+    ])), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']] \
+    ])
+endfunction
+unittestRunTest('testGzipUncompressTruncatedHeader')
+
+
+function testGzipUncompressInvalidDeflate():
+    unittestMockAll()
+    # BTYPE = 3
+    unittestEqual(testGzipWrap(testGzipBitsToBytes('111')), null)
+    # Stored LEN != NLEN
+    unittestEqual(testGzipWrap([1, 1, 0, 255, 255]), null)
+    # Stored truncated
+    unittestEqual(testGzipWrap([1, 5, 0, 250, 255, 1, 2]), null)
+    # Dynamic nlen > 286
+    unittestEqual(testGzipWrap(testGzipBitsToBytes('10101111000000000')), null)
+    # Truncated static Huffman
+    unittestEqual(testGzipWrap([3]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']], \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']] \
+    ])
+endfunction
+unittestRunTest('testGzipUncompressInvalidDeflate')
+
+
+function testGzipHuffmanDecodeLongCode():
+    # Code lengths 1 through 15 (and a second 15) - a complete tree with codes longer than the fast table's 9 bits
+    lengths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15]
+    table = gzipHuffmanBuild(lengths)
+    for length, symbol in lengths:
+        unittestEqual(arrayGet(arrayGet(table, 4), symbol), length)
+        writer = gzipWriterNew()
+        testGzipHuffmanWrite(writer, table, symbol)
+        testGzipHuffmanWrite(writer, table, 0)
+        gzipWriteFlush(writer)
+        reader = gzipReaderNew(arrayGet(writer, 0), 0)
+        unittestEqual(gzipHuffmanDecode(reader, table), symbol)
+        unittestEqual(gzipHuffmanDecode(reader, table), 0)
+        unittestEqual(arrayGet(reader, 4), false)
+    endfor
+
+    # A long code truncated by the end of input
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, table, 15)
+    gzipWriteFlush(writer)
+    reader = gzipReaderNew(arraySlice(arrayGet(writer, 0), 0, 1), 0)
+    unittestEqual(gzipHuffmanDecode(reader, table), null)
+    unittestEqual(arrayGet(reader, 4), true)
+endfunction
+unittestRunTest('testGzipHuffmanDecodeLongCode')
+
+
+function testGzipInflateCodesLongCodes():
+    # Literal/length codes longer than the fast table's 9 bits - symbols 256 (end-of-block), 65 through 77,
+    # 281 (a 15-bit length code with five extra bits), and 79
+    lengths = arrayNewSize(288, 0)
+    arraySet(lengths, 256, 1)
+    ix = 0
+    while ix < 15:
+        arraySet(lengths, if(ix == 13, 281, 65 + ix), mathMin(ix + 2, 15))
+        ix = ix + 1
+    endwhile
+    litTable = gzipHuffmanBuild(lengths)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, litTable, 65)
+    testGzipHuffmanWrite(writer, litTable, 75)
+    testGzipHuffmanWrite(writer, litTable, 281)
+    gzipWriteBits(writer, 1, 5)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 0)
+    testGzipHuffmanWrite(writer, litTable, 79)
+    testGzipHuffmanWrite(writer, litTable, 256)
+    gzipWriteFlush(writer)
+    output = [9]
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), output, litTable, gzipStaticDist), true)
+    expected = [9, 65, 75]
+    arrayExtend(expected, arrayNewSize(132, 75))
+    arrayPush(expected, 79)
+    unittestDeepEqual(output, expected)
+
+    # A far distance - distance symbol 29's thirteen extra bits
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 29)
+    gzipWriteBits(writer, 3, 13)
+    testGzipHuffmanWrite(writer, gzipStaticLit, 256)
+    gzipWriteFlush(writer)
+    output = arrayNewSize(24580, 1)
+    arraySet(output, 0, 5)
+    arraySet(output, 1, 6)
+    arraySet(output, 2, 7)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), output, gzipStaticLit, gzipStaticDist), true)
+    unittestDeepEqual(arraySlice(output, 24580), [5, 6, 7])
+
+    # Distance codes longer than 9 bits - distance symbols 0 through 15
+    distLengths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15]
+    distTable = gzipHuffmanBuild(distLengths)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, distTable, 10)
+    gzipWriteBits(writer, 2, 4)
+    testGzipHuffmanWrite(writer, gzipStaticLit, 256)
+    gzipWriteFlush(writer)
+    output = testGzipRange(0, 40)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), output, gzipStaticLit, distTable), true)
+    unittestDeepEqual(arraySlice(output, 40), [5, 6, 7])
+
+    # A truncated long literal code and a truncated long distance code
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, litTable, 79)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arraySlice(arrayGet(writer, 0), 0, 1), 0), [], litTable, gzipStaticDist), false)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, distTable, 15)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arraySlice(arrayGet(writer, 0), 0, 2), 0), [1, 2, 3], gzipStaticLit, distTable), false)
+endfunction
+unittestRunTest('testGzipInflateCodesLongCodes')
+
+
+function testGzipDeflateWriteLongDistanceCode():
+    # A 15-bit distance code with 13 extra bits - the longest length/distance pair
+    distLengths = arrayNewSize(30, 0)
+    ix = 0
+    while ix < 15:
+        arraySet(distLengths, ix, ix + 1)
+        ix = ix + 1
+    endwhile
+    arraySet(distLengths, 29, 15)
+    distTable = gzipHuffmanBuild(distLengths)
+    writer = gzipWriterNew()
+    gzipDeflateWrite(writer, [(3 << 16) | 32768, 65], gzipStaticLit, distTable)
+    gzipWriteFlush(writer)
+    output = arrayNewSize(32768, 7)
+    arraySet(output, 0, 1)
+    arraySet(output, 1, 2)
+    arraySet(output, 2, 3)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), output, gzipStaticLit, distTable), true)
+    unittestDeepEqual(arraySlice(output, 32768), [1, 2, 3, 65])
+endfunction
+unittestRunTest('testGzipDeflateWriteLongDistanceCode')
+
+
+function testGzipInflateCodesTruncatedExtra():
+    # An 8-bit length code (281, five extra bits) ends the input
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 281)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [], gzipStaticLit, gzipStaticDist), false)
+
+    # A 7-bit length code and 5-bit distance code (29, thirteen extra bits) end the input
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 29)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [], gzipStaticLit, gzipStaticDist), false)
+endfunction
+unittestRunTest('testGzipInflateCodesTruncatedExtra')
+
+
+function testGzipUncompressPythonSyncFlush():
+    # Compressed blocks separated by sync-flush and full-flush empty stored blocks
+    unittestDeepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAAE8pIzcnJV8hAkAAAAAD//1Iozy/KSYGQAAAAAP//UwQApC2h2R4AAAA=')), \
+        stringEncode('hello hello hello world world!'))
+endfunction
+unittestRunTest('testGzipUncompressPythonSyncFlush')
+
+
+function testGzipHuffmanBuildInvalid():
+    unittestEqual(gzipHuffmanBuild([16]), null)
+    unittestEqual(gzipHuffmanBuild([1, 1, 1]), null)
+endfunction
+unittestRunTest('testGzipHuffmanBuildInvalid')
+
+
+function testGzipUncompressDistanceTooFar():
+    unittestMockAll()
+    # Static Huffman: length 3 (code 257, 7 bits 0000001) then distance 1 (5 bits 00000)
+    # with no prior output. BFINAL+static = 011, then EOB would be 0000000; instead emit a match.
+    # 7-bit code for 257 is the second 7-bit code = 0000001 (MSB first).
+    # Bits: BFINAL=1 BTYPE=01 -> 1 1 0
+    # Then length 257: 7-bit canonical code 1 = 0000001 MSB first = bits 0,0,0,0,0,0,1
+    # Then dist 0: 5-bit code 0 = 00000
+    unittestEqual(testGzipWrap(testGzipBitsToBytes('110000000100000')), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['gzip.bare: gzipUncompress - Invalid compressed data']] \
+    ])
+endfunction
+unittestRunTest('testGzipUncompressDistanceTooFar')
+
+
+# Canonical codes for {8:2, 16:2, 18:2}, written LSB-first: 8=00, 16=10, 18=01
+function testGzipWriteExceed16(writer):
+    gzipWriteBits(writer, 1, 2)
+    gzipWriteBits(writer, 127, 7)
+    gzipWriteBits(writer, 1, 2)
+    gzipWriteBits(writer, 106, 7)
+    gzipWriteBits(writer, 0, 2)
+    gzipWriteBits(writer, 2, 2)
+    gzipWriteBits(writer, 0, 2)
+endfunction
+
+
+function testGzipWriteExceed17(writer):
+    gzipWriteBits(writer, 1, 2)
+    gzipWriteBits(writer, 127, 7)
+    gzipWriteBits(writer, 1, 2)
+    gzipWriteBits(writer, 106, 7)
+    gzipWriteBits(writer, 0, 2)
+    gzipWriteBits(writer, 2, 2)
+    gzipWriteBits(writer, 0, 3)
+endfunction
+
+
+function testGzipWriteExceed18(writer):
+    gzipWriteBits(writer, 0, 1)
+    gzipWriteBits(writer, 127, 7)
+    gzipWriteBits(writer, 0, 1)
+    gzipWriteBits(writer, 127, 7)
+endfunction
+
+
+# {8:1, 16:1} => 8=0, 16=1; emit 8 then 16, then EOF on extra bits
+function testGzipWriteRepeat16(writer):
+    gzipWriteBits(writer, 0, 1)
+    gzipWriteBits(writer, 1, 1)
+endfunction
+
+
+function testGzipWriteAllOnes(writer):
+    ix = 0
+    while ix < 258:
+        gzipWriteBits(writer, 0, 1)
+        ix = ix + 1
+    endwhile
+endfunction
+
+
+function testGzipDynamic(nlen, ndist, codeLenValues, kind):
+    writer = gzipWriterNew()
+    gzipWriteBits(writer, nlen - 257, 5)
+    gzipWriteBits(writer, ndist - 1, 5)
+    gzipWriteBits(writer, arrayLength(codeLenValues) - 4, 4)
+    for value in codeLenValues:
+        gzipWriteBits(writer, value, 3)
+    endfor
+    if kind == 'bit0':
+        gzipWriteBits(writer, 0, 1)
+    elif kind == 'exceed16':
+        testGzipWriteExceed16(writer)
+    elif kind == 'exceed17':
+        testGzipWriteExceed17(writer)
+    elif kind == 'exceed18':
+        testGzipWriteExceed18(writer)
+    elif kind == 'repeat16':
+        testGzipWriteRepeat16(writer)
+    elif kind == 'allOnes':
+        testGzipWriteAllOnes(writer)
+    endif
+    gzipWriteFlush(writer)
+    return gzipInflateDynamic(gzipReaderNew(arrayGet(writer, 0), 0), [])
+endfunction
+
+
+function testGzipErrorPaths():
+    # ReadBits already-error and EOF
+    reader = gzipReaderNew([], 0)
+    unittestEqual(gzipReadBits(reader, 8), 0)
+    unittestEqual(arrayGet(reader, 4), true)
+    unittestEqual(gzipReadBits(reader, 3), 0)
+
+    # Huffman decode: input ends mid-code, and a 15-bit miss
+    unittestEqual(gzipHuffmanDecode(gzipReaderNew([], 0), gzipStaticLit), null)
+    unittestEqual(gzipHuffmanDecode(gzipReaderNew([255, 255], 0), gzipHuffmanBuild([1])), null)
+
+    # Inflate codes: truncated, invalid length symbol 286, invalid dist 30, distance too far
+    unittestEqual(gzipInflateCodes(gzipReaderNew([], 0), [], gzipStaticLit, gzipStaticDist), false)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 286)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [], gzipStaticLit, gzipStaticDist), false)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 30)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [], gzipStaticLit, gzipStaticDist), false)
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 0)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [], gzipStaticLit, gzipStaticDist), false)
+
+    # Stored payload truncated
+    stored = gzipWriterNew()
+    gzipWriteBits(stored, 4, 16)
+    gzipWriteBits(stored, 4 ^ 65535, 16)
+    gzipWriteBits(stored, 1, 8)
+    gzipWriteFlush(stored)
+    unittestEqual(gzipInflateStored(gzipReaderNew(arrayGet(stored, 0), 0), []), false)
+
+    # Block header truncated
+    unittestEqual(gzipInflateBlocks(gzipReaderNew([], 0)), null)
+
+    # Dynamic: truncated header, nlen > 286, truncated code lengths, over-subscribed code tree
+    unittestEqual(gzipInflateDynamic(gzipReaderNew([], 0), []), false)
+    unittestEqual(testGzipDynamic(287, 1, [0, 0, 0, 0], null), false)
+    unittestEqual(testGzipDynamic(257, 1, [1, 1, 1, 1], null), false)
+    ones = arrayNewSize(19, 1)
+    unittestEqual(testGzipDynamic(257, 1, ones, null), false)
+
+    # Dynamic: first symbol is 16 (no previous length)
+    unittestEqual(testGzipDynamic(257, 1, [1, 0, 0, 0], 'bit0'), false)
+
+    # Dynamic: length-code decode truncated after a valid tree (symbol 0 length 1)
+    unittestEqual(testGzipDynamic(257, 1, [0, 0, 0, 1], null), false)
+
+    # Dynamic: codes 16/17/18 that would exceed nlen+ndist, plus a valid 16-repeat then EOF
+    unittestEqual(testGzipDynamic(257, 1, [2, 0, 2, 0, 2], 'exceed16'), false)
+    unittestEqual(testGzipDynamic(257, 1, [0, 2, 2, 0, 2], 'exceed17'), false)
+    unittestEqual(testGzipDynamic(257, 1, [0, 0, 1, 0], 'exceed18'), false)
+    unittestEqual(testGzipDynamic(257, 1, [1, 0, 0, 0, 1], 'repeat16'), false)
+
+    # Dynamic: over-subscribed literal lengths (all ones)
+    onesLit = arrayNewSize(19, 0)
+    arraySet(onesLit, 17, 1)
+    unittestEqual(testGzipDynamic(257, 1, onesLit, 'allOnes'), false)
+
+    # Inflate codes with an already-errored reader
+    broken = gzipReaderNew([], 0)
+    gzipReadBits(broken, 8)
+    unittestEqual(gzipInflateCodes(broken, [], gzipStaticLit, gzipStaticDist), false)
+
+    # Distance past the output
+    writer = gzipWriterNew()
+    testGzipHuffmanWrite(writer, gzipStaticLit, 257)
+    testGzipHuffmanWrite(writer, gzipStaticDist, 1)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateCodes(gzipReaderNew(arrayGet(writer, 0), 0), [65], gzipStaticLit, gzipStaticDist), false)
+
+    # Truncated dynamic code-length list
+    writer = gzipWriterNew()
+    gzipWriteBits(writer, 0, 5)
+    gzipWriteBits(writer, 0, 5)
+    gzipWriteBits(writer, 0, 4)
+    gzipWriteBits(writer, 1, 3)
+    gzipWriteFlush(writer)
+    unittestEqual(gzipInflateDynamic(gzipReaderNew(arrayGet(writer, 0), 0), []), false)
+
+    # Byte-aligned truncated length-code stream (ncode=6 => 32 header bits)
+    unittestEqual(testGzipDynamic(257, 1, [0, 0, 0, 1, 0, 0], null), false)
+endfunction
+unittestRunTest('testGzipErrorPaths')

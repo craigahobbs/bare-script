@@ -1,0 +1,150 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: base64Encode
+# $group: base64.bare
+# $doc: Encode a byte value array (or a string, as UTF-8) as a base64 string
+# $arg bytes: The byte value array (integers 0 to 255) or string
+# $return: The base64-encoded string, or null if encoding fails
+function base64Encode(bytes):
+    if systemType(bytes) == 'string':
+        bytes = stringEncode(bytes)
+    endif
+    if systemType(bytes) != 'array' || regexMatch(base64ByteArrayRegex, jsonStringify(bytes)) == null:
+        systemLogDebug('base64.bare: base64Encode - Invalid "bytes" argument')
+        return null
+    endif
+
+    # Encode each three-byte group as four characters, two groups per iteration
+    codes = base64Codes
+    out = []
+    length = arrayLength(bytes)
+    ix = 0
+    while ix + 6 <= length:
+        b0 = arrayGet(bytes, ix)
+        b1 = arrayGet(bytes, ix + 1)
+        b2 = arrayGet(bytes, ix + 2)
+        b3 = arrayGet(bytes, ix + 3)
+        b4 = arrayGet(bytes, ix + 4)
+        b5 = arrayGet(bytes, ix + 5)
+        arrayPush(out, arrayGet(codes, b0 >> 2), arrayGet(codes, ((b0 & 3) << 4) | (b1 >> 4)), \
+            arrayGet(codes, ((b1 & 15) << 2) | (b2 >> 6)), arrayGet(codes, b2 & 63), \
+            arrayGet(codes, b3 >> 2), arrayGet(codes, ((b3 & 3) << 4) | (b4 >> 4)), \
+            arrayGet(codes, ((b4 & 15) << 2) | (b5 >> 6)), arrayGet(codes, b5 & 63))
+        ix = ix + 6
+    endwhile
+    if ix + 3 <= length:
+        b0 = arrayGet(bytes, ix)
+        b1 = arrayGet(bytes, ix + 1)
+        b2 = arrayGet(bytes, ix + 2)
+        arrayPush(out, arrayGet(codes, b0 >> 2), arrayGet(codes, ((b0 & 3) << 4) | (b1 >> 4)), \
+            arrayGet(codes, ((b1 & 15) << 2) | (b2 >> 6)), arrayGet(codes, b2 & 63))
+        ix = ix + 3
+    endif
+
+    # Encode the remaining one or two bytes with padding
+    remain = length - ix
+    if remain == 1:
+        b0 = arrayGet(bytes, ix)
+        arrayPush(out, arrayGet(codes, b0 >> 2), arrayGet(codes, (b0 & 3) << 4), 61, 61)
+    elif remain == 2:
+        b0 = arrayGet(bytes, ix)
+        b1 = arrayGet(bytes, ix + 1)
+        arrayPush(out, arrayGet(codes, b0 >> 2), arrayGet(codes, ((b0 & 3) << 4) | (b1 >> 4)), arrayGet(codes, (b1 & 15) << 2), 61)
+    endif
+    return stringDecode(out)
+endfunction
+
+
+# $function: base64Decode
+# $group: base64.bare
+# $doc: Decode a base64 string to a byte value array
+# $arg text: The base64-encoded string
+# $return: The byte value array, or null if decoding fails
+function base64Decode(text):
+    if systemType(text) != 'string':
+        systemLogDebug('base64.bare: base64Decode - Invalid "text" argument')
+        return null
+    endif
+    length = stringLength(text)
+    if length % 4 || !regexMatch(base64Regex, text):
+        systemLogDebug('base64.bare: base64Decode - Invalid encoded data')
+        return null
+    endif
+
+    # Decode each four-character group as three bytes, two groups per iteration
+    map = base64Map
+    bytes = []
+    ix = 0
+    while ix + 8 <= length:
+        c0 = arrayGet(map, stringCharCodeAt(text, ix))
+        c1 = arrayGet(map, stringCharCodeAt(text, ix + 1))
+        c2 = arrayGet(map, stringCharCodeAt(text, ix + 2))
+        c3 = arrayGet(map, stringCharCodeAt(text, ix + 3))
+        c4 = arrayGet(map, stringCharCodeAt(text, ix + 4))
+        c5 = arrayGet(map, stringCharCodeAt(text, ix + 5))
+        c6 = arrayGet(map, stringCharCodeAt(text, ix + 6))
+        c7 = arrayGet(map, stringCharCodeAt(text, ix + 7))
+        arrayPush(bytes, (c0 << 2) | (c1 >> 4), ((c1 & 15) << 4) | (c2 >> 2), ((c2 & 3) << 6) | c3, \
+            (c4 << 2) | (c5 >> 4), ((c5 & 15) << 4) | (c6 >> 2), ((c6 & 3) << 6) | c7)
+        ix = ix + 8
+    endwhile
+    if ix < length:
+        c0 = arrayGet(map, stringCharCodeAt(text, ix))
+        c1 = arrayGet(map, stringCharCodeAt(text, ix + 1))
+        c2 = arrayGet(map, stringCharCodeAt(text, ix + 2))
+        c3 = arrayGet(map, stringCharCodeAt(text, ix + 3))
+        arrayPush(bytes, (c0 << 2) | (c1 >> 4), ((c1 & 15) << 4) | (c2 >> 2), ((c2 & 3) << 6) | c3)
+    endif
+
+    # The padding characters at the end decode to extra bytes
+    if stringEndsWith(text, '='):
+        arrayPop(bytes)
+        if stringEndsWith(text, '=='):
+            arrayPop(bytes)
+        endif
+    endif
+    return bytes
+endfunction
+
+
+# The base64 text regular expression - the alphabet characters followed by up to two padding characters. The end
+# is anchored with a lookahead since "$" also matches before a trailing newline in some regular expression engines.
+base64Regex = regexNew('^[A-Za-z0-9+/]*={0,2}(?![\\s\\S])')
+
+
+# The byte value array JSON regular expression
+base64ByteArrayRegex = regexNew('^\\[(?:(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(?:,|(?=\\])))*\\]$')
+
+
+# The base64 alphabet
+base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+
+# Create the base64 alphabet character code array
+function base64CodesNew():
+    codes = []
+    ix = 0
+    while ix < 64:
+        arrayPush(codes, stringCharCodeAt(base64Chars, ix))
+        ix = ix + 1
+    endwhile
+    return codes
+endfunction
+
+
+# Create the base64 alphabet character code to value map (the padding character is -1)
+function base64MapNew():
+    map = arrayNewSize(128, -1)
+    ix = 0
+    while ix < 64:
+        arraySet(map, stringCharCodeAt(base64Chars, ix), ix)
+        ix = ix + 1
+    endwhile
+    return map
+endfunction
+
+
+base64Codes = base64CodesNew()
+base64Map = base64MapNew()

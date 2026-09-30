@@ -916,7 +916,7 @@ test('executeScriptAsync, jump error unknown label', async () => {
             {'jump': {'label': 'unknownLabel'}}
         ]
     });
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script),
         {
             'name': 'BareScriptRuntimeError',
@@ -933,7 +933,7 @@ test('executeScriptAsync, jump error unknown label script name', async () => {
             {'jump': {'label': 'unknownLabel', 'lineNumber': 1}}
         ]
     });
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script),
         {
             'name': 'BareScriptRuntimeError',
@@ -1133,7 +1133,7 @@ test('executeScriptAsync, include no fetchFn', async () => {
             {'include': {'includes': [{'url': 'test.bare'}]}}
         ]
     });
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script),
         {
             'name': 'BareScriptRuntimeError',
@@ -1433,7 +1433,7 @@ test('executeScriptAsync, include fetchFn not-ok', async () => {
         };
     };
     const options = {fetchFn};
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, options),
         {
             'name': 'BareScriptRuntimeError',
@@ -1453,7 +1453,7 @@ test('executeScriptAsync, include fetchFn response error', async () => {
         throw new Error('response error');
     };
     const options = {fetchFn};
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, options),
         {
             'name': 'BareScriptRuntimeError',
@@ -1479,7 +1479,7 @@ test('executeScriptAsync, include fetchFn text error', async () => {
         };
     };
     const options = {fetchFn};
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, options),
         {
             'name': 'BareScriptRuntimeError',
@@ -1503,7 +1503,7 @@ test('executeScriptAsync, include fetchFn parser error', async () => {
         };
     };
     const options = {fetchFn};
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, options),
         {
             'name': 'BareScriptParserError',
@@ -1533,7 +1533,7 @@ test('executeScriptAsync, error maxStatements', async () => {
             {'expr': {'expr': {'function': {'name': 'fn'}}}}
         ]
     });
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, {'maxStatements': 3}),
         {
             'name': 'BareScriptRuntimeError',
@@ -1557,7 +1557,7 @@ test('executeScriptAsync, error maxStatements library error', async () => {
         ]
     });
     assert.equal(await executeScriptAsync(script, {'globals': {}}), 50);
-    assert.rejects(
+    await assert.rejects(
         async () => executeScriptAsync(script, {'globals': {}, 'maxStatements': 100}),
         {
             'name': 'BareScriptRuntimeError',
@@ -1851,7 +1851,7 @@ test('evaluateExpressionAsync, function no-builtins', async () => {
         }
     });
     const options = {'globals': {testNumber}};
-    assert.rejects(
+    await assert.rejects(
         async () => evaluateExpressionAsync(expr, options, null, false),
         {
             'name': 'BareScriptRuntimeError',
@@ -1901,7 +1901,7 @@ test('evaluateExpressionAsync, function local null', async () => {
     });
     const options = {'globals': {testString, 'fnLocal': 'abc'}};
     const locals = {'fnLocal': null};
-    assert.rejects(
+    await assert.rejects(
         async () => evaluateExpressionAsync(expr, options, locals),
         {
             'name': 'BareScriptRuntimeError',
@@ -1969,7 +1969,7 @@ test('evaluateExpressionAsync, function unknown', async () => {
     });
     const options = {'globals': {}};
     const locals = {testString};
-    assert.rejects(
+    await assert.rejects(
         async () => evaluateExpressionAsync(expr, options, locals),
         {
             'name': 'BareScriptRuntimeError',
@@ -1989,7 +1989,7 @@ test('evaluateExpressionAsync, function unknown no globals', async () => {
         }
     });
     const locals = {testString};
-    assert.rejects(
+    await assert.rejects(
         async () => evaluateExpressionAsync(expr, null, locals),
         {
             'name': 'BareScriptRuntimeError',
@@ -2051,7 +2051,7 @@ test('evaluateExpressionAsync, function runtime error', async () => {
             }
         }
     };
-    assert.rejects(
+    await assert.rejects(
         async () => evaluateExpressionAsync(expr, options),
         {
             'name': 'BareScriptRuntimeError',

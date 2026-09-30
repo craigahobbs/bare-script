@@ -1,0 +1,234 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include 'creatorUtil.bare'
+
+
+#
+# The frontend application project type - a MarkdownUp client-rendered application
+#
+
+
+# Validate the frontend application form values - returns an array of error messages
+function creatorFrontendValidate(values):
+    errors = []
+    if !regexMatch(creatorFrontendIdRegex, creatorAppId(objectGet(values, 'name', ''))):
+        arrayPush(errors, 'The application name must start with a letter (e.g. "Fungus Simulator")')
+    endif
+    return errors
+endfunction
+
+
+# The application identifier regular expression - a lowercase letter followed by letters and digits
+creatorFrontendIdRegex = regexNew('^[a-z][A-Za-z0-9]*$')
+
+
+# Create the frontend application project model - the project directory "id", its "title", its "files" (each with
+# "name", the file path within the project directory, and "bytes", the file's text), the "generated" paths that
+# "make" creates, the "commands" that create the application, and the project page's "notes" Markdown lines
+function creatorFrontendProject(values, skillText, mtime):
+    name = objectGet(values, 'name')
+    id = creatorAppId(name)
+    idTitle = stringUpper(stringSlice(id, 0, 1)) + stringSlice(id, 1)
+    copyright = objectGet(values, 'copyright')
+    description = objectGet(values, 'description')
+    spec = objectGet(values, 'spec')
+    files = [ \
+        ['.gitignore', creatorText(['/build/', '/Makefile.tool'])], \
+        ['.nojekyll', ''], \
+        ['CLAUDE.md', creatorFrontendFileCLAUDE(name, id, idTitle, description)], \
+        ['index.html', creatorFileIndex(name, description, id + '.md')], \
+        ['LICENSE', creatorFileLICENSE(copyright, datetimeYear(mtime))], \
+        ['Makefile', creatorFrontendFileMakefile(id)], \
+        [id + '.md', creatorFileMarkdownLines(['include \'' + id + '.bare\'', '', id + 'Main()'])], \
+        ['SPEC.md', creatorFrontendFileSPEC(name, id, idTitle, description, spec)], \
+        ['.claude/skills/bare-script/SKILL.md', skillText], \
+        ['test/index.html', creatorFileIndex(name + ' Tests', name + ' unit tests', 'runTests.md')], \
+        ['test/runTests.bare', creatorFrontendFileRunTests(idTitle)], \
+        ['test/runTests.md', creatorFileMarkdownLines(['include \'runTests.bare\''])], \
+        ['test/test' + idTitle + '.bare', creatorFrontendFileTest(id, idTitle)] \
+    ]
+    projectFiles = []
+    for file in files:
+        arrayPush(projectFiles, {'name': id + '/' + arrayGet(file, 0), 'bytes': arrayGet(file, 1), 'mtime': mtime})
+    endfor
+    return { \
+        'id': id, \
+        'title': name, \
+        'files': projectFiles, \
+        'generated': [id + '.bare'], \
+        'commands': ['make run'], \
+        'notes': [ \
+            'The first `make run` has Claude Code generate `' + id + '.bare` from `SPEC.md`, then serves the ' + \
+            'application in your browser.' \
+        ] \
+    }
+endfunction
+
+
+function creatorFrontendFileCLAUDE(name, id, idTitle, description):
+    return creatorText([ \
+        '# CLAUDE.md', \
+        '', \
+        'Notes for coding agents working in this repository.', \
+        '', \
+        '## Project overview', \
+        '', \
+        name + ' is a [BareScript](https://craigahobbs.github.io/bare-script/) frontend application that runs in', \
+        '[MarkdownUp](https://craigahobbs.github.io/markdown-up/). ' + description, \
+        '', \
+        'The application specification is `SPEC.md`. The application is `' + id + '.bare`, whose main function', \
+        '`' + id + 'Main()` is called from `' + id + '.md`, and its unit tests are in `test/test' + idTitle + '.bare`.', \
+        'The Makefile includes [python-build](https://github.com/craigahobbs/python-build#readme)\'s `Makefile.tool`,', \
+        'downloaded on first use, which builds a Python virtual environment with the `bare` CLI and MarkdownUp.', \
+        '', \
+        'The project is publishable as-is on GitHub Pages: `index.html` loads MarkdownUp, which fetches `' + id + '.md`,', \
+        'and the empty `.nojekyll` file keeps GitHub Pages from processing the Markdown and `.bare` files with Jekyll.', \
+        '', \
+        '## Authoring BareScript code', \
+        '', \
+        'Before writing, modifying, or reviewing BareScript code, read the bare-script skill,', \
+        '`.claude/skills/bare-script/SKILL.md`. It is the reference for the language, the built-in and include', \
+        'libraries, the MarkdownUp application pattern, and the unit-test and mocking pattern.', \
+        '', \
+        '## Commands', \
+        '', \
+        '- `make commit` - run the unit tests and lint; the gate before committing', \
+        '- `make test` - run the unit tests (`TEST=<name>` runs one test)', \
+        '- `make lint` - lint every script standalone', \
+        '- `make run` - view the application in a browser (for the user, not for a coding agent - it starts a server that', \
+        '  never returns)', \
+        '- `make clean` - remove the build directory and the downloaded python-build `Makefile.tool`', \
+        '', \
+        '`make commit`, `make test`, and `make lint` depend on `' + id + '.bare`, which the Makefile otherwise generates with', \
+        'Claude Code - create `' + id + '.bare` before running them.', \
+        '', \
+        '## Conventions', \
+        '', \
+        '- The unit tests must pass with 100% coverage - `make test` fails otherwise.', \
+        '- Each page state has a render test, each named handler has a test, and each control\'s callback binding is tested.', \
+        '- Escape user-provided text with `markdownEscape` before printing it as Markdown.' \
+    ])
+endfunction
+
+
+function creatorFrontendFileMakefile(id):
+    lines = creatorMakefilePythonBuildLines('bare-script markdown-up')
+    arrayExtend(lines, [ \
+        '# The application', \
+        'APP := ' + id, \
+        '', \
+        '', \
+        'help:', \
+        '\t@echo "            [run]"', \
+        '', \
+        '', \
+        'clean:', \
+        '\trm -rf Makefile.tool', \
+        '', \
+        '' \
+    ])
+    arrayExtend(lines, creatorMakefileClaudeRuleLines('$(APP).bare', 'the application'))
+    arrayExtend(lines, [ \
+        '', \
+        '', \
+        '# Run the unit tests (TEST="testName" runs one test); -d surfaces builtin debug logs', \
+        'test: $(DEFAULT_VENV_BUILD) $(APP).bare', \
+        '\t$(DEFAULT_VENV_BIN)/bare -d -m test/runTests.bare$(if $(TEST), -v vUnittestTest "\'$(TEST)\'")', \
+        '', \
+        '', \
+        '# Lint every script standalone. -x lints and executes (libraries + test files);', \
+        '# -s lints the test runners without executing them (that\'s `make test`).', \
+        'lint: $(DEFAULT_VENV_BUILD) $(APP).bare', \
+        '\t$(DEFAULT_VENV_BIN)/bare -x -m *.bare test/test*.bare', \
+        '\t$(DEFAULT_VENV_BIN)/bare -s -m test/runTests.bare', \
+        '', \
+        '', \
+        '# View the application in a browser (MarkdownUp local server)', \
+        '.PHONY: run', \
+        'run: $(DEFAULT_VENV_BUILD) $(APP).bare', \
+        '\t$(DEFAULT_VENV_BIN)/markdown-up $(APP).md' \
+    ])
+    return creatorText(lines)
+endfunction
+
+
+function creatorFrontendFileSPEC(name, id, idTitle, description, spec):
+    return creatorText([ \
+        '# ' + name, \
+        '', \
+        description, \
+        '', \
+        '## Specification', \
+        '', \
+        spec, \
+        '', \
+        '## Implementation', \
+        '', \
+        'Implement the application described above:', \
+        '', \
+        '- First, read the bare-script skill, `.claude/skills/bare-script/SKILL.md`, and `CLAUDE.md`.', \
+        '- Implement the application in `' + id + '.bare` with the main function `' + id + 'Main()`, which', \
+        '  `' + id + '.md` calls. Escape user-provided text with `markdownEscape` before printing it as Markdown.', \
+        '- Write unit tests in `test/test' + idTitle + '.bare` using the skill\'s unittest.bare and unittestMock.bare', \
+        '  patterns - a render test per page state, a test for each named handler, and a callback-binding test for', \
+        '  each control - with 100% coverage.', \
+        '- Run `make commit` and fix every test failure and lint warning until it passes.', \
+        '- Do not run `make run` - it starts a web server that never returns. The user runs it after this session ends.' \
+    ])
+endfunction
+
+
+function creatorFrontendFileRunTests(idTitle):
+    return creatorText([ \
+        'include <unittest.bare>', \
+        'include <unittestMock.bare>', \
+        '', \
+        '', \
+        '# Start coverage', \
+        'unittestCoverageStart()', \
+        '', \
+        '# Test includes', \
+        'include \'test' + idTitle + '.bare\'', \
+        '', \
+        '# Stop coverage', \
+        'unittestCoverageStop()', \
+        '', \
+        '# Test report', \
+        'return unittestReport({\'coverageExclude\': [\'runTests.bare\'], \'coverageMin\': 100})' \
+    ])
+endfunction
+
+
+function creatorFrontendFileTest(id, idTitle):
+    return creatorText([ \
+        'include <unittest.bare>', \
+        'include <unittestMock.bare>', \
+        'include \'../' + id + '.bare\'', \
+        '', \
+        '', \
+        'function test' + idTitle + 'Main():', \
+        '    unittestMockAll()', \
+        '    ' + id + 'Main()', \
+        '    unittestEqual(arrayLength(unittestMockEnd()) > 0, true)', \
+        'endfunction', \
+        'unittestRunTest(\'test' + idTitle + 'Main\')' \
+    ])
+endfunction
+
+
+# The frontend application project type
+creatorFrontendType = { \
+    'name': 'frontend', \
+    'title': 'Frontend Application', \
+    'description': 'A [MarkdownUp](https://craigahobbs.github.io/markdown-up/) web application (a Markdown page with ' + \
+        'embedded BareScript) with unit tests, publishable as-is on GitHub Pages', \
+    'fields': [ \
+        {'name': 'copyright', 'label': 'Copyright holder'}, \
+        {'name': 'name', 'label': 'Application name', 'hint': 'e.g. "Fungus Simulator"'}, \
+        {'name': 'description', 'label': 'Description', 'hint': 'one sentence'}, \
+        {'name': 'spec', 'label': 'Specification', 'hint': 'what the application does and how it behaves', 'multiline': true} \
+    ], \
+    'validate': creatorFrontendValidate, \
+    'project': creatorFrontendProject \
+}

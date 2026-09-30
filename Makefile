@@ -24,7 +24,7 @@ ESLINT_ARGS := $(ESLINT_ARGS) bin/ perf/
 
 
 help:
-	@echo "            [perf|sync|test-include]"
+	@echo "            [perf|sync|test-creator|test-include]"
 
 
 clean:
@@ -128,6 +128,15 @@ test-include-markdownup:
 	$(NODE_SHELL) npx bare -d -v vUnittestReport true lib/include/test/runTestsMarkdownUp.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 test-include-run:
 	$(NODE_SHELL) npx bare -d -m lib/include/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
+
+
+# The BareScript application creator (static/creator) unit tests
+.PHONY: test-creator
+commit: test-creator
+test-creator: build/npm.build lib/includeSource.js
+	$(NODE_SHELL) npx bare -x -m static/creator/*.bare static/creator/test/test*.bare
+	$(NODE_SHELL) npx bare -s -m static/creator/test/runTests.bare
+	$(NODE_SHELL) npx bare -d -m static/creator/test/runTests.bare$(if $(TEST), -v vUnittestTest "'$(TEST)'")
 
 
 doc:

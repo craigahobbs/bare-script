@@ -35,7 +35,7 @@ unittestMockState = unittestMockStateNew()
 # $arg data: Optional (default is null). The map of function name to mock function data.
 # $arg data: The following functions make use of mock data:
 # $arg data: - **documentInputValue** - map of id to return value
-# $arg data: - **systemFetch** - map of URL to response text
+# $arg data: - **systemFetch** - map of URL to response text (or byte value array, for a binary request)
 function unittestMockAll(data):
     # Document
     unittestMockOne('documentFontSize', unittestMock_documentFontSize)
@@ -227,7 +227,12 @@ endfunction
 
 function unittestMock_windowURLObject(data, contentType):
     contentType = if(contentType != null, contentType, 'text/plain')
-    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
+    if systemType(data) == 'array':
+        dataText = arrayJoin(arraySlice(data, 0, mathMin(8, arrayLength(data))), ',')
+    else:
+        dataText = if(stringLength(data) < 20, data, stringSlice(data, 0, 20))
+    endif
+    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(dataText)
 endfunction
 
 

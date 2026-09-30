@@ -1,0 +1,150 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../base64.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+function testBase64RoundTrip(bytes):
+    encoded = base64Encode(bytes)
+    unittestEqual(systemType(encoded), 'string')
+    unittestDeepEqual(base64Decode(encoded), bytes)
+endfunction
+
+
+function testBase64EncodeEmpty():
+    testBase64RoundTrip([])
+    unittestEqual(base64Encode([]), '')
+    unittestDeepEqual(base64Decode(''), [])
+endfunction
+unittestRunTest('testBase64EncodeEmpty')
+
+
+function testBase64EncodeOneByte():
+    testBase64RoundTrip([0])
+    testBase64RoundTrip([255])
+    unittestEqual(base64Encode([104]), 'aA==')
+endfunction
+unittestRunTest('testBase64EncodeOneByte')
+
+
+function testBase64EncodeTwoBytes():
+    testBase64RoundTrip([1, 2])
+    unittestEqual(base64Encode([104, 105]), 'aGk=')
+endfunction
+unittestRunTest('testBase64EncodeTwoBytes')
+
+
+function testBase64EncodeThreeBytes():
+    testBase64RoundTrip([1, 2, 3])
+    unittestEqual(base64Encode([104, 105, 33]), 'aGkh')
+endfunction
+unittestRunTest('testBase64EncodeThreeBytes')
+
+
+function testBase64EncodeHello():
+    testBase64RoundTrip(stringEncode('hello'))
+    unittestEqual(base64Encode(stringEncode('hello')), 'aGVsbG8=')
+endfunction
+unittestRunTest('testBase64EncodeHello')
+
+
+function testBase64EncodeString():
+    unittestEqual(base64Encode('hello'), 'aGVsbG8=')
+    unittestEqual(base64Encode(''), '')
+    unittestEqual(base64Encode('ünïcödé'), base64Encode(stringEncode('ünïcödé')))
+    unittestDeepEqual(base64Decode(base64Encode('ünïcödé')), stringEncode('ünïcödé'))
+endfunction
+unittestRunTest('testBase64EncodeString')
+
+
+function testBase64EncodeAllBytes():
+    bytes = []
+    value = 0
+    while value < 256:
+        arrayPush(bytes, value)
+        value = value + 1
+    endwhile
+    testBase64RoundTrip(bytes)
+    unittestEqual(stringSlice(base64Encode(bytes), 0, 24), 'AAECAwQFBgcICQoLDA0ODxAR')
+endfunction
+unittestRunTest('testBase64EncodeAllBytes')
+
+
+function testBase64EncodeInvalid():
+    unittestMockAll()
+    unittestEqual(base64Encode(null), null)
+    unittestEqual(base64Encode({}), null)
+    unittestEqual(base64Encode([256]), null)
+    unittestEqual(base64Encode([-1]), null)
+    unittestEqual(base64Encode([1.5]), null)
+    unittestEqual(base64Encode(['x']), null)
+    unittestEqual(base64Encode([true]), null)
+    unittestEqual(base64Encode([1, 256]), null)
+    unittestEqual(base64Encode([1, 2, 256]), null)
+    unittestEqual(base64Encode([1, 2, 3, 256]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Encode - Invalid "bytes" argument']] \
+    ])
+endfunction
+unittestRunTest('testBase64EncodeInvalid')
+
+
+function testBase64DecodeInvalidArgument():
+    unittestMockAll()
+    unittestEqual(base64Decode(null), null)
+    unittestEqual(base64Decode(1), null)
+    unittestEqual(base64Decode([]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid "text" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid "text" argument']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid "text" argument']] \
+    ])
+endfunction
+unittestRunTest('testBase64DecodeInvalidArgument')
+
+
+function testBase64DecodeInvalidData():
+    unittestMockAll()
+    unittestEqual(base64Decode('abc'), null)
+    unittestEqual(base64Decode('!!!!'), null)
+    unittestEqual(base64Decode('AAA'), null)
+    unittestEqual(base64Decode('A==='), null)
+    unittestEqual(base64Decode('AA=A'), null)
+    unittestEqual(base64Decode('AA==AAAA'), null)
+    unittestEqual(base64Decode('AAA*'), null)
+    unittestEqual(base64Decode('AAA-'), null)
+    unittestEqual(base64Decode('AAA_'), null)
+    unittestEqual(base64Decode(stringFromCharCode(256) + 'AAA'), null)
+    unittestEqual(base64Decode('AA=' + stringFromCharCode(256)), null)
+    unittestEqual(base64Decode('AAAA\n'), null)
+    unittestEqual(base64Decode('AAA=\n'), null)
+    unittestEqual(base64Decode('aGVsbG8\n'), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']], \
+        ['systemLogDebug', ['base64.bare: base64Decode - Invalid encoded data']] \
+    ])
+endfunction
+unittestRunTest('testBase64DecodeInvalidData')

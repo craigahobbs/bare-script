@@ -1,0 +1,20 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include <unittestMock.bare>
+
+
+# Start coverage
+unittestCoverageStart()
+
+# Test includes
+include 'testCreator.bare'
+include 'testCreatorFrontend.bare'
+include 'testCreatorUtil.bare'
+
+# Stop coverage
+unittestCoverageStop()
+
+# Test report
+return unittestReport({'title': 'BareScript Creator Tests', 'coverageExclude': ['runTests.bare'], 'coverageMin': 100})

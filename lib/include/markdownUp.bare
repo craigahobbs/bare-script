@@ -314,9 +314,9 @@ endfunction
 
 # $function: windowClipboardWrite
 # $group: markdownUp.bare
-# $doc: Write text to the clipboard
-# $arg text: The text to write
-# $arg type: The clipboard content type (default is "text/plain")
+# $doc: Write text (or binary data) to the clipboard
+# $arg text: The text string or byte value array (integers 0 to 255) to write
+# $arg type: The clipboard content type (default is "text/plain"). Binary data needs its content type, e.g. "image/png".
 function windowClipboardWrite(text):
     objectSet(markdownUpState, 'windowClipboard', text)
 endfunction
@@ -401,12 +401,17 @@ endfunction
 # $function: windowURLObject
 # $group: markdownUp.bare
 # $doc: Create an object URL (i.e. a file download URL)
-# $arg data: The object data string
+# $arg data: The object data string or byte value array
 # $arg contentType: Optional (default is "text/plain"). The object content type.
 # $return: The object URL string
 function windowURLObject(data, contentType):
     contentType = if(contentType != null, contentType, 'text/plain')
-    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(if(stringLength(data) < 20, data, stringSlice(data, 0, 20)))
+    if systemType(data) == 'array':
+        dataText = arrayJoin(arraySlice(data, 0, mathMin(8, arrayLength(data))), ',')
+    else:
+        dataText = if(stringLength(data) < 20, data, stringSlice(data, 0, 20))
+    endif
+    return 'blob:' + urlEncode(contentType) + '-' + urlEncode(dataText)
 endfunction
 
 

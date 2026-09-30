@@ -119,6 +119,26 @@ test('valueString', () => {
     // unknown
     assert.equal(valueString(new Set([1, 2, 3])), '<unknown>');
     assert.equal(valueString(new Set()), '<unknown>');
+
+    // Negative zero and large numbers
+    assert.equal(valueString(-0), '0');
+    assert.equal(valueString(0.1 + 0.2), '0.30000000000000004');
+    assert.equal(valueString(-123.456), '-123.456');
+
+    // Decimal form from 1e-6 to below 1e21, exponent form otherwise
+    assert.equal(valueString(0.0001), '0.0001');
+    assert.equal(valueString(0.00001), '0.00001');
+    assert.equal(valueString(0.000001), '0.000001');
+    assert.equal(valueString(1e-7), '1e-7');
+    assert.equal(valueString(-1.5e-8), '-1.5e-8');
+    assert.equal(valueString(1e-100), '1e-100');
+    assert.equal(valueString(1e16), '10000000000000000');
+    assert.equal(valueString(123456789012345680000), '123456789012345680000');
+    assert.equal(valueString(1e21), '1e+21');
+    assert.equal(valueString(1.5e21), '1.5e+21');
+    assert.equal(valueString(Infinity), 'Infinity');
+    assert.equal(valueString(-Infinity), '-Infinity');
+    assert.equal(valueString(NaN), 'NaN');
 });
 
 
@@ -131,6 +151,16 @@ test('valueJSON', () => {
 
     // Indent
     assert.equal(valueJSON({'value': 1}, 2), '{\n  "value": 1\n}');
+
+    // Numbers - integral floats and negative zero as ints, non-finite as null
+    assert.equal(valueJSON([5.0, -0, 1e21, 1.5, Infinity, -Infinity, NaN, {'a': -0}]), '[5,0,1e+21,1.5,null,null,null,{"a":0}]');
+
+    // Strings that look like number cleanup candidates are unchanged
+    assert.equal(valueJSON({'a': 'x.0,', 'b': 'y.0'}), '{"a":"x.0,","b":"y.0"}');
+
+    // Small floats
+    assert.equal(valueJSON([1e-7, 0.00001, {'a': -1.5e-8, 'b': 'x'}, 1e-7]), '[1e-7,0.00001,{"a":-1.5e-8,"b":"x"},1e-7]');
+    assert.equal(valueJSON({'value': 1e-7}, 2), '{\n  "value": 1e-7\n}');
 
     // Datetime
     const d1 = new Date(2024, 0, 12, 6, 9);
@@ -744,6 +774,19 @@ test('ValueArgsError', () => {
             'name': 'ValueArgsError',
             'message': 'Invalid "myArg" argument value, null',
             'returnValue': -1
+        }
+    );
+});
+
+
+test('ValueArgsError, non-finite', () => {
+    assert.throws(
+        () => {
+            throw new ValueArgsError('myArg', [1, Infinity]);
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "myArg" argument value, [1,null]'
         }
     );
 });

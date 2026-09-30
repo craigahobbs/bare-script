@@ -126,6 +126,8 @@ function testMarkdownUp_windowURLObject():
     unittestEqual(windowURLObject('Hello!', 'text/plain'), 'blob:text/plain-Hello!')
     unittestEqual(windowURLObject('abcdefghijklmnopqrstuvwxyz', 'text/plain'), 'blob:text/plain-abcdefghijklmnopqrst')
     unittestEqual(windowURLObject('Hello!'), 'blob:text/plain-Hello!')
+    unittestEqual(windowURLObject([0, 128, 255], 'application/octet-stream'), 'blob:application/octet-stream-0,128,255')
+    unittestEqual(windowURLObject(arrayNewSize(30, 7), 'application/gzip'), 'blob:application/gzip-7,7,7,7,7,7,7,7')
 endfunction
 unittestRunTest('testMarkdownUp_windowURLObject')
 

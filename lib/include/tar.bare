@@ -1,0 +1,380 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: tarCreate
+# $group: tar.bare
+# $doc: Create a tar archive (USTAR format) from an array of regular files. Each file has mode 644,
+# $doc: and no directory entries are written.
+# $arg files: The array of file objects. Each file object has the following members:
+# $arg files: - **name** - the file path
+# $arg files: - **bytes** - the file content byte value array (integers 0 to 255) or string (as UTF-8)
+# $arg files: - **mtime** - the optional file modification datetime (default is the Unix epoch)
+# $return: The tar archive byte value array, or null if creation fails
+function tarCreate(files):
+    if systemType(files) != 'array':
+        systemLogDebug('tar.bare: tarCreate - Invalid "files" argument')
+        return null
+    endif
+
+    tarBytes = []
+    for file in files:
+        name = if(systemType(file) == 'object', objectGet(file, 'name'))
+        bytes = if(systemType(file) == 'object', objectGet(file, 'bytes'))
+        mtime = if(systemType(file) == 'object', objectGet(file, 'mtime'))
+        if systemType(bytes) == 'string':
+            bytes = stringEncode(bytes)
+        endif
+        mtimeSeconds = if(mtime != null, tarDatetimeSeconds(mtime), 0)
+        if systemType(name) != 'string' || name == '' || !tarIsByteArray(bytes) || mtimeSeconds == null:
+            systemLogDebug('tar.bare: tarCreate - Invalid "files" argument')
+            return null
+        endif
+
+        # A long name splits into the USTAR prefix and name fields, or is given by a PAX extended header
+        nameBytes = stringEncode(name)
+        prefixBytes = []
+        if arrayLength(nameBytes) > 100:
+            ixSplit = tarNameSplit(nameBytes)
+            if ixSplit >= 0:
+                prefixBytes = arraySlice(nameBytes, 0, ixSplit)
+                nameBytes = arraySlice(nameBytes, ixSplit + 1)
+            else:
+                paxBytes = tarPaxRecord('path', name)
+                arrayExtend(tarBytes, tarHeaderNew(stringEncode('PaxHeader'), [], arrayLength(paxBytes), 0, 120))
+                tarExtendPadded(tarBytes, paxBytes)
+                nameBytes = arraySlice(nameBytes, 0, 100)
+            endif
+        endif
+
+        # Add the file's header and content
+        arrayExtend(tarBytes, tarHeaderNew(nameBytes, prefixBytes, arrayLength(bytes), mtimeSeconds, 48))
+        tarExtendPadded(tarBytes, bytes)
+    endfor
+
+    # The end-of-archive marker is two zero blocks
+    arrayExtend(tarBytes, arrayNewSize(1024, 0))
+    return tarBytes
+endfunction
+
+
+# Helper to convert a datetime to whole seconds since the Unix epoch - returns null if the value is not a
+# datetime or does not fit the header's modification time field
+function tarDatetimeSeconds(datetime):
+    if systemType(datetime) != 'datetime':
+        return null
+    endif
+    seconds = mathFloor((datetime - tarEpoch) / 1000)
+    return if(seconds >= 0 && seconds < 8589934592, seconds)
+endfunction
+
+
+# The Unix epoch
+tarEpoch = datetimeISOParse('1970-01-01T00:00:00Z')
+
+
+# Helper to find the index of the name-byte slash that splits a long name into the USTAR prefix
+# (at most 155 bytes) and name (at most 100 bytes) fields - returns -1 if there is none
+function tarNameSplit(nameBytes):
+    length = arrayLength(nameBytes)
+    ix = mathMax(1, length - 101)
+    ixEnd = mathMin(155, length - 2)
+    while ix <= ixEnd:
+        if arrayGet(nameBytes, ix) == 47:
+            return ix
+        endif
+        ix = ix + 1
+    endwhile
+    return -1
+endfunction
+
+
+# Helper to create a PAX extended header record's bytes - "<length> <key>=<value>\n" where the
+# length counts the entire record, including its own digits
+function tarPaxRecord(key, value):
+    recordBytes = stringEncode(' ' + key + '=' + value + '\n')
+    lengthBase = arrayLength(recordBytes)
+    lengthDigits = stringLength('' + lengthBase)
+    length = lengthBase + lengthDigits
+    if stringLength('' + length) > lengthDigits:
+        length = length + 1
+    endif
+    return arrayExtend(stringEncode('' + length), recordBytes)
+endfunction
+
+
+# Helper to add bytes to a tar archive, padded to the 512-byte block size
+function tarExtendPadded(tarBytes, bytes):
+    arrayExtend(tarBytes, bytes)
+    padding = (512 - arrayLength(bytes) % 512) % 512
+    if padding:
+        arrayExtend(tarBytes, arrayNewSize(padding, 0))
+    endif
+endfunction
+
+
+# Helper to create a USTAR header block - "mtime" is the modification time in seconds since the Unix epoch
+function tarHeaderNew(nameBytes, prefixBytes, size, mtime, typeflag):
+    header = arrayNewSize(512, 0)
+
+    # The checksum is the sum of the header bytes with the checksum field as spaces - each field setter
+    # returns its bytes' sum, and the unset bytes are zero
+    checksum = tarHeaderSetBytes(header, 0, nameBytes) + \
+        tarHeaderSetOctal(header, 100, 420, 8) + \
+        tarHeaderSetOctal(header, 108, 0, 8) + \
+        tarHeaderSetOctal(header, 116, 0, 8) + \
+        tarHeaderSetOctal(header, 124, size, 12) + \
+        tarHeaderSetOctal(header, 136, mtime, 12) + \
+        256 + typeflag + \
+        tarHeaderSetBytes(header, 257, tarMagicBytes) + \
+        tarHeaderSetBytes(header, 345, prefixBytes)
+    arraySet(header, 156, typeflag)
+    tarHeaderSetOctal(header, 148, checksum, 7)
+    arraySet(header, 155, 32)
+    return header
+endfunction
+
+
+# The USTAR magic and version fields - "ustar\0" and "00"
+tarMagicBytes = [117, 115, 116, 97, 114, 0, 48, 48]
+
+
+# Helper to set a header field's bytes - returns the bytes' sum
+function tarHeaderSetBytes(header, offset, bytes):
+    sum = 0
+    for byte, ixByte in bytes:
+        arraySet(header, offset + ixByte, byte)
+        sum = sum + byte
+    endfor
+    return sum
+endfunction
+
+
+# Helper to set a header's numeric field - zero-padded octal digits followed by a null character. Returns
+# the digits' character code sum.
+function tarHeaderSetOctal(header, offset, value, width):
+    digits = numberToString(value, 8)
+    digits = stringRepeat('0', width - 1 - stringLength(digits)) + digits
+    sum = 0
+    ix = 0
+    while ix < width - 1:
+        code = stringCharCodeAt(digits, ix)
+        arraySet(header, offset + ix, code)
+        sum = sum + code
+        ix = ix + 1
+    endwhile
+    arraySet(header, offset + ix, 0)
+    return sum
+endfunction
+
+
+# $function: tarExtract
+# $group: tar.bare
+# $doc: Extract the regular files of a tar archive (USTAR, GNU, or PAX format). Directory, link,
+# $doc: and other entries are skipped.
+# $arg bytes: The tar archive byte value array (integers 0 to 255)
+# $return: The array of file objects, each with **name**, **bytes**, and **mtime** (the modification datetime)
+# $return: members, or null if extraction fails
+function tarExtract(bytes):
+    if !tarIsByteArray(bytes):
+        systemLogDebug('tar.bare: tarExtract - Invalid "bytes" argument')
+        return null
+    endif
+
+    files = tarExtractHelper(bytes)
+    if files == null:
+        systemLogDebug('tar.bare: tarExtract - Invalid archive data')
+    endif
+    return files
+endfunction
+
+
+# Helper to extract a tar archive's regular files - returns null if the archive is invalid
+function tarExtractHelper(bytes):
+    files = []
+    length = arrayLength(bytes)
+    longName = null
+    paxMtime = null
+    offset = 0
+    while offset + 512 <= length:
+        # A zero block ends the archive
+        if arrayGet(bytes, offset) == 0 && tarIsZeroBlock(bytes, offset):
+            break
+        endif
+
+        # Validate the header checksum - the checksum field itself is summed as spaces
+        checksum = tarHeaderOctal(bytes, offset + 148, 8)
+        computed = 256
+        ix = offset
+        while ix < offset + 148:
+            computed = computed + arrayGet(bytes, ix)
+            ix = ix + 1
+        endwhile
+        ix = offset + 156
+        while ix < offset + 512:
+            computed = computed + arrayGet(bytes, ix)
+            ix = ix + 1
+        endwhile
+        if checksum == null || checksum != computed:
+            return null
+        endif
+
+        # The entry's content offset and size, and the next header's offset
+        size = tarHeaderOctal(bytes, offset + 124, 12)
+        offsetData = offset + 512
+        if size == null || offsetData + size > length:
+            return null
+        endif
+        offsetNext = offsetData + size + (512 - size % 512) % 512
+
+        # A regular file entry ("0", NUL, or "7", a contiguous file)? A PAX extended header or a GNU long name entry
+        # describes the entry that follows
+        typeflag = arrayGet(bytes, offset + 156)
+        if typeflag == 48 || typeflag == 0 || typeflag == 55:
+            name = if(longName != null, longName, tarHeaderName(bytes, offset))
+            mtimeSeconds = if(paxMtime != null, paxMtime, tarHeaderOctal(bytes, offset + 136, 12))
+            if name == null || mtimeSeconds == null:
+                return null
+            endif
+
+            # A pre-USTAR directory entry is a NUL-typeflag entry whose name ends with a slash
+            if typeflag != 0 || !stringEndsWith(name, '/'):
+                arrayPush(files, { \
+                    'name': name, \
+                    'bytes': arraySlice(bytes, offsetData, offsetData + size), \
+                    'mtime': tarEpoch + mathRound(mtimeSeconds * 1000) \
+                })
+            endif
+            longName = null
+            paxMtime = null
+        elif typeflag == 120:
+            paxRecords = tarPaxRecords(bytes, offsetData, offsetData + size)
+            if paxRecords == null:
+                return null
+            endif
+            longName = objectGet(paxRecords, 'path')
+            paxMtime = if(objectHas(paxRecords, 'mtime'), numberParseFloat(objectGet(paxRecords, 'mtime')))
+        elif typeflag == 76:
+            longName = tarBytesString(bytes, offsetData, offsetData + size)
+            if longName == null:
+                return null
+            endif
+        else:
+            longName = null
+            paxMtime = null
+        endif
+        offset = offsetNext
+    endwhile
+    return files
+endfunction
+
+
+# Helper to test if a value is a byte value array (integers 0 to 255) - validated natively as JSON
+function tarIsByteArray(value):
+    return systemType(value) == 'array' && regexMatch(tarByteArrayRegex, jsonStringify(value)) != null
+endfunction
+
+
+# The byte value array JSON regular expression
+tarByteArrayRegex = regexNew('^\\[(?:(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(?:,|(?=\\])))*\\]$')
+
+
+# Helper to test if a block is all zeros
+function tarIsZeroBlock(bytes, offset):
+    ix = offset
+    while ix < offset + 512:
+        if arrayGet(bytes, ix):
+            return false
+        endif
+        ix = ix + 1
+    endwhile
+    return true
+endfunction
+
+
+# Helper to get a header entry's name - the USTAR prefix field, if any, precedes the name field.
+# Returns null if the name is empty or is not valid UTF-8.
+function tarHeaderName(bytes, offset):
+    name = tarBytesString(bytes, offset, offset + 100)
+    if !name:
+        return null
+    endif
+
+    # USTAR prefix?
+    if arrayGet(bytes, offset + 257) == 117 && arrayGet(bytes, offset + 258) == 115 && arrayGet(bytes, offset + 259) == 116 && \
+            arrayGet(bytes, offset + 260) == 97 && arrayGet(bytes, offset + 261) == 114:
+        prefix = tarBytesString(bytes, offset + 345, offset + 500)
+        if prefix == null:
+            return null
+        elif prefix != '':
+            name = prefix + '/' + name
+        endif
+    endif
+    return name
+endfunction
+
+
+# Helper to decode a null-terminated string field - returns null if the string is not valid UTF-8
+function tarBytesString(bytes, start, end):
+    ix = start
+    while ix < end && arrayGet(bytes, ix) != 0:
+        ix = ix + 1
+    endwhile
+    return stringDecode(arraySlice(bytes, start, ix))
+endfunction
+
+
+# Helper to parse a header's numeric field - octal digits terminated by a null or space character.
+# Returns null if the field is invalid.
+function tarHeaderOctal(bytes, offset, width):
+    value = 0
+    ix = offset
+    end = offset + width
+    while ix < end && arrayGet(bytes, ix) == 32:
+        ix = ix + 1
+    endwhile
+    while ix < end:
+        byte = arrayGet(bytes, ix)
+        if byte == 0 || byte == 32:
+            break
+        elif byte < 48 || byte > 55:
+            return null
+        endif
+        value = value * 8 + byte - 48
+        ix = ix + 1
+    endwhile
+    return value
+endfunction
+
+
+# Helper to parse a PAX extended header's records, "<length> <key>=<value>\n", to a key-value object.
+# Returns null if the records are invalid.
+function tarPaxRecords(bytes, start, end):
+    records = {}
+    ix = start
+    while ix < end:
+        # Parse the record length - it counts the entire record, including its own digits
+        recordLength = 0
+        ixLength = ix
+        byte = arrayGet(bytes, ixLength)
+        while byte >= 48 && byte <= 57:
+            recordLength = recordLength * 10 + byte - 48
+            ixLength = ixLength + 1
+            byte = if(ixLength < end, arrayGet(bytes, ixLength))
+        endwhile
+        ixEnd = ix + recordLength
+        if ixLength == ix || byte != 32 || ixEnd > end || ixEnd < ixLength + 2 || arrayGet(bytes, ixEnd - 1) != 10:
+            return null
+        endif
+
+        # Parse the record's key and value
+        record = stringDecode(arraySlice(bytes, ixLength + 1, ixEnd - 1))
+        ixEqual = if(record != null, stringIndexOf(record, '='), -1)
+        if ixEqual < 0:
+            return null
+        endif
+        objectSet(records, stringSlice(record, 0, ixEqual), stringSlice(record, ixEqual + 1))
+        ix = ixEnd
+    endwhile
+    return records
+endfunction

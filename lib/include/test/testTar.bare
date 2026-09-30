@@ -1,0 +1,478 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../base64.bare'
+include '../gzip.bare'
+include '../tar.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+# Helper to recompute a header's checksum field after a test modifies the header
+function testTarSetChecksum(tarBytes, offset):
+    ix = offset + 148
+    while ix < offset + 156:
+        arraySet(tarBytes, ix, 32)
+        ix = ix + 1
+    endwhile
+    checksum = 0
+    ix = offset
+    while ix < offset + 512:
+        checksum = checksum + arrayGet(tarBytes, ix)
+        ix = ix + 1
+    endwhile
+    tarHeaderSetOctal(tarBytes, offset + 148, checksum, 7)
+endfunction
+
+
+# The extracted file objects of an array of file objects - the default modification time is the epoch
+function testTarFiles(files):
+    expected = []
+    for file in files:
+        arrayPush(expected, {'name': objectGet(file, 'name'), 'bytes': objectGet(file, 'bytes'), 'mtime': objectGet(file, 'mtime', testTarEpoch)})
+    endfor
+    return expected
+endfunction
+
+
+testTarEpoch = datetimeISOParse('1970-01-01T00:00:00Z')
+
+
+function testTarRoundTrip(files):
+    tarBytes = tarCreate(files)
+    unittestEqual(systemType(tarBytes), 'array')
+    unittestEqual(arrayLength(tarBytes) % 512, 0)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles(files))
+    return tarBytes
+endfunction
+
+
+# Python tarfile's USTAR header for "hello.txt" containing "hello\n" (mode 644, uid/gid 0, mtime 0)
+testTarPythonHeader = \
+    'aGVsbG8udHh0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + \
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDQAMDAwMDAwMAAwMDAwMDAwADAwMDAwMDAwMDA2ADAwMDAwMDAwMDAwADAw' + \
+    'NzYwNQAgMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + \
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + \
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + \
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + \
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+
+
+#
+# Create
+#
+
+
+function testTarCreateEmpty():
+    tarBytes = testTarRoundTrip([])
+    unittestDeepEqual(tarBytes, arrayNewSize(1024, 0))
+endfunction
+unittestRunTest('testTarCreateEmpty')
+
+
+function testTarCreateHeader():
+    tarBytes = testTarRoundTrip([{'name': 'hello.txt', 'bytes': stringEncode('hello\n')}])
+    unittestEqual(arrayLength(tarBytes), 2048)
+    unittestDeepEqual(arraySlice(tarBytes, 0, 512), base64Decode(testTarPythonHeader))
+    unittestDeepEqual(arraySlice(tarBytes, 512, 518), stringEncode('hello\n'))
+    unittestDeepEqual(arraySlice(tarBytes, 518), arrayNewSize(1530, 0))
+endfunction
+unittestRunTest('testTarCreateHeader')
+
+
+function testTarCreateStrings():
+    # A string file content is encoded as UTF-8
+    files = [{'name': 'hello.txt', 'bytes': 'hello\n'}, {'name': 'empty.txt', 'bytes': ''}, {'name': 'ü.txt', 'bytes': 'ünïcödé'}]
+    tarBytes = tarCreate(files)
+    unittestDeepEqual(tarBytes, tarCreate([ \
+        {'name': 'hello.txt', 'bytes': stringEncode('hello\n')}, \
+        {'name': 'empty.txt', 'bytes': []}, \
+        {'name': 'ü.txt', 'bytes': stringEncode('ünïcödé')} \
+    ]))
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([ \
+        {'name': 'hello.txt', 'bytes': stringEncode('hello\n')}, \
+        {'name': 'empty.txt', 'bytes': []}, \
+        {'name': 'ü.txt', 'bytes': stringEncode('ünïcödé')} \
+    ]))
+endfunction
+unittestRunTest('testTarCreateStrings')
+
+
+function testTarCreateFiles():
+    testTarRoundTrip([ \
+        {'name': 'a.txt', 'bytes': stringEncode('a')}, \
+        {'name': 'dir/sub/empty.bin', 'bytes': []}, \
+        {'name': 'dir/block.bin', 'bytes': arrayNewSize(512, 255)}, \
+        {'name': 'dir/block1.bin', 'bytes': arrayNewSize(513, 1)}, \
+        {'name': 'naïve/résumé.txt', 'bytes': stringEncode('ünïcödé')} \
+    ])
+endfunction
+unittestRunTest('testTarCreateFiles')
+
+
+function testTarCreateLarge():
+    # A file larger than an array spread allows
+    tarBytes = testTarRoundTrip([{'name': 'large.bin', 'bytes': arrayNewSize(200000, 7)}])
+    unittestEqual(arrayLength(tarBytes), 201728)
+endfunction
+unittestRunTest('testTarCreateLarge')
+
+
+function testTarCreateLongNamePrefix():
+    # The name splits at a slash into the prefix (155 max) and name (100 max) fields
+    name = stringRepeat('a', 60) + '/' + stringRepeat('b', 80) + '.txt'
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [1, 2, 3]}])
+    unittestEqual(arrayLength(tarBytes), 2048)
+    unittestEqual(stringDecode(arraySlice(tarBytes, 0, 84)), stringRepeat('b', 80) + '.txt')
+    unittestEqual(stringDecode(arraySlice(tarBytes, 345, 405)), stringRepeat('a', 60))
+
+    # The split slash is the last one that fits the name field
+    name = stringRepeat('a', 60) + '/' + stringRepeat('b', 80) + '/' + stringRepeat('c', 40)
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [1, 2, 3]}])
+    unittestEqual(stringDecode(arraySlice(tarBytes, 0, 40)), stringRepeat('c', 40))
+    unittestEqual(stringDecode(arraySlice(tarBytes, 345, 486)), stringRepeat('a', 60) + '/' + stringRepeat('b', 80))
+
+    # Maximum-length prefix and name
+    name = stringRepeat('a', 155) + '/' + stringRepeat('b', 100)
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [1, 2, 3]}])
+    unittestEqual(arrayLength(tarBytes), 2048)
+endfunction
+unittestRunTest('testTarCreateLongNamePrefix')
+
+
+function testTarCreateLongNamePax():
+    # No slash to split at - a PAX extended header names the entry
+    name = stringRepeat('c', 120) + '.txt'
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [4, 5]}])
+    unittestEqual(arrayLength(tarBytes), 3072)
+    unittestEqual(stringDecode(arraySlice(tarBytes, 0, 9)), 'PaxHeader')
+    unittestEqual(arrayGet(tarBytes, 156), 120)
+    unittestEqual(stringDecode(arraySlice(tarBytes, 124, 135)), '00000000206')
+    unittestEqual(stringDecode(arraySlice(tarBytes, 512, 646)), '134 path=' + name + '\n')
+    unittestEqual(stringDecode(arraySlice(tarBytes, 1024, 1124)), stringRepeat('c', 100))
+    unittestEqual(arrayGet(tarBytes, 1024 + 156), 48)
+
+    # The prefix is too long to split
+    name = stringRepeat('a', 156) + '/' + stringRepeat('b', 10)
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [4, 5]}])
+    unittestEqual(arrayLength(tarBytes), 3072)
+
+    # The name is too long to split
+    name = stringRepeat('a', 10) + '/' + stringRepeat('b', 101)
+    tarBytes = testTarRoundTrip([{'name': name, 'bytes': [4, 5]}])
+    unittestEqual(arrayLength(tarBytes), 3072)
+
+    # The PAX record length's digit count grows with the length
+    name = stringRepeat('c', 88)
+    tarBytes = testTarRoundTrip([{'name': name + '/' + stringRepeat('d', 100) + '.txt', 'bytes': []}])
+    unittestEqual(stringDecode(arraySlice(tarBytes, 512, 515)), '203')
+endfunction
+unittestRunTest('testTarCreateLongNamePax')
+
+
+function testTarCreateMtime():
+    mtime = datetimeISOParse('2024-03-05T12:34:56Z')
+    files = [{'name': 'a.txt', 'bytes': [1], 'mtime': mtime}, {'name': 'b.txt', 'bytes': [2]}]
+    tarBytes = testTarRoundTrip(files)
+
+    # The header's modification time field is octal seconds since the epoch
+    unittestEqual(stringDecode(arraySlice(tarBytes, 136, 147)), '14571610560')
+    unittestEqual(stringDecode(arraySlice(tarBytes, 1024 + 136, 1024 + 147)), '00000000000')
+
+    # Sub-second precision is dropped
+    files = [{'name': 'a.txt', 'bytes': [1], 'mtime': mtime + 999}]
+    unittestDeepEqual(tarExtract(tarCreate(files)), [{'name': 'a.txt', 'bytes': [1], 'mtime': mtime}])
+endfunction
+unittestRunTest('testTarCreateMtime')
+
+
+function testTarCreateInvalid():
+    unittestMockAll()
+    unittestEqual(tarCreate(null), null)
+    unittestEqual(tarCreate({}), null)
+    unittestEqual(tarCreate([null]), null)
+    unittestEqual(tarCreate(['a.txt']), null)
+    unittestEqual(tarCreate([{'bytes': []}]), null)
+    unittestEqual(tarCreate([{'name': '', 'bytes': []}]), null)
+    unittestEqual(tarCreate([{'name': 1, 'bytes': []}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt'}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': {}}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [256]}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [-1]}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [1.5]}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': ['x']}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': []}, {'name': 'b.txt', 'bytes': null}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [], 'mtime': 'x'}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [], 'mtime': testTarEpoch + -1000}]), null)
+    unittestEqual(tarCreate([{'name': 'a.txt', 'bytes': [], 'mtime': testTarEpoch + 8589934592000}]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']], \
+        ['systemLogDebug', ['tar.bare: tarCreate - Invalid "files" argument']] \
+    ])
+endfunction
+unittestRunTest('testTarCreateInvalid')
+
+
+#
+# Extract - interoperability with Python tarfile archives (gzip-compressed)
+#
+
+
+function testTarExtractPythonUstar():
+    # A file, a directory, a symbolic link, and a file in the directory - only the regular files are extracted
+    encoded = 'H4sIAAAAAAAC/+3VTQrCMBCG4Vl7ip6gxjQ/56koNFgq1AguvbkmriSL7hrBvs9mhmSRxTD5hvM4Xtv4iLIelThjPjUpa7796vO5' + \
+        'd8pKo6SC+y32c3pStmnI898JNuoU5v3ab+Sl9tYu7H/ZO6s7aSz7v7oxTJca81/+/4v+oIz10uihQjhtfP55//v2GKafzr8r899o' + \
+        'R/5X8XwRggAAAAAAAAAAAADwB94rpomzACgAAA=='
+    unittestDeepEqual(tarExtract(gzipUncompress(base64Decode(encoded))), testTarFiles([ \
+        {'name': 'hello.txt', 'bytes': stringEncode('hello\n')}, \
+        {'name': 'dir/a.bin', 'bytes': [0, 128, 255]} \
+    ]))
+endfunction
+unittestRunTest('testTarExtractPythonUstar')
+
+
+function testTarExtractContiguousFile():
+    # A contiguous file entry (typeflag "7") is extracted as a regular file
+    files = [{'name': 'a.txt', 'bytes': stringEncode('a')}]
+    tarBytes = tarCreate(files)
+    arraySet(tarBytes, 156, 55)
+    testTarSetChecksum(tarBytes, 0)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles(files))
+endfunction
+unittestRunTest('testTarExtractContiguousFile')
+
+
+function testTarExtractV7Directory():
+    # A pre-USTAR directory entry - a NUL-typeflag entry named with a trailing slash - is not a file
+    tarBytes = tarCreate([{'name': 'dir/', 'bytes': []}, {'name': 'dir/a.txt', 'bytes': stringEncode('a')}])
+    arraySet(tarBytes, 156, 0)
+    testTarSetChecksum(tarBytes, 0)
+    arraySet(tarBytes, 512 + 156, 0)
+    testTarSetChecksum(tarBytes, 512)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([{'name': 'dir/a.txt', 'bytes': stringEncode('a')}]))
+endfunction
+unittestRunTest('testTarExtractV7Directory')
+
+
+function testTarExtractPythonGnuLongName():
+    encoded = 'H4sIAAAAAAAC/+3UQQqDMBBA0Vn3FDlBHDE12x4gl3AlIkRoE/D4tgQKLlyqiP9tMmQ7/LGVrV5hin0Y4ij70GLr1do//3P5975V' + \
+        'MUEOkD+pexsjN9WfxKY5CW6x/1/UrXOb/au6df9N7b8nwSj977//mB9UAAAAAAAAAAAAAAAAcF0LcTu34AAoAAA='
+    unittestDeepEqual(tarExtract(gzipUncompress(base64Decode(encoded))), testTarFiles([ \
+        {'name': stringRepeat('g', 120) + '.txt', 'bytes': stringEncode('gnu\n')} \
+    ]))
+endfunction
+unittestRunTest('testTarExtractPythonGnuLongName')
+
+
+function testTarExtractPythonPaxLongName():
+    encoded = 'H4sIAAAAAAAC/+3TPQrDMAxAYc09hU/gyLHwVujYsVcQNNAxpC74+P2DQoeMSSh93yLhxYN4sYvd4eTtOPh5mGQR+jY3tdfy2V/v' + \
+        'SfuUJTRZwe1afXp8L/8pZQuj18t+3Eisre4EG1njxM+oi9ls/6r23X/OxZIEpf/l7++N+gAAAAAAAAAAAAAAAH7YHTFx/hMAKAAA'
+    unittestDeepEqual(tarExtract(gzipUncompress(base64Decode(encoded))), testTarFiles([ \
+        {'name': stringRepeat('p', 120) + '.txt', 'bytes': stringEncode('pax\n')} \
+    ]))
+endfunction
+unittestRunTest('testTarExtractPythonPaxLongName')
+
+
+#
+# Extract - archive variations
+#
+
+
+function testTarExtractNoEndBlocks():
+    # An archive that ends after the last file's padded content is still valid
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    unittestDeepEqual(tarExtract(arraySlice(tarBytes, 0, 1024)), testTarFiles([{'name': 'a.txt', 'bytes': [1]}]))
+
+    # An archive that ends after the last file's un-padded content
+    unittestDeepEqual(tarExtract(arraySlice(tarBytes, 0, 513)), testTarFiles([{'name': 'a.txt', 'bytes': [1]}]))
+
+    # An empty archive
+    unittestDeepEqual(tarExtract([]), [])
+    unittestDeepEqual(tarExtract(arrayNewSize(512, 0)), [])
+endfunction
+unittestRunTest('testTarExtractNoEndBlocks')
+
+
+function testTarExtractNumericFields():
+    # A leading space and a space terminator are valid in numeric fields
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 124, 32)
+    arraySet(tarBytes, 135, 32)
+    testTarSetChecksum(tarBytes, 0)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([{'name': 'a.txt', 'bytes': [1]}]))
+endfunction
+unittestRunTest('testTarExtractNumericFields')
+
+
+function testTarExtractOtherTypes():
+    # A GNU long name entry names the regular file that follows
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': stringEncode('long.txt')}, {'name': 'b.txt', 'bytes': [2]}])
+    arraySet(tarBytes, 156, 76)
+    testTarSetChecksum(tarBytes, 0)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([{'name': 'long.txt', 'bytes': [2]}]))
+
+    # A GNU long name entry followed by a directory entry names nothing
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': stringEncode('long.txt')}, {'name': 'd', 'bytes': []}, {'name': 'b.txt', 'bytes': [2]}])
+    arraySet(tarBytes, 156, 76)
+    testTarSetChecksum(tarBytes, 0)
+    arraySet(tarBytes, 1024 + 156, 53)
+    testTarSetChecksum(tarBytes, 1024)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([{'name': 'b.txt', 'bytes': [2]}]))
+
+    # A PAX extended header without a path record - its modification time record has sub-second precision
+    paxBytes = tarPaxRecord('mtime', '1700000000.5')
+    tarBytes = tarCreate([{'name': 'b.txt', 'bytes': [2]}])
+    paxHeader = tarHeaderNew(stringEncode('PaxHeader'), [], arrayLength(paxBytes), 0, 120)
+    tarExtendPadded(paxHeader, paxBytes)
+    arrayExtend(paxHeader, tarBytes)
+    unittestDeepEqual(tarExtract(paxHeader), [{'name': 'b.txt', 'bytes': [2], 'mtime': testTarEpoch + 1700000000500}])
+
+    # An invalid PAX modification time record - the header's modification time is used
+    paxBytes = tarPaxRecord('mtime', 'x')
+    paxHeader = tarHeaderNew(stringEncode('PaxHeader'), [], arrayLength(paxBytes), 0, 120)
+    tarExtendPadded(paxHeader, paxBytes)
+    arrayExtend(paxHeader, tarBytes)
+    unittestDeepEqual(tarExtract(paxHeader), testTarFiles([{'name': 'b.txt', 'bytes': [2]}]))
+
+    # An old-style (pre-USTAR) header has no prefix field
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 257, 0)
+    testTarSetChecksum(tarBytes, 0)
+    unittestDeepEqual(tarExtract(tarBytes), testTarFiles([{'name': 'a.txt', 'bytes': [1]}]))
+endfunction
+unittestRunTest('testTarExtractOtherTypes')
+
+
+function testTarExtractInvalidArgument():
+    unittestMockAll()
+    unittestEqual(tarExtract(null), null)
+    unittestEqual(tarExtract('abc'), null)
+    unittestEqual(tarExtract([256]), null)
+    unittestEqual(tarExtract([1.5]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid "bytes" argument']] \
+    ])
+endfunction
+unittestRunTest('testTarExtractInvalidArgument')
+
+
+function testTarExtractInvalidData():
+    unittestMockAll()
+
+    # Non-zero garbage block
+    unittestEqual(tarExtract(arrayNewSize(512, 1)), null)
+
+    # A zero-led block that is not all zeros
+    garbage = arrayNewSize(512, 0)
+    arraySet(garbage, 511, 1)
+    unittestEqual(tarExtract(garbage), null)
+
+    # Bad checksum
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 0, 98)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    # Invalid checksum field
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 148, 56)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    # Invalid size field (checksum adjusted)
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 134, 120)
+    testTarSetChecksum(tarBytes, 0)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    # Truncated content
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    unittestEqual(tarExtract(arraySlice(tarBytes, 0, 512)), null)
+
+    # Empty name
+    tarBytes = tarCreate([{'name': 'a', 'bytes': [1]}])
+    arraySet(tarBytes, 0, 0)
+    testTarSetChecksum(tarBytes, 0)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    # Invalid UTF-8 name and prefix
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 0, 255)
+    testTarSetChecksum(tarBytes, 0)
+    unittestEqual(tarExtract(tarBytes), null)
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [1]}])
+    arraySet(tarBytes, 345, 255)
+    testTarSetChecksum(tarBytes, 0)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    # Invalid UTF-8 GNU long name
+    tarBytes = tarCreate([{'name': 'a.txt', 'bytes': [255]}])
+    arraySet(tarBytes, 156, 76)
+    testTarSetChecksum(tarBytes, 0)
+    unittestEqual(tarExtract(tarBytes), null)
+
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']] \
+    ])
+endfunction
+unittestRunTest('testTarExtractInvalidData')
+
+
+function testTarExtractInvalidPax(paxBytes):
+    header = tarHeaderNew(stringEncode('PaxHeader'), [], arrayLength(paxBytes), 0, 120)
+    tarExtendPadded(header, paxBytes)
+    arrayExtend(header, tarCreate([{'name': 'b.txt', 'bytes': [2]}]))
+    unittestEqual(tarExtract(header), null)
+endfunction
+
+
+function testTarExtractInvalidPaxRecords():
+    unittestMockAll()
+    testTarExtractInvalidPax(stringEncode('path=x\n'))
+    testTarExtractInvalidPax(stringEncode('9x path=x\n'))
+    testTarExtractInvalidPax(stringEncode('99 path=x\n'))
+    testTarExtractInvalidPax(stringEncode('1 path=x\n'))
+    testTarExtractInvalidPax(stringEncode('8 path=x\n'))
+    testTarExtractInvalidPax(stringEncode('11 path=x\n'))
+    testTarExtractInvalidPax(stringEncode('7 path\n'))
+    testTarExtractInvalidPax(arrayExtend(stringEncode('8 pa'), [255, 61, 120, 10]))
+    testTarExtractInvalidPax(stringEncode('2'))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']], \
+        ['systemLogDebug', ['tar.bare: tarExtract - Invalid archive data']] \
+    ])
+endfunction
+unittestRunTest('testTarExtractInvalidPaxRecords')

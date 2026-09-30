@@ -1,0 +1,1168 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+
+# $function: gzipCompress
+# $group: gzip.bare
+# $doc: Compress a byte value array (or a string, as UTF-8) with gzip
+# $arg bytes: The byte value array (integers 0 to 255) or string
+# $arg level: Optional (default is 6). The compression level, 0 (store) through 9 (best).
+# $return: The gzip-compressed byte value array, or null if compression fails
+function gzipCompress(bytes, level):
+    if systemType(bytes) == 'string':
+        bytes = stringEncode(bytes)
+    endif
+    if !gzipIsByteArray(bytes):
+        systemLogDebug('gzip.bare: gzipCompress - Invalid "bytes" argument')
+        return null
+    endif
+    if level == null:
+        level = 6
+    elif systemType(level) != 'number' || level != mathFloor(level) || level < 0 || level > 9:
+        systemLogDebug('gzip.bare: gzipCompress - Invalid "level" argument')
+        return null
+    endif
+
+    deflateBytes = gzipDeflate(bytes, arrayGet(gzipChainByLevel, level))
+    xfl = if(level == 1, 4, if(level == 9, 2, 0))
+    header = [31, 139, 8, 0, 0, 0, 0, 0, xfl, 255]
+    trailer = gzipU32Bytes(gzipCrc32(bytes))
+    arrayExtend(trailer, gzipU32Bytes(arrayLength(bytes)))
+    gzipBytes = arrayCopy(header)
+    arrayExtend(gzipBytes, deflateBytes)
+    arrayExtend(gzipBytes, trailer)
+    return gzipBytes
+endfunction
+
+
+# $function: gzipUncompress
+# $group: gzip.bare
+# $doc: Uncompress a gzip-compressed byte value array
+# $arg bytes: The gzip-compressed byte value array (integers 0 to 255)
+# $return: The uncompressed byte value array, or null if uncompression fails
+function gzipUncompress(bytes):
+    if !gzipIsByteArray(bytes):
+        systemLogDebug('gzip.bare: gzipUncompress - Invalid "bytes" argument')
+        return null
+    endif
+
+    result = gzipInflateGzip(bytes)
+    if result == null:
+        systemLogDebug('gzip.bare: gzipUncompress - Invalid compressed data')
+    endif
+    return result
+endfunction
+
+
+# Helper to test if a value is a byte value array (integers 0 to 255) - validated natively as JSON
+function gzipIsByteArray(value):
+    return systemType(value) == 'array' && regexMatch(gzipByteArrayRegex, jsonStringify(value)) != null
+endfunction
+
+
+# The byte value array JSON regular expression
+gzipByteArrayRegex = regexNew('^\\[(?:(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(?:,|(?=\\])))*\\]$')
+
+
+#
+# CRC-32 (ISO 3309 / gzip)
+#
+# CRC values are kept in signed 32-bit form so that every runtime's bitwise operators agree - the
+# polynomial 0xEDB88320 is written as its signed 32-bit value, and each operation's result is a
+# value that the JavaScript 32-bit bitwise operators would produce
+#
+
+
+function gzipCrc32TableNew():
+    table = []
+    n = 0
+    poly = -306674912
+    while n < 256:
+        c = n
+        k = 0
+        while k < 8:
+            if c & 1:
+                c = poly ^ ((c >> 1) & 2147483647)
+            else:
+                c = (c >> 1) & 2147483647
+            endif
+            k = k + 1
+        endwhile
+        arrayPush(table, c)
+        n = n + 1
+    endwhile
+    return table
+endfunction
+
+
+gzipCrc32Table = gzipCrc32TableNew()
+
+
+function gzipCrc32(bytes):
+    crc = -1
+    table = gzipCrc32Table
+    n = arrayLength(bytes)
+    ix = 0
+    while ix + 4 <= n:
+        crc = arrayGet(table, (crc ^ arrayGet(bytes, ix)) & 255) ^ ((crc >> 8) & 16777215)
+        crc = arrayGet(table, (crc ^ arrayGet(bytes, ix + 1)) & 255) ^ ((crc >> 8) & 16777215)
+        crc = arrayGet(table, (crc ^ arrayGet(bytes, ix + 2)) & 255) ^ ((crc >> 8) & 16777215)
+        crc = arrayGet(table, (crc ^ arrayGet(bytes, ix + 3)) & 255) ^ ((crc >> 8) & 16777215)
+        ix = ix + 4
+    endwhile
+    while ix < n:
+        crc = arrayGet(table, (crc ^ arrayGet(bytes, ix)) & 255) ^ ((crc >> 8) & 16777215)
+        ix = ix + 1
+    endwhile
+    return crc ^ -1
+endfunction
+
+
+# The little-endian bytes of a 32-bit value (signed or unsigned)
+function gzipU32Bytes(value):
+    return [value & 255, (value >> 8) & 255, (value >> 16) & 255, (value >> 24) & 255]
+endfunction
+
+
+#
+# Bit reader / writer
+#
+# Reader: [bytes, offset, current, bitCount, error] - "current" buffers up to 23 unread bits, least-significant
+# bit first, so every runtime's 32-bit bitwise operators agree
+# Writer: [bytes, current, bitCount]
+#
+
+
+function gzipReaderNew(bytes, offset):
+    return [bytes, offset, 0, 0, false]
+endfunction
+
+
+# Read n bits (at most 16), least-significant bit first - zero if the reader is in error or at the end of input
+function gzipReadBits(reader, n):
+    if arrayGet(reader, 4) || !n:
+        return 0
+    endif
+
+    # Buffer enough bits
+    bytes = arrayGet(reader, 0)
+    offset = arrayGet(reader, 1)
+    current = arrayGet(reader, 2)
+    bitCount = arrayGet(reader, 3)
+    while bitCount < n:
+        if offset >= arrayLength(bytes):
+            arraySet(reader, 4, true)
+            return 0
+        endif
+        current = current | (arrayGet(bytes, offset) << bitCount)
+        offset = offset + 1
+        bitCount = bitCount + 8
+    endwhile
+    arraySet(reader, 1, offset)
+    arraySet(reader, 2, current >> n)
+    arraySet(reader, 3, bitCount - n)
+    return current & ((1 << n) - 1)
+endfunction
+
+
+# Discard the buffered bits to the next byte boundary
+function gzipReadAlign(reader):
+    arraySet(reader, 1, arrayGet(reader, 1) - (arrayGet(reader, 3) >> 3))
+    arraySet(reader, 2, 0)
+    arraySet(reader, 3, 0)
+endfunction
+
+
+function gzipWriterNew():
+    return [[], 0, 0]
+endfunction
+
+
+# Write a value's low n bits (at most 24), least-significant bit first
+function gzipWriteBits(writer, value, n):
+    bytes = arrayGet(writer, 0)
+    bitCount = arrayGet(writer, 2)
+    current = arrayGet(writer, 1) | ((value & ((1 << n) - 1)) << bitCount)
+    bitCount = bitCount + n
+    while bitCount >= 8:
+        arrayPush(bytes, current & 255)
+        current = current >> 8
+        bitCount = bitCount - 8
+    endwhile
+    arraySet(writer, 1, current)
+    arraySet(writer, 2, bitCount)
+endfunction
+
+
+function gzipWriteFlush(writer):
+    if arrayGet(writer, 2):
+        arrayPush(arrayGet(writer, 0), arrayGet(writer, 1))
+        arraySet(writer, 1, 0)
+        arraySet(writer, 2, 0)
+    endif
+endfunction
+
+
+#
+# Canonical Huffman codes (RFC 1951)
+#
+# A table is [count[16], first[16], symbols[16], encCode[], encLen[], fast[512]]
+# encCode values are bit-reversed so they can be written LSB-first. The fast table decodes a code of
+# up to 9 bits from the next 9 input bits to "symbol * 16 + codeLength" (-1 for a longer code).
+#
+
+
+function gzipBitReverse(code, length):
+    result = 0
+    ix = 0
+    while ix < length:
+        result = result * 2 + (code & 1)
+        code = code >> 1
+        ix = ix + 1
+    endwhile
+    return result
+endfunction
+
+
+function gzipHuffmanBuild(lengths):
+    n = arrayLength(lengths)
+    count = arrayNewSize(16, 0)
+    for length in lengths:
+        if length > 0:
+            if length > 15:
+                return null
+            endif
+            arraySet(count, length, arrayGet(count, length) + 1)
+        endif
+    endfor
+
+    # Over-subscribed trees are invalid
+    left = 1
+    bits = 1
+    while bits <= 15:
+        left = left * 2 - arrayGet(count, bits)
+        if left < 0:
+            return null
+        endif
+        bits = bits + 1
+    endwhile
+
+    first = arrayNewSize(16, 0)
+    code = 0
+    bits = 1
+    while bits <= 15:
+        code = (code + arrayGet(count, bits - 1)) * 2
+        arraySet(first, bits, code)
+        bits = bits + 1
+    endwhile
+
+    symbols = arrayNewSize(16, null)
+    nextIndex = arrayNewSize(16, 0)
+    bits = 1
+    while bits <= 15:
+        arraySet(symbols, bits, arrayNewSize(arrayGet(count, bits), 0))
+        bits = bits + 1
+    endwhile
+
+    nextCode = []
+    for firstCode in first:
+        arrayPush(nextCode, firstCode)
+    endfor
+    encCode = arrayNewSize(n, 0)
+    fast = arrayNewSize(512, -1)
+    for length, symbol in lengths:
+        if length:
+            c = arrayGet(nextCode, length)
+            arraySet(nextCode, length, c + 1)
+            code = gzipBitReverse(c, length)
+            arraySet(encCode, symbol, code)
+            ix = arrayGet(nextIndex, length)
+            arraySet(arrayGet(symbols, length), ix, symbol)
+            arraySet(nextIndex, length, ix + 1)
+
+            # Fill the fast table entries - the code's bits followed by every combination of the remaining bits
+            if length <= 9:
+                entry = symbol * 16 + length
+                step = 1 << length
+                while code < 512:
+                    arraySet(fast, code, entry)
+                    code = code + step
+                endwhile
+            endif
+        endif
+    endfor
+
+    return [count, first, symbols, encCode, lengths, fast]
+endfunction
+
+
+function gzipHuffmanDecode(reader, table):
+    bytes = arrayGet(reader, 0)
+    length = arrayLength(bytes)
+    offset = arrayGet(reader, 1)
+    current = arrayGet(reader, 2)
+    bitCount = arrayGet(reader, 3)
+
+    # Buffer the longest code's 15 bits (fewer at the end of input) and decode with the fast table
+    while bitCount < 15 && offset < length:
+        current = current | (arrayGet(bytes, offset) << bitCount)
+        offset = offset + 1
+        bitCount = bitCount + 8
+    endwhile
+    entry = arrayGet(arrayGet(table, 5), current & 511)
+    if entry >= 0 && (entry & 15) <= bitCount:
+        arraySet(reader, 1, offset)
+        arraySet(reader, 2, current >> (entry & 15))
+        arraySet(reader, 3, bitCount - (entry & 15))
+        return entry >> 4
+    endif
+
+    # A longer code (or too few bits) - decode bit-by-bit
+    count = arrayGet(table, 0)
+    first = arrayGet(table, 1)
+    symbols = arrayGet(table, 2)
+    code = 0
+    bits = 1
+    while bits <= 15 && bitCount:
+        code = code * 2 + (current & 1)
+        current = current >> 1
+        bitCount = bitCount - 1
+        n = arrayGet(count, bits)
+        base = arrayGet(first, bits)
+        if n && code >= base && code < base + n:
+            arraySet(reader, 1, offset)
+            arraySet(reader, 2, current)
+            arraySet(reader, 3, bitCount)
+            return arrayGet(arrayGet(symbols, bits), code - base)
+        endif
+        bits = bits + 1
+    endwhile
+    arraySet(reader, 1, offset)
+    arraySet(reader, 2, current)
+    arraySet(reader, 3, bitCount)
+    arraySet(reader, 4, true)
+    return null
+endfunction
+
+
+function gzipStaticLitLengthsNew():
+    lengths = arrayNewSize(288, 8)
+    ix = 144
+    while ix < 256:
+        arraySet(lengths, ix, 9)
+        ix = ix + 1
+    endwhile
+    ix = 256
+    while ix < 280:
+        arraySet(lengths, ix, 7)
+        ix = ix + 1
+    endwhile
+    return lengths
+endfunction
+
+
+gzipStaticLit = gzipHuffmanBuild(gzipStaticLitLengthsNew())
+gzipStaticDist = gzipHuffmanBuild(arrayNewSize(32, 5))
+gzipStaticLitLen = arrayGet(gzipStaticLit, 4)
+gzipStaticDistLen = arrayGet(gzipStaticDist, 4)
+
+gzipLengthBase = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, \
+    67, 83, 99, 115, 131, 163, 195, 227, 258]
+gzipLengthExtra = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0]
+gzipDistBase = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, \
+    1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577]
+gzipDistExtra = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13]
+gzipCodeLengthOrder = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]
+
+
+function gzipLengthCodeTableNew():
+    table = arrayNewSize(259, 0)
+    ix = 0
+    length = 3
+    while length <= 258:
+        while ix < 28 && arrayGet(gzipLengthBase, ix + 1) <= length:
+            ix = ix + 1
+        endwhile
+        arraySet(table, length, ix)
+        length = length + 1
+    endwhile
+    return table
+endfunction
+
+
+gzipLengthCodeOf = gzipLengthCodeTableNew()
+
+
+# The distance code lookup table - distances 1 to 256 index directly, larger distances by (dist - 1) >> 7
+function gzipDistCodeTableNew():
+    table = arrayNewSize(512, 0)
+    ix = 0
+    while ix < 256:
+        arraySet(table, ix, gzipDistCodeSearch(ix + 1))
+        arraySet(table, 256 + ix, gzipDistCodeSearch((ix << 7) + 1))
+        ix = ix + 1
+    endwhile
+    return table
+endfunction
+
+
+function gzipDistCodeSearch(dist):
+    ix = 0
+    while ix < 29 && arrayGet(gzipDistBase, ix + 1) <= dist:
+        ix = ix + 1
+    endwhile
+    return ix
+endfunction
+
+
+gzipDistCodeOf = gzipDistCodeTableNew()
+
+
+#
+# DEFLATE inflate
+#
+
+
+# Inflate a block's literal/length and distance codes - the reader state is kept in locals and the
+# fast tables decode inline; only a code longer than the fast table's 9 bits calls gzipHuffmanDecode
+function gzipInflateCodes(reader, output, litTable, distTable):
+    outLen = arrayLength(output)
+    bytes = arrayGet(reader, 0)
+    inputLength = arrayLength(bytes)
+    offset = arrayGet(reader, 1)
+    current = arrayGet(reader, 2)
+    bitCount = arrayGet(reader, 3)
+    litFast = arrayGet(litTable, 5)
+    distFast = arrayGet(distTable, 5)
+    while true:
+        # Buffer the longest code's 15 bits (fewer at the end of input) and decode the literal/length symbol
+        while bitCount < 15 && offset < inputLength:
+            current = current | (arrayGet(bytes, offset) << bitCount)
+            offset = offset + 1
+            bitCount = bitCount + 8
+        endwhile
+        entry = arrayGet(litFast, current & 511)
+        if entry >= 0 && (entry & 15) <= bitCount:
+            symbol = entry >> 4
+            current = current >> (entry & 15)
+            bitCount = bitCount - (entry & 15)
+        else:
+            arraySet(reader, 1, offset)
+            arraySet(reader, 2, current)
+            arraySet(reader, 3, bitCount)
+            symbol = gzipHuffmanDecode(reader, litTable)
+            if symbol == null:
+                return false
+            endif
+            offset = arrayGet(reader, 1)
+            current = arrayGet(reader, 2)
+            bitCount = arrayGet(reader, 3)
+        endif
+
+        # Literal, end-of-block, or length?
+        if symbol < 256:
+            arrayPush(output, symbol)
+            outLen = outLen + 1
+            continue
+        elif symbol == 256:
+            arraySet(reader, 1, offset)
+            arraySet(reader, 2, current)
+            arraySet(reader, 3, bitCount)
+            return true
+        elif symbol > 285:
+            return false
+        endif
+
+        # The length's extra bits
+        lenIx = symbol - 257
+        extra = arrayGet(gzipLengthExtra, lenIx)
+        while bitCount < extra && offset < inputLength:
+            current = current | (arrayGet(bytes, offset) << bitCount)
+            offset = offset + 1
+            bitCount = bitCount + 8
+        endwhile
+        if bitCount < extra:
+            return false
+        endif
+        length = arrayGet(gzipLengthBase, lenIx) + (current & ((1 << extra) - 1))
+        current = current >> extra
+        bitCount = bitCount - extra
+
+        # Decode the distance symbol
+        while bitCount < 15 && offset < inputLength:
+            current = current | (arrayGet(bytes, offset) << bitCount)
+            offset = offset + 1
+            bitCount = bitCount + 8
+        endwhile
+        entry = arrayGet(distFast, current & 511)
+        if entry >= 0 && (entry & 15) <= bitCount:
+            distSymbol = entry >> 4
+            current = current >> (entry & 15)
+            bitCount = bitCount - (entry & 15)
+        else:
+            arraySet(reader, 1, offset)
+            arraySet(reader, 2, current)
+            arraySet(reader, 3, bitCount)
+            distSymbol = gzipHuffmanDecode(reader, distTable)
+            if distSymbol == null:
+                return false
+            endif
+            offset = arrayGet(reader, 1)
+            current = arrayGet(reader, 2)
+            bitCount = arrayGet(reader, 3)
+        endif
+        if distSymbol > 29:
+            return false
+        endif
+
+        # The distance's extra bits
+        extra = arrayGet(gzipDistExtra, distSymbol)
+        while bitCount < extra && offset < inputLength:
+            current = current | (arrayGet(bytes, offset) << bitCount)
+            offset = offset + 1
+            bitCount = bitCount + 8
+        endwhile
+        if bitCount < extra:
+            return false
+        endif
+        dist = arrayGet(gzipDistBase, distSymbol) + (current & ((1 << extra) - 1))
+        current = current >> extra
+        bitCount = bitCount - extra
+        if dist > outLen:
+            return false
+        endif
+
+        # Copy the match - an overlapping match repeats the "dist" bytes before it, so each copied
+        # chunk can be as long as the output written since the match source
+        src = outLen - dist
+        copied = 0
+        while copied < length:
+            chunk = mathMin(length - copied, dist + copied)
+            arrayExtend(output, arraySlice(output, src, src + chunk))
+            copied = copied + chunk
+        endwhile
+        outLen = outLen + length
+    endwhile
+endfunction
+
+
+function gzipInflateDynamic(reader, output):
+    nlen = gzipReadBits(reader, 5) + 257
+    ndist = gzipReadBits(reader, 5) + 1
+    ncode = gzipReadBits(reader, 4) + 4
+    if arrayGet(reader, 4) || nlen > 286:
+        return false
+    endif
+
+    codeLengths = arrayNewSize(19, 0)
+    ix = 0
+    while ix < ncode:
+        arraySet(codeLengths, arrayGet(gzipCodeLengthOrder, ix), gzipReadBits(reader, 3))
+        ix = ix + 1
+    endwhile
+    if arrayGet(reader, 4):
+        return false
+    endif
+    codeTable = gzipHuffmanBuild(codeLengths)
+    if codeTable == null:
+        return false
+    endif
+
+    lengths = []
+    total = nlen + ndist
+    while arrayLength(lengths) < total:
+        symbol = gzipHuffmanDecode(reader, codeTable)
+        if symbol == null:
+            return false
+        endif
+        if symbol <= 15:
+            arrayPush(lengths, symbol)
+        else:
+            # Repeat the previous length (16) or zero (17 and 18)
+            if symbol == 16:
+                if !arrayLength(lengths):
+                    return false
+                endif
+                copy = gzipReadBits(reader, 2) + 3
+                value = arrayGet(lengths, arrayLength(lengths) - 1)
+            elif symbol == 17:
+                copy = gzipReadBits(reader, 3) + 3
+                value = 0
+            else:
+                copy = gzipReadBits(reader, 7) + 11
+                value = 0
+            endif
+            if arrayLength(lengths) + copy > total:
+                return false
+            endif
+            arrayExtend(lengths, arrayNewSize(copy, value))
+        endif
+        if arrayGet(reader, 4):
+            return false
+        endif
+    endwhile
+
+    litTable = gzipHuffmanBuild(arraySlice(lengths, 0, nlen))
+    distTable = gzipHuffmanBuild(arraySlice(lengths, nlen))
+    if litTable == null || distTable == null:
+        return false
+    endif
+    return gzipInflateCodes(reader, output, litTable, distTable)
+endfunction
+
+
+function gzipInflateStored(reader, output):
+    gzipReadAlign(reader)
+    length = gzipReadBits(reader, 16)
+    nlen = gzipReadBits(reader, 16)
+    if arrayGet(reader, 4) || length != (nlen ^ 65535):
+        return false
+    endif
+    bytes = arrayGet(reader, 0)
+    offset = arrayGet(reader, 1)
+    if offset + length > arrayLength(bytes):
+        return false
+    endif
+    arrayExtend(output, arraySlice(bytes, offset, offset + length))
+    arraySet(reader, 1, offset + length)
+    return true
+endfunction
+
+
+function gzipInflateBlocks(reader):
+    output = []
+    final = false
+    while !final:
+        final = gzipReadBits(reader, 1)
+        type = gzipReadBits(reader, 2)
+        if arrayGet(reader, 4):
+            return null
+        endif
+        if type == 0:
+            ok = gzipInflateStored(reader, output)
+        elif type == 1:
+            ok = gzipInflateCodes(reader, output, gzipStaticLit, gzipStaticDist)
+        elif type == 2:
+            ok = gzipInflateDynamic(reader, output)
+        else:
+            return null
+        endif
+        if !ok || arrayGet(reader, 4):
+            return null
+        endif
+    endwhile
+    return output
+endfunction
+
+
+#
+# gzip member inflate
+#
+
+
+function gzipInflateGzip(gzipBytes):
+    length = arrayLength(gzipBytes)
+    if length < 10:
+        return null
+    endif
+    if arrayGet(gzipBytes, 0) != 31 || arrayGet(gzipBytes, 1) != 139 || arrayGet(gzipBytes, 2) != 8:
+        return null
+    endif
+    flags = arrayGet(gzipBytes, 3)
+    if flags & 224:
+        return null
+    endif
+
+    offset = 10
+    if flags & 4:
+        if offset + 2 > length:
+            return null
+        endif
+        xlen = arrayGet(gzipBytes, offset) | (arrayGet(gzipBytes, offset + 1) << 8)
+        offset = offset + 2 + xlen
+    endif
+    for flag in [8, 16]:
+        if flags & flag:
+            while offset < length && arrayGet(gzipBytes, offset):
+                offset = offset + 1
+            endwhile
+            offset = offset + 1
+        endif
+    endfor
+    if flags & 2:
+        offset = offset + 2
+    endif
+    if offset + 8 > length:
+        return null
+    endif
+
+    reader = gzipReaderNew(gzipBytes, offset)
+    output = gzipInflateBlocks(reader)
+    if output == null:
+        return null
+    endif
+
+    # Remaining bits in the last deflate byte are padding; the trailer follows
+    gzipReadAlign(reader)
+    trailer = arrayGet(reader, 1)
+    if arrayGet(reader, 4) || trailer + 8 != length:
+        return null
+    endif
+
+    # Validate the trailer's CRC-32 and uncompressed size
+    crcBytes = gzipU32Bytes(gzipCrc32(output))
+    sizeBytes = gzipU32Bytes(arrayLength(output))
+    ix = 0
+    while ix < 4:
+        if arrayGet(gzipBytes, trailer + ix) != arrayGet(crcBytes, ix) || \
+                arrayGet(gzipBytes, trailer + 4 + ix) != arrayGet(sizeBytes, ix):
+            return null
+        endif
+        ix = ix + 1
+    endwhile
+    return output
+endfunction
+
+
+#
+# DEFLATE compress - LZ77 with static or dynamic Huffman coding
+#
+
+
+gzipWindow = 32768
+gzipMinMatch = 3
+gzipMaxMatch = 258
+gzipHashSize = 32768
+gzipHashMask = 32767
+
+# LZ77 hash-chain length by compression level (0 is store-only)
+gzipChainByLevel = [0, 1, 4, 8, 16, 16, 32, 64, 128, 256]
+
+
+function gzipDeflate(bytes, chain):
+    if !chain:
+        return gzipDeflateStored(bytes)
+    endif
+
+    # Find the LZ77 tokens and count the literal/length and distance symbols - the end-of-block symbol is one
+    tokens = []
+    litFreq = arrayNewSize(286, 0)
+    distFreq = arrayNewSize(30, 0)
+    gzipDeflateTokens(bytes, chain, tokens, litFreq, distFreq)
+    arraySet(litFreq, 256, 1)
+
+    # Compute each block type's size in bits and use the smallest
+    n = arrayLength(bytes)
+    storedBits = (n + 5 * mathMax(1, mathCeil(n / 65535))) * 8
+    staticBits = 3 + gzipBlockBits(litFreq, distFreq, gzipStaticLitLen, gzipStaticDistLen)
+    litLengths = gzipHuffmanLengths(litFreq, 15)
+    distLengths = gzipHuffmanLengths(distFreq, 15)
+    header = gzipDynamicHeader(litLengths, distLengths)
+    dynamicBits = 3 + arrayGet(header, 5) + gzipBlockBits(litFreq, distFreq, litLengths, distLengths)
+    if storedBits <= staticBits && storedBits <= dynamicBits:
+        return gzipDeflateStored(bytes)
+    endif
+
+    # Write the block header, its Huffman codes, and its tokens
+    writer = gzipWriterNew()
+    if dynamicBits < staticBits:
+        gzipWriteBits(writer, 5, 3)
+        gzipWriteDynamicHeader(writer, header)
+        litTable = gzipHuffmanBuild(litLengths)
+        distTable = gzipHuffmanBuild(distLengths)
+    else:
+        gzipWriteBits(writer, 3, 3)
+        litTable = gzipStaticLit
+        distTable = gzipStaticDist
+    endif
+    gzipDeflateWrite(writer, tokens, litTable, distTable)
+    gzipWriteFlush(writer)
+    return arrayGet(writer, 0)
+endfunction
+
+
+# Find the LZ77 tokens - a literal is its byte value and a match is "(length << 16) | dist"
+function gzipDeflateTokens(bytes, chain, tokens, litFreq, distFreq):
+    n = arrayLength(bytes)
+    window = gzipWindow
+    minMatch = gzipMinMatch
+    maxMatch = gzipMaxMatch
+    hashMask = gzipHashMask
+    lengthCodeOf = gzipLengthCodeOf
+    distCodeOf = gzipDistCodeOf
+    hashTable = arrayNewSize(gzipHashSize, -1)
+    prev = arrayNewSize(n, -1)
+    ix = 0
+    while ix < n:
+        if ix + minMatch <= n:
+            h = ((arrayGet(bytes, ix) * 31 + arrayGet(bytes, ix + 1)) * 31 + \
+                arrayGet(bytes, ix + 2)) & hashMask
+            bestLen = minMatch - 1
+            bestDist = 0
+            pos = arrayGet(hashTable, h)
+            chainIx = 0
+            maxLen = n - ix
+            if maxLen > maxMatch:
+                maxLen = maxMatch
+            endif
+            byteBest = arrayGet(bytes, ix + bestLen)
+            posMin = mathMax(0, ix - window)
+            while pos >= posMin && chainIx < chain:
+                # A candidate can only improve the best match if it matches at the best match's length
+                if arrayGet(bytes, pos + bestLen) == byteBest:
+                    matchLen = 0
+                    while matchLen < maxLen && \
+                            arrayGet(bytes, ix + matchLen) == arrayGet(bytes, pos + matchLen):
+                        matchLen = matchLen + 1
+                    endwhile
+                    if matchLen > bestLen:
+                        bestLen = matchLen
+                        bestDist = ix - pos
+                        if bestLen == maxLen:
+                            break
+                        endif
+                        byteBest = arrayGet(bytes, ix + bestLen)
+                    endif
+                endif
+                pos = arrayGet(prev, pos)
+                chainIx = chainIx + 1
+            endwhile
+            arraySet(prev, ix, arrayGet(hashTable, h))
+            arraySet(hashTable, h, ix)
+            if bestLen >= minMatch:
+                arrayPush(tokens, (bestLen << 16) | bestDist)
+                lenSymbol = 257 + arrayGet(lengthCodeOf, bestLen)
+                arraySet(litFreq, lenSymbol, arrayGet(litFreq, lenSymbol) + 1)
+                distSymbol = arrayGet(distCodeOf, if(bestDist <= 256, bestDist - 1, 256 + ((bestDist - 1) >> 7)))
+                arraySet(distFreq, distSymbol, arrayGet(distFreq, distSymbol) + 1)
+                # Insert the matched bytes' hashes - the hash rolls over the three bytes at each position
+                j = ix + 1
+                jEnd = mathMin(ix + bestLen, n - minMatch + 1)
+                if j < jEnd:
+                    hb1 = arrayGet(bytes, j)
+                    hb2 = arrayGet(bytes, j + 1)
+                    while j < jEnd:
+                        hb0 = hb1
+                        hb1 = hb2
+                        hb2 = arrayGet(bytes, j + 2)
+                        hj = ((hb0 * 31 + hb1) * 31 + hb2) & hashMask
+                        arraySet(prev, j, arrayGet(hashTable, hj))
+                        arraySet(hashTable, hj, j)
+                        j = j + 1
+                    endwhile
+                endif
+                ix = ix + bestLen
+                continue
+            endif
+        endif
+        literal = arrayGet(bytes, ix)
+        arrayPush(tokens, literal)
+        arraySet(litFreq, literal, arrayGet(litFreq, literal) + 1)
+        ix = ix + 1
+    endwhile
+endfunction
+
+
+# Compute the size, in bits, of a block's tokens coded with the given code lengths
+function gzipBlockBits(litFreq, distFreq, litLengths, distLengths):
+    bits = 0
+    for freq, symbol in litFreq:
+        if freq:
+            bits = bits + freq * (arrayGet(litLengths, symbol) + if(symbol > 256, arrayGet(gzipLengthExtra, symbol - 257), 0))
+        endif
+    endfor
+    for freq, symbol in distFreq:
+        if freq:
+            bits = bits + freq * (arrayGet(distLengths, symbol) + arrayGet(gzipDistExtra, symbol))
+        endif
+    endfor
+    return bits
+endfunction
+
+
+# Write a block's tokens with the literal/length and distance Huffman tables - the bit writer's state is
+# kept in locals, and the buffered bits are written as bytes after each code so that a 15-bit code and
+# its extra bits never exceed the 31-bit buffer
+function gzipDeflateWrite(writer, tokens, litTable, distTable):
+    litCode = arrayGet(litTable, 3)
+    litLen = arrayGet(litTable, 4)
+    distCode = arrayGet(distTable, 3)
+    distLen = arrayGet(distTable, 4)
+    lengthCodeOf = gzipLengthCodeOf
+    lengthBase = gzipLengthBase
+    lengthExtra = gzipLengthExtra
+    distCodeOf = gzipDistCodeOf
+    distBase = gzipDistBase
+    distExtra = gzipDistExtra
+    bytes = arrayGet(writer, 0)
+    current = arrayGet(writer, 1)
+    bitCount = arrayGet(writer, 2)
+    for token in tokens:
+        if token < 256:
+            current = current | (arrayGet(litCode, token) << bitCount)
+            bitCount = bitCount + arrayGet(litLen, token)
+        else:
+            # The length code and its extra bits
+            length = token >> 16
+            lenIx = arrayGet(lengthCodeOf, length)
+            lenSymbol = 257 + lenIx
+            current = current | (arrayGet(litCode, lenSymbol) << bitCount)
+            bitCount = bitCount + arrayGet(litLen, lenSymbol)
+            while bitCount >= 8:
+                arrayPush(bytes, current & 255)
+                current = current >> 8
+                bitCount = bitCount - 8
+            endwhile
+            current = current | ((length - arrayGet(lengthBase, lenIx)) << bitCount)
+            bitCount = bitCount + arrayGet(lengthExtra, lenIx)
+
+            # The distance code and its extra bits
+            dist = token & 65535
+            distIx = arrayGet(distCodeOf, if(dist <= 256, dist - 1, 256 + ((dist - 1) >> 7)))
+            current = current | (arrayGet(distCode, distIx) << bitCount)
+            bitCount = bitCount + arrayGet(distLen, distIx)
+            while bitCount >= 8:
+                arrayPush(bytes, current & 255)
+                current = current >> 8
+                bitCount = bitCount - 8
+            endwhile
+            current = current | ((dist - arrayGet(distBase, distIx)) << bitCount)
+            bitCount = bitCount + arrayGet(distExtra, distIx)
+        endif
+        while bitCount >= 8:
+            arrayPush(bytes, current & 255)
+            current = current >> 8
+            bitCount = bitCount - 8
+        endwhile
+    endfor
+
+    # The end-of-block code
+    current = current | (arrayGet(litCode, 256) << bitCount)
+    bitCount = bitCount + arrayGet(litLen, 256)
+    while bitCount >= 8:
+        arrayPush(bytes, current & 255)
+        current = current >> 8
+        bitCount = bitCount - 8
+    endwhile
+    arraySet(writer, 1, current)
+    arraySet(writer, 2, bitCount)
+endfunction
+
+
+function gzipDeflateStored(bytes):
+    out = []
+    n = arrayLength(bytes)
+    if !n:
+        arrayExtend(out, [1, 0, 0, 255, 255])
+        return out
+    endif
+    ix = 0
+    while ix < n:
+        length = n - ix
+        if length > 65535:
+            length = 65535
+        endif
+        nlen = length ^ 65535
+        arrayPush(out, if(ix + length == n, 1, 0))
+        arrayPush(out, length & 255)
+        arrayPush(out, length >> 8)
+        arrayPush(out, nlen & 255)
+        arrayPush(out, nlen >> 8)
+        arrayExtend(out, arraySlice(bytes, ix, ix + length))
+        ix = ix + length
+    endwhile
+    return out
+endfunction
+
+
+#
+# Dynamic Huffman codes
+#
+
+
+# Compute a symbol frequency array's Huffman code lengths, limited to maxBits. At least two symbols
+# get a code so that the code is complete, as zlib does.
+function gzipHuffmanLengths(freqs, maxBits):
+    counts = arrayCopy(freqs)
+    symbols = []
+    for count, symbol in counts:
+        if count:
+            arrayPush(symbols, symbol)
+        endif
+    endfor
+    symbol = 0
+    while arrayLength(symbols) < 2:
+        if !arrayGet(counts, symbol):
+            arraySet(counts, symbol, 1)
+            arrayPush(symbols, symbol)
+        endif
+        symbol = symbol + 1
+    endwhile
+
+    # Flatten the distribution until the tree's depth fits
+    while true:
+        lengths = gzipHuffmanTreeLengths(counts, symbols)
+        if arrayGet(lengths, 1) <= maxBits:
+            return arrayGet(lengths, 0)
+        endif
+        for symbol in symbols:
+            arraySet(counts, symbol, mathMax(1, mathFloor(arrayGet(counts, symbol) / 2)))
+        endfor
+    endwhile
+endfunction
+
+
+# Build the Huffman tree of the symbols by their counts - returns [lengths, maxLength]
+function gzipHuffmanTreeLengths(counts, symbols):
+    # The leaf nodes, in count order, are followed by the internal nodes in creation order. Each
+    # internal node's children have smaller indexes.
+    leaves = arraySort(arrayCopy(symbols), systemPartial(gzipHuffmanCompareSymbols, counts))
+    nodeCount = []
+    for leaf in leaves:
+        arrayPush(nodeCount, arrayGet(counts, leaf))
+    endfor
+    leafCount = arrayLength(leaves)
+    nodeChildren = []
+    ixLeaf = 0
+    ixNode = leafCount
+    while ixLeaf < leafCount || ixNode < arrayLength(nodeCount) - 1:
+        # Merge the two smallest nodes - the leaf and internal node queues are both in count order
+        children = []
+        while arrayLength(children) < 2:
+            if ixLeaf < leafCount && (ixNode >= arrayLength(nodeCount) || arrayGet(nodeCount, ixLeaf) <= arrayGet(nodeCount, ixNode)):
+                arrayPush(children, ixLeaf)
+                ixLeaf = ixLeaf + 1
+            else:
+                arrayPush(children, ixNode)
+                ixNode = ixNode + 1
+            endif
+        endwhile
+        arrayPush(nodeCount, arrayGet(nodeCount, arrayGet(children, 0)) + arrayGet(nodeCount, arrayGet(children, 1)))
+        arrayPush(nodeChildren, children)
+    endwhile
+
+    # Each leaf's depth is its code length - the root is the last node
+    depth = arrayNewSize(arrayLength(nodeCount), 0)
+    ixNode = arrayLength(nodeCount) - 1
+    while ixNode >= leafCount:
+        children = arrayGet(nodeChildren, ixNode - leafCount)
+        nodeDepth = arrayGet(depth, ixNode) + 1
+        arraySet(depth, arrayGet(children, 0), nodeDepth)
+        arraySet(depth, arrayGet(children, 1), nodeDepth)
+        ixNode = ixNode - 1
+    endwhile
+    lengths = arrayNewSize(arrayLength(counts), 0)
+    maxLength = 0
+    for leaf, ixLeaf in leaves:
+        arraySet(lengths, leaf, arrayGet(depth, ixLeaf))
+        maxLength = mathMax(maxLength, arrayGet(depth, ixLeaf))
+    endfor
+    return [lengths, maxLength]
+endfunction
+
+
+function gzipHuffmanCompareSymbols(counts, symbol1, symbol2):
+    countDiff = arrayGet(counts, symbol1) - arrayGet(counts, symbol2)
+    return if(countDiff, countDiff, symbol1 - symbol2)
+endfunction
+
+
+# Compute a dynamic block's header - [hlit, hdist, hclen, codeLengthLengths, codeLengthSymbols, bits]
+# where codeLengthSymbols are the run-length coded literal/length and distance code lengths
+function gzipDynamicHeader(litLengths, distLengths):
+    hlit = 286
+    while hlit > 257 && !arrayGet(litLengths, hlit - 1):
+        hlit = hlit - 1
+    endwhile
+    hdist = 30
+    while hdist > 1 && !arrayGet(distLengths, hdist - 1):
+        hdist = hdist - 1
+    endwhile
+
+    # Run-length code the code lengths and compute the code length code
+    lengths = arraySlice(litLengths, 0, hlit)
+    arrayExtend(lengths, arraySlice(distLengths, 0, hdist))
+    codeLengthSymbols = gzipRunLengthSymbols(lengths)
+    codeLengthFreq = arrayNewSize(19, 0)
+    for codeLengthSymbol in codeLengthSymbols:
+        symbol = arrayGet(codeLengthSymbol, 0)
+        arraySet(codeLengthFreq, symbol, arrayGet(codeLengthFreq, symbol) + 1)
+    endfor
+    codeLengthLengths = gzipHuffmanLengths(codeLengthFreq, 7)
+    hclen = 19
+    while hclen > 4 && !arrayGet(codeLengthLengths, arrayGet(gzipCodeLengthOrder, hclen - 1)):
+        hclen = hclen - 1
+    endwhile
+
+    # The header size in bits
+    bits = 14 + 3 * hclen
+    for codeLengthSymbol in codeLengthSymbols:
+        bits = bits + arrayGet(codeLengthLengths, arrayGet(codeLengthSymbol, 0)) + arrayGet(codeLengthSymbol, 2)
+    endfor
+    return [hlit, hdist, hclen, codeLengthLengths, codeLengthSymbols, bits]
+endfunction
+
+
+# Run-length code an array of code lengths to an array of [symbol, extraValue, extraBits] - symbol 16
+# repeats the previous length 3 to 6 times, 17 a zero length 3 to 10 times, and 18 a zero length 11 to 138 times
+function gzipRunLengthSymbols(lengths):
+    symbols = []
+    n = arrayLength(lengths)
+    ix = 0
+    while ix < n:
+        value = arrayGet(lengths, ix)
+        run = 1
+        while ix + run < n && arrayGet(lengths, ix + run) == value:
+            run = run + 1
+        endwhile
+        ix = ix + run
+        if value:
+            arrayPush(symbols, [value, 0, 0])
+            run = run - 1
+            while run >= 3:
+                repeat = mathMin(run, 6)
+                arrayPush(symbols, [16, repeat - 3, 2])
+                run = run - repeat
+            endwhile
+        else:
+            while run >= 11:
+                repeat = mathMin(run, 138)
+                arrayPush(symbols, [18, repeat - 11, 7])
+                run = run - repeat
+            endwhile
+            while run >= 3:
+                repeat = mathMin(run, 10)
+                arrayPush(symbols, [17, repeat - 3, 3])
+                run = run - repeat
+            endwhile
+        endif
+        while run > 0:
+            arrayPush(symbols, [value, 0, 0])
+            run = run - 1
+        endwhile
+    endwhile
+    return symbols
+endfunction
+
+
+# Write a dynamic block's header
+function gzipWriteDynamicHeader(writer, header):
+    hclen = arrayGet(header, 2)
+    codeLengthLengths = arrayGet(header, 3)
+    gzipWriteBits(writer, arrayGet(header, 0) - 257, 5)
+    gzipWriteBits(writer, arrayGet(header, 1) - 1, 5)
+    gzipWriteBits(writer, hclen - 4, 4)
+    ix = 0
+    while ix < hclen:
+        gzipWriteBits(writer, arrayGet(codeLengthLengths, arrayGet(gzipCodeLengthOrder, ix)), 3)
+        ix = ix + 1
+    endwhile
+    codeLengthTable = gzipHuffmanBuild(codeLengthLengths)
+    codeLengthCode = arrayGet(codeLengthTable, 3)
+    for codeLengthSymbol in arrayGet(header, 4):
+        symbol = arrayGet(codeLengthSymbol, 0)
+        extraBits = arrayGet(codeLengthSymbol, 2)
+        gzipWriteBits(writer, arrayGet(codeLengthCode, symbol) | (arrayGet(codeLengthSymbol, 1) << arrayGet(codeLengthLengths, symbol)), \
+            arrayGet(codeLengthLengths, symbol) + extraBits)
+    endfor
+endfunction
