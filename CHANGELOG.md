@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.15 (2026-10-01)
+
+- [c0ad579](https://github.com/craigahobbs/bare-script/commit/c0ad579) - reject a non-finite number as an integer argument \(mirror of bare-script-py\)
+
 ## 5.1.14 (2026-09-30)
 
 - [6be86b1](https://github.com/craigahobbs/bare-script/commit/6be86b1) - binary data, the base64, gzip, and tar includes, and the BareScript Creator
