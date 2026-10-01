@@ -445,6 +445,31 @@ endfunction
 unittestRunTest('testUnittestRunTest_failure')
 
 
+# Helper mock function for a failing jsonStringify
+function testUnittestDeepEqual_jsonStringify():
+    return null
+endfunction
+
+function testUnittestDeepEqual_jsonFailure():
+    # Run the assertions as a mock test with a failing jsonStringify
+    mockBegin = testUnittestMockBegin()
+    unittestData = systemGlobalGet('unittestData')
+    objectSet(objectGet(unittestData, 'tests'), 'testMock', [])
+    objectSet(unittestData, 'current', 'testMock')
+    unittestMockOne('jsonStringify', testUnittestDeepEqual_jsonStringify)
+    unittestDeepEqual([1], [1])
+    unittestDeepEqual('1', [1], 'Fail expected')
+    unittestMockEnd()
+    testUnittestMockEnd(mockBegin)
+
+    unittestDeepEqual(objectGet(objectGet(unittestData, 'tests'), 'testMock'), [ \
+        ['Deep-equal: JSON serialization of the actual value failed'], \
+        ['Fail expected', '', 'Deep-equal: JSON serialization of the expected value failed'] \
+    ])
+endfunction
+unittestRunTest('testUnittestDeepEqual_jsonFailure')
+
+
 async function testUnittestRunTest_hideTests():
     # Mock unittestCoverageGlobal
     unittestCoverageGlobalOriginal = systemGlobalGet('unittestCoverageGlobal')

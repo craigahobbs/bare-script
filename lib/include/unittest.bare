@@ -97,7 +97,10 @@ function unittestDeepEqual(actual, expected, description):
     # Serialize as JSON
     actualJSON = if(systemType(actual) == 'string', actual, jsonStringify(actual, 4))
     expectedJSON = if(systemType(expected) == 'string', expected, jsonStringify(expected, 4))
-    if actualJSON == expectedJSON:
+    if actualJSON == null || expectedJSON == null:
+        unittestFailure(['Deep-equal: JSON serialization of the ' + if(actualJSON == null, 'actual', 'expected') + ' value failed'], description)
+        return
+    elif actualJSON == expectedJSON:
         return
     endif
 
