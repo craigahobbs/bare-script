@@ -653,6 +653,21 @@ test('valueArgsValidate, number constraints', () => {
         }
     );
 
+    // Non-finite integer
+    const fnArgsInteger = valueArgsModel([{'name': 'int', 'type': 'number', 'integer': true}]);
+    for (const value of [NaN, Infinity, -Infinity]) {
+        assert.throws(
+            () => {
+                valueArgsValidate(fnArgsInteger, [value]);
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': 'Invalid "int" argument value, null',
+                'returnValue': null
+            }
+        );
+    }
+
     // Greater-than error
     assert.throws(
         () => {
