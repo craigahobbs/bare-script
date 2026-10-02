@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.1.16 (2026-10-02)
+
+- [3639592](https://github.com/craigahobbs/bare-script/commit/3639592) - library documentation improvements - function signatures, optional argument syntax, shorter intros, and more examples
+
+- [f040ee4](https://github.com/craigahobbs/bare-script/commit/f040ee4) - rename "BareScript Creator" to "The BareScript Creator"
+
+- [97355ea](https://github.com/craigahobbs/bare-script/commit/97355ea) - evaluate non-async statement expressions synchronously in the async runtime
+
+- [5113c2e](https://github.com/craigahobbs/bare-script/commit/5113c2e) - fail unittestDeepEqual when JSON serialization fails \(mirror of bare-script-py\)
+
 ## 5.1.15 (2026-10-01)
 
 - [c0ad579](https://github.com/craigahobbs/bare-script/commit/c0ad579) - reject a non-finite number as an integer argument \(mirror of bare-script-py\)
