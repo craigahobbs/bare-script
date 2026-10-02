@@ -910,6 +910,30 @@ test('executeScriptAsync, jumpif non-boolean', async () => {
 });
 
 
+test('executeScriptAsync, jumpif async', async () => {
+    const script = barescriptValidateScript({
+        'statements': [
+            {'jump': {
+                'label': 'label',
+                'expr': {'function': {'name': 'asyncValue', 'args': [{'number': 0}]}}
+            }},
+            {'jump': {
+                'label': 'label2',
+                'expr': {'function': {'name': 'asyncValue', 'args': [{'number': 1}]}}
+            }},
+            {'label': {'name':  'label'}},
+            {'return': {'expr': {'number': 1}}},
+            {'label': {'name':  'label2'}},
+            {'return': {'expr': {'number': 2}}}
+        ]
+    });
+    const globals = {
+        'asyncValue': async ([value]) => value
+    };
+    assert.equal(await executeScriptAsync(script, {globals}), 2);
+});
+
+
 test('executeScriptAsync, jump error unknown label', async () => {
     const script = barescriptValidateScript({
         'statements': [
@@ -1587,6 +1611,19 @@ test('evaluateExpressionAsync', async () => {
     });
     const options = {'globals': {testNumber}};
     assert.equal(await evaluateExpressionAsync(expr, options), 13);
+});
+
+
+test('evaluateExpressionAsync, async function rebound', async () => {
+    // The same expression is evaluated non-async, then async once its nested function is rebound to an async function
+    const expr = barescriptValidateExpression({
+        'function': {
+            'name': 'max',
+            'args': [{'number': 1}, {'function': {'name': 'testValue', 'args': [{'number': 2}]}}]
+        }
+    });
+    assert.equal(await evaluateExpressionAsync(expr, {'globals': {'testValue': ([value]) => value}}), 2);
+    assert.equal(await evaluateExpressionAsync(expr, {'globals': {'testValue': async ([value]) => value + 1}}), 3);
 });
 
 
