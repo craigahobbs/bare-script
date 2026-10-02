@@ -265,7 +265,7 @@ endfunction
 # $group: dataTable.bare
 # $doc: Render a data table in the document
 # $arg data: The data array
-# $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+# $arg [dataTable = null]: The [data table model](model.html#var.vName='DataTable')
 function dataTable(data, dataTable):
     elementModelRender = systemGlobalGet('elementModelRender')
     elementModelRender({'html': 'p', 'elem': dataTableElements(data, dataTable)})
@@ -276,7 +276,7 @@ endfunction
 # $group: dataTable.bare
 # $doc: Generate a data table element model
 # $arg data: The data array
-# $arg dataTable: Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+# $arg [dataTable = null]: The [data table model](model.html#var.vName='DataTable')
 # $return: The data table [element model](https://github.com/craigahobbs/element-model#readme)
 function dataTableElements(data, dataTable):
     dataTable = if(dataTable != null, dataTable, {})

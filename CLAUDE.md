@@ -64,7 +64,7 @@ The runtime is split so the synchronous path stays free of `async`:
 - `lib/runtime.js` — synchronous `executeScript` / `evaluateExpression`. Implements statement counting (`maxStatements`, default 1e9), coverage recording, and the core interpreter loop. System includes (`include <name.bare>`) execute synchronously from the embedded `systemIncludes` map; non-system includes require the async runtime. Also exports `barescriptLintScript`, an include-like stub that lazily executes the embedded `barescriptLint.bare` include library and computes the async-function names from the globals — used by the CLI's `-x`/`-s` modes and both runtimes' debug-mode include linting.
 - `lib/runtimeAsync.js` — `executeScriptAsync` / `evaluateExpressionAsync`. Required when the script uses async globals (e.g. `systemFetch`, non-system includes). Mirrors the sync runtime's structure.
 - `lib/includeSource.js` — **generated** module (Makefile target; regenerated when `lib/include/*.bare` or the Makefile's generator script changes) exporting the `systemIncludes` file-name → model-JSON map — each include file's parser-compiled script model as JSON text, gzip-compressed and base64-encoded, decoded at module load. The decode inflates all includes in parallel through the `DecompressionStream` Web API (Node 18+ and browsers, no dependency) under a top-level `await`, so the module and everything importing it load asynchronously; the exported map is plain strings and the runtime API stays synchronous. Checked in; never edit by hand — run `make lib/includeSource.js`. Caveat: regeneration parses the includes with the **previous** embed's parser, so a `barescriptParser.bare` change that alters generated script models needs a second regen pass (`touch lib/include/barescriptParser.bare && make lib/includeSource.js`) to reach a fixed point; semantics-neutral parser edits converge in one pass. Never delete the generated file to force a rebuild — the generator imports `lib/runtime.js`, which needs the embed to exist.
-- `lib/library.js` — the 100 built-in functions (`scriptFunctions`) and the 47-alias expression-only set (`expressionFunctions`).
+- `lib/library.js` — the 100 built-in functions (`scriptFunctions`) and the 48-alias expression-only set (`expressionFunctions`).
 - `lib/include.js` — executes the include library (barescriptModel, data, markdown, qrcode, schema, url, etc.) from the embedded include source into a single module-private globals via the sync runtime at module load, and exports native stub functions for the include libraries' public functions (`barescriptValidateScript`, `dataAggregate`, `markdownParse`, `schemaParse`, `schemaValidate`, `urlEncode`, etc.). MarkdownUp-render, app-main, and async include functions are not stubbed. Only the doc build (and the tests) depends on it, so the core execution path and CLI skip the include bootstrap.
 - `lib/value.js` — type coercion and comparison primitives (`valueType`, `valueCompare`, `valueArgsValidate`, etc.). Argument validation is declarative via `valueArgsModel`.
 - `lib/options.js` — runtime option typedefs and the `urlFileRelative` URL resolver (platform-neutral).
@@ -83,10 +83,42 @@ Pure-BareScript libraries (args parsing, data aggregation/charts, markdown rende
 `lib/library.js` and `.bare` files use the `// $function:` / `# $function:` doc-comment convention. `baredocCLI.bare` (run via the `bare` CLI in the `doc` target) reads these to generate the library documentation model JSON (e.g. `library-builtin.json`). To add a new built-in function:
 
 1. Implement in `lib/library.js`, register in `scriptFunctions` (and `expressionFunctions` if expression-callable, plus `expressionFunctionMap` if the expression-context name differs).
-2. Add the `$function: / $group: / $doc: / $arg:` doc block above it.
+2. Add the `$function: / $group: / $doc: / $arg:` doc block above it. Declare an optional argument as `$arg [name]:`, or `$arg [name = default]:` with a literal default - baredoc renders the "Optional (default is ...)" prefix and the published signature from it.
 3. Add test cases in `test/testLibrary.js`.
 
 `make doc` (and therefore `make commit`) also renders single-page Markdown versions of the library docs — `build/doc/library/barescript-library.md`, `barescript-library-model.md`, and `barescript-expression-library.md`, plus the runtime model as `build/doc/model/barescript-model.md` — published under <https://craigahobbs.github.io/bare-script/library/> and <https://craigahobbs.github.io/bare-script/model/>. Together with the language reference (published raw at <https://craigahobbs.github.io/bare-script/language/README.md>), these are the Markdown equivalents of the HTML docs, intended for fetching into an AI assistant's context alongside `SKILL.md`.
+
+### Library group intros (`static/library/builtin/*.md`, `static/library/include/*.md`)
+
+A baredoc group page renders the title, then the group's intro, then the function index, then the
+functions. A long intro pushes the function index off the first screen, so intros are short by
+default:
+
+- **Do** orient: what the group is for, its central concept or data shape (data arrays, the current
+  drawing, local-time datetimes), and the critical usage rules that apply across the group ("never
+  `include <markdownUp.bare>`", a formatter that is not source-preserving).
+- **Do** give one example when the group's functions combine in a way no single function's docs
+  show - parse then validate, `argsParse` then `argsLink`, `drawNew` through `drawRender`.
+- **Don't** tour the group one function at a time, document a single function or argument (that
+  belongs in its `$doc` / `$arg`, or in the model's member docs), or restate general knowledge
+  (a regex pattern cheat sheet).
+- **Don't** repeat `libraryIntro.md`'s null-on-failure convention, and don't advertise async - it is
+  a JavaScript-only necessity, and baredoc already marks each async function in its documentation.
+- **Do** begin every code example that calls an include library function with that library's
+  `include` statement, in intros and in function docs, so the example runs as-is and carries its
+  include when read out of context. The exception is `markdownUp.bare`, which is never included.
+- **Do** end a description, argument, or return doc with a period only when it has more than one
+  sentence - a single sentence has no trailing period. An optional argument's "(optional, default
+  ...)" is part of its rendered label, not its text, so the rule applies to the text as written.
+- **Don't** use Markdown headers in intros or in function docs (`$doc` / `$arg` / `$return`) - baredoc
+  renders them at different header levels on the group pages and the single page, so a header can't
+  nest correctly in both. Use a bold lead-in instead.
+
+A long intro is right where the content is a workflow or specification that belongs to no single
+function - the `unittest.bare` project layout, the `unittestMock.bare` pattern, the baredoc comment
+syntax. Before moving an intro's content into function docs, check whether the function already
+documents it; most do. Builtin `$doc` changes in `lib/library.js` need the same change in
+`../bare-script-py/src/bare_script/library.py`; the intros and `.bare` docs reach it by `make sync`.
 
 ## Conventions
 

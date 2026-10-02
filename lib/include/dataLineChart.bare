@@ -12,7 +12,15 @@ dataLineChartTypes = schemaParse( \
     'group "dataLineChart.bare"', \
     '', \
     '', \
-    '# A line chart model', \
+    '# A line chart model.', \
+    '#', \
+    '# Each axis computes its own tick marks. The tick step is a "nice" value - one, two, or five times', \
+    '# a power of ten - chosen so the labels fit the space available. A datetime axis steps by calendar', \
+    '# units, labels each tick at the precision of its step, and shows only the part of a label that', \
+    '# changes. A constant series has no range of its own, so its axis expands around the value.', \
+    '#', \
+    '# Every label stays on the chart. A tick label is never shortened, so the Y-axis gives up its title', \
+    '# when both do not fit. Titles and legend labels are ellipsized where they must fit.', \
     'struct DataLineChart', \
     '', \
     '    # The chart title', \
@@ -36,10 +44,12 @@ dataLineChartTypes = schemaParse( \
     "    # The line chart's Y-axis fields", \
     '    string[len > 0] y', \
     '', \
-    '    # The color encoding field', \
+    "    # The color encoding field. Each line is drawn in its own color - the first ten of Tableau's", \
+    '    # twenty - and past the tenth line the colors repeat with a dash pattern. The color legend', \
+    '    # lists the lines in the order they end, top to bottom.', \
     '    optional string color', \
     '', \
-    '    # The color encoding value order', \
+    '    # The color encoding value order. It orders the color assignment, not the legend.', \
     '    optional string[len > 0] colorOrder', \
     '', \
     '    # The X-axis scale (default is "linear")', \
@@ -48,10 +58,12 @@ dataLineChartTypes = schemaParse( \
     '    # The Y-axis scale (default is "linear")', \
     '    optional DataLineChartAxisScale yScale', \
     '', \
-    '    # The X-axis numeric tick label format (default is automatic)', \
+    '    # The X-axis numeric tick label format. The default is decimal notation, or SI prefix or', \
+    '    # exponential notation where decimal notation would need too many digits.', \
     '    optional DataLineChartNumberFormat xFormat', \
     '', \
-    '    # The Y-axis numeric tick label format (default is automatic)', \
+    '    # The Y-axis numeric tick label format. The default is decimal notation, or SI prefix or', \
+    '    # exponential notation where decimal notation would need too many digits.', \
     '    optional DataLineChartNumberFormat yFormat', \
     '', \
     '    # If true, the X-axis range is rounded outward to a whole tick step, so that the data', \
@@ -64,16 +76,20 @@ dataLineChartTypes = schemaParse( \
     '    # rounds its range outward to whole decades.', \
     '    optional bool yPad', \
     '', \
-    '    # The X-axis minimum value (default is computed from the data)', \
+    '    # The X-axis minimum value (default is computed from the data). Data outside the range is', \
+    '    # clipped, and an annotation outside the range does not widen it.', \
     '    optional any xMin', \
     '', \
-    '    # The X-axis maximum value (default is computed from the data)', \
+    '    # The X-axis maximum value (default is computed from the data). Data outside the range is', \
+    '    # clipped, and an annotation outside the range does not widen it.', \
     '    optional any xMax', \
     '', \
-    '    # The Y-axis minimum value (default is computed from the data)', \
+    '    # The Y-axis minimum value (default is computed from the data). Data outside the range is', \
+    '    # clipped, and an annotation outside the range does not widen it.', \
     '    optional any yMin', \
     '', \
-    '    # The Y-axis maximum value (default is computed from the data)', \
+    '    # The Y-axis maximum value (default is computed from the data). Data outside the range is', \
+    '    # clipped, and an annotation outside the range does not widen it.', \
     '    optional any yMax', \
     '', \
     '    # The X-axis annotations', \
@@ -217,10 +233,11 @@ dataLineChartClampEpsilon = 1e-9
 
 # $function: dataLineChart
 # $group: dataLineChart.bare
-# $doc: Render a line chart
+# $doc: Render a line chart. The chart names itself for assistive technology - `role="img"` with the
+# $doc: chart's title as its accessible name, or a description of what it plots when it has no title.
 # $arg data: The data array
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
-# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg [options = null]: The line chart options object with the following optional members:
 # $arg options: - **fontSize** - The font size, in pixels
 function dataLineChart(data, lineChart, options):
     if dataLineChartElements(data, lineChart, options) != null:
@@ -234,7 +251,7 @@ endfunction
 # $doc: Render a line chart as an element model
 # $arg data: The data array
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
-# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg [options = null]: The line chart options object with the following optional members:
 # $arg options: - **fontSize** - The font size, in pixels
 # $return: The line chart [element model](https://github.com/craigahobbs/element-model#readme)
 function dataLineChartElements(data, lineChart, options):
@@ -265,14 +282,27 @@ endfunction
 
 # $function: drawLineChart
 # $group: dataLineChart.bare
-# $doc: Draw a line chart within the current drawing
+# $doc: Draw a line chart within the current drawing. Use it to compose a chart with other drawing
+# $doc: content, such as several charts on one drawing:
+# $doc:
+# $doc: ```bare-script
+# $doc: include <dataLineChart.bare>
+# $doc:
+# $doc: drawNew(640, 720)
+# $doc: drawLineChart(data, {'title': 'Sales', 'x': 'month', 'y': ['sales']}, 0, 0, 640, 360)
+# $doc: drawLineChart(data, {'title': 'Costs', 'x': 'month', 'y': ['costs']}, 0, 360, 640, 360)
+# $doc: drawRender()
+# $doc: ```
+# $doc:
+# $doc: The chart does not name the drawing for assistive technology - name it with
+# $doc: [drawAriaLabel](#var.vGroup='draw.bare'&drawarialabel).
 # $arg data: The data array
 # $arg lineChart: The [line chart model](model.html#var.vName='DataLineChart')
 # $arg x: The X-coordinate, in pixels, of the left side of the chart
 # $arg y: The Y-coordinate, in pixels, of the top of the chart
 # $arg width: The width of the chart, in pixels
 # $arg height: The height of the chart, in pixels
-# $arg options: Optional (default is null). The line chart options object with the following optional members:
+# $arg [options = null]: The line chart options object with the following optional members:
 # $arg options: - **fontSize** - The font size, in pixels
 # $return: true if the chart is drawn, null if the data contains no chartable points
 function drawLineChart(data, lineChart, x, y, width, height, options):

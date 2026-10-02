@@ -83,9 +83,9 @@ endfunction
 # $doc: with options and programmatic error reporting
 # $arg lines: The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
 # $arg lines: string, or an array of strings (may contain nested arrays of un-split lines)
-# $arg types: Optional. The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to update.
-# $arg filename: Optional (default is ""). The file name (for error messages).
-# $arg validate: Optional (default is true). If true, validate the type model after parsing.
+# $arg [types]: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to update
+# $arg [filename = ""]: The file name (for error messages)
+# $arg [validate = true]: If true, validate the type model after parsing
 # $return: On success, an object with the "result" key set to the schema's
 # $return: [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
 # $return: On failure, an object with the "errors" key set to the array of error message strings.

@@ -130,10 +130,11 @@ endfunction
 
 # $function: elementModelToString
 # $group: elementModel.bare
-# $doc: Render an element model to an HTML or SVG string
+# $doc: Render an element model to an HTML or SVG string. Each "svg" element is given the SVG "xmlns"
+# $doc: attribute.
 # $arg elements: The element model.
 # $arg elements: An element model is either null, an element object, or an array of any of these.
-# $arg indent: Optional (default is null). The indentation string or number of spaces
+# $arg [indent = null]: The indentation string or number of spaces
 # $return: The HTML or SVG string
 function elementModelToString(elements, indent):
     # Compute the indent string

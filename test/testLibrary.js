@@ -38,6 +38,7 @@ test('library, built-in expression functions', () => {
             ['log', true],
             ['max', true],
             ['min', true],
+            ['millisecond', true],
             ['minute', true],
             ['month', true],
             ['now', true],

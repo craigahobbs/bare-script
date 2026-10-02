@@ -195,6 +195,7 @@ endfunction
 # $group: draw.bare
 # $doc: Set the current drawing's accessible name. Assistive technology announces the drawing as a
 # $doc: single image with this name, instead of reading the text within it one piece at a time.
+# $doc: This also sets `role="img"`, without which `aria-label` on an `<svg>` is inconsistently honored.
 # $arg label: The accessible name, or null for none
 function drawAriaLabel(label):
     drawing = drawGetCurrentDrawing()
@@ -397,8 +398,8 @@ endfunction
 # $arg y: The y-coordinate of the top-left of the rectangle
 # $arg width: The width of the rectangle
 # $arg height: The height of the rectangle
-# $arg rx: Optional (default is null). The horizontal corner radius of the rectangle.
-# $arg ry: Optional (default is null). The vertical corner radius of the rectangle.
+# $arg [rx = null]: The horizontal corner radius of the rectangle
+# $arg [ry = null]: The vertical corner radius of the rectangle
 function drawRect(x, y, width, height, rx, ry):
     drawing = drawFinishDrawingPath()
     svg = objectGet(drawing, 'svg')
@@ -423,11 +424,11 @@ endfunction
 # $function: drawStyle
 # $group: draw.bare
 # $doc: Set the current drawing styles
-# $arg stroke: Optional (default is 'black'). The stroke color.
-# $arg strokeWidth: Optional (default is 1). The stroke width.
-# $arg fill: Optional (default is 'none'). The fill color.
-# $arg strokeDashArray: Optional (default is 'none'). The stroke
-# $arg strokeDashArray: [dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
+# $arg [stroke = 'black']: The stroke color
+# $arg [strokeWidth = 1]: The stroke width
+# $arg [fill = 'none']: The fill color
+# $arg [strokeDashArray = 'none']: The stroke
+# $arg strokeDashArray: [dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes)
 function drawStyle(stroke, strokeWidth, fill, strokeDashArray):
     drawing = drawGetCurrentDrawing()
 
@@ -453,12 +454,12 @@ endfunction
 # $arg text: The text to draw
 # $arg x: The x-coordinate of the text
 # $arg y: The y-coordinate of the text
-# $arg textAnchor: Optional (default is 'middle'). The
-# $arg textAnchor: [text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
-# $arg dominantBaseline: Optional (default is 'middle'). The
+# $arg [textAnchor = 'middle']: The
+# $arg textAnchor: [text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style
+# $arg [dominantBaseline = 'middle']: The
 # $arg dominantBaseline: [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
-# $arg dominantBaseline: style.
-# $arg rotate: Optional (default is null). The text's clockwise rotation, in degrees, about the text position.
+# $arg dominantBaseline: style
+# $arg [rotate = null]: The text's clockwise rotation, in degrees, about the text position
 function drawText(text, x, y, textAnchor, dominantBaseline, rotate):
     drawing = drawFinishDrawingPath()
     svg = objectGet(drawing, 'svg')
@@ -496,11 +497,11 @@ endfunction
 # $function: drawTextStyle
 # $group: draw.bare
 # $doc: Set the current text drawing styles
-# $arg fontSizePx: Optional (default is null, the default font size). The text font size, in pixels.
-# $arg textFill: Optional (default is 'black'). The text fill color.
-# $arg bold: Optional (default is false). If true, text is bold.
-# $arg italic: Optional (default is false). If true, text is italic.
-# $arg fontFamily: Optional (default is null, the default font family). The text font family.
+# $arg [fontSizePx = null]: The text font size, in pixels. If null, the default font size is used.
+# $arg [textFill = 'black']: The text fill color
+# $arg [bold = false]: If true, text is bold
+# $arg [italic = false]: If true, text is italic
+# $arg [fontFamily = null]: The text font family. If null, the default font family is used.
 function drawTextStyle(fontSizePx, textFill, bold, italic, fontFamily):
     drawing = drawGetCurrentDrawing()
     objectSet(drawing, 'fontSizePx', if(fontSizePx != null, fontSizePx, drawDefaultFontSize * drawPixelsPerPoint))

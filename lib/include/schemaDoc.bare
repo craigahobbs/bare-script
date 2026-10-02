@@ -14,9 +14,9 @@ include <url.bare>
 # $group: schemaDoc.bare
 # $async: true
 # $doc: The Schema Markdown documentation viewer main entry point
-# $arg url: Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
-# $arg title: Optional (default is null). The schema title. If null, the URL is used as the title.
-# $arg hideNoGroup: Optional (default is false). If true, hide types with no group.
+# $arg [url = null]: The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
+# $arg [title = null]: The schema title. If null, the URL is used as the title.
+# $arg [hideNoGroup = false]: If true, hide types with no group
 async function schemaDocMain(url, title, hideNoGroup):
     # Parse arguments
     args = argsParse(schemaDocArguments)
@@ -150,7 +150,7 @@ schemaDocArguments = argsValidate([ \
 # $doc: Generate the Schema Markdown user type documentation as an array of Markdown text lines
 # $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
-# $arg options: Optional (default is null). The options object with optional members:
+# $arg [options = null]: The options object with optional members:
 # $arg options: - **actionURLs** - The [action URLs](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='') override
 # $arg options: - **actionCustom** - If true, the action has a custom response (default is false)
 # $arg options: - **headerPrefix** - The top-level header prefix string (default is "#")

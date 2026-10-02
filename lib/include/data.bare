@@ -96,7 +96,7 @@ dataParseCSVQuotedField = regexNew('^"((?:""|[^"])*)"(,|\s*$)')
 # $group: data.bare
 # $doc: Validate a data array
 # $arg data: The data array
-# $arg csv: Optional (default is false). If true, parse value strings.
+# $arg [csv = false]: If true, parse value strings
 # $return: The map of field name to field type, or null if the data is invalid
 function dataValidate(data, csv):
     result = dataValidateEx(data, csv)
@@ -112,7 +112,7 @@ endfunction
 # $group: data.bare
 # $doc: Validate a data array with programmatic error reporting
 # $arg data: The data array
-# $arg csv: Optional (default is false). If true, parse value strings.
+# $arg [csv = false]: If true, parse value strings
 # $return: On success, an object with the "result" key set to the map of field name to field type.
 # $return: On failure, an object with the "error" key set to the validation error message.
 function dataValidateEx(data, csv):
@@ -203,6 +203,8 @@ endfunction
 # $doc: with a "2" suffix. For example:
 # $doc:
 # $doc: ```bare-script
+# $doc: include <data.bare>
+# $doc:
 # $doc: people = [{'name': 'Alice', 'city': 'NY'}, {'name': 'Bob', 'city': 'SF'}]
 # $doc: cities = [{'city': 'NY', 'state': 'NY'}, {'city': 'SF', 'state': 'CA'}]
 # $doc: joined = dataJoin(people, cities, 'city')
@@ -211,11 +213,11 @@ endfunction
 # $arg leftData: The left data array
 # $arg rightData: The right data array
 # $arg joinExpr: The join expression
-# $arg rightExpr: Optional (default is null).
+# $arg [rightExpr = null]:
 # $arg rightExpr: The right join expression
-# $arg isLeftJoin: Optional (default is false). By default, all left rows are included in the result.
+# $arg [isLeftJoin = false]: By default, all left rows are included in the result.
 # $arg isLeftJoin: If true, left rows with no matching right row are excluded.
-# $arg variables: Optional (default is null). A variables object for join expression evaluation.
+# $arg [variables = null]: A variables object for join expression evaluation
 # $return: The joined data array
 function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variables):
     # Compute the map of right field name to joined row field name (handle collisions)
@@ -294,6 +296,8 @@ endfunction
 # $doc: Add a calculated field to each row of a data array, in place. For example:
 # $doc:
 # $doc: ```bare-script
+# $doc: include <data.bare>
+# $doc:
 # $doc: data = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
 # $doc: dataCalculatedField(data, 'sum', 'a + b')
 # $doc: # data is [{'a': 1, 'b': 2, 'sum': 3}, {'a': 3, 'b': 4, 'sum': 7}]
@@ -301,7 +305,7 @@ endfunction
 # $arg data: The data array
 # $arg fieldName: The calculated field name
 # $arg expr: The calculated field expression
-# $arg variables: Optional (default is null). A variables object for the expression evaluation.
+# $arg [variables = null]: A variables object for the expression evaluation
 # $return: The updated data array
 function dataCalculatedField(data, fieldName, expr, variables):
     # Parse the calculation expression
@@ -324,10 +328,19 @@ endfunction
 
 # $function: dataFilter
 # $group: data.bare
-# $doc: Filter a data array
+# $doc: Filter a data array. The filter expression is evaluated for each row, with the row's fields
+# $doc: and the variables object's members as variables. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: include <data.bare>
+# $doc:
+# $doc: data = [{'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}, {'city': 'NY', 'temp': 70}]
+# $doc: warm = dataFilter(data, 'city == "NY" && temp > minTemp', {'minTemp': 66})
+# $doc: # warm is [{'city': 'NY', 'temp': 70}]
+# $doc: ```
 # $arg data: The data array
 # $arg expr: The filter expression
-# $arg variables: Optional (default is null). A variables object for the expression evaluation.
+# $arg [variables = null]: A variables object for the expression evaluation
 # $return: The filtered data array
 function dataFilter(data, expr, variables):
     result = []
@@ -359,6 +372,8 @@ endfunction
 # $doc: Aggregate a data array. For example:
 # $doc:
 # $doc: ```bare-script
+# $doc: include <data.bare>
+# $doc:
 # $doc: data = [{'city': 'NY', 'temp': 65}, {'city': 'NY', 'temp': 70}, {'city': 'SF', 'temp': 60}]
 # $doc: averages = dataAggregate(data, { \
 # $doc:     'categories': ['city'], \
@@ -540,7 +555,15 @@ dataAggregationTypes = schemaParse( \
 
 # $function: dataSort
 # $group: data.bare
-# $doc: Sort a data array
+# $doc: Sort a data array in place. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: include <data.bare>
+# $doc:
+# $doc: data = [{'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}, {'city': 'NY', 'temp': 70}]
+# $doc: dataSort(data, [['city'], ['temp', true]])
+# $doc: # data is [{'city': 'NY', 'temp': 70}, {'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}]
+# $doc: ```
 # $arg data: The data array
 # $arg sorts: The array of sort tuples. Each tuple is a one- or two-element array, \[field\] or
 # $arg sorts: \[field, descending\]. "field" is the field name to sort by. "descending" is an
@@ -572,8 +595,8 @@ endfunction
 # $group: data.bare
 # $doc: Keep the top rows for each category
 # $arg data: The data array
-# $arg count: Optional (default is 1). The number of rows to keep.
-# $arg categoryFields: Optional (default is null). The category fields.
+# $arg [count = 1]: The number of rows to keep
+# $arg [categoryFields = null]: The category fields
 # $return: The top data array
 function dataTop(data, count, categoryFields):
     count = if(count != null, count, 1)

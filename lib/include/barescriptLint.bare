@@ -6,9 +6,9 @@
 # $group: barescriptLint.bare
 # $doc: Lint a BareScript model
 # $arg script: The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
-# $arg globals: Optional (default is null). The script's global variables. If provided, the unknown-global
+# $arg [globals = null]: The script's global variables. If provided, the unknown-global
 # $arg globals: lint checks are performed.
-# $arg asyncFunctions: Optional (default is null). The object of async global function names (name to true).
+# $arg [asyncFunctions = null]: The object of async global function names (name to true).
 # $arg asyncFunctions: If provided along with globals, the async lint checks are performed.
 # $return: The array of lint warning strings
 function barescriptLintScript(script, globals, asyncFunctions):

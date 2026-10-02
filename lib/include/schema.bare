@@ -9,7 +9,7 @@ include <schemaUtil.bare>
 # $doc: Get a user type's referenced [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
-# $arg referencedTypes: Optional. A map of referenced user type name to user type model to update.
+# $arg [referencedTypes]: A map of referenced user type name to user type model to update
 # $return: The referenced [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 function schemaGetReferencedTypes(types, typeName, referencedTypes):
     return schemaGetReferencedTypesHelper(types, {'user': typeName}, if(referencedTypes != null, referencedTypes, {}))
@@ -87,7 +87,7 @@ endfunction
 # $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
 # $arg value: The value to validate
-# $arg memberFqn: Optional (default is null). The fully-qualified member name (for error messages).
+# $arg [memberFqn = null]: The fully-qualified member name (for error messages)
 # $return: The validated, transformed value, or null if validation fails
 function schemaValidate(types, typeName, value, memberFqn):
     error = {}
@@ -108,7 +108,7 @@ endfunction
 # $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 # $arg typeName: The type name
 # $arg value: The value to validate
-# $arg memberFqn: Optional (default is null). The fully-qualified member name (for error messages).
+# $arg [memberFqn = null]: The fully-qualified member name (for error messages)
 # $return: On success, an object with the "result" key set to the validated, transformed value.
 # $return: On failure, an object with the "error" key set to the validation error message and the
 # $return: "memberFqn" key set to the fully-qualified member name (or null).

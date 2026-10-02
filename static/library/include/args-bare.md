@@ -1,56 +1,30 @@
-The "args.bare" include library contains functions for parsing/validating a MarkdownUp application's
-URL arguments, and functions for creating MarkdownUp application URLs and links.
+The "args.bare" include library parses and validates a MarkdownUp application's URL arguments, and
+creates URLs and links back to the application.
 
-Consider the following example of an application that sums numbers. First, include the "args.bare"
-library and define an [arguments model] with three floating point number URL arguments: "value1",
-"value2" and "value3".
+MarkdownUp sets each URL hash argument as a global variable - `#var.vValue1=5` sets the global
+`vValue1` to 5. An [arguments model] names the application's arguments, their types, and their
+defaults. The [argsParse] function reads each argument from its global variable ("v" followed by
+the capitalized argument name, by default) and returns the validated arguments object. The
+[argsLink] function creates a link to the application with updated arguments:
 
 ```bare-script
 include <args.bare>
 
 arguments = [ \
     {'name': 'value1', 'type': 'float', 'default': 0}, \
-    {'name': 'value2', 'type': 'float', 'default': 0}, \
-    {'name': 'value3', 'type': 'float', 'default': 0} \
+    {'name': 'value2', 'type': 'float', 'default': 0} \
 ]
-```
-
-Next, parse the arguments with the [argsParse] function.
-
-```bare-script
 args = argsParse(arguments)
-```
-
-You access arguments by name from the "args" object.
-
-```bare-script
 value1 = objectGet(args, 'value1')
 value2 = objectGet(args, 'value2')
-value3 = objectGet(args, 'value3')
-sum = value1 + value2 + value3
-markdownPrint('The sum is: ' + sum)
-```
 
-You can create links to the application using the [argsLink] function.
-
-```bare-script
-markdownPrint( \
-    '', argsLink(arguments, 'Value1 Less', {'value1': value1 - 1}), \
-    '', argsLink(arguments, 'Value1 More', {'value1': value1 + 1}), \
-    '', argsLink(arguments, 'Value2 Less', {'value2': value2 - 1}), \
-    '', argsLink(arguments, 'Value2 More', {'value2': value2 + 1}), \
-    '', argsLink(arguments, 'Value3 Less', {'value3': value3 - 1}), \
-    '', argsLink(arguments, 'Value3 More', {'value3': value3 + 1}) \
-)
-```
-
-By default, any argument previously supplied to the application is included in the link (unless
-overridden by null). All arguments are cleared by setting the [argsLink] "explicit" argument to
-true. Arguments may also be marked "explicit" individually in the [arguments model].
-
-```bare-script
+markdownPrint('The sum is: ' + (value1 + value2))
+markdownPrint('', argsLink(arguments, 'Value1 More', {'value1': value1 + 1}))
 markdownPrint('', argsLink(arguments, 'Reset', null, true))
 ```
+
+A link keeps the application's current arguments unless overridden (or cleared with null). The
+"explicit" argument of [argsLink] clears them all.
 
 
 [argsLink]: #var.vGroup='args.bare'&argslink

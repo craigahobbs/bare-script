@@ -54,6 +54,86 @@ endfunction
 unittestRunTest('testBaredocCLIParse')
 
 
+function testBaredocCLIParse_optionalArgs():
+    source = arrayJoin([ \
+        '# $function: myFunction', \
+        '# $group: My Group', \
+        '# $doc: This is my function.', \
+        '# $arg arg1: The first argument', \
+        '# $arg [arg2 = 0]: The second argument', \
+        "# $arg [ arg3='a b' ]: The third argument", \
+        '# $arg [arg4]:', \
+        '# $arg arg4:', \
+        '# $arg arg4: The fourth argument', \
+        "# $arg [arg5 = [1, 'a', [null, true, false]]]: The fifth argument", \
+        "# $arg [arg6 = {'a': -1.5, 'b': {'c': []}}]: The sixth argument: see [arg5]: above", \
+        '# $arg [args...]:', \
+        'function myFunction(arg1, arg2, arg3, arg4, arg5, arg6, args...)', \
+        "    systemLog('Hello')", \
+        'endfunction' \
+    ], '\n')
+    functions = {}
+    errors = baredocCLIParse(functions, source)
+    unittestDeepEqual(errors, [])
+    unittestDeepEqual(functions, { \
+        'myFunction': { \
+            'args': [ \
+                {'doc': ['The first argument'], 'name': 'arg1'}, \
+                {'default': '0', 'doc': ['The second argument'], 'name': 'arg2', 'optional': true}, \
+                {'default': "'a b'", 'doc': ['The third argument'], 'name': 'arg3', 'optional': true}, \
+                {'doc': ['The fourth argument'], 'name': 'arg4', 'optional': true}, \
+                {'default': "[1, 'a', [null, true, false]]", 'doc': ['The fifth argument'], 'name': 'arg5', 'optional': true}, \
+                {'default': "{'a': -1.5, 'b': {'c': []}}", 'doc': ['The sixth argument: see [arg5]: above'], 'name': 'arg6', 'optional': true}, \
+                {'doc': [], 'name': 'args...', 'optional': true} \
+            ], \
+            'doc': ['This is my function.'], \
+            'group': 'My Group', \
+            'name': 'myFunction' \
+        } \
+    })
+endfunction
+unittestRunTest('testBaredocCLIParse_optionalArgs')
+
+
+function testBaredocCLIParse_errorInvalidDefault():
+    lines = ['# $function: myFunction', '# $group: My Group', '# $doc: This is my function.']
+    for default in ['', 'the end', 'foo', '-x', 'mathPi()', '[foo]', "{'a': foo}", '{a: 1}']:
+        arrayPush(lines, '# $arg [arg = ' + default + ']: The argument')
+    endfor
+    functions = {}
+    errors = baredocCLIParse(functions, arrayJoin(lines, '\n'), 'test.bare')
+    unittestDeepEqual(errors, [ \
+        'test.bare:4: Invalid default value "" for argument "arg"', \
+        'test.bare:5: Invalid default value "the end" for argument "arg"', \
+        'test.bare:6: Invalid default value "foo" for argument "arg"', \
+        'test.bare:7: Invalid default value "-x" for argument "arg"', \
+        'test.bare:8: Invalid default value "mathPi()" for argument "arg"', \
+        'test.bare:9: Invalid default value "[foo]" for argument "arg"', \
+        'test.bare:10: Invalid default value "{\'a\': foo}" for argument "arg"', \
+        'test.bare:11: Invalid default value "{a: 1}" for argument "arg"' \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIParse_errorInvalidDefault')
+
+
+function testBaredocCLIParse_errorKeywordNoColon():
+    source = arrayJoin([ \
+        '# $function: myFunction', \
+        '# $group: My Group', \
+        '# $doc: This is my function.', \
+        '# $arg [arg = 1] The argument', \
+        '# $return the return value' \
+    ], '\n')
+    functions = {}
+    errors = baredocCLIParse(functions, source, 'test.bare')
+    unittestDeepEqual(errors, [ \
+        'test.bare:4: Invalid documentation comment "arg [arg = 1] The argument"', \
+        'test.bare:5: Invalid documentation comment "return the return value"' \
+    ])
+endfunction
+unittestRunTest('testBaredocCLIParse_errorKeywordNoColon')
+
+
 function testBaredocCLIParse_ignoreFalse():
     source = arrayJoin([ \
         '# $function: myIgnored', \

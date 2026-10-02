@@ -26,7 +26,7 @@ argsTypes = schemaParse( \
     '    # The argument type', \
     '    optional ArgsType type', \
     '', \
-    "    # The argument's global variable name", \
+    "    # The argument's global variable name (default is 'v' followed by the capitalized argument name)", \
     '    optional string(len > 0) global', \
     '', \
     '    # If true, the argument is explicit.', \
@@ -122,11 +122,11 @@ endfunction
 # $group: args.bare
 # $doc: Create a MarkdownUp application URL
 # $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
-# $arg args: Optional (default is null). The arguments object. Null argument values are excluded from the URL.
-# $arg explicit: Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
-# $arg headerText: Optional (default is null). If non-null, the URL's header text.
+# $arg [args = null]: The arguments object. Null argument values are excluded from the URL.
+# $arg [explicit = false]: If true, arguments are only included in the URL if they are in the arguments object
+# $arg [headerText = null]: If non-null, the URL's header text.
 # $arg headerText: The special "_top" header ID scrolls to the top of the page.
-# $arg url: Optional (default is null). If non-null, the MarkdownUp URL hash parameter.
+# $arg [url = null]: If non-null, the MarkdownUp URL hash parameter
 # $return: The MarkdownUp application URL
 function argsURL(arguments, args, explicit, headerText, url):
     # Get the URL variables
@@ -183,11 +183,11 @@ argsTopHeaderId = '_top'
 # $doc: Create a Markdown link text to a MarkdownUp application URL
 # $arg arguments: The [arguments model](model.html#var.vName='ArgsArguments')
 # $arg text: The link text
-# $arg args: Optional (default is null). The arguments object.
-# $arg explicit: Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
-# $arg headerText: Optional (default is null). If non-null, the URL's header text.
+# $arg [args = null]: The arguments object
+# $arg [explicit = false]: If true, arguments are only included in the URL if they are in the arguments object
+# $arg [headerText = null]: If non-null, the URL's header text.
 # $arg headerText: The special "_top" header ID scrolls to the top of the page.
-# $arg url: Optional (default is null). If non-null, the MarkdownUp URL hash parameter.
+# $arg [url = null]: If non-null, the MarkdownUp URL hash parameter
 # $return: The Markdown link text
 function argsLink(arguments, text, args, explicit, headerText, url):
     return '[' + markdownEscape(text) + '](' + argsURL(arguments, args, explicit, headerText, url) + ')'

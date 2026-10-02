@@ -2,6 +2,7 @@
 # https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 include <args.bare>
+include <barescriptParser.bare>
 
 
 # $function: baredocCLIMain
@@ -166,7 +167,8 @@ function baredocCLIParse(functions, source, filename):
         matchArg = regexMatch(baredocCLIParseRegexArg, line)
         if matchArg != null:
             groupsArg = objectGet(matchArg, 'groups')
-            name = objectGet(groupsArg, 'name')
+            optionalName = objectGet(groupsArg, 'optionalName')
+            name = optionalName || objectGet(groupsArg, 'name')
             text = objectGet(groupsArg, 'text')
             textTrim = stringTrim(text)
 
@@ -188,8 +190,8 @@ function baredocCLIParse(functions, source, filename):
                 endfor
             endif
 
-            # Ignore leading argument documentation blank lines
-            if funcArg == null && textTrim == '':
+            # Ignore leading argument documentation blank lines (an optional argument line declares the argument)
+            if funcArg == null && textTrim == '' && optionalName == null:
                 continue
             endif
 
@@ -205,16 +207,34 @@ function baredocCLIParse(functions, source, filename):
                 arrayPush(funcArgs, funcArg)
             endif
 
-            # Add the function argument documentation line
-            arrayPush(objectGet(funcArg, 'doc'), text)
+            # Optional argument? Set the optional flag and the default value, if any.
+            if optionalName != null:
+                objectSet(funcArg, 'optional', true)
+                default = objectGet(groupsArg, 'default')
+                if default != null:
+                    # The default value must be a BareScript literal
+                    defaultResult = barescriptParseExpressionEx(default, null, null, true)
+                    if !objectHas(defaultResult, 'result') || !baredocCLIIsLiteral(objectGet(defaultResult, 'result')):
+                        baredocCLIError(errors, filename, ixLine, 'Invalid default value "' + default + '" for argument "' + name + '"')
+                        continue
+                    endif
+                    objectSet(funcArg, 'default', default)
+                endif
+            endif
+
+            # Add the function argument documentation line - don't add leading blank lines
+            funcArgDoc = objectGet(funcArg, 'doc')
+            if textTrim != '' || arrayLength(funcArgDoc) > 0:
+                arrayPush(funcArgDoc, text)
+            endif
             continue
         endif
 
-        # Unknown documentation comment?
+        # Unknown or malformed documentation comment?
         matchUnknown = regexMatch(baredocCLIParseRegexUnknown, line)
         if matchUnknown != null:
             groupsUnknown = objectGet(matchUnknown, 'groups')
-            unknown = objectGet(groupsUnknown, 'unknown')
+            unknown = objectGet(groupsUnknown, 'unknown') || objectGet(groupsUnknown, 'keyword')
             baredocCLIError(errors, filename, ixLine, 'Invalid documentation comment "' + unknown + '"')
             continue
         endif
@@ -241,6 +261,30 @@ function baredocCLIParse(functions, source, filename):
 endfunction
 
 
+# Helper to test if an expression model is a literal value - a number, string, null, true, or false,
+# or an array or object literal of literal values with string keys
+function baredocCLIIsLiteral(expr):
+    if objectHas(expr, 'number') || objectHas(expr, 'string'):
+        return true
+    endif
+    variable = objectGet(expr, 'variable')
+    if variable != null:
+        return variable == 'null' || variable == 'true' || variable == 'false'
+    endif
+    funcName = objectGet(objectGet(expr, 'function'), 'name')
+    if funcName != 'arrayNew' && funcName != 'objectNew':
+        return false
+    endif
+    for arg, ixArg in objectGet(objectGet(expr, 'function'), 'args'):
+        isKey = funcName == 'objectNew' && ixArg % 2 == 0
+        if !if(isKey, objectHas(arg, 'string'), baredocCLIIsLiteral(arg)):
+            return false
+        endif
+    endfor
+    return true
+endfunction
+
+
 # Helper to add a source line error
 function baredocCLIError(errors, filename, ixLine, message):
     arrayPush(errors, filename + ':' + (ixLine + 1) + ': ' + message)
@@ -249,5 +293,12 @@ endfunction
 
 # baredocCLIParse regular expressions
 baredocCLIParseRegexKey = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<key>function|group|doc|return|ignore|async):\\s?(?<text>.*)$')
-baredocCLIParseRegexArg = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$arg\\s+(?<name>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?):\\s?(?<text>.*)$')
-baredocCLIParseRegexUnknown = regexNew('^\\s*(?:\\/\\/|#)\\s*\\$(?<unknown>[^:]+):')
+baredocCLIParseRegexArg = regexNew( \
+    '^\\s*(?:\\/\\/|#)\\s*\\$arg\\s+' + \
+    '(?:(?<name>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?)|' + \
+    '\\[\\s*(?<optionalName>[A-Za-z_][A-Za-z0-9_]*(?:\\.\\.\\.)?)(?:\\s*=\\s*(?<default>.*?))?\\s*\\]):' + \
+    '\\s?(?<text>.*)$' \
+)
+baredocCLIParseRegexUnknown = regexNew( \
+    '^\\s*(?:\\/\\/|#)\\s*\\$(?:(?<unknown>[^:]+):|(?<keyword>(?:function|group|doc|arg|return|ignore|async)\\b.*)$)' \
+)

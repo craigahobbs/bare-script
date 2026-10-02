@@ -263,6 +263,7 @@ async function testBaredocMain_single():
         ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
         ['markdownPrint', ['- [func\\_b](#var.vSingle=true&func-b)']], \
         ['markdownPrint', ['', '---', '', '### func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
@@ -270,6 +271,7 @@ async function testBaredocMain_single():
         ['markdownPrint', ['', '#### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '### func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -281,6 +283,7 @@ async function testBaredocMain_single():
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_c](#var.vSingle=true&func-c)']], \
         ['markdownPrint', ['', '---', '', '### func\\_c']], \
+        ['markdownPrint', ['', '`func_c()`']], \
         ['markdownPrint', ['', ['Test function C']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -292,6 +295,7 @@ async function testBaredocMain_single():
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_d](#var.vSingle=true&func-d)']], \
         ['markdownPrint', ['', '---', '', '### func\\_d']], \
+        ['markdownPrint', ['', '`func_d()`']], \
         ['markdownPrint', ['', '**async** - The calling function must be declared with "async function"']], \
         ['markdownPrint', ['', ['Test function D']]], \
         ['markdownPrint', ['', '#### Arguments']], \
@@ -336,6 +340,7 @@ async function testBaredocMain_single_content():
         ['markdownPrint', ['- [func\\_a](#var.vSingle=true&func-a)']], \
         ['markdownPrint', ['- [func\\_b](#var.vSingle=true&func-b)']], \
         ['markdownPrint', ['', '---', '', '### func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
@@ -343,6 +348,7 @@ async function testBaredocMain_single_content():
         ['markdownPrint', ['', '#### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '### func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -354,6 +360,7 @@ async function testBaredocMain_single_content():
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_c](#var.vSingle=true&func-c)']], \
         ['markdownPrint', ['', '---', '', '### func\\_c']], \
+        ['markdownPrint', ['', '`func_c()`']], \
         ['markdownPrint', ['', ['Test function C']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -366,6 +373,7 @@ async function testBaredocMain_single_content():
         ['markdownPrint', ['', '### Function Index', '']], \
         ['markdownPrint', ['- [func\\_d](#var.vSingle=true&func-d)']], \
         ['markdownPrint', ['', '---', '', '### func\\_d']], \
+        ['markdownPrint', ['', '`func_d()`']], \
         ['markdownPrint', ['', '**async** - The calling function must be declared with "async function"']], \
         ['markdownPrint', ['', ['Test function D']]], \
         ['markdownPrint', ['', '#### Arguments']], \
@@ -379,60 +387,66 @@ unittestRunTest('testBaredocMain_single_content')
 
 async function testBaredocMain_single_publish():
     # Setup mocks
-    unittestMockAll({'systemFetch': testBaredocBaseFetch})
+    publishJSON = jsonStringify({'functions': [ \
+        {'name': 'func_b', 'group': 'A Group', 'doc': ['Test function B']}, \
+        {'name': 'func_a', 'group': 'A Group', 'doc': ['Test function A'], \
+            'args': [ \
+                {'name': 'arg1', 'doc': ['The first argument']}, \
+                {'name': 'arg2', 'doc': ['The second argument.', 'More on the second argument.'], 'optional': true, 'default': '10'}, \
+                {'name': 'arg3', 'doc': ['The third argument.'], 'optional': true}, \
+                {'name': 'args...', 'doc': [], 'optional': true} \
+            ], \
+            'return': ['The return value']} \
+    ]})
+    unittestMockAll({'systemFetch': {'publish.json': publishJSON, 'include.json': testBaredocIncludeJSON}})
 
     # Render the index
     systemGlobalSet('vSingle', true)
     systemGlobalSet('vPublish', true)
-    baredocMain(testBaredocConfig)
+    baredocMain({ \
+        'title': 'The Test Library', \
+        'sections': [ \
+            {'title': 'Builtin Functions', 'url': 'publish.json'}, \
+            {'title': 'Include Functions', 'url': 'include.json'} \
+        ] \
+    })
     systemGlobalSet('vSingle', null)
     systemGlobalSet('vPublish', null)
 
     # Reset mocks
     unittestDeepEqual(unittestMockEnd(), [ \
-        ['systemFetch', [['builtin.json', 'include.json']]], \
+        ['systemFetch', [['publish.json', 'include.json']]], \
         ['documentSetTitle', ['The Test Library']], \
         ['markdownPrint', ['# The Test Library']], \
         ['markdownPrint', ['', '## Builtin Functions', '']], \
         ['markdownPrint', ['|  |  |', '| --- | --- |']], \
         ['markdownPrint', ['| [A Group](#var.vPublish=true&var.vSingle=true&a-group) |  |']], \
-        ['markdownPrint', ['| [B Group](#var.vPublish=true&var.vSingle=true&b-group) |  |']], \
         ['markdownPrint', ['', '## Include Functions', '']], \
         ['markdownPrint', ['|  |  |', '| --- | --- |']], \
         ['markdownPrint', ['| [lib.bare](#var.vPublish=true&var.vSingle=true&lib-bare) |  |']], \
         ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## A Group']], \
-        ['markdownPrint', ['', '### Function Index', '']], \
-        ['markdownPrint', ['- [func\\_a](#var.vPublish=true&var.vSingle=true&func-a)']], \
-        ['markdownPrint', ['- [func\\_b](#var.vPublish=true&var.vSingle=true&func-b)']], \
         ['markdownPrint', ['', '---', '', '### func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2 = 10, arg3 = null, args... = null)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
-        ['markdownPrint', ['', '**arg2 -**', ['The second argument']]], \
+        ['markdownPrint', ['', '**arg2** (optional, default `10`) **-**', ['The second argument.', 'More on the second argument.']]], \
+        ['markdownPrint', ['', '**arg3** (optional) **-**', ['The third argument.']]], \
+        ['markdownPrint', ['', '**args...** (optional) **-**', []]], \
         ['markdownPrint', ['', '#### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '### func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '#### Arguments']], \
         ['markdownPrint', ['', 'None']], \
         ['markdownPrint', ['', '#### Returns']], \
         ['markdownPrint', ['', 'Nothing']], \
         ['markdownPrint', ['', '---', '']], \
-        ['markdownPrint', ['## B Group']], \
-        ['markdownPrint', ['', '### Function Index', '']], \
-        ['markdownPrint', ['- [func\\_c](#var.vPublish=true&var.vSingle=true&func-c)']], \
-        ['markdownPrint', ['', '---', '', '### func\\_c']], \
-        ['markdownPrint', ['', ['Test function C']]], \
-        ['markdownPrint', ['', '#### Arguments']], \
-        ['markdownPrint', ['', 'None']], \
-        ['markdownPrint', ['', '#### Returns']], \
-        ['markdownPrint', ['', 'Nothing']], \
-        ['markdownPrint', ['', '---', '']], \
         ['markdownPrint', ['## lib.bare']], \
-        ['markdownPrint', ['', '### Function Index', '']], \
-        ['markdownPrint', ['- [func\\_d](#var.vPublish=true&var.vSingle=true&func-d)']], \
         ['markdownPrint', ['', '---', '', '### func\\_d']], \
+        ['markdownPrint', ['', '`func_d()`']], \
         ['markdownPrint', ['', '**async** - The calling function must be declared with "async function"']], \
         ['markdownPrint', ['', ['Test function D']]], \
         ['markdownPrint', ['', '#### Arguments']], \
@@ -463,6 +477,7 @@ async function testBaredocMain_group():
         ['markdownPrint', ["- [func\\_a](#var.vGroup='A%20Group'&func-a)"]], \
         ['markdownPrint', ["- [func\\_b](#var.vGroup='A%20Group'&func-b)"]], \
         ['markdownPrint', ['', '---', '', '## func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
@@ -470,6 +485,7 @@ async function testBaredocMain_group():
         ['markdownPrint', ['', '### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '## func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -498,6 +514,7 @@ async function testBaredocMain_group_include():
         ['markdownPrint', ['', '## Function Index', '']], \
         ['markdownPrint', ["- [func\\_d](#var.vGroup='lib.bare'&func-d)"]], \
         ['markdownPrint', ['', '---', '', '## func\\_d']], \
+        ['markdownPrint', ['', '`func_d()`']], \
         ['markdownPrint', ['', '**async** - The calling function must be declared with "async function"']], \
         ['markdownPrint', ['', ['Test function D']]], \
         ['markdownPrint', ['', '### Arguments']], \
@@ -530,6 +547,7 @@ async function testBaredocMain_group_content():
         ['markdownPrint', ["- [func\\_a](#var.vGroup='A%20Group'&func-a)"]], \
         ['markdownPrint', ["- [func\\_b](#var.vGroup='A%20Group'&func-b)"]], \
         ['markdownPrint', ['', '---', '', '## func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
@@ -537,6 +555,7 @@ async function testBaredocMain_group_content():
         ['markdownPrint', ['', '### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '## func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -568,6 +587,7 @@ async function testBaredocMain_group_contentError():
         ['markdownPrint', ["- [func\\_a](#var.vGroup='A%20Group'&func-a)"]], \
         ['markdownPrint', ["- [func\\_b](#var.vGroup='A%20Group'&func-b)"]], \
         ['markdownPrint', ['', '---', '', '## func\\_a']], \
+        ['markdownPrint', ['', '`func_a(arg1, arg2)`']], \
         ['markdownPrint', ['', ['Test function A']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', '**arg1 -**', ['The first argument']]], \
@@ -575,6 +595,7 @@ async function testBaredocMain_group_contentError():
         ['markdownPrint', ['', '### Returns']], \
         ['markdownPrint', ['', ['The return value']]], \
         ['markdownPrint', ['', '---', '', '## func\\_b']], \
+        ['markdownPrint', ['', '`func_b()`']], \
         ['markdownPrint', ['', ['Test function B']]], \
         ['markdownPrint', ['', '### Arguments']], \
         ['markdownPrint', ['', 'None']], \
@@ -604,6 +625,7 @@ async function testBaredocMain_group_description():
         ['markdownPrint', ['', '## Function Index', '']], \
         ['markdownPrint', ["- [func\\_d](#var.vGroup='lib.bare'&func-d)"]], \
         ['markdownPrint', ['', '---', '', '## func\\_d']], \
+        ['markdownPrint', ['', '`func_d()`']], \
         ['markdownPrint', ['', '**async** - The calling function must be declared with "async function"']], \
         ['markdownPrint', ['', ['Test function D']]], \
         ['markdownPrint', ['', '### Arguments']], \
@@ -714,10 +736,12 @@ async function testBaredocMain_doc():
                     '', \
                     'A function argument', \
                     '', \
-                    '| Name | Type      | Description                                 |', \
-                    '|------|-----------|---------------------------------------------|', \
-                    '| name | string    | The argument name                           |', \
-                    "| doc  | string [] | The argument's documentation Markdown lines |" \
+                    '| Name     | Type      | Attributes | Description                                                                         |', \
+                    '|----------|-----------|------------|-------------------------------------------------------------------------------------|', \
+                    '| name     | string    |            | The argument name                                                                   |', \
+                    "| doc      | string [] |            | The argument's documentation Markdown lines                                         |", \
+                    '| optional | bool      | optional   | If true, the argument is optional                                                   |', \
+                    '| default  | string    | optional   | The optional argument\'s default value, a BareScript literal (e.g. "0" or "\'black\'") |' \
                 ] \
             ] \
         ] \

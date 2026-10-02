@@ -261,18 +261,23 @@ function baredocGroup(args, groupContent, groups, groupName, baseHeader):
         markdownPrint('', content)
     endif
 
-    # Render the group function index
+    # Render the group function index (published documentation renders the functions only)
     groupFunctions = objectGet(groupEntry, 'functions')
-    markdownPrint('', baseHeader + '# Function Index', '')
-    for function_ in groupFunctions:
-        functionName = objectGet(function_, 'name')
-        markdownPrint('- ' + argsLink(baredocArguments, functionName, null, false, functionName))
-    endfor
+    if !publish:
+        markdownPrint('', baseHeader + '# Function Index', '')
+        for function_ in groupFunctions:
+            functionName = objectGet(function_, 'name')
+            markdownPrint('- ' + argsLink(baredocArguments, functionName, null, false, functionName))
+        endfor
+    endif
 
     # Render the group function documentation
     for function_ in groupFunctions:
         # Render the function header
         markdownPrint('', '---', '', baseHeader + '# ' + markdownEscape(objectGet(function_, 'name')))
+
+        # Render the function signature
+        markdownPrint('', baredocSignature(function_))
 
         # Render the function's async note
         if objectGet(function_, 'async'):
@@ -287,7 +292,7 @@ function baredocGroup(args, groupContent, groups, groupName, baseHeader):
         arguments = objectGet(function_, 'args')
         if arguments != null:
             for argument in arguments:
-                markdownPrint('', '**' + markdownEscape(objectGet(argument, 'name')) + ' -**', objectGet(argument, 'doc'))
+                markdownPrint('', baredocArgumentLabel(argument), objectGet(argument, 'doc'))
             endfor
         else:
             markdownPrint('', 'None')
@@ -298,6 +303,33 @@ function baredocGroup(args, groupContent, groups, groupName, baseHeader):
         returnDoc = objectGet(function_, 'return')
         markdownPrint('', if(returnDoc != null, returnDoc, 'Nothing'))
     endfor
+endfunction
+
+
+# Helper to create a function argument's label - an optional argument's label notes, unbolded, that it
+# is optional and its default value, if any (e.g. "**start** (optional, default `0`) **-**")
+function baredocArgumentLabel(argument):
+    name = markdownEscape(objectGet(argument, 'name'))
+    if !objectGet(argument, 'optional'):
+        return '**' + name + ' -**'
+    endif
+    default = objectGet(argument, 'default')
+    return '**' + name + '** ' + if(default != null, '(optional, default `' + default + '`)', '(optional)') + ' **-**'
+endfunction
+
+
+# Helper to create a function's signature - "name(arg1, arg2 = default)". An optional
+# argument without a default value defaults to null.
+function baredocSignature(function_):
+    argStrs = []
+    for argument in objectGet(function_, 'args', []):
+        argStr = objectGet(argument, 'name')
+        if objectGet(argument, 'optional'):
+            argStr = argStr + ' = ' + objectGet(argument, 'default', 'null')
+        endif
+        arrayPush(argStrs, argStr)
+    endfor
+    return '`' + objectGet(function_, 'name') + '(' + arrayJoin(argStrs, ', ') + ')`'
 endfunction
 
 
@@ -384,5 +416,11 @@ baredocTypes = schemaParse( \
     '    string name', \
     '', \
     "    # The argument's documentation Markdown lines", \
-    '    string[] doc' \
+    '    string[] doc', \
+    '', \
+    '    # If true, the argument is optional', \
+    '    optional bool optional', \
+    '', \
+    "    # The optional argument's default value, a BareScript literal (e.g. \"0\" or \"'black'\")", \
+    '    optional string default' \
 )

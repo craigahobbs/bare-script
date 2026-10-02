@@ -11,7 +11,7 @@ include <draw.bare>
 # $arg x: The X-coordinate, in pixels, of the left-side of the QR code
 # $arg y: The Y-coordinate, in pixels, of the top of the QR code
 # $arg size: The size of the QR code, in pixels
-# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+# $arg [level = 'low']: The error correction level: 'low', 'medium', 'quartile', or 'high'
 function qrcodeDraw(message, x, y, size, level):
     # Get the QR code pixel matrix
     matrix = if(systemType(message) == 'string', qrcodeMatrix(message, level), message)
@@ -53,7 +53,7 @@ endfunction
 # $doc: Generate the element model for a QR code
 # $arg message: The QR code message or the QR code matrix
 # $arg size: The size of the QR code, in pixels
-# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+# $arg [level = 'low']: The error correction level: 'low', 'medium', 'quartile', or 'high'
 # $return: The QR code SVG [element model](https://github.com/craigahobbs/element-model#readme)
 function qrcodeElements(message, size, level):
     # Get the QR code pixel matrix
@@ -118,7 +118,7 @@ endfunction
 # $group: qrcode.bare
 # $doc: Generate a QR code pixel matrix
 # $arg message: The QR code message
-# $arg level: Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+# $arg [level = 'low']: The error correction level: 'low', 'medium', 'quartile', or 'high'
 # $return: The QR code pixel matrix
 function qrcodeMatrix(message, level):
     level = if(level != null, level, 'low')

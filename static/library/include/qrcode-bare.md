@@ -1,6 +1,6 @@
-The "qrcode.bare" include library provides functions for drawing QR codes.
-
-To draw a QR code:
+The "qrcode.bare" include library draws QR codes with the
+[draw.bare](#var.vGroup='draw.bare'&_top) include library. See the
+[live QR code generator demo](https://craigahobbs.github.io/qrcode/) for an interactive example.
 
 ```bare-script
 include <draw.bare>
@@ -10,8 +10,3 @@ drawNew(300, 300)
 qrcodeDraw('https://craigahobbs.github.io/qrcode/', 0, 0, 300)
 drawRender()
 ```
-
-The library supports four error correction levels: `'low'`, `'medium'`, `'quartile'`, and `'high'`.
-Higher error correction levels can store less data but are more robust against damage.
-
-See the [live QR code generator demo](https://craigahobbs.github.io/qrcode/) for an interactive example.

@@ -32,7 +32,24 @@ unittestMockState = unittestMockStateNew()
 # $group: unittestMock.bare
 # $doc: Start mocking all BareScript and MarkdownUp library functions with externalities.
 # $doc: To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function.
-# $arg data: Optional (default is null). The map of function name to mock function data.
+# $doc: Mock data sets the return values of the mocked functions. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: include <unittest.bare>
+# $doc: include <unittestMock.bare>
+# $doc:
+# $doc: function greeting():
+# $doc:     return 'Hello, ' + documentInputValue('name')
+# $doc: endfunction
+# $doc:
+# $doc: function testGreeting():
+# $doc:     unittestMockAll({'documentInputValue': {'name': 'Alice'}})
+# $doc:     unittestEqual(greeting(), 'Hello, Alice')
+# $doc:     unittestDeepEqual(unittestMockEnd(), [['documentInputValue', ['name']]])
+# $doc: endfunction
+# $doc: unittestRunTest('testGreeting')
+# $doc: ```
+# $arg [data = null]: The map of function name to mock function data.
 # $arg data: The following functions make use of mock data:
 # $arg data: - **documentInputValue** - map of id to return value
 # $arg data: - **systemFetch** - map of URL to response text (or byte value array, for a binary request)

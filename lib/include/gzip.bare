@@ -6,7 +6,7 @@
 # $group: gzip.bare
 # $doc: Compress a byte value array (or a string, as UTF-8) with gzip
 # $arg bytes: The byte value array (integers 0 to 255) or string
-# $arg level: Optional (default is 6). The compression level, 0 (store) through 9 (best).
+# $arg [level = 6]: The compression level, 0 (store) through 9 (best)
 # $return: The gzip-compressed byte value array, or null if compression fails
 function gzipCompress(bytes, level):
     if systemType(bytes) == 'string':
@@ -37,7 +37,8 @@ endfunction
 
 # $function: gzipUncompress
 # $group: gzip.bare
-# $doc: Uncompress a gzip-compressed byte value array
+# $doc: Uncompress a gzip-compressed byte value array. Any single-member gzip stream can be
+# $doc: uncompressed. The gzip header, the DEFLATE stream, and the trailer's CRC-32 and size are checked.
 # $arg bytes: The gzip-compressed byte value array (integers 0 to 255)
 # $return: The uncompressed byte value array, or null if uncompression fails
 function gzipUncompress(bytes):

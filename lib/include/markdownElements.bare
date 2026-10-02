@@ -10,7 +10,7 @@ include <schemaParser.bare>
 # $group: markdownElements.bare
 # $doc: Generate an element model from a Markdown model
 # $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
-# $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+# $arg [options = null]: The [options object](model.html#var.vName='MarkdownElementsOptions')
 # $return: The Markdown's [element model](https://github.com/craigahobbs/element-model#readme)
 function markdownElements(markdown, options):
     usedHeaderIds = if(options, objectGet(options, 'usedHeaderIds')) || {}
@@ -109,7 +109,7 @@ endfunction
 # $doc: Generate an element model from a Markdown model.
 # $doc: Use this form of the function if you have one or more asynchronous code block functions.
 # $arg markdown: The [Markdown model](model.html#var.vName='Markdown')
-# $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+# $arg [options = null]: The [options object](model.html#var.vName='MarkdownElementsOptions')
 # $return: The Markdown's [element model](https://github.com/craigahobbs/element-model#readme)
 async function markdownElementsAsync(markdown, options):
     usedHeaderIds = if(options, objectGet(options, 'usedHeaderIds')) || {}

@@ -47,7 +47,7 @@ markdownHighlightMemberNames = ['builtin', 'comment', 'keyword', 'literal', 'pre
 # $group: markdownHighlight.bare
 # $doc: Render a code block
 # $arg codeBlock: The [code block model](model.html#var.vName='MarkdownElementsCodeBlock')
-# $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+# $arg [options = null]: The [options object](model.html#var.vName='MarkdownElementsOptions')
 # $return: The code block's [element model](https://github.com/craigahobbs/element-model#readme)
 # $ignore: true
 function markdownHighlightCodeBlockElements(codeBlock, options):
@@ -81,7 +81,7 @@ endfunction
 # $group: markdownHighlight.bare
 # $doc: Render a code block
 # $arg codeBlock: The [code block model](model.html#var.vName='MarkdownElementsCodeBlock')
-# $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+# $arg [options = null]: The [options object](model.html#var.vName='MarkdownElementsOptions')
 # $return: The code block's [element model](https://github.com/craigahobbs/element-model#readme)
 # $ignore: true
 async function markdownHighlightCodeBlockElementsAsync(codeBlock, options):
@@ -161,7 +161,7 @@ endfunction
 # $doc: Generate a syntax-highlighted code block element model
 # $arg highlightRegex: The compiled highlight model regex (or null for no highlighting)
 # $arg lines: The code block lines
-# $arg options: Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+# $arg [options = null]: The [options object](model.html#var.vName='MarkdownElementsOptions')
 # $return: The syntax-highlighted code [element model](https://github.com/craigahobbs/element-model#readme)
 # $ignore: true
 function markdownHighlightElements(highlightRegex, lines, options):

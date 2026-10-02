@@ -52,7 +52,7 @@ endfunction
 # $doc: Decode an object from a query string. Each member key of the query string is expressed in
 # $doc: fully-qualified form. Array keys are the index into the array, and must be in order.
 # $arg queryString: The query string
-# $return: The decoded object, or null if decoding fails
+# $return: The decoded object, or null if decoding fails. All decoded leaf values are strings.
 function urlDecodeQueryString(queryString):
     # Decode the query string key/values
     result = [null]

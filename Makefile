@@ -223,7 +223,9 @@ const library = JSON.parse(readFileSync(libraryPath, {'encoding': 'utf-8'}));
 const libraryMap = Object.fromEntries(library.functions.map((func) => [func.name, func]));
 const libraryExpr = {'functions': []};
 for (const [exprFnName, scriptFnName] of Object.entries(expressionFunctionMap)) {
-    libraryExpr.functions.push({...libraryMap[scriptFnName], 'name': exprFnName});
+    const scriptFn = libraryMap[scriptFnName];
+    const doc = (exprFnName === scriptFnName ? scriptFn.doc : ['Alias of the `' + scriptFnName + '` builtin function.', '', ...scriptFn.doc]);
+    libraryExpr.functions.push({...scriptFn, 'name': exprFnName, doc});
 }
 
 // Write the expression documentation model

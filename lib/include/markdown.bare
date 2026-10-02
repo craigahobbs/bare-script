@@ -19,7 +19,8 @@ markdownRegexEscape = regexNew('([\\\\[\\]()<>"\'*_~`#=+|-])')
 
 # $function: markdownHeaderId
 # $group: markdown.bare
-# $doc: Generate a Markdown header ID from text
+# $doc: Generate a Markdown header ID from text. This is the ID that
+# $doc: [markdownElements](#var.vGroup='markdownElements.bare'&markdownelements) generates for headers.
 # $arg text: The text
 # $return: The header element ID
 function markdownHeaderId(text):

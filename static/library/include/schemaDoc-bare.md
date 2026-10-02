@@ -1,19 +1,12 @@
-The "schemaDoc.bare" include library provides functions for generating documentation for
-[schemas](#var.vGroup='schema.bare'&_top). It's particularly useful for defining and documenting options
-objects, file formats, and APIs.
-
-Execute the schema documentation application for a Schema Markdown (`.smd`) file:
+The "schemaDoc.bare" include library generates documentation for
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) schemas - useful for
+documenting options objects, file formats, and APIs. Run the documentation application for a Schema
+Markdown file, or generate the Markdown documentation for a single type:
 
 ```bare-script
 include <schemaDoc.bare>
 
 schemaDocMain('my-schema.smd', 'My Schema Documentation')
-```
 
-Generate Markdown documentation for a specific type:
-
-```bare-script
-types = schemaParse('struct MyStruct', '    string name')
-markdownLines = schemaDocMarkdown(types, 'MyStruct')
-markdownPrint(markdownLines)
+markdownPrint(schemaDocMarkdown(types, 'MyStruct'))
 ```

@@ -6,8 +6,8 @@
 # $group: barescriptParser.bare
 # $doc: Parse a BareScript script
 # $arg scriptText: The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
-# $arg startLineNumber: Optional (default is 1). The script's starting line number.
-# $arg scriptName: Optional (default is null). The script name.
+# $arg [startLineNumber = 1]: The script's starting line number
+# $arg [scriptName = null]: The script name
 # $return: The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'),
 # $return: or null if a parsing error occurs
 function barescriptParseScript(scriptText, startLineNumber, scriptName):
@@ -24,8 +24,8 @@ endfunction
 # $group: barescriptParser.bare
 # $doc: Parse a BareScript script with programmatic error reporting
 # $arg scriptText: The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
-# $arg startLineNumber: Optional (default is 1). The script's starting line number.
-# $arg scriptName: Optional (default is null). The script name.
+# $arg [startLineNumber = 1]: The script's starting line number
+# $arg [scriptName = null]: The script name
 # $return: On success, an object with the "result" key set to the
 # $return: [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
 # $return: On failure, an object with the "error" key set to the
@@ -596,9 +596,9 @@ barescriptParserKeywords = { \
 # $group: barescriptParser.bare
 # $doc: Parse a BareScript expression
 # $arg exprText: The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
-# $arg lineNumber: Optional (default is null). The script line number.
-# $arg scriptName: Optional (default is null). The script name.
-# $arg arrayLiterals: Optional (default is false). If true, allow parsing of array literals.
+# $arg [lineNumber = null]: The script line number
+# $arg [scriptName = null]: The script name
+# $arg [arrayLiterals = false]: If true, allow parsing of array literals
 # $return: The [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'),
 # $return: or null if a parsing error occurs
 function barescriptParseExpression(exprText, lineNumber, scriptName, arrayLiterals):
@@ -615,9 +615,9 @@ endfunction
 # $group: barescriptParser.bare
 # $doc: Parse a BareScript expression with programmatic error reporting
 # $arg exprText: The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
-# $arg lineNumber: Optional (default is null). The script line number.
-# $arg scriptName: Optional (default is null). The script name.
-# $arg arrayLiterals: Optional (default is false). If true, allow parsing of array literals.
+# $arg [lineNumber = null]: The script line number
+# $arg [scriptName = null]: The script name
+# $arg [arrayLiterals = false]: If true, allow parsing of array literals
 # $return: On success, an object with the "result" key set to the
 # $return: [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression').
 # $return: On failure, an object with the "error" key set to the parser error object. The parser error

@@ -316,7 +316,7 @@ endfunction
 # $group: markdownUp.bare
 # $doc: Write text (or binary data) to the clipboard
 # $arg text: The text string or byte value array (integers 0 to 255) to write
-# $arg type: The clipboard content type (default is "text/plain"). Binary data needs its content type, e.g. "image/png".
+# $arg [type = "text/plain"]: The clipboard content type. Binary data needs its content type, e.g. "image/png".
 function windowClipboardWrite(text):
     objectSet(markdownUpState, 'windowClipboard', text)
 endfunction
@@ -349,10 +349,10 @@ endfunction
 # $doc:
 # $doc: The key is matched against the physical key code (e.g., "ArrowUp", "KeyW", "Space", "Enter").
 # $arg key: The physical key code (e.g., "ArrowUp", "ArrowDown", "KeyA", "KeyW", "Space")
-# $arg ctrl: If true, the control key must be down; if false (the default), it must be up
-# $arg shift: If true, the shift key must be down; if false (the default), it must be up
-# $arg alt: If true, the alt key must be down; if false (the default), it must be up
-# $arg meta: If true, the meta (command) key must be down; if false (the default), it must be up
+# $arg [ctrl = false]: If true, the control key must be down; if false, it must be up
+# $arg [shift = false]: If true, the shift key must be down; if false, it must be up
+# $arg [alt = false]: If true, the alt key must be down; if false, it must be up
+# $arg [meta = false]: If true, the meta (command) key must be down; if false, it must be up
 # $return: true if the key is down and all modifier-key states match, false otherwise
 function windowKeyState():
 endfunction
@@ -402,7 +402,7 @@ endfunction
 # $group: markdownUp.bare
 # $doc: Create an object URL (i.e. a file download URL)
 # $arg data: The object data string or byte value array
-# $arg contentType: Optional (default is "text/plain"). The object content type.
+# $arg [contentType = "text/plain"]: The object content type
 # $return: The object URL string
 function windowURLObject(data, contentType):
     contentType = if(contentType != null, contentType, 'text/plain')
