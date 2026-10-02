@@ -1,18 +1,10 @@
-The "markdownElements.bare" include library provides functions for converting a parsed
+The "markdownElements.bare" include library converts a
 [Markdown model](model.html#var.vName='Markdown') into an
-[element model](https://github.com/craigahobbs/element-model#readme) for rendering.
-
-To render Markdown content as HTML elements, first parse the Markdown text with
-[markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), then generate the element model:
+[element model](https://github.com/craigahobbs/element-model#readme) for rendering:
 
 ```bare-script
-include <markdownParser.bare>
 include <markdownElements.bare>
+include <markdownParser.bare>
 
-markdown = markdownParse('# Hello, World!', '', 'This is a paragraph with **bold** text.')
-elements = markdownElements(markdown)
-elementModelRender(elements)
+elementModelRender(markdownElements(markdownParse('# Hello, World!', '', 'This is **bold** text.')))
 ```
-
-For applications that include asynchronous code block renderers, use the
-[markdownElementsAsync](#var.vGroup='markdownElements.bare'&markdownelementsasync) function instead.

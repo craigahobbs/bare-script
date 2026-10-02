@@ -16,7 +16,7 @@ logged for each invalid-argument failure.
 |  |  |
 | --- | --- |
 | [array](#var.vPublish=true&var.vSingle=true&array) | Create, manipulate, and query arrays |
-| [barescript](#var.vPublish=true&var.vSingle=true&barescript) | Parse and evaluate BareScript expressions |
+| [barescript](#var.vPublish=true&var.vSingle=true&barescript) | Evaluate BareScript expression models |
 | [datetime](#var.vPublish=true&var.vSingle=true&datetime) | Create and manipulate date/time values |
 | [json](#var.vPublish=true&var.vSingle=true&json) | Parse and serialize JSON |
 | [math](#var.vPublish=true&var.vSingle=true&math) | Mathematical operations and constants |
@@ -42,14 +42,14 @@ logged for each invalid-argument failure.
 | [dataTable.bare](#var.vPublish=true&var.vSingle=true&datatable-bare) | Render tabular data as tables |
 | [diff.bare](#var.vPublish=true&var.vSingle=true&diff-bare) | Compute line diffs between strings or arrays |
 | [draw.bare](#var.vPublish=true&var.vSingle=true&draw-bare) | Draw SVG images |
-| [elementModel.bare](#var.vPublish=true&var.vSingle=true&elementmodel-bare) | Render element model to the browser or HTML and SVG |
+| [elementModel.bare](#var.vPublish=true&var.vSingle=true&elementmodel-bare) | Validate element models and render them as HTML or SVG text |
 | [forms.bare](#var.vPublish=true&var.vSingle=true&forms-bare) | Web forms and controls element model helpers |
 | [gzip.bare](#var.vPublish=true&var.vSingle=true&gzip-bare) | Compress and uncompress gzip data |
 | [markdown.bare](#var.vPublish=true&var.vSingle=true&markdown-bare) | Markdown escaping, header IDs, and utilities |
 | [markdownElements.bare](#var.vPublish=true&var.vSingle=true&markdownelements-bare) | Convert a Markdown model to an element model |
 | [markdownParser.bare](#var.vPublish=true&var.vSingle=true&markdownparser-bare) | Parse Markdown text into a Markdown model |
 | [markdownString.bare](#var.vPublish=true&var.vSingle=true&markdownstring-bare) | Render a Markdown model as Markdown text |
-| [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare) | Stub implementations of the MarkdownUp runtime functions |
+| [markdownUp.bare](#var.vPublish=true&var.vSingle=true&markdownup-bare) | The MarkdownUp runtime functions, with stub implementations for the bare CLI |
 | [pager.bare](#var.vPublish=true&var.vSingle=true&pager-bare) | Multi-page MarkdownUp application shell |
 | [qrcode.bare](#var.vPublish=true&var.vSingle=true&qrcode-bare) | Render QR codes |
 | [schema.bare](#var.vPublish=true&var.vSingle=true&schema-bare) | Validate values with Schema Markdown type models |
@@ -59,80 +59,24 @@ logged for each invalid-argument failure.
 | [tar.bare](#var.vPublish=true&var.vSingle=true&tar-bare) | Create and extract tar archives |
 | [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare) | Unit test framework |
 | [unittestMock.bare](#var.vPublish=true&var.vSingle=true&unittestmock-bare) | Mock library functions during unit tests |
-| [url.bare](#var.vPublish=true&var.vSingle=true&url-bare) | Encode and decode URL query strings |
+| [url.bare](#var.vPublish=true&var.vSingle=true&url-bare) | Encode and decode URLs, URL components, and query strings |
 
 ---
 
 ## array
 
-Array functions provide operations for creating, manipulating, and querying arrays. Arrays are
-ordered collections of values that can be created using array literal syntax (e.g., `[1, 2, 3]`) or
-with the [arrayNew](#var.vGroup='array'&arraynew) function.
+Arrays are ordered, zero-indexed lists of values, created with array literals (`[1, 2, 3]`). Arrays
+are shared by reference, and the functions that modify an array - such as
+[arrayPush](#var.vGroup='array'&arraypush), [arraySet](#var.vGroup='array'&arrayset), and
+[arraySort](#var.vGroup='array'&arraysort) - change it in place. Use
+[arrayCopy](#var.vGroup='array'&arraycopy) for an independent copy.
 
-To access and modify array elements, use the [arrayGet](#var.vGroup='array'&arrayget) and
-[arraySet](#var.vGroup='array'&arrayset) functions:
-
-```bare-script
-values = [1, 2, 3, 4, 5]
-firstValue = arrayGet(values, 0)
-arraySet(values, 0, 10)
-```
-
-Arrays can be extended, sliced, and manipulated in various ways:
-
-```bare-script
-# Add elements to the end
-arrayPush(values, 6, 7, 8)
-
-# Remove and return the last element
-lastValue = arrayPop(values)
-
-# Create a copy of part of an array
-subset = arraySlice(values, 1, 4)
-
-# Join array elements into a string
-text = arrayJoin(values, ', ')
-```
-
-Arrays can also be sorted, searched, and flattened:
-
-```bare-script
-# Sort an array
-arraySorted = arraySort([3, 1, 4, 1, 5, 9])
-
-# Find an element
-index = arrayIndexOf(values, 3)
-
-# Flatten nested arrays
-nested = [[1, 2], [3, [4, 5]]]
-flat = arrayFlat(nested, 2)
-```
-
-
-### Function Index
-
-- [arrayCopy](#var.vPublish=true&var.vSingle=true&arraycopy)
-- [arrayDelete](#var.vPublish=true&var.vSingle=true&arraydelete)
-- [arrayExtend](#var.vPublish=true&var.vSingle=true&arrayextend)
-- [arrayFlat](#var.vPublish=true&var.vSingle=true&arrayflat)
-- [arrayGet](#var.vPublish=true&var.vSingle=true&arrayget)
-- [arrayIndexOf](#var.vPublish=true&var.vSingle=true&arrayindexof)
-- [arrayJoin](#var.vPublish=true&var.vSingle=true&arrayjoin)
-- [arrayLastIndexOf](#var.vPublish=true&var.vSingle=true&arraylastindexof)
-- [arrayLength](#var.vPublish=true&var.vSingle=true&arraylength)
-- [arrayNew](#var.vPublish=true&var.vSingle=true&arraynew)
-- [arrayNewSize](#var.vPublish=true&var.vSingle=true&arraynewsize)
-- [arrayPop](#var.vPublish=true&var.vSingle=true&arraypop)
-- [arrayPush](#var.vPublish=true&var.vSingle=true&arraypush)
-- [arrayReverse](#var.vPublish=true&var.vSingle=true&arrayreverse)
-- [arraySet](#var.vPublish=true&var.vSingle=true&arrayset)
-- [arrayShift](#var.vPublish=true&var.vSingle=true&arrayshift)
-- [arraySlice](#var.vPublish=true&var.vSingle=true&arrayslice)
-- [arraySort](#var.vPublish=true&var.vSingle=true&arraysort)
 
 ---
 
 ### arrayCopy
+
+`arrayCopy(array)`
 
 Create a copy of an array
 
@@ -148,6 +92,8 @@ The array copy
 ---
 
 ### arrayDelete
+
+`arrayDelete(array, index)`
 
 Delete an array element
 
@@ -167,6 +113,8 @@ Nothing
 
 ### arrayExtend
 
+`arrayExtend(array, array2)`
+
 Extend one array with another
 
 #### Arguments
@@ -185,6 +133,8 @@ The extended array
 
 ### arrayFlat
 
+`arrayFlat(array, depth = 10)`
+
 Flatten an array hierarchy
 
 #### Arguments
@@ -192,8 +142,8 @@ Flatten an array hierarchy
 **array -**
 The array to flatten
 
-**depth -**
-Optional (default is 10). The maximum depth of the array hierarchy.
+**depth** (optional, default `10`) **-**
+The maximum depth of the array hierarchy
 
 #### Returns
 
@@ -202,6 +152,8 @@ The flattened array
 ---
 
 ### arrayGet
+
+`arrayGet(array, index)`
 
 Get an array element
 
@@ -220,6 +172,8 @@ The array element
 ---
 
 ### arrayIndexOf
+
+`arrayIndexOf(array, value, index = 0)`
 
 Find the index of a value in an array. For example:
 
@@ -242,8 +196,8 @@ The array
 **value -**
 The value to find in the array, or a match function, f(value) -> bool
 
-**index -**
-Optional (default is 0). The index at which to start the search.
+**index** (optional, default `0`) **-**
+The index at which to start the search
 
 #### Returns
 
@@ -252,6 +206,8 @@ The first index of the value in the array; -1 if not found
 ---
 
 ### arrayJoin
+
+`arrayJoin(array, separator)`
 
 Join an array with a separator string
 
@@ -271,6 +227,8 @@ The joined string
 
 ### arrayLastIndexOf
 
+`arrayLastIndexOf(array, value, index = null)`
+
 Find the last index of a value in an array
 
 #### Arguments
@@ -281,8 +239,8 @@ The array
 **value -**
 The value to find in the array, or a match function, f(value) -> bool
 
-**index -**
-Optional (default is the end of the array). The index at which to start the search.
+**index** (optional) **-**
+The index at which to start the search. The default is the end of the array.
 
 #### Returns
 
@@ -291,6 +249,8 @@ The last index of the value in the array; -1 if not found
 ---
 
 ### arrayLength
+
+`arrayLength(array)`
 
 Get the length of an array
 
@@ -307,6 +267,8 @@ The array's length; zero if not an array
 
 ### arrayNew
 
+`arrayNew(values...)`
+
 Create a new array
 
 #### Arguments
@@ -322,15 +284,17 @@ The new array
 
 ### arrayNewSize
 
+`arrayNewSize(size = 0, value = 0)`
+
 Create a new array of a specific size
 
 #### Arguments
 
-**size -**
-Optional (default is 0). The new array's size.
+**size** (optional, default `0`) **-**
+The new array's size
 
-**value -**
-Optional (default is 0). The value with which to fill the new array.
+**value** (optional, default `0`) **-**
+The value with which to fill the new array
 
 #### Returns
 
@@ -339,6 +303,8 @@ The new array
 ---
 
 ### arrayPop
+
+`arrayPop(array)`
 
 Remove the last element of the array and return it
 
@@ -354,6 +320,8 @@ The last element of the array; null if the array is empty
 ---
 
 ### arrayPush
+
+`arrayPush(array, values...)`
 
 Add one or more values to the end of the array
 
@@ -373,6 +341,8 @@ The array
 
 ### arrayReverse
 
+`arrayReverse(array)`
+
 Reverse an array in place
 
 #### Arguments
@@ -387,6 +357,8 @@ The reversed array
 ---
 
 ### arraySet
+
+`arraySet(array, index, value)`
 
 Set an array element value
 
@@ -409,6 +381,8 @@ The value
 
 ### arrayShift
 
+`arrayShift(array)`
+
 Remove the first element of the array and return it
 
 #### Arguments
@@ -423,6 +397,8 @@ The first element of the array; null if the array is empty
 ---
 
 ### arraySlice
+
+`arraySlice(array, start = 0, end = null)`
 
 Copy a portion of an array. For example:
 
@@ -440,11 +416,11 @@ rest = arraySlice(numbers, 2)
 **array -**
 The array
 
-**start -**
-Optional (default is 0). The start index of the slice. Negative indexes are invalid.
+**start** (optional, default `0`) **-**
+The start index of the slice. Negative indexes are invalid.
 
-**end -**
-Optional (default is the end of the array). The end index of the slice.
+**end** (optional) **-**
+The end index of the slice. The default is the end of the array.
 
 #### Returns
 
@@ -453,6 +429,8 @@ The new array slice
 ---
 
 ### arraySort
+
+`arraySort(array, compareFn = null)`
 
 Sort an array in place. For example:
 
@@ -473,9 +451,9 @@ arraySort(numbers, compareDesc)
 **array -**
 The array
 
-**compareFn -**
-Optional (default is null). The comparison function, f(a, b) -> number -
-negative if "a" sorts first, positive if "b" sorts first, zero if equal.
+**compareFn** (optional, default `null`) **-**
+The comparison function, f(a, b) -> number -
+negative if "a" sorts first, positive if "b" sorts first, zero if equal
 
 #### Returns
 
@@ -485,35 +463,25 @@ The sorted array
 
 ## barescript
 
-The "barescript" library contains functions for evaluating BareScript expressions. To parse an
-expression, use the
+The "barescript" library evaluates BareScript expression models. To parse expression text into an
+expression model, use the
 [barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
-of the "barescriptParser.bare" include library. To parse and evaluate a BareScript expression:
+of the "barescriptParser.bare" include library:
 
 ```bare-script
 include <barescriptParser.bare>
 
-exprStr = '5 * N'
-expr = barescriptParseExpression(exprStr)
-systemLog(barescriptEvaluateExpression(expr, {'N': 10}))
-systemLog(barescriptEvaluateExpression(expr, {'N': 11}))
+expr = barescriptParseExpression('5 * N')
+result = barescriptEvaluateExpression(expr, {'N': 10})
+# result is 50
 ```
 
-This outputs:
-
-```
-50
-55
-```
-
-
-### Function Index
-
-- [barescriptEvaluateExpression](#var.vPublish=true&var.vSingle=true&barescriptevaluateexpression)
 
 ---
 
 ### barescriptEvaluateExpression
+
+`barescriptEvaluateExpression(expr, locals = null, builtins = true)`
 
 Evaluate a [BareScript expression model](../model/#var.vName='Expression')
 
@@ -522,11 +490,11 @@ Evaluate a [BareScript expression model](../model/#var.vName='Expression')
 **expr -**
 The [BareScript expression model](../model/#var.vName='Expression')
 
-**locals -**
-Optional (default is null). The local variables object.
+**locals** (optional, default `null`) **-**
+The local variables object
 
-**builtins -**
-Optional (default is true). If true, include the [built-in expression functions](expression.html).
+**builtins** (optional, default `true`) **-**
+If true, include the [built-in expression functions](expression.html)
 
 #### Returns
 
@@ -536,80 +504,31 @@ The expression result
 
 ## datetime
 
-Datetime functions provide operations for creating, manipulating, and formatting date and time
-values. Datetime values represent specific moments in time. Datetimes are created and accessed in
-**local time** — `datetimeNew` constructs a local datetime, and the accessor functions
-(`datetimeYear`, `datetimeHour`, etc.) return local-time components. `datetimeISOParse` parses ISO
-strings with any UTC offset, and `datetimeISOFormat` formats using the local UTC offset.
+Datetime values represent moments in time. There is no datetime literal - create datetimes with
+[datetimeNew](#var.vGroup='datetime'&datetimenew), [datetimeNow](#var.vGroup='datetime'&datetimenow),
+[datetimeToday](#var.vGroup='datetime'&datetimetoday), or
+[datetimeISOParse](#var.vGroup='datetime'&datetimeisoparse).
 
-Create a new datetime with specific components:
+Datetimes are **local time**: `datetimeNew` takes local-time components, the accessor functions
+(`datetimeYear`, `datetimeHour`, etc.) return local-time components, and `datetimeISOFormat` formats
+with the local UTC offset. `datetimeISOParse` accepts any UTC offset.
 
-```bare-script
-# Create a datetime for January 15, 2024 at 2:30 PM
-dt = datetimeNew(2024, 1, 15, 14, 30, 0, 0)
-```
-
-Get the current date and time:
+Datetime arithmetic is in milliseconds. Adding a number to a datetime returns a new datetime, and
+subtracting two datetimes returns the difference in milliseconds:
 
 ```bare-script
-now = datetimeNow()
-today = datetimeToday()  # Today at midnight
+start = datetimeNew(2024, 1, 15, 14, 30)
+end = start + 90 * 60 * 1000
+minutes = (end - start) / (60 * 1000)
+# minutes is 90
 ```
 
-Extract components from a datetime:
-
-```bare-script
-year = datetimeYear(dt)
-month = datetimeMonth(dt)
-day = datetimeDay(dt)
-hour = datetimeHour(dt)
-minute = datetimeMinute(dt)
-second = datetimeSecond(dt)
-millisecond = datetimeMillisecond(dt)
-```
-
-Parse and format datetime strings using ISO 8601 format:
-
-```bare-script
-# Parse an ISO datetime string
-dt = datetimeISOParse('2024-01-15T14:30:00.000Z')
-
-# Format as ISO datetime string
-isoString = datetimeISOFormat(dt, false)
-
-# Format as ISO date string
-isoDate = datetimeISOFormat(dt, true)
-```
-
-Perform datetime arithmetic using addition and subtraction:
-
-```bare-script
-# Add 1 hour (3600000 milliseconds)
-later = dt + 3600000
-
-# Calculate the difference between two datetimes
-difference = dt2 - dt1  # Returns milliseconds
-```
-
-
-### Function Index
-
-- [datetimeDay](#var.vPublish=true&var.vSingle=true&datetimeday)
-- [datetimeHour](#var.vPublish=true&var.vSingle=true&datetimehour)
-- [datetimeISOFormat](#var.vPublish=true&var.vSingle=true&datetimeisoformat)
-- [datetimeISOParse](#var.vPublish=true&var.vSingle=true&datetimeisoparse)
-- [datetimeMillisecond](#var.vPublish=true&var.vSingle=true&datetimemillisecond)
-- [datetimeMinute](#var.vPublish=true&var.vSingle=true&datetimeminute)
-- [datetimeMonth](#var.vPublish=true&var.vSingle=true&datetimemonth)
-- [datetimeNew](#var.vPublish=true&var.vSingle=true&datetimenew)
-- [datetimeNow](#var.vPublish=true&var.vSingle=true&datetimenow)
-- [datetimeSecond](#var.vPublish=true&var.vSingle=true&datetimesecond)
-- [datetimeToday](#var.vPublish=true&var.vSingle=true&datetimetoday)
-- [datetimeYear](#var.vPublish=true&var.vSingle=true&datetimeyear)
 
 ---
 
 ### datetimeDay
+
+`datetimeDay(datetime)`
 
 Get the day of the month of a datetime
 
@@ -626,6 +545,8 @@ The day of the month
 
 ### datetimeHour
 
+`datetimeHour(datetime)`
+
 Get the hour of a datetime
 
 #### Arguments
@@ -641,6 +562,8 @@ The hour
 
 ### datetimeISOFormat
 
+`datetimeISOFormat(datetime, isDate = false)`
+
 Format the datetime as an ISO date/time string. For example:
 
 ```bare-script
@@ -654,8 +577,8 @@ date = datetimeISOFormat(d, true)
 **datetime -**
 The datetime
 
-**isDate -**
-Optional (default is false). If true, format the datetime as an ISO date.
+**isDate** (optional, default `false`) **-**
+If true, format the datetime as an ISO date
 
 #### Returns
 
@@ -664,6 +587,8 @@ The formatted datetime string
 ---
 
 ### datetimeISOParse
+
+`datetimeISOParse(string)`
 
 Parse an ISO date/time string. For example:
 
@@ -685,6 +610,8 @@ The datetime, or null if parsing fails
 
 ### datetimeMillisecond
 
+`datetimeMillisecond(datetime)`
+
 Get the millisecond of a datetime
 
 #### Arguments
@@ -699,6 +626,8 @@ The millisecond
 ---
 
 ### datetimeMinute
+
+`datetimeMinute(datetime)`
 
 Get the minute of a datetime
 
@@ -715,6 +644,8 @@ The minute
 
 ### datetimeMonth
 
+`datetimeMonth(datetime)`
+
 Get the month (1-12) of a datetime
 
 #### Arguments
@@ -730,6 +661,8 @@ The month
 
 ### datetimeNew
 
+`datetimeNew(year, month, day, hour = 0, minute = 0, second = 0, millisecond = 0)`
+
 Create a new datetime
 
 #### Arguments
@@ -743,17 +676,17 @@ The month (1-12)
 **day -**
 The day of the month
 
-**hour -**
-Optional (default is 0). The hour (0-23).
+**hour** (optional, default `0`) **-**
+The hour (0-23)
 
-**minute -**
-Optional (default is 0). The minute.
+**minute** (optional, default `0`) **-**
+The minute
 
-**second -**
-Optional (default is 0). The second.
+**second** (optional, default `0`) **-**
+The second
 
-**millisecond -**
-Optional (default is 0). The millisecond.
+**millisecond** (optional, default `0`) **-**
+The millisecond
 
 #### Returns
 
@@ -762,6 +695,8 @@ The new datetime
 ---
 
 ### datetimeNow
+
+`datetimeNow()`
 
 Get the current datetime
 
@@ -776,6 +711,8 @@ The current datetime
 ---
 
 ### datetimeSecond
+
+`datetimeSecond(datetime)`
 
 Get the second of a datetime
 
@@ -792,7 +729,9 @@ The second
 
 ### datetimeToday
 
-Get today's datetime
+`datetimeToday()`
+
+Get today's date - the current datetime at midnight, local time
 
 #### Arguments
 
@@ -805,6 +744,8 @@ Today's datetime
 ---
 
 ### datetimeYear
+
+`datetimeYear(datetime)`
 
 Get the full year of a datetime
 
@@ -821,40 +762,14 @@ The full year
 
 ## json
 
-JSON functions provide operations for parsing and serializing JSON (JavaScript Object Notation)
-data. JSON is a lightweight data interchange format that is easy to read and write.
+JSON functions convert between JSON text and BareScript values.
 
-Parse a JSON string to create an object:
-
-```bare-script
-jsonText = '{"name": "Alice", "age": 30, "hobbies": ["reading", "hiking"]}'
-obj = jsonParse(jsonText)
-name = objectGet(obj, 'name')
-```
-
-Convert an object to a JSON string:
-
-```bare-script
-obj = {'name': 'Bob', 'age': 25, 'active': true}
-jsonText = jsonStringify(obj)
-```
-
-Format JSON with indentation for readability:
-
-```bare-script
-# Indent with 2 spaces
-prettyJson = jsonStringify(obj, 2)
-```
-
-
-### Function Index
-
-- [jsonParse](#var.vPublish=true&var.vSingle=true&jsonparse)
-- [jsonStringify](#var.vPublish=true&var.vSingle=true&jsonstringify)
 
 ---
 
 ### jsonParse
+
+`jsonParse(string)`
 
 Convert a JSON string to an object
 
@@ -871,6 +786,8 @@ The object
 
 ### jsonStringify
 
+`jsonStringify(value, indent = null)`
+
 Convert an object to a JSON string. Object keys are serialized in sorted order. For example:
 
 ```bare-script
@@ -886,8 +803,8 @@ pretty = jsonStringify({'a': 1}, 4)
 **value -**
 The object
 
-**indent -**
-Optional (default is null). The indentation number.
+**indent** (optional, default `null`) **-**
+The indentation number
 
 #### Returns
 
@@ -897,98 +814,15 @@ The JSON string
 
 ## math
 
-Math functions provide standard mathematical operations including trigonometric functions,
-logarithms, rounding, and common calculations. These functions work with numeric values and return
-numeric results.
+Math functions provide standard mathematical operations and constants. Trigonometric angles are in
+radians - convert from degrees with `degrees * mathPi() / 180`.
 
-Basic arithmetic and rounding:
-
-```bare-script
-# Absolute value
-abs = mathAbs(-5)
-
-# Rounding
-ceil = mathCeil(3.2)    # 4
-floor = mathFloor(3.8)  # 3
-round = mathRound(3.5)  # 4
-
-# Sign
-sign = mathSign(-5)  # -1
-```
-
-Trigonometric functions (angles in radians):
-
-```bare-script
-# Basic trig functions
-sin = mathSin(mathPi() / 2)  # 1
-cos = mathCos(0)             # 1
-tan = mathTan(mathPi() / 4)  # 1
-
-# Inverse trig functions
-asin = mathAsin(1)     # π/2
-acos = mathAcos(1)     # 0
-atan = mathAtan(1)     # π/4
-atan2 = mathAtan2(1, 1)  # π/4
-```
-
-Logarithms and exponents:
-
-```bare-script
-# Natural logarithm (base e)
-ln = mathLn(2.718281828)
-
-# Logarithm with custom base
-log = mathLog(100, 10)  # 2
-log2 = mathLog(8, 2)    # 3
-
-# Square root
-sqrt = mathSqrt(16)  # 4
-```
-
-Min, max, and random:
-
-```bare-script
-# Minimum and maximum
-min = mathMin(5, 2, 8, 1)  # 1
-max = mathMax(5, 2, 8, 1)  # 8
-
-# Random number between 0 and 1
-random = mathRandom()
-```
-
-Constants:
-
-```bare-script
-pi = mathPi()  # 3.141592653589793
-```
-
-
-### Function Index
-
-- [mathAbs](#var.vPublish=true&var.vSingle=true&mathabs)
-- [mathAcos](#var.vPublish=true&var.vSingle=true&mathacos)
-- [mathAsin](#var.vPublish=true&var.vSingle=true&mathasin)
-- [mathAtan](#var.vPublish=true&var.vSingle=true&mathatan)
-- [mathAtan2](#var.vPublish=true&var.vSingle=true&mathatan2)
-- [mathCeil](#var.vPublish=true&var.vSingle=true&mathceil)
-- [mathCos](#var.vPublish=true&var.vSingle=true&mathcos)
-- [mathE](#var.vPublish=true&var.vSingle=true&mathe)
-- [mathFloor](#var.vPublish=true&var.vSingle=true&mathfloor)
-- [mathLn](#var.vPublish=true&var.vSingle=true&mathln)
-- [mathLog](#var.vPublish=true&var.vSingle=true&mathlog)
-- [mathMax](#var.vPublish=true&var.vSingle=true&mathmax)
-- [mathMin](#var.vPublish=true&var.vSingle=true&mathmin)
-- [mathPi](#var.vPublish=true&var.vSingle=true&mathpi)
-- [mathRandom](#var.vPublish=true&var.vSingle=true&mathrandom)
-- [mathRound](#var.vPublish=true&var.vSingle=true&mathround)
-- [mathSign](#var.vPublish=true&var.vSingle=true&mathsign)
-- [mathSin](#var.vPublish=true&var.vSingle=true&mathsin)
-- [mathSqrt](#var.vPublish=true&var.vSingle=true&mathsqrt)
-- [mathTan](#var.vPublish=true&var.vSingle=true&mathtan)
 
 ---
 
 ### mathAbs
+
+`mathAbs(x)`
 
 Compute the absolute value of a number
 
@@ -1005,6 +839,8 @@ The absolute value of the number
 
 ### mathAcos
 
+`mathAcos(x)`
+
 Compute the arccosine, in radians, of a number
 
 #### Arguments
@@ -1019,6 +855,8 @@ The arccosine, in radians, of the number
 ---
 
 ### mathAsin
+
+`mathAsin(x)`
 
 Compute the arcsine, in radians, of a number
 
@@ -1035,6 +873,8 @@ The arcsine, in radians, of the number
 
 ### mathAtan
 
+`mathAtan(x)`
+
 Compute the arctangent, in radians, of a number
 
 #### Arguments
@@ -1049,6 +889,8 @@ The arctangent, in radians, of the number
 ---
 
 ### mathAtan2
+
+`mathAtan2(y, x)`
 
 Compute the angle, in radians, between (0, 0) and a point
 
@@ -1068,6 +910,8 @@ The angle, in radians
 
 ### mathCeil
 
+`mathCeil(x)`
+
 Compute the ceiling of a number (round up to the next highest integer)
 
 #### Arguments
@@ -1082,6 +926,8 @@ The ceiling of the number
 ---
 
 ### mathCos
+
+`mathCos(x)`
 
 Compute the cosine of an angle, in radians
 
@@ -1098,6 +944,8 @@ The cosine of the angle
 
 ### mathE
 
+`mathE()`
+
 Return Euler's number
 
 #### Arguments
@@ -1111,6 +959,8 @@ Euler's number
 ---
 
 ### mathFloor
+
+`mathFloor(x)`
 
 Compute the floor of a number (round down to the next lowest integer)
 
@@ -1127,6 +977,8 @@ The floor of the number
 
 ### mathLn
 
+`mathLn(x)`
+
 Compute the natural logarithm (base e) of a number
 
 #### Arguments
@@ -1142,6 +994,8 @@ The natural logarithm of the number
 
 ### mathLog
 
+`mathLog(x, base = 10)`
+
 Compute the logarithm of a number
 
 #### Arguments
@@ -1149,8 +1003,8 @@ Compute the logarithm of a number
 **x -**
 The number, greater than 0
 
-**base -**
-Optional (default is 10). The logarithm base, greater than 0 and not 1.
+**base** (optional, default `10`) **-**
+The logarithm base, greater than 0 and not 1
 
 #### Returns
 
@@ -1159,6 +1013,8 @@ The logarithm of the number
 ---
 
 ### mathMax
+
+`mathMax(values...)`
 
 Compute the maximum value
 
@@ -1175,6 +1031,8 @@ The maximum value
 
 ### mathMin
 
+`mathMin(values...)`
+
 Compute the minimum value
 
 #### Arguments
@@ -1190,6 +1048,8 @@ The minimum value
 
 ### mathPi
 
+`mathPi()`
+
 Return the number pi
 
 #### Arguments
@@ -1203,6 +1063,8 @@ The number pi
 ---
 
 ### mathRandom
+
+`mathRandom()`
 
 Compute a random number between 0 and 1, inclusive
 
@@ -1218,6 +1080,8 @@ A random number
 
 ### mathRound
 
+`mathRound(x, digits = 0)`
+
 Round a number to a certain number of decimal places
 
 #### Arguments
@@ -1225,8 +1089,8 @@ Round a number to a certain number of decimal places
 **x -**
 The number
 
-**digits -**
-Optional (default is 0). The number of decimal digits to round to.
+**digits** (optional, default `0`) **-**
+The number of decimal digits to round to
 
 #### Returns
 
@@ -1235,6 +1099,8 @@ The rounded number
 ---
 
 ### mathSign
+
+`mathSign(x)`
 
 Compute the sign of a number
 
@@ -1251,6 +1117,8 @@ The number
 
 ### mathSin
 
+`mathSin(x)`
+
 Compute the sine of an angle, in radians
 
 #### Arguments
@@ -1265,6 +1133,8 @@ The sine of the angle
 ---
 
 ### mathSqrt
+
+`mathSqrt(x)`
 
 Compute the square root of a number
 
@@ -1281,6 +1151,8 @@ The square root of the number
 
 ### mathTan
 
+`mathTan(x)`
+
 Compute the tangent of an angle, in radians
 
 #### Arguments
@@ -1296,48 +1168,15 @@ The tangent of the angle
 
 ## number
 
-Number functions provide operations for parsing, formatting, and converting numeric values.
+Number functions parse strings as numbers and format numbers as strings. The parse functions return
+null if the string is not a number.
 
-Parse strings as numbers:
-
-```bare-script
-# Parse floating-point numbers
-num = numberParseFloat('3.14159')
-negative = numberParseFloat('-2.5')
-
-# Parse integers
-int = numberParseInt('42')
-hex = numberParseInt('FF', 16)
-binary = numberParseInt('1010', 2)
-```
-
-Format numbers with fixed decimal places:
-
-```bare-script
-# Format with 2 decimal places (default)
-formatted = numberToFixed(3.14159)  # '3.14'
-
-# Format with specific decimal places
-precise = numberToFixed(3.14159, 4)  # '3.1416'
-
-# Format with no decimal places
-integer = numberToFixed(3.14159, 0)  # '3'
-
-# Trim trailing zeros
-trimmed = numberToFixed(3.5, 2, true)  # '3.5' instead of '3.50'
-```
-
-
-### Function Index
-
-- [numberParseFloat](#var.vPublish=true&var.vSingle=true&numberparsefloat)
-- [numberParseInt](#var.vPublish=true&var.vSingle=true&numberparseint)
-- [numberToFixed](#var.vPublish=true&var.vSingle=true&numbertofixed)
-- [numberToString](#var.vPublish=true&var.vSingle=true&numbertostring)
 
 ---
 
 ### numberParseFloat
+
+`numberParseFloat(string)`
 
 Parse a string as a floating point number
 
@@ -1354,6 +1193,8 @@ The number
 
 ### numberParseInt
 
+`numberParseInt(string, radix = 10)`
+
 Parse a string as an integer
 
 #### Arguments
@@ -1361,8 +1202,8 @@ Parse a string as an integer
 **string -**
 The string
 
-**radix -**
-Optional (default is 10). The number base.
+**radix** (optional, default `10`) **-**
+The number base
 
 #### Returns
 
@@ -1372,6 +1213,8 @@ The integer
 
 ### numberToFixed
 
+`numberToFixed(x, digits = 2, trim = false)`
+
 Format a number using fixed-point notation
 
 #### Arguments
@@ -1379,11 +1222,11 @@ Format a number using fixed-point notation
 **x -**
 The number
 
-**digits -**
-Optional (default is 2). The number of digits to appear after the decimal point.
+**digits** (optional, default `2`) **-**
+The number of digits to appear after the decimal point
 
-**trim -**
-Optional (default is false). If true, trim trailing zeroes and decimal point.
+**trim** (optional, default `false`) **-**
+If true, trim trailing zeroes and decimal point
 
 #### Returns
 
@@ -1393,6 +1236,8 @@ The fixed-point notation string
 
 ### numberToString
 
+`numberToString(x, radix = 10)`
+
 Convert an integer to a string
 
 #### Arguments
@@ -1400,8 +1245,8 @@ Convert an integer to a string
 **x -**
 The integer
 
-**radix -**
-Optional (default is 10). The number base.
+**radix** (optional, default `10`) **-**
+The number base
 
 #### Returns
 
@@ -1411,64 +1256,18 @@ The integer as a string of the given base
 
 ## object
 
-Object functions provide operations for creating and manipulating objects. Objects are key-value
-collections that can be created using object literal syntax (e.g., `{'a': 1, 'b': 2}`) or with the
-[objectNew](#var.vGroup='object'&objectnew) function.
+Objects are collections of string keys and their values, created with object literals
+(`{'a': 1, 'b': 2}`). Objects are shared by reference, and
+[objectSet](#var.vGroup='object'&objectset), [objectAssign](#var.vGroup='object'&objectassign), and
+[objectDelete](#var.vGroup='object'&objectdelete) change them in place. Use
+[objectCopy](#var.vGroup='object'&objectcopy) for an independent copy.
 
-Create and manipulate objects:
-
-```bare-script
-# Create a new object
-person = {'name': 'Alice', 'age': 30}
-
-# Set and get values
-objectSet(person, 'city', 'New York')
-name = objectGet(person, 'name')
-city = objectGet(person, 'city', 'Unknown')  # With default value
-```
-
-Check for keys and get all keys:
-
-```bare-script
-# Check if a key exists
-hasAge = objectHas(person, 'age')
-
-# Get all keys
-keys = objectKeys(person)
-```
-
-Copy and assign objects:
-
-```bare-script
-# Create a shallow copy
-personCopy = objectCopy(person)
-
-# Assign properties from one object to another
-defaults = {'country': 'USA', 'status': 'active'}
-objectAssign(person, defaults)
-```
-
-Delete keys:
-
-```bare-script
-objectDelete(person, 'status')
-```
-
-
-### Function Index
-
-- [objectAssign](#var.vPublish=true&var.vSingle=true&objectassign)
-- [objectCopy](#var.vPublish=true&var.vSingle=true&objectcopy)
-- [objectDelete](#var.vPublish=true&var.vSingle=true&objectdelete)
-- [objectGet](#var.vPublish=true&var.vSingle=true&objectget)
-- [objectHas](#var.vPublish=true&var.vSingle=true&objecthas)
-- [objectKeys](#var.vPublish=true&var.vSingle=true&objectkeys)
-- [objectNew](#var.vPublish=true&var.vSingle=true&objectnew)
-- [objectSet](#var.vPublish=true&var.vSingle=true&objectset)
 
 ---
 
 ### objectAssign
+
+`objectAssign(object, object2)`
 
 Assign the keys/values of one object to another. For example:
 
@@ -1494,6 +1293,8 @@ The updated object
 
 ### objectCopy
 
+`objectCopy(object)`
+
 Create a copy of an object
 
 #### Arguments
@@ -1508,6 +1309,8 @@ The object copy
 ---
 
 ### objectDelete
+
+`objectDelete(object, key)`
 
 Delete an object key
 
@@ -1527,6 +1330,8 @@ Nothing
 
 ### objectGet
 
+`objectGet(object, key, defaultValue = null)`
+
 Get an object key's value
 
 #### Arguments
@@ -1537,8 +1342,8 @@ The object
 **key -**
 The key
 
-**defaultValue -**
-Optional (default is null). The default value.
+**defaultValue** (optional, default `null`) **-**
+The default value
 
 #### Returns
 
@@ -1547,6 +1352,8 @@ The value, or the default value if the key does not exist
 ---
 
 ### objectHas
+
+`objectHas(object, key)`
 
 Test if an object contains a key
 
@@ -1566,6 +1373,8 @@ true if the object contains the key, false otherwise
 
 ### objectKeys
 
+`objectKeys(object)`
+
 Get an object's keys
 
 #### Arguments
@@ -1581,6 +1390,8 @@ The array of keys
 
 ### objectNew
 
+`objectNew(keyValues...)`
+
 Create a new object
 
 #### Arguments
@@ -1595,6 +1406,8 @@ The new object
 ---
 
 ### objectSet
+
+`objectSet(object, key, value)`
 
 Set an object key's value
 
@@ -1617,81 +1430,24 @@ The value to set
 
 ## regex
 
-Regular expression functions provide pattern matching and text manipulation capabilities. Regular
-expressions are patterns used to match character combinations in strings.
-
-Create a regular expression:
-
-```bare-script
-# Basic pattern
-regex = regexNew('[0-9]+')
-
-# Pattern with flags
-caseInsensitive = regexNew('[a-z]+', 'i')
-multiline = regexNew('^Line', 'm')
-dotAll = regexNew('.*', 's')
-```
-
-Find matches in strings:
+Create a regular expression with [regexNew](#var.vGroup='regex'&regexnew), then use it with the
+match, replace, and split functions. Patterns use the
+[JavaScript regular expression syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#writing_a_regular_expression_pattern).
+A backslash in a string literal must be escaped, so the pattern `\d+` is written `'\\d+'`. To
+match literal text, escape it with [regexEscape](#var.vGroup='regex'&regexescape).
 
 ```bare-script
-# Find first match
-text = 'The year is 2024'
-match = regexMatch(regexNew('[0-9]+'), text)
-if match:
-    groups = objectGet(match, 'groups')
-    matchedText = objectGet(groups, '0')  # '2024'
-    index = objectGet(match, 'index')      # 12
-endif
-
-# Find all matches
-text = 'Prices: $10, $20, $30'
-matches = regexMatchAll(regexNew('\\$([0-9]+)'), text)
+match = regexMatch(regexNew('\\$([0-9]+)'), 'Price: $10')
+amount = objectGet(objectGet(match, 'groups'), '1')
+# amount is '10'
 ```
 
-Replace text using patterns:
-
-```bare-script
-# Replace all digits with X
-text = 'Phone: 555-1234'
-result = regexReplace(regexNew('[0-9]'), text, 'X')
-# Result: 'Phone: XXX-XXXX'
-```
-
-Split strings with patterns:
-
-```bare-script
-# Split on whitespace
-text = 'one  two   three'
-parts = regexSplit(regexNew('\\s+'), text)
-# Result: ['one', 'two', 'three']
-```
-
-Common regex patterns:
-- `[a-zA-Z]+` - One or more letters
-- `\\d+` - One or more digits
-- `\\s+` - One or more whitespace characters
-- `^` - Start of line/string
-- `$` - End of line/string
-- `.` - Any character (except newline without 's' flag)
-- `*` - Zero or more
-- `+` - One or more
-- `?` - Zero or one
-- `(...)` - Capture group
-
-
-### Function Index
-
-- [regexEscape](#var.vPublish=true&var.vSingle=true&regexescape)
-- [regexMatch](#var.vPublish=true&var.vSingle=true&regexmatch)
-- [regexMatchAll](#var.vPublish=true&var.vSingle=true&regexmatchall)
-- [regexNew](#var.vPublish=true&var.vSingle=true&regexnew)
-- [regexReplace](#var.vPublish=true&var.vSingle=true&regexreplace)
-- [regexSplit](#var.vPublish=true&var.vSingle=true&regexsplit)
 
 ---
 
 ### regexEscape
+
+`regexEscape(string)`
 
 Escape a string for use in a regular expression
 
@@ -1707,6 +1463,8 @@ The escaped string
 ---
 
 ### regexMatch
+
+`regexMatch(regex, string)`
 
 Find the first match of a regular expression in a string. For example:
 
@@ -1736,7 +1494,17 @@ The match object contains the following members:
 
 ### regexMatchAll
 
-Find all matches of regular expression in a string
+`regexMatchAll(regex, string)`
+
+Find all matches of regular expression in a string. For example:
+
+```bare-script
+keys = []
+for match in regexMatchAll(regexNew('([a-z]+)=([0-9]+)'), 'a=1, b=22'):
+    arrayPush(keys, objectGet(objectGet(match, 'groups'), '1'))
+endfor
+# keys is ['a', 'b']
+```
 
 #### Arguments
 
@@ -1754,6 +1522,8 @@ The array of match objects (see the [regexMatch](#var.vGroup='regex'&regexmatch)
 
 ### regexNew
 
+`regexNew(pattern, flags = null)`
+
 Create a regular expression
 
 #### Arguments
@@ -1761,8 +1531,8 @@ Create a regular expression
 **pattern -**
 The [regular expression pattern string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#writing_a_regular_expression_pattern)
 
-**flags -**
-Optional (default is null). The regular expression flags. The string may contain the following characters:
+**flags** (optional, default `null`) **-**
+The regular expression flags. The string may contain the following characters:
 - **i** - case-insensitive search
 - **m** - multi-line search - "^" and "$" matches next to newline characters
 - **s** - "." matches newline characters
@@ -1774,6 +1544,8 @@ The regular expression or null if the pattern is invalid
 ---
 
 ### regexReplace
+
+`regexReplace(regex, string, substr)`
 
 Replace regular expression matches with a string. For example:
 
@@ -1801,7 +1573,14 @@ The updated string
 
 ### regexSplit
 
-Split a string with a regular expression
+`regexSplit(regex, string)`
+
+Split a string with a regular expression. For example:
+
+```bare-script
+parts = regexSplit(regexNew('\\s*,\\s*'), 'a, b ,c')
+# parts is ['a', 'b', 'c']
+```
 
 #### Arguments
 
@@ -1819,109 +1598,20 @@ The array of split parts
 
 ## string
 
-String functions provide operations for creating, manipulating, and analyzing text strings. Strings
-are sequences of characters enclosed in single or double quotes.
-
-Get string information:
+Strings are immutable - string functions return new strings. String indexes are zero-based. The `+`
+operator concatenates strings, converting a non-string operand to a string:
 
 ```bare-script
-text = 'Hello, World!'
-length = stringLength(text)  # 13
-
-# Get character codes
-charCode = stringCharCodeAt(text, 0)  # 72 ('H')
-
-# Create string from character codes
-fromCode = stringFromCharCode(72, 101, 108, 108, 111)  # 'Hello'
+message = 'The answer is ' + 42
+# message is 'The answer is 42'
 ```
 
-Search within strings:
-
-```bare-script
-# Find first occurrence
-index = stringIndexOf(text, 'World')  # 7
-notFound = stringIndexOf(text, 'xyz')  # -1
-
-# Find last occurrence
-lastIndex = stringLastIndexOf('aa bb aa', 'aa')  # 6
-
-# Check start and end
-starts = stringStartsWith(text, 'Hello')  # true
-ends = stringEndsWith(text, 'World!')    # true
-```
-
-Transform strings:
-
-```bare-script
-# Case conversion
-upper = stringUpper('hello')  # 'HELLO'
-lower = stringLower('HELLO')  # 'hello'
-
-# Trim whitespace
-trimmed = stringTrim('  hello  ')  # 'hello'
-
-# Repeat strings
-repeated = stringRepeat('abc', 3)  # 'abcabcabc'
-```
-
-Extract and split strings:
-
-```bare-script
-# Extract substring
-slice = stringSlice(text, 7, 12)  # 'World'
-
-# Split into array
-parts = stringSplit('a,b,c', ',')  # ['a', 'b', 'c']
-```
-
-Replace text:
-
-```bare-script
-# Replace all occurrences
-replaced = stringReplace('Hello World', 'o', '0')  # 'Hell0 W0rld'
-```
-
-Create new strings:
-
-```bare-script
-# Convert any value to string
-str = stringNew(42)  # '42'
-str2 = stringNew(true)  # 'true'
-```
-
-Strings in BareScript support Unicode characters and can be concatenated using the `+` operator:
-
-```bare-script
-greeting = 'Hello, ' + 'World!'
-message = 'The answer is ' + 42  # Automatic conversion
-```
-
-
-### Function Index
-
-- [stringCharAt](#var.vPublish=true&var.vSingle=true&stringcharat)
-- [stringCharCodeAt](#var.vPublish=true&var.vSingle=true&stringcharcodeat)
-- [stringDecode](#var.vPublish=true&var.vSingle=true&stringdecode)
-- [stringEncode](#var.vPublish=true&var.vSingle=true&stringencode)
-- [stringEndsWith](#var.vPublish=true&var.vSingle=true&stringendswith)
-- [stringFromCharCode](#var.vPublish=true&var.vSingle=true&stringfromcharcode)
-- [stringIndexOf](#var.vPublish=true&var.vSingle=true&stringindexof)
-- [stringLastIndexOf](#var.vPublish=true&var.vSingle=true&stringlastindexof)
-- [stringLength](#var.vPublish=true&var.vSingle=true&stringlength)
-- [stringLower](#var.vPublish=true&var.vSingle=true&stringlower)
-- [stringNew](#var.vPublish=true&var.vSingle=true&stringnew)
-- [stringRepeat](#var.vPublish=true&var.vSingle=true&stringrepeat)
-- [stringReplace](#var.vPublish=true&var.vSingle=true&stringreplace)
-- [stringSlice](#var.vPublish=true&var.vSingle=true&stringslice)
-- [stringSplit](#var.vPublish=true&var.vSingle=true&stringsplit)
-- [stringSplitLines](#var.vPublish=true&var.vSingle=true&stringsplitlines)
-- [stringStartsWith](#var.vPublish=true&var.vSingle=true&stringstartswith)
-- [stringTrim](#var.vPublish=true&var.vSingle=true&stringtrim)
-- [stringUpper](#var.vPublish=true&var.vSingle=true&stringupper)
 
 ---
 
 ### stringCharAt
+
+`stringCharAt(string, index)`
 
 Get the character of a string at an index
 
@@ -1941,6 +1631,8 @@ The character string
 
 ### stringCharCodeAt
 
+`stringCharCodeAt(string, index)`
+
 Get a string index's character code
 
 #### Arguments
@@ -1959,6 +1651,8 @@ The character code
 
 ### stringDecode
 
+`stringDecode(bytes)`
+
 Decode a UTF-8 byte value array to a string
 
 #### Arguments
@@ -1974,6 +1668,8 @@ The string, or null if the byte array is not valid UTF-8
 
 ### stringEncode
 
+`stringEncode(string)`
+
 Encode a string as a UTF-8 byte value array
 
 #### Arguments
@@ -1988,6 +1684,8 @@ The UTF-8 byte array
 ---
 
 ### stringEndsWith
+
+`stringEndsWith(string, search)`
 
 Determine if a string ends with a search string
 
@@ -2007,6 +1705,8 @@ true if the string ends with the search string, false otherwise
 
 ### stringFromCharCode
 
+`stringFromCharCode(charCodes...)`
+
 Create a string of characters from character codes
 
 #### Arguments
@@ -2022,6 +1722,8 @@ The string of characters
 
 ### stringIndexOf
 
+`stringIndexOf(string, search, index = 0)`
+
 Find the first index of a search string in a string
 
 #### Arguments
@@ -2032,8 +1734,8 @@ The string
 **search -**
 The search string
 
-**index -**
-Optional (default is 0). The index at which to start the search.
+**index** (optional, default `0`) **-**
+The index at which to start the search
 
 #### Returns
 
@@ -2042,6 +1744,8 @@ The first index of the search string; -1 if not found
 ---
 
 ### stringLastIndexOf
+
+`stringLastIndexOf(string, search, index = null)`
 
 Find the last index of a search string in a string
 
@@ -2053,8 +1757,8 @@ The string
 **search -**
 The search string
 
-**index -**
-Optional (default is the end of the string). The index at which to start the search.
+**index** (optional) **-**
+The index at which to start the search. The default is the end of the string.
 
 #### Returns
 
@@ -2063,6 +1767,8 @@ The last index of the search string; -1 if not found
 ---
 
 ### stringLength
+
+`stringLength(string)`
 
 Get the length of a string
 
@@ -2079,6 +1785,8 @@ The string's length; zero if not a string
 
 ### stringLower
 
+`stringLower(string)`
+
 Convert a string to lower-case
 
 #### Arguments
@@ -2094,6 +1802,8 @@ The lower-case string
 
 ### stringNew
 
+`stringNew(value)`
+
 Create a new string from a value
 
 #### Arguments
@@ -2108,6 +1818,8 @@ The new string
 ---
 
 ### stringRepeat
+
+`stringRepeat(string, count)`
 
 Repeat a string
 
@@ -2126,6 +1838,8 @@ The repeated string
 ---
 
 ### stringReplace
+
+`stringReplace(string, substr, newSubstr)`
 
 Replace all instances of a string with another string. For example:
 
@@ -2153,6 +1867,8 @@ The updated string
 
 ### stringSlice
 
+`stringSlice(string, start, end = null)`
+
 Copy a portion of a string
 
 #### Arguments
@@ -2163,8 +1879,8 @@ The string
 **start -**
 The start index of the slice
 
-**end -**
-Optional (default is the end of the string). The end index of the slice.
+**end** (optional) **-**
+The end index of the slice. The default is the end of the string.
 
 #### Returns
 
@@ -2173,6 +1889,8 @@ The new string slice
 ---
 
 ### stringSplit
+
+`stringSplit(string, separator)`
 
 Split a string. For example:
 
@@ -2197,6 +1915,8 @@ The array of split-out strings
 
 ### stringSplitLines
 
+`stringSplitLines(string)`
+
 Split a string at line boundaries
 
 #### Arguments
@@ -2211,6 +1931,8 @@ The array of line strings
 ---
 
 ### stringStartsWith
+
+`stringStartsWith(string, search)`
 
 Determine if a string starts with a search string
 
@@ -2230,6 +1952,8 @@ true if the string starts with the search string, false otherwise
 
 ### stringTrim
 
+`stringTrim(string)`
+
 Trim the whitespace from the beginning and end of a string
 
 #### Arguments
@@ -2244,6 +1968,8 @@ The trimmed string
 ---
 
 ### stringUpper
+
+`stringUpper(string)`
 
 Convert a string to upper-case
 
@@ -2260,102 +1986,20 @@ The upper-case string
 
 ## system
 
-System functions provide core utilities for type checking, comparison, global variable management,
-logging, and HTTP requests.
+System functions provide logging, global variable access, value type and comparison functions,
+partial function application, and resource fetching.
 
-Logging:
+An assignment within a function creates a local variable, even if a global of that name exists. To
+update a global variable from within a function, use
+[systemGlobalSet](#var.vGroup='system'&systemglobalset). See
+[Variable Scope and Globals](https://craigahobbs.github.io/bare-script/language/#variable-scope-and-globals).
 
-```bare-script
-# Always log
-systemLog('Application started')
-
-# Log only in debug mode
-systemLogDebug('Debug information')
-```
-
-Global variable management:
-
-```bare-script
-# Set a global variable
-systemGlobalSet('appConfig', {'debug': true})
-
-# Get a global variable
-config = systemGlobalGet('appConfig', {})
-```
-
-Fetch data from URLs:
-
-```bare-script
-# Simple fetch
-async function getData():
-    response = systemFetch('data.json')
-    return jsonParse(response)
-endfunction
-
-# Fetch with request options
-async function postData():
-    request = { \
-        'url': 'submitAPI', \
-        'body': jsonStringify({'key': 'value'}), \
-        'headers': {'Content-Type': 'application/json'} \
-    }
-    response = systemFetch(request)
-    return response
-endfunction
-
-# Fetch multiple URLs
-async function getMultiple():
-    urls = ['data.json', 'data2.json']
-    responses = systemFetch(urls)
-    return responses
-endfunction
-```
-
-Create partial functions:
-
-```bare-script
-# Create a function with pre-filled arguments
-add = function(a, b):
-    return a + b
-endfunction
-
-add5 = systemPartial(add, 5)
-result = add5(3)  # Returns 8
-```
-
-Type checking and comparison:
-
-```bare-script
-# Get type of a value
-type = systemType([1, 2, 3])  # 'array'
-
-# Check if value is truthy
-bool = systemBoolean(0)  # false
-
-# Compare values
-cmp = systemCompare(5, 10)  # -1 (less than)
-
-# Test object identity
-same = systemIs(obj1, obj2)
-```
-
-
-### Function Index
-
-- [systemBoolean](#var.vPublish=true&var.vSingle=true&systemboolean)
-- [systemCompare](#var.vPublish=true&var.vSingle=true&systemcompare)
-- [systemFetch](#var.vPublish=true&var.vSingle=true&systemfetch)
-- [systemGlobalGet](#var.vPublish=true&var.vSingle=true&systemglobalget)
-- [systemGlobalSet](#var.vPublish=true&var.vSingle=true&systemglobalset)
-- [systemIs](#var.vPublish=true&var.vSingle=true&systemis)
-- [systemLog](#var.vPublish=true&var.vSingle=true&systemlog)
-- [systemLogDebug](#var.vPublish=true&var.vSingle=true&systemlogdebug)
-- [systemPartial](#var.vPublish=true&var.vSingle=true&systempartial)
-- [systemType](#var.vPublish=true&var.vSingle=true&systemtype)
 
 ---
 
 ### systemBoolean
+
+`systemBoolean(value)`
 
 Interpret a value as a boolean
 
@@ -2371,6 +2015,8 @@ true or false
 ---
 
 ### systemCompare
+
+`systemCompare(left, right)`
 
 Compare two values
 
@@ -2390,6 +2036,8 @@ The right value
 
 ### systemFetch
 
+`systemFetch(url)`
+
 **async** - The calling function must be declared with "async function"
 
 Retrieve a URL resource. Pass an array of URLs (or request models) to fetch in parallel
@@ -2399,6 +2047,14 @@ from (or, with a request body, written to) the local file system. For example:
 ```bare-script
 async function getLibraryCount(url):
     return arrayLength(objectGet(jsonParse(systemFetch(url)), 'functions'))
+endfunction
+```
+
+To send a request body or headers, pass a request model:
+
+```bare-script
+async function saveJSON(url, value):
+    return systemFetch({'url': url, 'body': jsonStringify(value), 'headers': {'Content-Type': 'application/json'}})
 endfunction
 ```
 
@@ -2420,6 +2076,8 @@ The response string (or byte value array) or array of responses; null if an erro
 
 ### systemGlobalGet
 
+`systemGlobalGet(name, defaultValue = null)`
+
 Get a global variable value
 
 #### Arguments
@@ -2427,8 +2085,8 @@ Get a global variable value
 **name -**
 The global variable name
 
-**defaultValue -**
-Optional (default is null). The default value.
+**defaultValue** (optional, default `null`) **-**
+The default value
 
 #### Returns
 
@@ -2437,6 +2095,8 @@ The global variable's value, or the default value if it does not exist
 ---
 
 ### systemGlobalSet
+
+`systemGlobalSet(name, value)`
 
 Set a global variable value
 
@@ -2456,6 +2116,8 @@ The global variable's value
 
 ### systemIs
 
+`systemIs(value1, value2)`
+
 Test if one value is the same object as another
 
 #### Arguments
@@ -2474,6 +2136,8 @@ true if values are the same object, false otherwise
 
 ### systemLog
 
+`systemLog(message)`
+
 Log a message to the console
 
 #### Arguments
@@ -2489,6 +2153,8 @@ Nothing
 
 ### systemLogDebug
 
+`systemLogDebug(message)`
+
 Log a message to the console, if in debug mode
 
 #### Arguments
@@ -2503,6 +2169,8 @@ Nothing
 ---
 
 ### systemPartial
+
+`systemPartial(func, args...)`
 
 Return a new function which behaves like "func" called with "args".
 If additional arguments are passed to the returned function, they are appended to "args". For example:
@@ -2533,6 +2201,8 @@ The new function called with "args"
 
 ### systemType
 
+`systemType(value)`
+
 Get a value's type string
 
 #### Arguments
@@ -2549,59 +2219,33 @@ Valid values are: 'array', 'boolean', 'datetime', 'function', 'null', 'number', 
 
 ## args.bare
 
-The "args.bare" include library contains functions for parsing/validating a MarkdownUp application's
-URL arguments, and functions for creating MarkdownUp application URLs and links.
+The "args.bare" include library parses and validates a MarkdownUp application's URL arguments, and
+creates URLs and links back to the application.
 
-Consider the following example of an application that sums numbers. First, include the "args.bare"
-library and define an [arguments model] with three floating point number URL arguments: "value1",
-"value2" and "value3".
+MarkdownUp sets each URL hash argument as a global variable - `#var.vValue1=5` sets the global
+`vValue1` to 5. An [arguments model] names the application's arguments, their types, and their
+defaults. The [argsParse] function reads each argument from its global variable ("v" followed by
+the capitalized argument name, by default) and returns the validated arguments object. The
+[argsLink] function creates a link to the application with updated arguments:
 
 ```bare-script
 include <args.bare>
 
 arguments = [ \
     {'name': 'value1', 'type': 'float', 'default': 0}, \
-    {'name': 'value2', 'type': 'float', 'default': 0}, \
-    {'name': 'value3', 'type': 'float', 'default': 0} \
+    {'name': 'value2', 'type': 'float', 'default': 0} \
 ]
-```
-
-Next, parse the arguments with the [argsParse] function.
-
-```bare-script
 args = argsParse(arguments)
-```
-
-You access arguments by name from the "args" object.
-
-```bare-script
 value1 = objectGet(args, 'value1')
 value2 = objectGet(args, 'value2')
-value3 = objectGet(args, 'value3')
-sum = value1 + value2 + value3
-markdownPrint('The sum is: ' + sum)
-```
 
-You can create links to the application using the [argsLink] function.
-
-```bare-script
-markdownPrint( \
-    '', argsLink(arguments, 'Value1 Less', {'value1': value1 - 1}), \
-    '', argsLink(arguments, 'Value1 More', {'value1': value1 + 1}), \
-    '', argsLink(arguments, 'Value2 Less', {'value2': value2 - 1}), \
-    '', argsLink(arguments, 'Value2 More', {'value2': value2 + 1}), \
-    '', argsLink(arguments, 'Value3 Less', {'value3': value3 - 1}), \
-    '', argsLink(arguments, 'Value3 More', {'value3': value3 + 1}) \
-)
-```
-
-By default, any argument previously supplied to the application is included in the link (unless
-overridden by null). All arguments are cleared by setting the [argsLink] "explicit" argument to
-true. Arguments may also be marked "explicit" individually in the [arguments model].
-
-```bare-script
+markdownPrint('The sum is: ' + (value1 + value2))
+markdownPrint('', argsLink(arguments, 'Value1 More', {'value1': value1 + 1}))
 markdownPrint('', argsLink(arguments, 'Reset', null, true))
 ```
+
+A link keeps the application's current arguments unless overridden (or cleared with null). The
+"explicit" argument of [argsLink] clears them all.
 
 
 [argsLink]: #var.vGroup='args.bare'&argslink
@@ -2609,17 +2253,11 @@ markdownPrint('', argsLink(arguments, 'Reset', null, true))
 [arguments model]: model.html#var.vName='ArgsArguments'
 
 
-### Function Index
-
-- [argsHelp](#var.vPublish=true&var.vSingle=true&argshelp)
-- [argsLink](#var.vPublish=true&var.vSingle=true&argslink)
-- [argsParse](#var.vPublish=true&var.vSingle=true&argsparse)
-- [argsURL](#var.vPublish=true&var.vSingle=true&argsurl)
-- [argsValidate](#var.vPublish=true&var.vSingle=true&argsvalidate)
-
 ---
 
 ### argsHelp
+
+`argsHelp(arguments)`
 
 Generate the [arguments model's](model.html#var.vName='ArgsArguments') help content
 
@@ -2636,6 +2274,8 @@ The array of help Markdown line strings
 
 ### argsLink
 
+`argsLink(arguments, text, args = null, explicit = false, headerText = null, url = null)`
+
 Create a Markdown link text to a MarkdownUp application URL
 
 #### Arguments
@@ -2646,18 +2286,18 @@ The [arguments model](model.html#var.vName='ArgsArguments')
 **text -**
 The link text
 
-**args -**
-Optional (default is null). The arguments object.
+**args** (optional, default `null`) **-**
+The arguments object
 
-**explicit -**
-Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
+**explicit** (optional, default `false`) **-**
+If true, arguments are only included in the URL if they are in the arguments object
 
-**headerText -**
-Optional (default is null). If non-null, the URL's header text.
+**headerText** (optional, default `null`) **-**
+If non-null, the URL's header text.
 The special "_top" header ID scrolls to the top of the page.
 
-**url -**
-Optional (default is null). If non-null, the MarkdownUp URL hash parameter.
+**url** (optional, default `null`) **-**
+If non-null, the MarkdownUp URL hash parameter
 
 #### Returns
 
@@ -2666,6 +2306,8 @@ The Markdown link text
 ---
 
 ### argsParse
+
+`argsParse(arguments)`
 
 Parse an [arguments model](model.html#var.vName='ArgsArguments').
 Argument globals are validated and added to the arguments object using the argument name.
@@ -2683,6 +2325,8 @@ The arguments object
 
 ### argsURL
 
+`argsURL(arguments, args = null, explicit = false, headerText = null, url = null)`
+
 Create a MarkdownUp application URL
 
 #### Arguments
@@ -2690,18 +2334,18 @@ Create a MarkdownUp application URL
 **arguments -**
 The [arguments model](model.html#var.vName='ArgsArguments')
 
-**args -**
-Optional (default is null). The arguments object. Null argument values are excluded from the URL.
+**args** (optional, default `null`) **-**
+The arguments object. Null argument values are excluded from the URL.
 
-**explicit -**
-Optional (default is false). If true, arguments are only included in the URL if they are in the arguments object.
+**explicit** (optional, default `false`) **-**
+If true, arguments are only included in the URL if they are in the arguments object
 
-**headerText -**
-Optional (default is null). If non-null, the URL's header text.
+**headerText** (optional, default `null`) **-**
+If non-null, the URL's header text.
 The special "_top" header ID scrolls to the top of the page.
 
-**url -**
-Optional (default is null). If non-null, the MarkdownUp URL hash parameter.
+**url** (optional, default `null`) **-**
+If non-null, the MarkdownUp URL hash parameter
 
 #### Returns
 
@@ -2710,6 +2354,8 @@ The MarkdownUp application URL
 ---
 
 ### argsValidate
+
+`argsValidate(arguments)`
 
 Validate an arguments model
 
@@ -2726,15 +2372,15 @@ The validated [arguments model](model.html#var.vName='ArgsArguments') or null if
 
 ## baredoc.bare
 
-The "baredoc.bare" include library contains the BareScript library documentation application, baredoc.
-See baredoc in action by visiting the
+The "baredoc.bare" include library contains the BareScript library documentation application,
+baredoc - see it in action in the
 [BareScript Library documentation](https://craigahobbs.github.io/bare-script/library/).
 
-To run the baredoc application, include "baredoc.bare" and call the [baredocMain](#var.vGroup='baredoc.bare'&baredocmain)
-function with a [documentation configuration](model.html#var.vName='BaredocConfig') object (or the URL
-of its JSON resource). Each section's `url` is a
-[library model JSON](model.html#var.vName='BaredocLibrary') resource (for example, one produced by
-[baredocCLI](#var.vGroup='baredocCLI.bare'&_top)):
+Run baredoc by calling [baredocMain](#var.vGroup='baredoc.bare'&baredocmain) with a
+[documentation configuration](model.html#var.vName='BaredocConfig') object, or the URL of its JSON
+resource. Each section's `url` is a [library model JSON](model.html#var.vName='BaredocLibrary')
+resource, such as one generated by [baredocCLI](#var.vGroup='baredocCLI.bare'&_top). The
+configuration can also add top-level content and per-group content.
 
 ```bare-script
 include <baredoc.bare>
@@ -2747,41 +2393,12 @@ baredocMain({ \
 })
 ```
 
-You can add top-level content, multiple sections, and per-section group content:
-
-```bare-script
-include <baredoc.bare>
-
-baredocMain({ \
-    'title': 'My Library', \
-    'content': 'intro.md', \
-    'sections': [ \
-        { \
-            'title': 'Builtin Functions', \
-            'url': 'my-builtin.json', \
-            'groups': [{'name': 'myGroup', 'content': 'group-content.md'}] \
-        }, \
-        {'title': 'Include Functions', 'url': 'my-include.json'} \
-    ] \
-})
-```
-
-Instead of an inline object, you can pass the URL of a configuration JSON resource:
-
-```bare-script
-include <baredoc.bare>
-
-baredocMain('my-library-config.json')
-```
-
-
-### Function Index
-
-- [baredocMain](#var.vPublish=true&var.vSingle=true&baredocmain)
 
 ---
 
 ### baredocMain
+
+`baredocMain(config)`
 
 **async** - The calling function must be declared with "async function"
 
@@ -2801,41 +2418,33 @@ Nothing
 ## baredocCLI.bare
 
 The "baredocCLI.bare" include library contains the baredoc command-line interface (CLI), baredocCLI.
-baredocCLI is used to generate a [library model JSON file](model.html#var.vName='BaredocLibrary')
-for consumption by the [baredoc application](#var.vGroup='baredoc.bare'&_top).
+baredocCLI generates a [library model JSON file](model.html#var.vName='BaredocLibrary') for the
+[baredoc application](#var.vGroup='baredoc.bare'&_top) from the documentation comments of its input
+files.
 
-To output the [library model JSON](model.html#var.vName='BaredocLibrary'), include and execute the
-`baredocCLIMain` function from the command line:
-
-```sh
-bare -m -v vFiles "'[\"test.bare\"]'" -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
-```
-
-The baredocCLI input files argument, "vFiles", is the string literal of the JSON-serialized input
-filename array. You can glob the input files argument as follows:
+Run baredocCLI with the `bare` CLI. The "vFiles" argument is the string literal of the JSON array of
+input file names, and the optional "vOutput" argument is the output file (the default is standard
+output). To glob the input files, build the JSON array with a script:
 
 ```sh
+bare -m -v vFiles "'[\"lib/myLib.bare\"]'" -v vOutput '"my-library.json"' \
+    -c 'include <baredocCLI.bare>' -c 'return baredocCLIMain()'
+
 bare -m \
-    -v 'vFiles' "'$(python3 -c 'import json; import sys; print(json.dumps(sys.argv[1:]))' src/bare_script/library.py src/bare_script/include/*.bare)'" \
-    -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
-```
-
-You can specify an output file by using the output argument, "vOutput":
-
-```sh
-bare -m -v vFiles "'[\"test.bare\"]'" -v vOutput '"test.json"' -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+    -v vFiles "'$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' lib/*.bare)'" \
+    -c 'include <baredocCLI.bare>' -c 'return baredocCLIMain()'
 ```
 
 
-## baredoc Comment Syntax
-
-
-baredoc documentation comments begin with the "$" character, followed immediately by a keyword
-("function", "group", "doc", "arg", "return", "async", or "ignore"), followed by the ":"
-character, followed by the keyword value. The "function" keyword begins every library function
-definition. "$async: true" marks a function as asynchronous (the calling function must be declared
-with "async function"), and "$ignore: true" excludes a function from the documentation. For
-example:
+**baredoc Comment Syntax** - baredoc documentation comments begin with the "$" character, followed
+immediately by a keyword ("function", "group", "doc", "arg", "return", "async", or "ignore"),
+followed by the ":" character, followed by the keyword value. The "function" keyword begins every
+library function definition. The "arg" keyword is followed by the argument name - `[name]` for an
+optional argument, or `[name = value]` for an optional argument with a default value, a BareScript
+literal (a number, string, null, true, false, or an array or object literal of these) - and
+repeating an argument's keyword continues its documentation. "$async: true" marks a function as
+asynchronous (the calling function must be declared with "async function"), and "$ignore: true"
+excludes a function from the documentation. For example:
 
 ```bare-script
 # $function: myFunction
@@ -2844,26 +2453,23 @@ example:
 # $doc:
 # $doc: More on the function.
 # $arg arg1: The first argument
-# $arg arg2: The second argument.
+# $arg [arg2 = 'Hello']: The second argument.
 # $arg arg2:
 # $arg arg2: More on the second argument.
 # $return: The message
 function myFunction(arg1, arg2):
-    message = 'Hello'
+    message = if(arg2 != null, arg2, 'Hello')
     systemLog(message)
     return message
 endfunction
 ```
 
 
-### Function Index
-
-- [baredocCLIMain](#var.vPublish=true&var.vSingle=true&baredocclimain)
-- [baredocCLIParse](#var.vPublish=true&var.vSingle=true&baredoccliparse)
-
 ---
 
 ### baredocCLIMain
+
+`baredocCLIMain()`
 
 **async** - The calling function must be declared with "async function"
 
@@ -2880,6 +2486,8 @@ The exit status code
 ---
 
 ### baredocCLIParse
+
+`baredocCLIParse(functions, source, filename)`
 
 Parse source code for baredoc documentation comments
 
@@ -2907,31 +2515,20 @@ The "barescriptLint.bare" include library statically analyzes
 common mistakes: unused variables, arguments, and labels; variables used before assignment; unknown
 global variables and labels; redefined functions and labels; and pointless statements.
 
-Lint a BareScript model:
-
 ```bare-script
 include <barescriptLint.bare>
 
-warnings = barescriptLintScript(script)
-for warning in warnings:
+for warning in barescriptLintScript(script):
     markdownPrint('', 'Warning: ' + markdownEscape(warning))
 endfor
 ```
 
-Pass the script's global variables to also perform the unknown-global lint checks:
-
-```bare-script
-warnings = barescriptLintScript(script, globals)
-```
-
-
-### Function Index
-
-- [barescriptLintScript](#var.vPublish=true&var.vSingle=true&barescriptlintscript)
 
 ---
 
 ### barescriptLintScript
+
+`barescriptLintScript(script, globals = null, asyncFunctions = null)`
 
 Lint a BareScript model
 
@@ -2940,12 +2537,12 @@ Lint a BareScript model
 **script -**
 The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
 
-**globals -**
-Optional (default is null). The script's global variables. If provided, the unknown-global
+**globals** (optional, default `null`) **-**
+The script's global variables. If provided, the unknown-global
 lint checks are performed.
 
-**asyncFunctions -**
-Optional (default is null). The object of async global function names (name to true).
+**asyncFunctions** (optional, default `null`) **-**
+The object of async global function names (name to true).
 If provided along with globals, the async lint checks are performed.
 
 #### Returns
@@ -2956,64 +2553,24 @@ The array of lint warning strings
 
 ## barescriptModel.bare
 
-The "barescriptModel.bare" include library provides the BareScript type model and model validation
-functions.
-
-A [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') is
-an object representation of a BareScript script. It is produced by the BareScript parser and
-consumed by the BareScript runtime. The
-[BareScript type model](https://craigahobbs.github.io/bare-script/model/) is the
-[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) schema that describes
-the BareScript model.
-
-Get the BareScript type model:
+The "barescriptModel.bare" include library provides the
+[BareScript type model](https://craigahobbs.github.io/bare-script/model/) and model validation
+functions. A [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript')
+is the object representation of a script - the BareScript parser produces it and the BareScript
+runtime executes it. Validate a model you did not parse yourself, such as one loaded from JSON:
 
 ```bare-script
 include <barescriptModel.bare>
 
-typeModel = barescriptTypeModel()
+script = barescriptValidateScript(jsonParse(systemFetch('script.json')))
 ```
 
-Validate a BareScript model (for example, one loaded from a JSON resource):
-
-```bare-script
-scriptJSON = jsonParse(systemFetch('script.json'))
-script = barescriptValidateScript(scriptJSON)
-if script == null:
-    markdownPrint('Invalid BareScript model!')
-endif
-```
-
-The [barescriptValidateScript](#var.vGroup='barescriptModel.bare'&barescriptvalidatescript) and
-[barescriptValidateExpression](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpression)
-functions return null if validation fails and log the validation error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
-validation error, use the
-[barescriptValidateScriptEx](#var.vGroup='barescriptModel.bare'&barescriptvalidatescriptex) and
-[barescriptValidateExpressionEx](#var.vGroup='barescriptModel.bare'&barescriptvalidateexpressionex)
-functions:
-
-```bare-script
-result = barescriptValidateScriptEx(scriptModel)
-if objectHas(result, 'error'):
-    markdownPrint('', 'Error: ' + markdownEscape(objectGet(result, 'error')))
-else:
-    script = objectGet(result, 'result')
-endif
-```
-
-
-### Function Index
-
-- [barescriptTypeModel](#var.vPublish=true&var.vSingle=true&barescripttypemodel)
-- [barescriptValidateExpression](#var.vPublish=true&var.vSingle=true&barescriptvalidateexpression)
-- [barescriptValidateExpressionEx](#var.vPublish=true&var.vSingle=true&barescriptvalidateexpressionex)
-- [barescriptValidateScript](#var.vPublish=true&var.vSingle=true&barescriptvalidatescript)
-- [barescriptValidateScriptEx](#var.vPublish=true&var.vSingle=true&barescriptvalidatescriptex)
 
 ---
 
 ### barescriptTypeModel
+
+`barescriptTypeModel()`
 
 Get the [BareScript type model](https://craigahobbs.github.io/bare-script/model/)
 
@@ -3028,6 +2585,8 @@ The [BareScript type model](https://craigahobbs.github.io/bare-script/model/)
 ---
 
 ### barescriptValidateExpression
+
+`barescriptValidateExpression(expr)`
 
 Validate an expression model
 
@@ -3044,6 +2603,8 @@ or null if validation fails
 ---
 
 ### barescriptValidateExpressionEx
+
+`barescriptValidateExpressionEx(expr)`
 
 Validate an expression model with programmatic error reporting
 
@@ -3063,6 +2624,8 @@ On failure, an object with the "error" key set to the validation error message a
 
 ### barescriptValidateScript
 
+`barescriptValidateScript(script)`
+
 Validate a BareScript model
 
 #### Arguments
@@ -3078,6 +2641,8 @@ or null if validation fails
 ---
 
 ### barescriptValidateScriptEx
+
+`barescriptValidateScriptEx(script)`
 
 Validate a BareScript model with programmatic error reporting
 
@@ -3098,52 +2663,22 @@ On failure, an object with the "error" key set to the validation error message a
 ## barescriptParser.bare
 
 The "barescriptParser.bare" include library parses
-[BareScript](https://craigahobbs.github.io/bare-script/language/) script text into
+[BareScript](https://craigahobbs.github.io/bare-script/language/) script and expression text into
 [BareScript models](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript').
-
-Parse a BareScript script:
 
 ```bare-script
 include <barescriptParser.bare>
 
 script = barescriptParseScript(scriptText)
-if script == null:
-    markdownPrint('Syntax error!')
-endif
+expr = barescriptParseExpression('5 * N')
 ```
 
-The [barescriptParseScript](#var.vGroup='barescriptParser.bare'&barescriptparsescript) function
-returns null if parsing fails and logs the parser error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to the
-parser error, use the
-[barescriptParseScriptEx](#var.vGroup='barescriptParser.bare'&barescriptparsescriptex) function:
-
-```bare-script
-result = barescriptParseScriptEx(scriptText, 1, 'test.bare')
-if objectHas(result, 'error'):
-    markdownPrint('', 'Error: ' + markdownEscape(objectGet(objectGet(result, 'error'), 'error')))
-else:
-    script = objectGet(result, 'result')
-endif
-```
-
-To parse a BareScript expression, use the
-[barescriptParseExpression](#var.vGroup='barescriptParser.bare'&barescriptparseexpression) function
-or, for programmatic error reporting, the
-[barescriptParseExpressionEx](#var.vGroup='barescriptParser.bare'&barescriptparseexpressionex)
-function.
-
-
-### Function Index
-
-- [barescriptParseExpression](#var.vPublish=true&var.vSingle=true&barescriptparseexpression)
-- [barescriptParseExpressionEx](#var.vPublish=true&var.vSingle=true&barescriptparseexpressionex)
-- [barescriptParseScript](#var.vPublish=true&var.vSingle=true&barescriptparsescript)
-- [barescriptParseScriptEx](#var.vPublish=true&var.vSingle=true&barescriptparsescriptex)
 
 ---
 
 ### barescriptParseExpression
+
+`barescriptParseExpression(exprText, lineNumber = null, scriptName = null, arrayLiterals = false)`
 
 Parse a BareScript expression
 
@@ -3152,14 +2687,14 @@ Parse a BareScript expression
 **exprText -**
 The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
 
-**lineNumber -**
-Optional (default is null). The script line number.
+**lineNumber** (optional, default `null`) **-**
+The script line number
 
-**scriptName -**
-Optional (default is null). The script name.
+**scriptName** (optional, default `null`) **-**
+The script name
 
-**arrayLiterals -**
-Optional (default is false). If true, allow parsing of array literals.
+**arrayLiterals** (optional, default `false`) **-**
+If true, allow parsing of array literals
 
 #### Returns
 
@@ -3170,6 +2705,8 @@ or null if a parsing error occurs
 
 ### barescriptParseExpressionEx
 
+`barescriptParseExpressionEx(exprText, lineNumber = null, scriptName = null, arrayLiterals = false)`
+
 Parse a BareScript expression with programmatic error reporting
 
 #### Arguments
@@ -3177,14 +2714,14 @@ Parse a BareScript expression with programmatic error reporting
 **exprText -**
 The [expression text](https://craigahobbs.github.io/bare-script/language/#expressions)
 
-**lineNumber -**
-Optional (default is null). The script line number.
+**lineNumber** (optional, default `null`) **-**
+The script line number
 
-**scriptName -**
-Optional (default is null). The script name.
+**scriptName** (optional, default `null`) **-**
+The script name
 
-**arrayLiterals -**
-Optional (default is false). If true, allow parsing of array literals.
+**arrayLiterals** (optional, default `false`) **-**
+If true, allow parsing of array literals
 
 #### Returns
 
@@ -3197,6 +2734,8 @@ object has the "error", "line", "columnNumber", "lineNumber", "scriptName", and 
 
 ### barescriptParseScript
 
+`barescriptParseScript(scriptText, startLineNumber = 1, scriptName = null)`
+
 Parse a BareScript script
 
 #### Arguments
@@ -3204,11 +2743,11 @@ Parse a BareScript script
 **scriptText -**
 The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
 
-**startLineNumber -**
-Optional (default is 1). The script's starting line number.
+**startLineNumber** (optional, default `1`) **-**
+The script's starting line number
 
-**scriptName -**
-Optional (default is null). The script name.
+**scriptName** (optional, default `null`) **-**
+The script name
 
 #### Returns
 
@@ -3219,6 +2758,8 @@ or null if a parsing error occurs
 
 ### barescriptParseScriptEx
 
+`barescriptParseScriptEx(scriptText, startLineNumber = 1, scriptName = null)`
+
 Parse a BareScript script with programmatic error reporting
 
 #### Arguments
@@ -3226,11 +2767,11 @@ Parse a BareScript script with programmatic error reporting
 **scriptText -**
 The [script text](https://craigahobbs.github.io/bare-script/language/) (string or array of strings)
 
-**startLineNumber -**
-Optional (default is 1). The script's starting line number.
+**startLineNumber** (optional, default `1`) **-**
+The script's starting line number
 
-**scriptName -**
-Optional (default is null). The script name.
+**scriptName** (optional, default `null`) **-**
+The script name
 
 #### Returns
 
@@ -3245,55 +2786,23 @@ and "message" keys.
 
 ## base64.bare
 
-The "base64.bare" include library provides functions for encoding byte value arrays as base64 text
-and decoding base64 text back to bytes. A byte value array is an ordinary array of integers 0 to
-255, the same representation the
-[stringEncode](#var.vGroup='string'&stringencode) and
-[stringDecode](#var.vGroup='string'&stringdecode) functions use.
-
-To encode bytes (or a string, as UTF-8) as base64:
+The "base64.bare" include library encodes byte value arrays (arrays of integers 0 to 255) as base64
+text and decodes base64 text back to bytes. Base64 text carries binary data through string-only
+channels, such as JSON, [localStorageSet](#var.vGroup='markdownUp.bare'&localstorageset), and data
+URLs:
 
 ```bare-script
 include <base64.bare>
 
-encoded = base64Encode([104, 101, 108, 108, 111])
-# aGVsbG8=
-
-encoded = base64Encode('hello')
-# aGVsbG8=
-```
-
-To decode base64 text to a byte value array:
-
-```bare-script
-bytes = base64Decode('aGVsbG8=')
-# [104, 101, 108, 108, 111]
-
-text = stringDecode(bytes)
-# hello
-```
-
-The [base64Decode](#var.vGroup='base64.bare'&base64decode) function returns null on invalid
-input (characters outside the base64 alphabet, a length that is not a multiple of four, or
-misplaced padding) and logs the error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-
-Base64 text is the way to carry binary data through string-only channels such as
-[localStorageSet](#var.vGroup='markdownUp.bare'&localstorageset), JSON, and data URLs:
-
-```bare-script
 dataURL = 'data:application/octet-stream;base64,' + base64Encode(bytes)
 ```
 
 
-### Function Index
-
-- [base64Decode](#var.vPublish=true&var.vSingle=true&base64decode)
-- [base64Encode](#var.vPublish=true&var.vSingle=true&base64encode)
-
 ---
 
 ### base64Decode
+
+`base64Decode(text)`
 
 Decode a base64 string to a byte value array
 
@@ -3310,6 +2819,8 @@ The byte value array, or null if decoding fails
 
 ### base64Encode
 
+`base64Encode(bytes)`
+
 Encode a byte value array (or a string, as UTF-8) as a base64 string
 
 #### Arguments
@@ -3325,90 +2836,39 @@ The base64-encoded string, or null if encoding fails
 
 ## data.bare
 
-The "data.bare" include library contains functions for manipulating and analyzing data arrays. A
-data array is an array of objects where each object represents a row:
+The "data.bare" include library manipulates and analyzes data arrays. A **data array** is an array
+of objects, one per row, with a value for each field:
 
 ```bare-script
+include <data.bare>
+
 data = [ \
     {'name': 'Alice', 'age': 30, 'city': 'New York'}, \
     {'name': 'Bob', 'age': 25, 'city': 'Boston'}, \
     {'name': 'Charlie', 'age': 35, 'city': 'New York'} \
 ]
+newYork = dataFilter(data, 'age > 25 && city == "New York"')
 ```
 
-You can filter data using expressions:
+The filter and calculated-field functions take
+[BareScript expressions](https://craigahobbs.github.io/bare-script/language/#expressions), evaluated
+for each row with the row's fields as variables and the
+[expression library](expression.html) functions available. Data arrays are rendered by the
+[dataTable.bare](#var.vGroup='dataTable.bare'&_top) and
+[dataLineChart.bare](#var.vGroup='dataLineChart.bare'&_top) include libraries.
 
-```bare-script
-include <data.bare>
-
-# Filter for people over 25 in New York
-filtered = dataFilter(data, 'age > 25 && city == "New York"')
-```
-
-Sort data by one or more fields:
-
-```bare-script
-# Sort by city ascending, then age descending
-sorted = dataSort(data, [['city', false], ['age', true]])
-```
-
-Add calculated fields to your data:
-
-```bare-script
-# Add a field that combines name and city
-dataCalculatedField(data, 'location', 'name + ", " + city')
-```
-
-Aggregate data to compute summaries:
-
-```bare-script
-aggregation = { \
-    'categories': ['city'], \
-    'measures': [ \
-        {'field': 'age', 'function': 'average', 'name': 'avgAge'}, \
-        {'field': 'city', 'function': 'count', 'name': 'count'} \
-    ] \
-}
-summary = dataAggregate(data, aggregation)
-```
-
-Join two data arrays:
-
-```bare-script
-cities = [ \
-    {'city': 'New York', 'state': 'NY'}, \
-    {'city': 'Boston', 'state': 'MA'} \
-]
-joined = dataJoin(data, cities, 'city')
-```
-
-Parse CSV text into a data array:
-
-```bare-script
-csv = 'name,age,city\nAlice,30,New York\nBob,25,Boston'
-data = dataParseCSV(csv)
-```
-
-
-### Function Index
-
-- [dataAggregate](#var.vPublish=true&var.vSingle=true&dataaggregate)
-- [dataCalculatedField](#var.vPublish=true&var.vSingle=true&datacalculatedfield)
-- [dataFilter](#var.vPublish=true&var.vSingle=true&datafilter)
-- [dataJoin](#var.vPublish=true&var.vSingle=true&datajoin)
-- [dataParseCSV](#var.vPublish=true&var.vSingle=true&dataparsecsv)
-- [dataSort](#var.vPublish=true&var.vSingle=true&datasort)
-- [dataTop](#var.vPublish=true&var.vSingle=true&datatop)
-- [dataValidate](#var.vPublish=true&var.vSingle=true&datavalidate)
-- [dataValidateEx](#var.vPublish=true&var.vSingle=true&datavalidateex)
 
 ---
 
 ### dataAggregate
 
+`dataAggregate(data, aggregation)`
+
 Aggregate a data array. For example:
 
 ```bare-script
+include <data.bare>
+
 data = [{'city': 'NY', 'temp': 65}, {'city': 'NY', 'temp': 70}, {'city': 'SF', 'temp': 60}]
 averages = dataAggregate(data, { \
     'categories': ['city'], \
@@ -3433,9 +2893,13 @@ The aggregated data array
 
 ### dataCalculatedField
 
+`dataCalculatedField(data, fieldName, expr, variables = null)`
+
 Add a calculated field to each row of a data array, in place. For example:
 
 ```bare-script
+include <data.bare>
+
 data = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
 dataCalculatedField(data, 'sum', 'a + b')
 # data is [{'a': 1, 'b': 2, 'sum': 3}, {'a': 3, 'b': 4, 'sum': 7}]
@@ -3452,8 +2916,8 @@ The calculated field name
 **expr -**
 The calculated field expression
 
-**variables -**
-Optional (default is null). A variables object for the expression evaluation.
+**variables** (optional, default `null`) **-**
+A variables object for the expression evaluation
 
 #### Returns
 
@@ -3463,7 +2927,18 @@ The updated data array
 
 ### dataFilter
 
-Filter a data array
+`dataFilter(data, expr, variables = null)`
+
+Filter a data array. The filter expression is evaluated for each row, with the row's fields
+and the variables object's members as variables. For example:
+
+```bare-script
+include <data.bare>
+
+data = [{'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}, {'city': 'NY', 'temp': 70}]
+warm = dataFilter(data, 'city == "NY" && temp > minTemp', {'minTemp': 66})
+# warm is [{'city': 'NY', 'temp': 70}]
+```
 
 #### Arguments
 
@@ -3473,8 +2948,8 @@ The data array
 **expr -**
 The filter expression
 
-**variables -**
-Optional (default is null). A variables object for the expression evaluation.
+**variables** (optional, default `null`) **-**
+A variables object for the expression evaluation
 
 #### Returns
 
@@ -3484,10 +2959,14 @@ The filtered data array
 
 ### dataJoin
 
+`dataJoin(leftData, rightData, joinExpr, rightExpr = null, isLeftJoin = false, variables = null)`
+
 Join two data arrays. A right-row field that collides with a left-row field is renamed
 with a "2" suffix. For example:
 
 ```bare-script
+include <data.bare>
+
 people = [{'name': 'Alice', 'city': 'NY'}, {'name': 'Bob', 'city': 'SF'}]
 cities = [{'city': 'NY', 'state': 'NY'}, {'city': 'SF', 'state': 'CA'}]
 joined = dataJoin(people, cities, 'city')
@@ -3505,16 +2984,15 @@ The right data array
 **joinExpr -**
 The join expression
 
-**rightExpr -**
-Optional (default is null).
+**rightExpr** (optional, default `null`) **-**
 The right join expression
 
-**isLeftJoin -**
-Optional (default is false). By default, all left rows are included in the result.
+**isLeftJoin** (optional, default `false`) **-**
+By default, all left rows are included in the result.
 If true, left rows with no matching right row are excluded.
 
-**variables -**
-Optional (default is null). A variables object for join expression evaluation.
+**variables** (optional, default `null`) **-**
+A variables object for join expression evaluation
 
 #### Returns
 
@@ -3523,6 +3001,8 @@ The joined data array
 ---
 
 ### dataParseCSV
+
+`dataParseCSV(text)`
 
 Parse CSV text to a data array
 
@@ -3540,7 +3020,17 @@ column's type, a debug message is logged and the remaining column values are lef
 
 ### dataSort
 
-Sort a data array
+`dataSort(data, sorts)`
+
+Sort a data array in place. For example:
+
+```bare-script
+include <data.bare>
+
+data = [{'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}, {'city': 'NY', 'temp': 70}]
+dataSort(data, [['city'], ['temp', true]])
+# data is [{'city': 'NY', 'temp': 70}, {'city': 'NY', 'temp': 65}, {'city': 'SF', 'temp': 60}]
+```
 
 #### Arguments
 
@@ -3561,6 +3051,8 @@ The sorted data array
 
 ### dataTop
 
+`dataTop(data, count = 1, categoryFields = null)`
+
 Keep the top rows for each category
 
 #### Arguments
@@ -3568,11 +3060,11 @@ Keep the top rows for each category
 **data -**
 The data array
 
-**count -**
-Optional (default is 1). The number of rows to keep.
+**count** (optional, default `1`) **-**
+The number of rows to keep
 
-**categoryFields -**
-Optional (default is null). The category fields.
+**categoryFields** (optional, default `null`) **-**
+The category fields
 
 #### Returns
 
@@ -3582,6 +3074,8 @@ The top data array
 
 ### dataValidate
 
+`dataValidate(data, csv = false)`
+
 Validate a data array
 
 #### Arguments
@@ -3589,8 +3083,8 @@ Validate a data array
 **data -**
 The data array
 
-**csv -**
-Optional (default is false). If true, parse value strings.
+**csv** (optional, default `false`) **-**
+If true, parse value strings
 
 #### Returns
 
@@ -3600,6 +3094,8 @@ The map of field name to field type, or null if the data is invalid
 
 ### dataValidateEx
 
+`dataValidateEx(data, csv = false)`
+
 Validate a data array with programmatic error reporting
 
 #### Arguments
@@ -3607,8 +3103,8 @@ Validate a data array with programmatic error reporting
 **data -**
 The data array
 
-**csv -**
-Optional (default is false). If true, parse value strings.
+**csv** (optional, default `false`) **-**
+If true, parse value strings
 
 #### Returns
 
@@ -3619,11 +3115,10 @@ On failure, an object with the "error" key set to the validation error message.
 
 ## dataLineChart.bare
 
-The "dataLineChart.bare" include library provides functions for rendering line charts from data
-arrays.
-
-To render a line chart, use the [dataLineChart](#var.vGroup='dataLineChart.bare'&datalinechart)
-function with a data array and a [line chart model](model.html#var.vName='DataLineChart'):
+The "dataLineChart.bare" include library renders line charts from
+[data arrays](#var.vGroup='data.bare'&_top). Describe a chart with a
+[line chart model](model.html#var.vName='DataLineChart') - its member documentation covers the axis
+ranges, scales, tick label formats, annotations, and color encoding.
 
 ```bare-script
 include <dataLineChart.bare>
@@ -3634,151 +3129,23 @@ data = [ \
     {'month': 3, 'sales': 130, 'costs': 85}, \
     {'month': 4, 'sales': 170, 'costs': 95} \
 ]
-
-dataLineChart(data, { \
-    'title': 'Monthly Sales vs Costs', \
-    'width': 800, \
-    'height': 400, \
-    'x': 'month', \
-    'y': ['sales', 'costs'] \
-})
+dataLineChart(data, {'title': 'Monthly Sales vs Costs', 'x': 'month', 'y': ['sales', 'costs']})
 ```
 
-By default each axis computes its own tick marks. The tick step is a "nice" value - one, two, or
-five times a power of ten - chosen so the labels fit the space available, and the axis spans the
-data, taking the tick step boundaries that fall within it. The range is not rounded outward to a
-whole tick step - a step boundary is not a value the axis is expected to open on, and rounding out
-to one can leave most of a step empty, half a year for a six-month step. Only a chart too narrow to
-fit two boundaries within its data range falls back to the rounded-out range, which is labeled at
-both ends. A constant series has no range of its own, so its axis expands around the value - a
-decade either side on a logarithmic axis, a day either side on a datetime axis - and the data is
-drawn within the chart rather than along its edge. A datetime axis steps by calendar units -
-milliseconds through years - labels each tick at the precision of its step, and shows only the part
-of a label that changes, so a year or a date is not repeated across the axis.
+To obtain the chart's SVG element model instead of rendering it, use
+[dataLineChartElements](#var.vGroup='dataLineChart.bare'&datalinechartelements). To draw a chart
+within the current [drawing](#var.vGroup='draw.bare'&_top), use
+[drawLineChart](#var.vGroup='dataLineChart.bare'&drawlinechart).
 
-To hold an axis to a range of your own, set `xMin`, `xMax`, `yMin` and `yMax`. Each is independent -
-give only `yMin` to fix a zero baseline and let the top follow the data. The tick marks stay
-automatic: the step is the same "nice" value, chosen from the range you asked for, and the tick
-marks are the ones that fall inside it, so the axis begins and ends exactly where you said. Data
-outside the range is clipped to the chart area, and an explicit bound wins over an annotation - a
-`yLines` value outside the range does not widen it:
-
-```bare-script
-dataLineChart(data, { \
-    'title': 'Utilization', \
-    'x': 'month', \
-    'y': ['percent'], \
-    'yMin': 0, \
-    'yMax': 100 \
-})
-```
-
-Numeric tick labels are compacted when plain decimal notation would need too many digits: large
-values take an SI prefix (`12M`, `1.5G`) and small values - or values beyond the SI prefix range -
-use exponential notation (`3e-5`, `1e20`). Set `xFormat` or `yFormat` to `decimal`, `si`, or
-`exponential` to choose an axis's notation yourself. An annotation with no label of its own is
-labeled in its axis's notation too, keeping up to three significant digits:
-
-```bare-script
-dataLineChart(data, { \
-    'title': 'Revenue', \
-    'x': 'month', \
-    'y': ['revenue'], \
-    'yFormat': 'si' \
-})
-```
-
-Either axis can use a base-10 logarithmic scale, which plots data spanning many orders of magnitude
-- growth curves, response curves, algorithmic complexity - as straight lines. Tick marks land on
-whole decades, with sub-tick marks at the intermediate multiples - the one place sub-ticks earn
-their ink, since they show the scale's nonlinearity - and a narrow range labels the 1, 2, and 5 of
-each decade. Non-positive values cannot be plotted on a logarithmic axis, so they are excluded from
-the chart:
-
-```bare-script
-dataLineChart(data, { \
-    'title': 'Response Curve', \
-    'x': 'dose', \
-    'y': ['response'], \
-    'xScale': 'log' \
-})
-```
-
-A color encoding field groups lines by a category. The legend is ordered by where each line ends, so
-it reads top-to-bottom with the lines; `colorOrder` orders the color assignment, not the legend:
-
-```bare-script
-data = [ \
-    {'month': 1, 'sales': 120, 'region': 'East'}, \
-    {'month': 1, 'sales': 95, 'region': 'West'}, \
-    {'month': 2, 'sales': 150, 'region': 'East'}, \
-    {'month': 2, 'sales': 110, 'region': 'West'} \
-]
-
-dataLineChart(data, { \
-    'x': 'month', \
-    'y': ['sales'], \
-    'color': 'region' \
-})
-```
-
-To obtain the line chart SVG
-[element model](https://github.com/craigahobbs/element-model#readme)
-instead of rendering directly, use the
-[dataLineChartElements](#var.vGroup='dataLineChart.bare'&datalinechartelements) function.
-
-```bare-script
-elementModelRender(dataLineChartElements(data, { \
-    'x': 'month', \
-    'y': ['sales'], \
-    'color': 'region' \
-}))
-```
-
-Every label stays on the chart. A tick label is never shortened - a truncated number would read as a
-different number - so the Y-axis makes room for its tick labels and gives up its axis title when
-both will not fit. Titles and legend labels are text, so where they must fit they are ellipsized
-rather than dropped. The plot area never gives up more than half the chart.
-
-Each series is drawn in its own color. The palette is the first ten of Tableau's twenty - blue,
-orange, green, red, purple, brown, pink, gray, olive and cyan - the colors most readers have already
-seen in a chart. Past the tenth series the colors repeat with a line dash pattern, giving fifty
-series before any two are drawn alike. The color legend shows a segment of each line, dash pattern
-included, and lists the series in the order their lines end.
-
-A chart names itself for assistive technology - `role="img"` with the chart's title as its
-accessible name, or a description of what it plots when it has no title. A chart drawn into a
-drawing of your own with `drawLineChart` is named by whoever owns that drawing.
-
-Line charts are drawn with the [draw.bare](#var.vGroup='draw.bare') include library. To compose a
-chart with other drawing content - several charts on one canvas, or a chart alongside a legend,
-annotation, or logo of your own - draw it into the current drawing with the
-[drawLineChart](#var.vGroup='dataLineChart.bare'&drawlinechart) function, which takes the chart's
-position and size:
-
-```bare-script
-include <dataLineChart.bare>
-
-drawNew(640, 720)
-drawLineChart(data, {'title': 'Sales', 'x': 'month', 'y': ['sales']}, 0, 0, 640, 360)
-drawLineChart(data, {'title': 'Costs', 'x': 'month', 'y': ['costs']}, 0, 360, 640, 360)
-drawRender()
-```
-
-
-### Function Index
-
-- [dataLineChart](#var.vPublish=true&var.vSingle=true&datalinechart)
-- [dataLineChartElements](#var.vPublish=true&var.vSingle=true&datalinechartelements)
-- [dataLineChartValidate](#var.vPublish=true&var.vSingle=true&datalinechartvalidate)
-- [dataLineChartValidateEx](#var.vPublish=true&var.vSingle=true&datalinechartvalidateex)
-- [drawLineChart](#var.vPublish=true&var.vSingle=true&drawlinechart)
 
 ---
 
 ### dataLineChart
 
-Render a line chart
+`dataLineChart(data, lineChart, options = null)`
+
+Render a line chart. The chart names itself for assistive technology - `role="img"` with the
+chart's title as its accessible name, or a description of what it plots when it has no title.
 
 #### Arguments
 
@@ -3788,8 +3155,8 @@ The data array
 **lineChart -**
 The [line chart model](model.html#var.vName='DataLineChart')
 
-**options -**
-Optional (default is null). The line chart options object with the following optional members:
+**options** (optional, default `null`) **-**
+The line chart options object with the following optional members:
 - **fontSize** - The font size, in pixels
 
 #### Returns
@@ -3799,6 +3166,8 @@ Nothing
 ---
 
 ### dataLineChartElements
+
+`dataLineChartElements(data, lineChart, options = null)`
 
 Render a line chart as an element model
 
@@ -3810,8 +3179,8 @@ The data array
 **lineChart -**
 The [line chart model](model.html#var.vName='DataLineChart')
 
-**options -**
-Optional (default is null). The line chart options object with the following optional members:
+**options** (optional, default `null`) **-**
+The line chart options object with the following optional members:
 - **fontSize** - The font size, in pixels
 
 #### Returns
@@ -3821,6 +3190,8 @@ The line chart [element model](https://github.com/craigahobbs/element-model#read
 ---
 
 ### dataLineChartValidate
+
+`dataLineChartValidate(lineChart)`
 
 Validate a line chart model
 
@@ -3836,6 +3207,8 @@ The validated [line chart model](model.html#var.vName='DataLineChart')
 ---
 
 ### dataLineChartValidateEx
+
+`dataLineChartValidateEx(lineChart)`
 
 Validate a line chart model with programmatic error reporting
 
@@ -3854,7 +3227,22 @@ On failure, an object with the "error" key set to the validation error message a
 
 ### drawLineChart
 
-Draw a line chart within the current drawing
+`drawLineChart(data, lineChart, x, y, width, height, options = null)`
+
+Draw a line chart within the current drawing. Use it to compose a chart with other drawing
+content, such as several charts on one drawing:
+
+```bare-script
+include <dataLineChart.bare>
+
+drawNew(640, 720)
+drawLineChart(data, {'title': 'Sales', 'x': 'month', 'y': ['sales']}, 0, 0, 640, 360)
+drawLineChart(data, {'title': 'Costs', 'x': 'month', 'y': ['costs']}, 0, 360, 640, 360)
+drawRender()
+```
+
+The chart does not name the drawing for assistive technology - name it with
+[drawAriaLabel](#var.vGroup='draw.bare'&drawarialabel).
 
 #### Arguments
 
@@ -3876,8 +3264,8 @@ The width of the chart, in pixels
 **height -**
 The height of the chart, in pixels
 
-**options -**
-Optional (default is null). The line chart options object with the following optional members:
+**options** (optional, default `null`) **-**
+The line chart options object with the following optional members:
 - **fontSize** - The font size, in pixels
 
 #### Returns
@@ -3888,50 +3276,22 @@ true if the chart is drawn, null if the data contains no chartable points
 
 ## dataTable.bare
 
-The "dataTable.bare" include library provides functions for rendering data arrays as formatted
-Markdown tables. This is useful for displaying tabular data in MarkdownUp applications.
-
-To render a data table, use the [dataTableMarkdown](#var.vGroup='dataTable.bare'&datatablemarkdown)
-function with a data array and an optional data table model:
+The "dataTable.bare" include library renders [data arrays](#var.vGroup='data.bare'&_top) as Markdown
+tables. The optional [data table model](model.html#var.vName='DataTable') selects and orders the
+fields and sets their formatting - without one, all fields are displayed with default formatting.
 
 ```bare-script
 include <dataTable.bare>
 
-data = [ \
-    {'name': 'Alice', 'age': 30, 'city': 'New York'}, \
-    {'name': 'Bob', 'age': 25, 'city': 'Boston'}, \
-    {'name': 'Charlie', 'age': 35, 'city': 'New York'} \
-]
-
-model = { \
-    'fields': ['name', 'age', 'city'], \
-    'formats': {'age': {'align': 'right'}} \
-}
-
-markdownPrint(dataTableMarkdown(data, model))
+markdownPrint(dataTableMarkdown(data, {'fields': ['name', 'age'], 'formats': {'age': {'align': 'right'}}}))
 ```
 
-The data table model allows you to control which fields are displayed, their order, and how values
-are formatted. You can specify field alignment, headers, and other display options.
-
-If no model is provided, all fields are displayed in their natural order with default formatting:
-
-```bare-script
-markdownPrint(dataTableMarkdown(data))
-```
-
-
-### Function Index
-
-- [dataTable](#var.vPublish=true&var.vSingle=true&datatable)
-- [dataTableElements](#var.vPublish=true&var.vSingle=true&datatableelements)
-- [dataTableMarkdown](#var.vPublish=true&var.vSingle=true&datatablemarkdown)
-- [dataTableValidate](#var.vPublish=true&var.vSingle=true&datatablevalidate)
-- [dataTableValidateEx](#var.vPublish=true&var.vSingle=true&datatablevalidateex)
 
 ---
 
 ### dataTable
+
+`dataTable(data, dataTable = null)`
 
 Render a data table in the document
 
@@ -3940,8 +3300,8 @@ Render a data table in the document
 **data -**
 The data array
 
-**dataTable -**
-Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+**dataTable** (optional, default `null`) **-**
+The [data table model](model.html#var.vName='DataTable')
 
 #### Returns
 
@@ -3951,6 +3311,8 @@ Nothing
 
 ### dataTableElements
 
+`dataTableElements(data, dataTable = null)`
+
 Generate a data table element model
 
 #### Arguments
@@ -3958,8 +3320,8 @@ Generate a data table element model
 **data -**
 The data array
 
-**dataTable -**
-Optional (default is null). The [data table model](model.html#var.vName='DataTable')
+**dataTable** (optional, default `null`) **-**
+The [data table model](model.html#var.vName='DataTable')
 
 #### Returns
 
@@ -3968,6 +3330,8 @@ The data table [element model](https://github.com/craigahobbs/element-model#read
 ---
 
 ### dataTableMarkdown
+
+`dataTableMarkdown(data, model)`
 
 Create the array of Markdown table line strings
 
@@ -3987,6 +3351,8 @@ The array of Markdown table line strings
 
 ### dataTableValidate
 
+`dataTableValidate(dataTable)`
+
 Validate a data table model
 
 #### Arguments
@@ -4001,6 +3367,8 @@ The validated [data table model](model.html#var.vName='DataTable')
 ---
 
 ### dataTableValidateEx
+
+`dataTableValidateEx(dataTable)`
 
 Validate a data table model with programmatic error reporting
 
@@ -4019,45 +3387,21 @@ On failure, an object with the "error" key set to the validation error message a
 
 ## diff.bare
 
-The "diff.bare" include library provides functions for computing line-by-line differences between
-two strings or arrays of strings. This is useful for comparing text files, showing changes, or
-implementing version control-like functionality.
-
-To compute differences between two strings:
+The "diff.bare" include library computes the line-by-line differences between two strings or arrays
+of strings, as an array of [difference models](model.html#var.vName='Differences').
 
 ```bare-script
 include <diff.bare>
 
-left = 'Line 1\nLine 2\nLine 3'
-right = 'Line 1\nLine 2 modified\nLine 3\nLine 4'
-
-differences = diffLines(left, right)
+differences = diffLines('Line 1\nLine 2', 'Line 1\nLine 2 modified\nLine 3')
 ```
 
-You can also pass arrays of strings:
-
-```bare-script
-leftLines = ['Line 1', 'Line 2', 'Line 3']
-rightLines = ['Line 1', 'Line 2 modified', 'Line 3', 'Line 4']
-
-differences = diffLines(leftLines, rightLines)
-```
-
-The function returns an array of [difference models](model.html#var.vName='Differences') that
-describe the changes between the two inputs. Each difference model indicates whether lines were
-added, removed, or unchanged, along with the affected line text.
-
-This is particularly useful for displaying side-by-side comparisons or unified diffs in applications
-that need to show how content has changed over time.
-
-
-### Function Index
-
-- [diffLines](#var.vPublish=true&var.vSingle=true&difflines)
 
 ---
 
 ### diffLines
+
+`diffLines(left, right)`
 
 Compute the line-differences of two strings or arrays of strings
 
@@ -4077,112 +3421,32 @@ The array of [difference models](model.html#var.vName='Differences')
 
 ## draw.bare
 
-The "draw.bare" include library contains functions for creating vector graphics drawings. These
-functions provide a programmatic way to draw shapes, lines, text, and images using SVG. The
-library maintains a single **current drawing** — `drawNew` starts a new current drawing, the other
-"draw" functions operate on it, and `drawRender` renders it.
-
-Create a new drawing and draw basic shapes:
+The "draw.bare" include library creates SVG vector drawings of shapes, paths, text, and images. The
+library maintains a single **current drawing** - [drawNew](#var.vGroup='draw.bare'&drawnew) starts a
+new current drawing, the other "draw" functions operate on it, and
+[drawRender](#var.vGroup='draw.bare'&drawrender) renders it. Coordinates are in pixels from the
+drawing's top-left corner, and shapes and text use the most recently set
+[drawStyle](#var.vGroup='draw.bare'&drawstyle) and
+[drawTextStyle](#var.vGroup='draw.bare'&drawtextstyle).
 
 ```bare-script
 include <draw.bare>
 
-# Create a new drawing and fill the background
 drawNew(400, 300)
-drawStyle('none', 0, 'white')
-drawRect(0, 0, drawWidth(), drawHeight())
-
-# Draw a rectangle, circle, and ellipse
-drawStyle('black', 2, 'blue')
-drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.2 * drawWidth(), 0.2 * drawHeight())
-drawStyle('black', 2, 'red')
-drawCircle(0.3 * drawWidth(), 0.6 * drawHeight(), 0.1 * drawWidth())
-drawStyle('black', 2, 'green')
-drawEllipse(0.7 * drawWidth(), 0.4 * drawHeight(), 0.2 * drawWidth(), 0.1 * drawHeight())
-
-# Render the drawing
+drawStyle('black', 2, 'lightblue')
+drawRect(50, 50, 120, 80)
+drawCircle(280, 150, 60)
+drawTextStyle(20, 'black', true)
+drawText('Hello, World!', 200, 260)
 drawRender()
 ```
 
-Draw paths with lines and curves:
-
-```bare-script
-drawStyle('black', 4, '#cc222280')
-drawMove(0.7 * drawWidth(), 0.7 * drawHeight())
-drawLine(0.9 * drawWidth(), 0.7 * drawHeight())
-drawLine(0.9 * drawWidth(), 0.9 * drawHeight())
-drawClose()
-```
-
-Draw text:
-
-```bare-script
-drawTextStyle(0.1 * drawHeight(), 'black', true)
-drawText('Hello, World!', 0.5 * drawWidth(), 0.5 * drawHeight())
-```
-
-Draw rotated text - the rotation is clockwise, in degrees, about the text position:
-
-```bare-script
-drawText('Sideways', 0.1 * drawWidth(), 0.5 * drawHeight(), 'middle', 'hanging', -90)
-```
-
-Draw images:
-
-```bare-script
-drawImage(0.5 * drawWidth(), 0.5 * drawHeight(), 0.2 * drawHeight(), 0.2 * drawHeight(), 'image.png')
-```
-
-Name the drawing for assistive technology, which otherwise reads the text within it one piece at a
-time. This also sets `role="img"`, without which `aria-label` on an `<svg>` is inconsistently
-honored:
-
-```bare-script
-drawAriaLabel('Site plan, with the trap position marked')
-```
-
-Add click handlers to drawing objects:
-
-```bare-script
-function myClickHandler():
-    systemLog('Click!')
-endfunction
-
-drawStyle('black', 2, 'gray')
-drawRect(0.1 * drawWidth(), 0.1 * drawHeight(), 0.1 * drawWidth(), 0.1 * drawHeight())
-drawOnClick(myClickHandler)
-```
-
-
-### Function Index
-
-- [drawArc](#var.vPublish=true&var.vSingle=true&drawarc)
-- [drawAriaLabel](#var.vPublish=true&var.vSingle=true&drawarialabel)
-- [drawCircle](#var.vPublish=true&var.vSingle=true&drawcircle)
-- [drawClose](#var.vPublish=true&var.vSingle=true&drawclose)
-- [drawElements](#var.vPublish=true&var.vSingle=true&drawelements)
-- [drawEllipse](#var.vPublish=true&var.vSingle=true&drawellipse)
-- [drawHLine](#var.vPublish=true&var.vSingle=true&drawhline)
-- [drawHeight](#var.vPublish=true&var.vSingle=true&drawheight)
-- [drawImage](#var.vPublish=true&var.vSingle=true&drawimage)
-- [drawLine](#var.vPublish=true&var.vSingle=true&drawline)
-- [drawMove](#var.vPublish=true&var.vSingle=true&drawmove)
-- [drawNew](#var.vPublish=true&var.vSingle=true&drawnew)
-- [drawOnClick](#var.vPublish=true&var.vSingle=true&drawonclick)
-- [drawPathRect](#var.vPublish=true&var.vSingle=true&drawpathrect)
-- [drawRect](#var.vPublish=true&var.vSingle=true&drawrect)
-- [drawRender](#var.vPublish=true&var.vSingle=true&drawrender)
-- [drawStyle](#var.vPublish=true&var.vSingle=true&drawstyle)
-- [drawText](#var.vPublish=true&var.vSingle=true&drawtext)
-- [drawTextHeight](#var.vPublish=true&var.vSingle=true&drawtextheight)
-- [drawTextStyle](#var.vPublish=true&var.vSingle=true&drawtextstyle)
-- [drawTextWidth](#var.vPublish=true&var.vSingle=true&drawtextwidth)
-- [drawVLine](#var.vPublish=true&var.vSingle=true&drawvline)
-- [drawWidth](#var.vPublish=true&var.vSingle=true&drawwidth)
 
 ---
 
 ### drawArc
+
+`drawArc(rx, ry, angle, largeArcFlag, sweepFlag, x, y)`
 
 Draw an arc curve from the current point to the end point
 
@@ -4217,8 +3481,11 @@ Nothing
 
 ### drawAriaLabel
 
+`drawAriaLabel(label)`
+
 Set the current drawing's accessible name. Assistive technology announces the drawing as a
 single image with this name, instead of reading the text within it one piece at a time.
+This also sets `role="img"`, without which `aria-label` on an `<svg>` is inconsistently honored.
 
 #### Arguments
 
@@ -4232,6 +3499,8 @@ Nothing
 ---
 
 ### drawCircle
+
+`drawCircle(cx, cy, r)`
 
 Draw a circle
 
@@ -4254,6 +3523,8 @@ Nothing
 
 ### drawClose
 
+`drawClose()`
+
 Close the current drawing path
 
 #### Arguments
@@ -4268,6 +3539,8 @@ Nothing
 
 ### drawElements
 
+`drawElements()`
+
 Get the current drawing's SVG element model
 
 #### Arguments
@@ -4281,6 +3554,8 @@ The current drawing's SVG element model
 ---
 
 ### drawEllipse
+
+`drawEllipse(cx, cy, rx, ry)`
 
 Draw an ellipse
 
@@ -4306,6 +3581,8 @@ Nothing
 
 ### drawHLine
 
+`drawHLine(x)`
+
 Draw a horizontal line from the current point to the end point
 
 #### Arguments
@@ -4321,6 +3598,8 @@ Nothing
 
 ### drawHeight
 
+`drawHeight()`
+
 Get the current drawing's height
 
 #### Arguments
@@ -4334,6 +3613,8 @@ The current drawing's height
 ---
 
 ### drawImage
+
+`drawImage(x, y, width, height, href)`
 
 Draw an image
 
@@ -4362,6 +3643,8 @@ Nothing
 
 ### drawLine
 
+`drawLine(x, y)`
+
 Draw a line from the current point to the end point
 
 #### Arguments
@@ -4380,6 +3663,8 @@ Nothing
 
 ### drawMove
 
+`drawMove(x, y)`
+
 Move the path's drawing point
 
 #### Arguments
@@ -4397,6 +3682,8 @@ Nothing
 ---
 
 ### drawNew
+
+`drawNew(width, height)`
 
 Create a new drawing. The new drawing becomes the current drawing - all other "draw" functions
 operate on the current drawing. Call drawRender to render the current drawing.
@@ -4417,6 +3704,8 @@ Nothing
 
 ### drawOnClick
 
+`drawOnClick(callback)`
+
 Set the most recent drawing object's on-click event handler
 
 #### Arguments
@@ -4431,6 +3720,8 @@ Nothing
 ---
 
 ### drawPathRect
+
+`drawPathRect(x, y, width, height)`
 
 Draw a rectangle as a path
 
@@ -4456,6 +3747,8 @@ Nothing
 
 ### drawRect
 
+`drawRect(x, y, width, height, rx = null, ry = null)`
+
 Draw a rectangle
 
 #### Arguments
@@ -4472,11 +3765,11 @@ The width of the rectangle
 **height -**
 The height of the rectangle
 
-**rx -**
-Optional (default is null). The horizontal corner radius of the rectangle.
+**rx** (optional, default `null`) **-**
+The horizontal corner radius of the rectangle
 
-**ry -**
-Optional (default is null). The vertical corner radius of the rectangle.
+**ry** (optional, default `null`) **-**
+The vertical corner radius of the rectangle
 
 #### Returns
 
@@ -4485,6 +3778,8 @@ Nothing
 ---
 
 ### drawRender
+
+`drawRender()`
 
 Render the current drawing
 
@@ -4500,22 +3795,24 @@ Nothing
 
 ### drawStyle
 
+`drawStyle(stroke = 'black', strokeWidth = 1, fill = 'none', strokeDashArray = 'none')`
+
 Set the current drawing styles
 
 #### Arguments
 
-**stroke -**
-Optional (default is 'black'). The stroke color.
+**stroke** (optional, default `'black'`) **-**
+The stroke color
 
-**strokeWidth -**
-Optional (default is 1). The stroke width.
+**strokeWidth** (optional, default `1`) **-**
+The stroke width
 
-**fill -**
-Optional (default is 'none'). The fill color.
+**fill** (optional, default `'none'`) **-**
+The fill color
 
-**strokeDashArray -**
-Optional (default is 'none'). The stroke
-[dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes).
+**strokeDashArray** (optional, default `'none'`) **-**
+The stroke
+[dash array](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray#usage_notes)
 
 #### Returns
 
@@ -4524,6 +3821,8 @@ Nothing
 ---
 
 ### drawText
+
+`drawText(text, x, y, textAnchor = 'middle', dominantBaseline = 'middle', rotate = null)`
 
 Draw text
 
@@ -4538,17 +3837,17 @@ The x-coordinate of the text
 **y -**
 The y-coordinate of the text
 
-**textAnchor -**
-Optional (default is 'middle'). The
-[text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style.
+**textAnchor** (optional, default `'middle'`) **-**
+The
+[text anchor](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/text-anchor#usage_notes) style
 
-**dominantBaseline -**
-Optional (default is 'middle'). The
+**dominantBaseline** (optional, default `'middle'`) **-**
+The
 [dominant baseline](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dominant-baseline#usage_notes)
-style.
+style
 
-**rotate -**
-Optional (default is null). The text's clockwise rotation, in degrees, about the text position.
+**rotate** (optional, default `null`) **-**
+The text's clockwise rotation, in degrees, about the text position
 
 #### Returns
 
@@ -4557,6 +3856,8 @@ Nothing
 ---
 
 ### drawTextHeight
+
+`drawTextHeight(text, width)`
 
 Compute the text's height to fit the width
 
@@ -4576,24 +3877,26 @@ The text's height, in pixels
 
 ### drawTextStyle
 
+`drawTextStyle(fontSizePx = null, textFill = 'black', bold = false, italic = false, fontFamily = null)`
+
 Set the current text drawing styles
 
 #### Arguments
 
-**fontSizePx -**
-Optional (default is null, the default font size). The text font size, in pixels.
+**fontSizePx** (optional, default `null`) **-**
+The text font size, in pixels. If null, the default font size is used.
 
-**textFill -**
-Optional (default is 'black'). The text fill color.
+**textFill** (optional, default `'black'`) **-**
+The text fill color
 
-**bold -**
-Optional (default is false). If true, text is bold.
+**bold** (optional, default `false`) **-**
+If true, text is bold
 
-**italic -**
-Optional (default is false). If true, text is italic.
+**italic** (optional, default `false`) **-**
+If true, text is italic
 
-**fontFamily -**
-Optional (default is null, the default font family). The text font family.
+**fontFamily** (optional, default `null`) **-**
+The text font family. If null, the default font family is used.
 
 #### Returns
 
@@ -4602,6 +3905,8 @@ Nothing
 ---
 
 ### drawTextWidth
+
+`drawTextWidth(text, fontSizePx)`
 
 Compute the text's width. The width is the sum of the default font family's character
 advance widths - printable ASCII, the Latin-1 supplement, and the punctuation, operators,
@@ -4628,6 +3933,8 @@ The text's width, in pixels
 
 ### drawVLine
 
+`drawVLine(y)`
+
 Draw a vertical line from the current point to the end point
 
 #### Arguments
@@ -4643,6 +3950,8 @@ Nothing
 
 ### drawWidth
 
+`drawWidth()`
+
 Get the current drawing's width
 
 #### Arguments
@@ -4657,64 +3966,35 @@ The current drawing's width
 
 ## elementModel.bare
 
-The "elementModel.bare" include library contains functions for validating and rendering
-[element models](https://github.com/craigahobbs/element-model#readme)
-to HTML or SVG strings. Element models are data structures representing HTML or SVG elements, useful
-for building user interfaces in a programmatic way.
-
-Consider the following example of creating a simple HTML element model and rendering it to a string.
-First, include the "elementModel.bare" library and define an element model for a div containing a
-heading and a paragraph.
+The "elementModel.bare" include library validates
+[element models](https://github.com/craigahobbs/element-model#readme) and renders them to HTML or
+SVG strings. An element model is a data structure of HTML or SVG elements - an element object, null,
+or an array of these - which MarkdownUp applications render with
+[elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender).
 
 ```bare-script
 include <elementModel.bare>
 
-elements = elementModelValidate({ \
+elements = { \
     'html': 'div', \
-    'attr': {'id': 'myDiv', 'class': 'container'}, \
+    'attr': {'class': 'container'}, \
     'elem': [ \
         {'html': 'h1', 'elem': {'text': 'Hello, World!'}}, \
         {'html': 'p', 'elem': {'text': 'This is a paragraph.'}} \
     ] \
-})
-```
-
-Then, render the element model to an HTML string using the `elementModelToString` function:
-
-```bare-script
+}
 htmlString = elementModelToString(elements)
 ```
 
-For SVG elements, set the tag to 'svg' instead of 'html'. The `elementModelToString` function will
-automatically add the necessary xmlns attribute for SVG.
-
-```bare-script
-elements = elementModelValidate({ \
-    'svg': 'svg', \
-    'attr': {'width': '100', 'height': '100'}, \
-    'elem': { \
-        'svg': 'circle', \
-        'attr': {'cx': '50', 'cy': '50', 'r': '40', 'fill': 'blue'} \
-    } \
-})
-svgString = elementModelToString(elements)
-```
-
-Element models support nested arrays of elements, text nodes, attributes, and optional callback
-functions for event handling (though callbacks are ignored during stringification).
-
-
-### Function Index
-
-- [elementModelToString](#var.vPublish=true&var.vSingle=true&elementmodeltostring)
-- [elementModelValidate](#var.vPublish=true&var.vSingle=true&elementmodelvalidate)
-- [elementModelValidateEx](#var.vPublish=true&var.vSingle=true&elementmodelvalidateex)
 
 ---
 
 ### elementModelToString
 
-Render an element model to an HTML or SVG string
+`elementModelToString(elements, indent = null)`
+
+Render an element model to an HTML or SVG string. Each "svg" element is given the SVG "xmlns"
+attribute.
 
 #### Arguments
 
@@ -4722,8 +4002,8 @@ Render an element model to an HTML or SVG string
 The element model.
 An element model is either null, an element object, or an array of any of these.
 
-**indent -**
-Optional (default is null). The indentation string or number of spaces
+**indent** (optional, default `null`) **-**
+The indentation string or number of spaces
 
 #### Returns
 
@@ -4732,6 +4012,8 @@ The HTML or SVG string
 ---
 
 ### elementModelValidate
+
+`elementModelValidate(elements)`
 
 Validate an element model
 
@@ -4748,6 +4030,8 @@ The element model if valid, null otherwise
 ---
 
 ### elementModelValidateEx
+
+`elementModelValidateEx(elements)`
 
 Validate an element model with programmatic error reporting
 
@@ -4766,63 +4050,32 @@ On failure, an object with the "error" key set to the validation error message.
 
 ## forms.bare
 
-The "forms.bare" include library provides functions for creating form elements using
-[element models](https://github.com/craigahobbs/element-model#readme). These functions simplify the
-creation of common form controls for MarkdownUp applications.
-
-Create a text input element:
+The "forms.bare" include library creates
+[element models](https://github.com/craigahobbs/element-model#readme) for common form controls -
+text inputs, links, and link buttons - for MarkdownUp applications to render with
+[elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender). A control's event handler is
+called when the user acts on it:
 
 ```bare-script
 include <forms.bare>
 
 function myAppMain():
-    textInput = formsTextElements('myInput', 'Initial text', 20, myAppOnEnter)
-    elementModelRender(textInput)
+    elementModelRender(formsTextElements('myInput', 'Initial text', 20, myAppOnEnter))
 endfunction
 
 function myAppOnEnter():
-    value = documentInputValue('myInput')
-    markdownPrint('You entered: ' + value)
+    markdownPrint('You entered: ' + documentInputValue('myInput'))
 endfunction
 
 myAppMain()
 ```
 
-Create a link element:
-
-```bare-script
-link = formsLinkElements('Click me', 'other.html')
-elementModelRender(link)
-```
-
-Create a link button element with a click handler:
-
-```bare-script
-function myAppMain():
-    button = formsLinkButtonElements('Click me', myAppOnClick)
-    elementModelRender(button)
-endfunction
-
-function myAppOnClick():
-    markdownPrint('Button clicked!')
-endfunction
-
-myAppMain()
-```
-
-These helper functions create properly structured element models that can be rendered with the
-[elementModelRender](#var.vGroup='markdownUp.bare'&elementmodelrender) function.
-
-
-### Function Index
-
-- [formsLinkButtonElements](#var.vPublish=true&var.vSingle=true&formslinkbuttonelements)
-- [formsLinkElements](#var.vPublish=true&var.vSingle=true&formslinkelements)
-- [formsTextElements](#var.vPublish=true&var.vSingle=true&formstextelements)
 
 ---
 
 ### formsLinkButtonElements
+
+`formsLinkButtonElements(text, onClick)`
 
 Create a link button [element model](https://github.com/craigahobbs/element-model#readme)
 
@@ -4842,6 +4095,8 @@ The link button [element model](https://github.com/craigahobbs/element-model#rea
 
 ### formsLinkElements
 
+`formsLinkElements(text, url)`
+
 Create a link [element model](https://github.com/craigahobbs/element-model#readme)
 
 #### Arguments
@@ -4860,6 +4115,8 @@ The link [element model](https://github.com/craigahobbs/element-model#readme)
 
 ### formsTextElements
 
+`formsTextElements(id, text, size = null, onEnter = null)`
+
 Create a text input [element model](https://github.com/craigahobbs/element-model#readme)
 
 #### Arguments
@@ -4870,11 +4127,11 @@ The text input element ID
 **text -**
 The initial text of the text input element
 
-**size -**
-Optional (default is null). The size, in characters, of the text input element
+**size** (optional, default `null`) **-**
+The size, in characters, of the text input element
 
-**onEnter -**
-Optional (default is null). The text input element on-enter event handler
+**onEnter** (optional, default `null`) **-**
+The text input element on-enter event handler
 
 #### Returns
 
@@ -4884,53 +4141,24 @@ The text input [element model](https://github.com/craigahobbs/element-model#read
 
 ## gzip.bare
 
-The "gzip.bare" include library provides functions for compressing and uncompressing byte value
-arrays with the gzip format. A byte value array is an ordinary array of integers 0 to 255, the same
-representation the [stringEncode](#var.vGroup='string'&stringencode) and
-[stringDecode](#var.vGroup='string'&stringdecode) functions use.
-
-To compress bytes (or a string, as UTF-8):
+The "gzip.bare" include library compresses and uncompresses byte value arrays (arrays of integers 0
+to 255) in the standard gzip format, which any gzip tool can read. The compressor and uncompressor
+are written in BareScript.
 
 ```bare-script
 include <gzip.bare>
 
-compressed = gzipCompress(stringEncode('hello hello hello'))
 compressed = gzipCompress('hello hello hello')
+text = stringDecode(gzipUncompress(compressed))
+# text is 'hello hello hello'
 ```
 
-The optional second argument is the compression level, 0 (store only) through 9 (the most
-thorough match search); the default is 6. To uncompress gzip data:
-
-```bare-script
-bytes = gzipUncompress(compressed)
-text = stringDecode(bytes)
-# hello hello hello
-```
-
-The [gzipUncompress](#var.vGroup='gzip.bare'&gzipuncompress) function checks the gzip header,
-the DEFLATE stream, and the trailer's CRC-32 and size. It returns null on invalid data and logs
-the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-
-The compressor and uncompressor are written in BareScript. The output is a standard gzip stream
-that any gzip tool can read, and any single-member gzip stream can be uncompressed. To fetch a
-gzip file, pass a binary request model to the
-[systemFetch](#var.vGroup='system'&systemfetch) function:
-
-```bare-script
-async function fetchCompressed(url):
-    return gzipUncompress(systemFetch({'url': url, 'binary': true}))
-endfunction
-```
-
-
-### Function Index
-
-- [gzipCompress](#var.vPublish=true&var.vSingle=true&gzipcompress)
-- [gzipUncompress](#var.vPublish=true&var.vSingle=true&gzipuncompress)
 
 ---
 
 ### gzipCompress
+
+`gzipCompress(bytes, level = 6)`
 
 Compress a byte value array (or a string, as UTF-8) with gzip
 
@@ -4939,8 +4167,8 @@ Compress a byte value array (or a string, as UTF-8) with gzip
 **bytes -**
 The byte value array (integers 0 to 255) or string
 
-**level -**
-Optional (default is 6). The compression level, 0 (store) through 9 (best).
+**level** (optional, default `6`) **-**
+The compression level, 0 (store) through 9 (best)
 
 #### Returns
 
@@ -4950,7 +4178,10 @@ The gzip-compressed byte value array, or null if compression fails
 
 ### gzipUncompress
 
-Uncompress a gzip-compressed byte value array
+`gzipUncompress(bytes)`
+
+Uncompress a gzip-compressed byte value array. Any single-member gzip stream can be
+uncompressed. The gzip header, the DEFLATE stream, and the trailer's CRC-32 and size are checked.
 
 #### Arguments
 
@@ -4965,50 +4196,23 @@ The uncompressed byte value array, or null if uncompression fails
 
 ## markdown.bare
 
-The "markdown.bare" include library contains utility functions for working with Markdown text and
-[Markdown models](model.html#var.vName='Markdown'). These functions are useful for escaping text,
-generating header IDs, and extracting information from parsed Markdown content.
-
-Escape special Markdown characters in a string before including it in Markdown output:
+The "markdown.bare" include library contains utility functions for Markdown text and
+[Markdown models](model.html#var.vName='Markdown') - escaping text, generating header IDs, finding a
+document's title, extracting paragraph text, and validating Markdown models. Escape text before including it in Markdown
+output:
 
 ```bare-script
 include <markdown.bare>
 
-title = 'Hello & "World" <Test>'
 markdownPrint('# ' + markdownEscape(title))
 ```
 
-Generate a Markdown header anchor ID from a heading string. This produces the same ID that
-[markdownElements.bare](#var.vGroup='markdownElements.bare'&_top) generates for headers:
-
-```bare-script
-headerId = markdownHeaderId('My Section Title')
-# headerId => 'my-section-title'
-```
-
-Extract the title (first heading) from a parsed Markdown model:
-
-```bare-script
-include <markdownParser.bare>
-
-markdown = markdownParse('# My Page Title', '', 'Some content.')
-title = markdownTitle(markdown)
-# title => 'My Page Title'
-```
-
-
-### Function Index
-
-- [markdownEscape](#var.vPublish=true&var.vSingle=true&markdownescape)
-- [markdownHeaderId](#var.vPublish=true&var.vSingle=true&markdownheaderid)
-- [markdownParagraphText](#var.vPublish=true&var.vSingle=true&markdownparagraphtext)
-- [markdownTitle](#var.vPublish=true&var.vSingle=true&markdowntitle)
-- [markdownValidate](#var.vPublish=true&var.vSingle=true&markdownvalidate)
-- [markdownValidateEx](#var.vPublish=true&var.vSingle=true&markdownvalidateex)
 
 ---
 
 ### markdownEscape
+
+`markdownEscape(text)`
 
 Escape a string for inclusion in Markdown text
 
@@ -5025,7 +4229,10 @@ The escaped text
 
 ### markdownHeaderId
 
-Generate a Markdown header ID from text
+`markdownHeaderId(text)`
+
+Generate a Markdown header ID from text. This is the ID that
+[markdownElements](#var.vGroup='markdownElements.bare'&markdownelements) generates for headers.
 
 #### Arguments
 
@@ -5039,6 +4246,8 @@ The header element ID
 ---
 
 ### markdownParagraphText
+
+`markdownParagraphText(paragraph)`
 
 Get a Markdown paragraph model's text
 
@@ -5055,6 +4264,8 @@ The paragraph text string
 
 ### markdownTitle
 
+`markdownTitle(markdown)`
+
 Get a Markdown model's title
 
 #### Arguments
@@ -5070,6 +4281,8 @@ The title string or null
 
 ### markdownValidate
 
+`markdownValidate(markdown)`
+
 Validate a Markdown model
 
 #### Arguments
@@ -5084,6 +4297,8 @@ The validated [Markdown model](model.html#var.vName='Markdown')
 ---
 
 ### markdownValidateEx
+
+`markdownValidateEx(markdown)`
 
 Validate a Markdown model with programmatic error reporting
 
@@ -5102,34 +4317,23 @@ On failure, an object with the "error" key set to the validation error message a
 
 ## markdownElements.bare
 
-The "markdownElements.bare" include library provides functions for converting a parsed
+The "markdownElements.bare" include library converts a
 [Markdown model](model.html#var.vName='Markdown') into an
-[element model](https://github.com/craigahobbs/element-model#readme) for rendering.
-
-To render Markdown content as HTML elements, first parse the Markdown text with
-[markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), then generate the element model:
+[element model](https://github.com/craigahobbs/element-model#readme) for rendering:
 
 ```bare-script
-include <markdownParser.bare>
 include <markdownElements.bare>
+include <markdownParser.bare>
 
-markdown = markdownParse('# Hello, World!', '', 'This is a paragraph with **bold** text.')
-elements = markdownElements(markdown)
-elementModelRender(elements)
+elementModelRender(markdownElements(markdownParse('# Hello, World!', '', 'This is **bold** text.')))
 ```
 
-For applications that include asynchronous code block renderers, use the
-[markdownElementsAsync](#var.vGroup='markdownElements.bare'&markdownelementsasync) function instead.
-
-
-### Function Index
-
-- [markdownElements](#var.vPublish=true&var.vSingle=true&markdownelements)
-- [markdownElementsAsync](#var.vPublish=true&var.vSingle=true&markdownelementsasync)
 
 ---
 
 ### markdownElements
+
+`markdownElements(markdown, options = null)`
 
 Generate an element model from a Markdown model
 
@@ -5138,8 +4342,8 @@ Generate an element model from a Markdown model
 **markdown -**
 The [Markdown model](model.html#var.vName='Markdown')
 
-**options -**
-Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+**options** (optional, default `null`) **-**
+The [options object](model.html#var.vName='MarkdownElementsOptions')
 
 #### Returns
 
@@ -5148,6 +4352,8 @@ The Markdown's [element model](https://github.com/craigahobbs/element-model#read
 ---
 
 ### markdownElementsAsync
+
+`markdownElementsAsync(markdown, options = null)`
 
 **async** - The calling function must be declared with "async function"
 
@@ -5159,8 +4365,8 @@ Use this form of the function if you have one or more asynchronous code block fu
 **markdown -**
 The [Markdown model](model.html#var.vName='Markdown')
 
-**options -**
-Optional (default is null). The [options object](model.html#var.vName='MarkdownElementsOptions').
+**options** (optional, default `null`) **-**
+The [options object](model.html#var.vName='MarkdownElementsOptions')
 
 #### Returns
 
@@ -5170,9 +4376,11 @@ The Markdown's [element model](https://github.com/craigahobbs/element-model#read
 
 ## markdownParser.bare
 
-The "markdownParser.bare" include library provides functions for parsing Markdown text.
-
-To parse a Markdown string into a [Markdown model](model.html#var.vName='Markdown'):
+The "markdownParser.bare" include library parses Markdown text into a
+[Markdown model](model.html#var.vName='Markdown'). Render the model with the
+[markdownElements.bare](#var.vGroup='markdownElements.bare'&_top) include library, or render it
+back to Markdown text with the [markdownString.bare](#var.vGroup='markdownString.bare'&_top) include
+library.
 
 ```bare-script
 include <markdownParser.bare>
@@ -5180,40 +4388,12 @@ include <markdownParser.bare>
 markdown = markdownParse('# Hello, World!', '', 'This is a paragraph.')
 ```
 
-You can pass multiple strings or arrays of strings — they are joined as lines of Markdown text:
-
-```bare-script
-lines = ['## Section', '', '- Item 1', '- Item 2']
-markdown = markdownParse(lines)
-```
-
-The parsed model can be rendered using the
-[markdownElements](#var.vGroup='markdownElements.bare'&markdownelements) function:
-
-```bare-script
-include <markdownElements.bare>
-
-elements = markdownElements(markdown)
-elementModelRender(elements)
-```
-
-To determine the title of a parsed [Markdown model](model.html#var.vName='Markdown'), use the
-[markdownTitle](#var.vGroup='markdown.bare'&markdowntitle) function:
-
-```bare-script
-include <markdown.bare>
-
-title = markdownTitle(markdown)
-```
-
-
-### Function Index
-
-- [markdownParse](#var.vPublish=true&var.vSingle=true&markdownparse)
 
 ---
 
 ### markdownParse
+
+`markdownParse(lines...)`
 
 Parse Markdown text into a Markdown model
 
@@ -5231,18 +4411,9 @@ The [Markdown model](model.html#var.vName='Markdown')
 ## markdownString.bare
 
 The "markdownString.bare" include library renders a
-[Markdown model](model.html#var.vName='Markdown') back to Markdown text.
-
-```bare-script
-include <markdownParser.bare>
-include <markdownString.bare>
-
-markdown = markdownParse('#   Hello, World!', '', 'This is a', 'paragraph.')
-text = markdownToString(markdown)
-```
-
-Together with [markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), it works as a
-Markdown formatter — the rendered text is normalized, not source-preserving:
+[Markdown model](model.html#var.vName='Markdown') back to Markdown text. Together with
+[markdownParse](#var.vGroup='markdownParser.bare'&markdownparse), it works as a Markdown formatter.
+The rendered text is normalized, not source-preserving:
 
 - Paragraph text is re-wrapped to the wrap width
 - Setext headers are rendered as hash headers and indented code blocks are rendered fenced
@@ -5251,31 +4422,19 @@ Markdown formatter — the rendered text is normalized, not source-preserving:
 - Table cells are padded to the column width and alignment
 - Only the characters that require escaping are escaped
 
-The "wrapWidth" argument sets the text wrap width (100 by default). It is a target for paragraph
-text, not a hard maximum: links, images, and code spans are never split across lines, and fenced
-code is not wrapped. Pass zero to render each paragraph on a single line:
-
 ```bare-script
-text = markdownToString(markdown, 80)
-oneLine = markdownToString(markdown, 0)
+include <markdownParser.bare>
+include <markdownString.bare>
+
+text = markdownToString(markdownParse('#   Hello, World!', '', 'This is a', 'paragraph.'))
 ```
 
-The "refCount" argument generates link and image references for repeated URLs. It is the minimum
-number of occurrences of a URL for which a reference is rendered — zero (the default) renders every
-link and image inline. The reference definitions are added at the end of the Markdown text:
-
-```bare-script
-text = markdownToString(markdown, 100, 2)
-```
-
-
-### Function Index
-
-- [markdownToString](#var.vPublish=true&var.vSingle=true&markdowntostring)
 
 ---
 
 ### markdownToString
+
+`markdownToString(markdown, wrapWidth = 100, refCount = 0)`
 
 Render a [Markdown model](model.html#var.vName='Markdown') as Markdown text. The rendered text
 is normalized - text is re-wrapped, character styles are rendered with the "\*" and "\~"
@@ -5287,13 +4446,13 @@ escaped.
 **markdown -**
 The [Markdown model](model.html#var.vName='Markdown')
 
-**wrapWidth -**
-Optional (default is 100). The text wrap width. If zero or less, text is not wrapped.
+**wrapWidth** (optional, default `100`) **-**
+The text wrap width. If zero or less, text is not wrapped.
 This is a target for paragraph text, not a hard maximum - a word longer than the wrap
 width (a link, image, or code span) is kept intact, and fenced code is not wrapped.
 
-**refCount -**
-Optional (default is 0). The minimum number of occurrences of a link/image URL for which a
+**refCount** (optional, default `0`) **-**
+The minimum number of occurrences of a link/image URL for which a
 link/image reference is rendered. If zero or less, all links/images are rendered inline.
 
 #### Returns
@@ -5304,109 +4463,36 @@ The Markdown text
 
 ## markdownUp.bare
 
-`markdownUp.bare` contains implementations of the
-[MarkdownUp](https://github.com/craigahobbs/markdown-up#readme)
-runtime functions, which enables many MarkdownUp applications to run on plain
+`markdownUp.bare` implements the [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme)
+runtime functions - `markdownPrint`, `elementModelRender`, and the `document*`, `window*`, and
+`*Storage*` functions - so that many MarkdownUp applications run on plain
 [BareScript](https://github.com/craigahobbs/bare-script#readme).
 
 **Do not `include <markdownUp.bare>` from application code.** Two reasons:
 
 1. In the real [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme) browser runtime,
-   `markdownPrint`, `elementModelRender`, and the `document*` / `window*` / `*Storage*` functions
-   are built-in. Including this file would **overwrite those built-ins with the logging stubs**,
-   and the application would silently stop rendering.
+   these functions are built-in. Including this file would **overwrite those built-ins with the
+   logging stubs**, and the application would silently stop rendering.
 2. Under the `bare` CLI, the `-m` (Markdown text output) and `-l` (HTML output) flags prepend
    `include <markdownUp.bare>` for you, so an explicit include is redundant.
 
-Consider the following MarkdownUp application:
-
-**app.md**
-
-```markdown
-~~~markdown-script
-include 'app.bare'
-~~~
-```
-
-**app.bare:**
-
-```bare-script
-function appMain():
-    markdownPrint('# Hello!', '')
-    i = 0
-    while i < 10:
-        markdownPrint('- ' + (i + 1))
-        i = i + 1
-    endwhile
-endfunction
-
-appMain()
-```
-
-The application runs as expected within
-[MarkdownUp](https://github.com/craigahobbs/markdown-up#readme).
-However, when running in plain BareScript, the `markdownPrint` function is not defined, and the
-application fails:
-
-```sh
-$ bare app.bare
-app.bare:
-Undefined function "markdownPrint"
-```
-
-However, if we first include "markdownUp.bare" using the "-m" argument, the application works and
-outputs the generated Markdown to the terminal:
+To run a MarkdownUp application with the `bare` CLI, use the `-m` flag. Without it, the MarkdownUp
+runtime functions are undefined. For an "app.bare" that calls `markdownPrint('# Hello!')`:
 
 ```sh
 $ bare -m app.bare
 # Hello!
 
-- 1
-- 2
-- 3
-- 4
-- 5
-- 6
-- 7
-- 8
-- 9
-- 10
+$ bare app.bare
+app.bare:1: Undefined function "markdownPrint"
 ```
 
-
-### Function Index
-
-- [documentFontSize](#var.vPublish=true&var.vSingle=true&documentfontsize)
-- [documentInputValue](#var.vPublish=true&var.vSingle=true&documentinputvalue)
-- [documentSetFocus](#var.vPublish=true&var.vSingle=true&documentsetfocus)
-- [documentSetKeyDown](#var.vPublish=true&var.vSingle=true&documentsetkeydown)
-- [documentSetReset](#var.vPublish=true&var.vSingle=true&documentsetreset)
-- [documentSetTitle](#var.vPublish=true&var.vSingle=true&documentsettitle)
-- [documentURL](#var.vPublish=true&var.vSingle=true&documenturl)
-- [elementModelRender](#var.vPublish=true&var.vSingle=true&elementmodelrender)
-- [localStorageClear](#var.vPublish=true&var.vSingle=true&localstorageclear)
-- [localStorageGet](#var.vPublish=true&var.vSingle=true&localstorageget)
-- [localStorageRemove](#var.vPublish=true&var.vSingle=true&localstorageremove)
-- [localStorageSet](#var.vPublish=true&var.vSingle=true&localstorageset)
-- [markdownPrint](#var.vPublish=true&var.vSingle=true&markdownprint)
-- [sessionStorageClear](#var.vPublish=true&var.vSingle=true&sessionstorageclear)
-- [sessionStorageGet](#var.vPublish=true&var.vSingle=true&sessionstorageget)
-- [sessionStorageRemove](#var.vPublish=true&var.vSingle=true&sessionstorageremove)
-- [sessionStorageSet](#var.vPublish=true&var.vSingle=true&sessionstorageset)
-- [windowClipboardRead](#var.vPublish=true&var.vSingle=true&windowclipboardread)
-- [windowClipboardWrite](#var.vPublish=true&var.vSingle=true&windowclipboardwrite)
-- [windowHeight](#var.vPublish=true&var.vSingle=true&windowheight)
-- [windowKeyState](#var.vPublish=true&var.vSingle=true&windowkeystate)
-- [windowPlaySound](#var.vPublish=true&var.vSingle=true&windowplaysound)
-- [windowSetLocation](#var.vPublish=true&var.vSingle=true&windowsetlocation)
-- [windowSetResize](#var.vPublish=true&var.vSingle=true&windowsetresize)
-- [windowSetTimeout](#var.vPublish=true&var.vSingle=true&windowsettimeout)
-- [windowURLObject](#var.vPublish=true&var.vSingle=true&windowurlobject)
-- [windowWidth](#var.vPublish=true&var.vSingle=true&windowwidth)
 
 ---
 
 ### documentFontSize
+
+`documentFontSize()`
 
 Get the document font size
 
@@ -5421,6 +4507,8 @@ The document font size, in pixels
 ---
 
 ### documentInputValue
+
+`documentInputValue(id)`
 
 Get an input element's value
 
@@ -5437,6 +4525,8 @@ The input element value or null if the element does not exist
 
 ### documentSetFocus
 
+`documentSetFocus(id)`
+
 Set focus to an element
 
 #### Arguments
@@ -5451,6 +4541,8 @@ Nothing
 ---
 
 ### documentSetKeyDown
+
+`documentSetKeyDown(callback)`
 
 Set the document keydown event handler. For example:
 
@@ -5499,6 +4591,8 @@ Nothing
 
 ### documentSetReset
 
+`documentSetReset(id)`
+
 Set the document reset element
 
 #### Arguments
@@ -5513,6 +4607,8 @@ Nothing
 ---
 
 ### documentSetTitle
+
+`documentSetTitle(title)`
 
 Set the document title
 
@@ -5529,6 +4625,8 @@ Nothing
 
 ### documentURL
 
+`documentURL(url)`
+
 Fix-up relative URLs
 
 #### Arguments
@@ -5543,6 +4641,8 @@ The fixed-up URL
 ---
 
 ### elementModelRender
+
+`elementModelRender(element)`
 
 Render an [element model](https://github.com/craigahobbs/element-model#readme)
 
@@ -5566,6 +4666,8 @@ Nothing
 
 ### localStorageClear
 
+`localStorageClear()`
+
 Clear all keys from the browser's local storage
 
 #### Arguments
@@ -5579,6 +4681,8 @@ Nothing
 ---
 
 ### localStorageGet
+
+`localStorageGet(key)`
 
 Get a browser local storage key's value
 
@@ -5595,6 +4699,8 @@ The local storage value string or null if the key does not exist
 
 ### localStorageRemove
 
+`localStorageRemove(key)`
+
 Remove a browser local storage key
 
 #### Arguments
@@ -5609,6 +4715,8 @@ Nothing
 ---
 
 ### localStorageSet
+
+`localStorageSet(key, value)`
 
 Set a browser local storage key's value
 
@@ -5628,6 +4736,8 @@ Nothing
 
 ### markdownPrint
 
+`markdownPrint(lines...)`
+
 Render Markdown text
 
 #### Arguments
@@ -5643,6 +4753,8 @@ Nothing
 
 ### sessionStorageClear
 
+`sessionStorageClear()`
+
 Clear all keys from the browser's session storage
 
 #### Arguments
@@ -5656,6 +4768,8 @@ Nothing
 ---
 
 ### sessionStorageGet
+
+`sessionStorageGet(key)`
 
 Get a browser session storage key's value
 
@@ -5672,6 +4786,8 @@ The session storage value string or null if the key does not exist
 
 ### sessionStorageRemove
 
+`sessionStorageRemove(key)`
+
 Remove a browser session storage key
 
 #### Arguments
@@ -5686,6 +4802,8 @@ Nothing
 ---
 
 ### sessionStorageSet
+
+`sessionStorageSet(key, value)`
 
 Set a browser session storage key's value
 
@@ -5705,6 +4823,8 @@ Nothing
 
 ### windowClipboardRead
 
+`windowClipboardRead()`
+
 Read text from the clipboard
 
 #### Arguments
@@ -5719,6 +4839,8 @@ The clipboard text
 
 ### windowClipboardWrite
 
+`windowClipboardWrite(text, type = "text/plain")`
+
 Write text (or binary data) to the clipboard
 
 #### Arguments
@@ -5726,8 +4848,8 @@ Write text (or binary data) to the clipboard
 **text -**
 The text string or byte value array (integers 0 to 255) to write
 
-**type -**
-The clipboard content type (default is "text/plain"). Binary data needs its content type, e.g. "image/png".
+**type** (optional, default `"text/plain"`) **-**
+The clipboard content type. Binary data needs its content type, e.g. "image/png".
 
 #### Returns
 
@@ -5736,6 +4858,8 @@ Nothing
 ---
 
 ### windowHeight
+
+`windowHeight()`
 
 Get the browser window's height
 
@@ -5750,6 +4874,8 @@ The browser window's height
 ---
 
 ### windowKeyState
+
+`windowKeyState(key, ctrl = false, shift = false, alt = false, meta = false)`
 
 Test whether a key combination is currently held down. Unlike `documentSetKeyDown`, which
 fires a callback once per key press, this polls the live keyboard state and is intended for
@@ -5772,17 +4898,17 @@ The key is matched against the physical key code (e.g., "ArrowUp", "KeyW", "Spac
 **key -**
 The physical key code (e.g., "ArrowUp", "ArrowDown", "KeyA", "KeyW", "Space")
 
-**ctrl -**
-If true, the control key must be down; if false (the default), it must be up
+**ctrl** (optional, default `false`) **-**
+If true, the control key must be down; if false, it must be up
 
-**shift -**
-If true, the shift key must be down; if false (the default), it must be up
+**shift** (optional, default `false`) **-**
+If true, the shift key must be down; if false, it must be up
 
-**alt -**
-If true, the alt key must be down; if false (the default), it must be up
+**alt** (optional, default `false`) **-**
+If true, the alt key must be down; if false, it must be up
 
-**meta -**
-If true, the meta (command) key must be down; if false (the default), it must be up
+**meta** (optional, default `false`) **-**
+If true, the meta (command) key must be down; if false, it must be up
 
 #### Returns
 
@@ -5791,6 +4917,8 @@ true if the key is down and all modifier-key states match, false otherwise
 ---
 
 ### windowPlaySound
+
+`windowPlaySound(sound)`
 
 Play a generated sound effect. Unknown sounds are ignored. The sound name is one of:
 
@@ -5814,6 +4942,8 @@ Nothing
 
 ### windowSetLocation
 
+`windowSetLocation(url)`
+
 Navigate the browser window to a location URL
 
 #### Arguments
@@ -5829,6 +4959,8 @@ Nothing
 
 ### windowSetResize
 
+`windowSetResize(callback)`
+
 Set the browser window resize event handler
 
 #### Arguments
@@ -5843,6 +4975,8 @@ Nothing
 ---
 
 ### windowSetTimeout
+
+`windowSetTimeout(callback, delay)`
 
 Set the browser window timeout event handler
 
@@ -5862,6 +4996,8 @@ Nothing
 
 ### windowURLObject
 
+`windowURLObject(data, contentType = "text/plain")`
+
 Create an object URL (i.e. a file download URL)
 
 #### Arguments
@@ -5869,8 +5005,8 @@ Create an object URL (i.e. a file download URL)
 **data -**
 The object data string or byte value array
 
-**contentType -**
-Optional (default is "text/plain"). The object content type.
+**contentType** (optional, default `"text/plain"`) **-**
+The object content type
 
 #### Returns
 
@@ -5879,6 +5015,8 @@ The object URL string
 ---
 
 ### windowWidth
+
+`windowWidth()`
 
 Get the browser window's width
 
@@ -5895,10 +5033,11 @@ The browser window's width
 ## pager.bare
 
 The "pager.bare" include library is a simple, configurable, paged MarkdownUp application. The pager
-renders a menu of links to your pages and navigation links (start, next, previous). The pager
-supports three page types: function pages, Markdown pages, and external links.
+renders a menu of links to your pages and navigation links (start, next, previous). It supports
+three page types: function pages, Markdown pages, and external links.
 
-You execute the pager by defining a [pager model] and calling the [pagerMain] function.
+Run the pager by defining a [pager model] and calling the [pagerMain] function. Its options hide the
+menu or navigation links, set the start page, and add your own URL arguments.
 
 ```bare-script
 include <pager.bare>
@@ -5909,64 +5048,24 @@ endfunction
 
 pagerModel = { \
     'pages': [ \
-        {'name': 'Function Page', 'type': {'function': { \
-            'function': funcPage, 'title': 'The Function Page'}}}, \
-        {'name': 'Markdown Page', 'type': {'markdown': { \
-            'url': 'README.md'}}}, \
-        {'name': 'Link Page', 'type': {'link': { \
-            'url': 'external.html'}}} \
+        {'name': 'Function Page', 'type': {'function': {'function': funcPage, 'title': 'The Function Page'}}}, \
+        {'name': 'Markdown Page', 'type': {'markdown': {'url': 'README.md'}}}, \
+        {'name': 'Link Page', 'type': {'link': {'url': 'external.html'}}} \
     ] \
 }
 pagerMain(pagerModel)
 ```
 
-By default, the pager application defines a single URL argument, "page", to track the currently
-selected page. You can pass the "arguments" option with a custom [arguments model] if you need
-additional URL arguments for your application. Note that you must define a string argument named
-"page".
 
-```bare-script
-arguments = [ \
-    {'name': 'page', 'default': 'Function Page'}, \
-    {'name': 'value', 'type': 'float', 'default': 0} \
-]
-pagerMain(pagerModel, {'arguments': arguments})
-```
-
-You can hide the navigation links using the "hideNav" option.
-
-```bare-script
-pagerMain(pagerModel, {'hideNav': true})
-```
-
-You can hide the menu links using the "hideMenu" option.
-
-```bare-script
-pagerMain(pagerModel, {'hideMenu': true})
-```
-
-The default page is the first non-hidden page. To show a different page by default, use the "start"
-option. If you provide the "arguments" option, be sure to set the "page" argument's default to be
-the same as the "start" option.
-
-```bare-script
-pagerMain(pagerModel, {'start': 'Markdown Page'})
-```
-
-
-[arguments model]: model.html#var.vName='ArgsArguments'
 [pager model]: model.html#var.vName='Pager'
 [pagerMain]: #var.vGroup='pager.bare'&pagermain
 
 
-### Function Index
-
-- [pagerMain](#var.vPublish=true&var.vSingle=true&pagermain)
-- [pagerValidate](#var.vPublish=true&var.vSingle=true&pagervalidate)
-
 ---
 
 ### pagerMain
+
+`pagerMain(pagerModel, options)`
 
 **async** - The calling function must be declared with "async function"
 
@@ -5995,6 +5094,8 @@ Nothing
 
 ### pagerValidate
 
+`pagerValidate(pagerModel)`
+
 Validate a pager model
 
 #### Arguments
@@ -6010,9 +5111,9 @@ The validated [pager model](model.html#var.vName='Pager') or null if validation 
 
 ## qrcode.bare
 
-The "qrcode.bare" include library provides functions for drawing QR codes.
-
-To draw a QR code:
+The "qrcode.bare" include library draws QR codes with the
+[draw.bare](#var.vGroup='draw.bare'&_top) include library. See the
+[live QR code generator demo](https://craigahobbs.github.io/qrcode/) for an interactive example.
 
 ```bare-script
 include <draw.bare>
@@ -6023,21 +5124,12 @@ qrcodeDraw('https://craigahobbs.github.io/qrcode/', 0, 0, 300)
 drawRender()
 ```
 
-The library supports four error correction levels: `'low'`, `'medium'`, `'quartile'`, and `'high'`.
-Higher error correction levels can store less data but are more robust against damage.
-
-See the [live QR code generator demo](https://craigahobbs.github.io/qrcode/) for an interactive example.
-
-
-### Function Index
-
-- [qrcodeDraw](#var.vPublish=true&var.vSingle=true&qrcodedraw)
-- [qrcodeElements](#var.vPublish=true&var.vSingle=true&qrcodeelements)
-- [qrcodeMatrix](#var.vPublish=true&var.vSingle=true&qrcodematrix)
 
 ---
 
 ### qrcodeDraw
+
+`qrcodeDraw(message, x, y, size, level = 'low')`
 
 Draw a QR code at the specified position and size
 
@@ -6055,8 +5147,8 @@ The Y-coordinate, in pixels, of the top of the QR code
 **size -**
 The size of the QR code, in pixels
 
-**level -**
-Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+**level** (optional, default `'low'`) **-**
+The error correction level: 'low', 'medium', 'quartile', or 'high'
 
 #### Returns
 
@@ -6065,6 +5157,8 @@ Nothing
 ---
 
 ### qrcodeElements
+
+`qrcodeElements(message, size, level = 'low')`
 
 Generate the element model for a QR code
 
@@ -6076,8 +5170,8 @@ The QR code message or the QR code matrix
 **size -**
 The size of the QR code, in pixels
 
-**level -**
-Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+**level** (optional, default `'low'`) **-**
+The error correction level: 'low', 'medium', 'quartile', or 'high'
 
 #### Returns
 
@@ -6087,6 +5181,8 @@ The QR code SVG [element model](https://github.com/craigahobbs/element-model#rea
 
 ### qrcodeMatrix
 
+`qrcodeMatrix(message, level = 'low')`
+
 Generate a QR code pixel matrix
 
 #### Arguments
@@ -6094,8 +5190,8 @@ Generate a QR code pixel matrix
 **message -**
 The QR code message
 
-**level -**
-Optional (default is 'low'). The error correction level: 'low', 'medium', 'quartile', or 'high'.
+**level** (optional, default `'low'`) **-**
+The error correction level: 'low', 'medium', 'quartile', or 'high'
 
 #### Returns
 
@@ -6105,11 +5201,11 @@ The QR code pixel matrix
 
 ## schema.bare
 
-The "schema.bare" include library provides functions for validating values using
-[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type models.
-Schema Markdown is a human-readable schema definition language.
-
-Validate a value against a schema type:
+The "schema.bare" include library validates values using
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) type models. Schema
+Markdown is a human-readable schema definition language - parse it into a type model with the
+[schemaParser.bare](#var.vGroup='schemaParser.bare'&_top) include library. Validation checks types,
+required members, and value and length constraints, and converts strings to their member types.
 
 ```bare-script
 include <schema.bare>
@@ -6121,51 +5217,15 @@ types = schemaParse( \
     '    int age', \
     '    optional string email' \
 )
-
-person = {'name': 'Alice', 'age': 30}
-validated = schemaValidate(types, 'Person', person)
-if validated != null:
-    # Validation succeeded
-    markdownPrint('Valid person: ' + objectGet(validated, 'name'))
-endif
+person = schemaValidate(types, 'Person', {'name': 'Alice', 'age': 30})
 ```
 
-The [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function returns null if validation
-fails and logs the validation error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-For programmatic access to validation errors, use the
-[schemaValidateEx](#var.vGroup='schema.bare'&schemavalidateex) function:
-
-```bare-script
-result = schemaValidateEx(types, 'Person', {'name': 'Alice'})
-if objectHas(result, 'error'):
-    markdownPrint('Error: ' + objectGet(result, 'error'))
-    markdownPrint('Member: ' + objectGet(result, 'memberFqn'))
-else:
-    person = objectGet(result, 'result')
-endif
-```
-
-Schema validation provides:
-
-- Type checking and string coercion (strings, integers, floats, booleans, dates, etc.)
-- Required vs. optional member validation
-- Array and object structure validation
-- Enumeration value validation
-- Value and length constraints
-- Detailed error messages
-
-
-### Function Index
-
-- [schemaGetEnumValues](#var.vPublish=true&var.vSingle=true&schemagetenumvalues)
-- [schemaGetReferencedTypes](#var.vPublish=true&var.vSingle=true&schemagetreferencedtypes)
-- [schemaGetStructMembers](#var.vPublish=true&var.vSingle=true&schemagetstructmembers)
-- [schemaValidate](#var.vPublish=true&var.vSingle=true&schemavalidate)
-- [schemaValidateEx](#var.vPublish=true&var.vSingle=true&schemavalidateex)
 
 ---
 
 ### schemaGetEnumValues
+
+`schemaGetEnumValues(types, enum)`
 
 Get an enum's values (inherited values first)
 
@@ -6185,6 +5245,8 @@ The array of [enum value models](https://craigahobbs.github.io/bare-script/model
 
 ### schemaGetReferencedTypes
 
+`schemaGetReferencedTypes(types, typeName, referencedTypes = null)`
+
 Get a user type's referenced [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
 #### Arguments
@@ -6195,8 +5257,8 @@ The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Typ
 **typeName -**
 The type name
 
-**referencedTypes -**
-Optional. A map of referenced user type name to user type model to update.
+**referencedTypes** (optional) **-**
+A map of referenced user type name to user type model to update
 
 #### Returns
 
@@ -6205,6 +5267,8 @@ The referenced [type model](https://craigahobbs.github.io/bare-script/model/#var
 ---
 
 ### schemaGetStructMembers
+
+`schemaGetStructMembers(types, struct)`
 
 Get a struct's members (inherited members first)
 
@@ -6224,6 +5288,8 @@ The array of [struct member models](https://craigahobbs.github.io/bare-script/mo
 
 ### schemaValidate
 
+`schemaValidate(types, typeName, value, memberFqn = null)`
+
 Validate a value using a schema [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='').
 Container values are duplicated since some member types are transformed during validation.
 
@@ -6238,8 +5304,8 @@ The type name
 **value -**
 The value to validate
 
-**memberFqn -**
-Optional (default is null). The fully-qualified member name (for error messages).
+**memberFqn** (optional, default `null`) **-**
+The fully-qualified member name (for error messages)
 
 #### Returns
 
@@ -6248,6 +5314,8 @@ The validated, transformed value, or null if validation fails
 ---
 
 ### schemaValidateEx
+
+`schemaValidateEx(types, typeName, value, memberFqn = null)`
 
 Validate a value using a schema [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 with programmatic error reporting. Container values are duplicated since some member types are
@@ -6264,8 +5332,8 @@ The type name
 **value -**
 The value to validate
 
-**memberFqn -**
-Optional (default is null). The fully-qualified member name (for error messages).
+**memberFqn** (optional, default `null`) **-**
+The fully-qualified member name (for error messages)
 
 #### Returns
 
@@ -6277,35 +5345,25 @@ On failure, an object with the "error" key set to the validation error message a
 
 ## schemaDoc.bare
 
-The "schemaDoc.bare" include library provides functions for generating documentation for
-[schemas](#var.vGroup='schema.bare'&_top). It's particularly useful for defining and documenting options
-objects, file formats, and APIs.
-
-Execute the schema documentation application for a Schema Markdown (`.smd`) file:
+The "schemaDoc.bare" include library generates documentation for
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) schemas - useful for
+documenting options objects, file formats, and APIs. Run the documentation application for a Schema
+Markdown file, or generate the Markdown documentation for a single type:
 
 ```bare-script
 include <schemaDoc.bare>
 
 schemaDocMain('my-schema.smd', 'My Schema Documentation')
+
+markdownPrint(schemaDocMarkdown(types, 'MyStruct'))
 ```
 
-Generate Markdown documentation for a specific type:
-
-```bare-script
-types = schemaParse('struct MyStruct', '    string name')
-markdownLines = schemaDocMarkdown(types, 'MyStruct')
-markdownPrint(markdownLines)
-```
-
-
-### Function Index
-
-- [schemaDocMain](#var.vPublish=true&var.vSingle=true&schemadocmain)
-- [schemaDocMarkdown](#var.vPublish=true&var.vSingle=true&schemadocmarkdown)
 
 ---
 
 ### schemaDocMain
+
+`schemaDocMain(url = null, title = null, hideNoGroup = false)`
 
 **async** - The calling function must be declared with "async function"
 
@@ -6313,14 +5371,14 @@ The Schema Markdown documentation viewer main entry point
 
 #### Arguments
 
-**url -**
-Optional (default is null). The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
+**url** (optional, default `null`) **-**
+The Schema Markdown text or JSON resource URL. If null, the Schema Markdown type model is displayed.
 
-**title -**
-Optional (default is null). The schema title. If null, the URL is used as the title.
+**title** (optional, default `null`) **-**
+The schema title. If null, the URL is used as the title.
 
-**hideNoGroup -**
-Optional (default is false). If true, hide types with no group.
+**hideNoGroup** (optional, default `false`) **-**
+If true, hide types with no group
 
 #### Returns
 
@@ -6329,6 +5387,8 @@ Nothing
 ---
 
 ### schemaDocMarkdown
+
+`schemaDocMarkdown(types, typeName, options = null)`
 
 Generate the Schema Markdown user type documentation as an array of Markdown text lines
 
@@ -6340,8 +5400,8 @@ The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Typ
 **typeName -**
 The type name
 
-**options -**
-Optional (default is null). The options object with optional members:
+**options** (optional, default `null`) **-**
+The options object with optional members:
 - **actionURLs** - The [action URLs](https://craigahobbs.github.io/bare-script/model/#var.vName='ActionURL'&var.vURL='') override
 - **actionCustom** - If true, the action has a custom response (default is false)
 - **headerPrefix** - The top-level header prefix string (default is "#")
@@ -6355,59 +5415,29 @@ The array of Markdown text lines
 
 ## schemaParser.bare
 
-The "schemaParser.bare" include library provides functions for parsing
-[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text into
-[type models](model.html#var.vName='Types'&var.vURL='').
-
-Parse Schema Markdown text:
+The "schemaParser.bare" include library parses
+[Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text into a
+[type model](model.html#var.vName='Types'&var.vURL='') for validating values with the
+[schema.bare](#var.vGroup='schema.bare'&_top) include library.
 
 ```bare-script
 include <schemaParser.bare>
 
 types = schemaParse( \
-    '# A person information struct', \
+    '# A person', \
     'struct Person', \
     '', \
     "    # The person's name", \
-    '    string name', \
-    '', \
-    "    # The person's age", \
-    '    int age' \
+    '    string name' \
 )
 ```
 
-The [schemaParse](#var.vGroup='schemaParser.bare'&schemaparse) function returns null if parsing
-fails and logs the parse errors in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-For programmatic access to parse errors, use the
-[schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function:
-
-```bare-script
-result = schemaParseEx('struct Person', null, 'person.smd')
-if objectHas(result, 'errors'):
-    for error in objectGet(result, 'errors'):
-        markdownPrint('', 'Error: ' + markdownEscape(error))
-    endfor
-else:
-    types = objectGet(result, 'result')
-endif
-```
-
-The [schemaParseEx](#var.vGroup='schemaParser.bare'&schemaparseex) function can also accumulate
-multiple schemas into a single [type model](model.html#var.vName='Types'&var.vURL='') by passing the types
-argument.
-
-Use the [schemaValidate](#var.vGroup='schema.bare'&schemavalidate) function to validate a value
-using the parsed type model.
-
-
-### Function Index
-
-- [schemaParse](#var.vPublish=true&var.vSingle=true&schemaparse)
-- [schemaParseEx](#var.vPublish=true&var.vSingle=true&schemaparseex)
 
 ---
 
 ### schemaParse
+
+`schemaParse(lines...)`
 
 Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
 
@@ -6426,6 +5456,8 @@ or null if parsing fails
 
 ### schemaParseEx
 
+`schemaParseEx(lines, types = null, filename = "", validate = true)`
+
 Parse the [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
 with options and programmatic error reporting
 
@@ -6435,14 +5467,14 @@ with options and programmatic error reporting
 The [Schema Markdown](https://craigahobbs.github.io/schema-markdown-js/language/) text
 string, or an array of strings (may contain nested arrays of un-split lines)
 
-**types -**
-Optional. The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to update.
+**types** (optional) **-**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='') to update
 
-**filename -**
-Optional (default is ""). The file name (for error messages).
+**filename** (optional, default `""`) **-**
+The file name (for error messages)
 
-**validate -**
-Optional (default is true). If true, validate the type model after parsing.
+**validate** (optional, default `true`) **-**
+If true, validate the type model after parsing
 
 #### Returns
 
@@ -6455,53 +5487,22 @@ On failure, an object with the "errors" key set to the array of error message st
 ## schemaTypeModel.bare
 
 The "schemaTypeModel.bare" include library provides the
-[Schema Markdown Type Model](model.html#var.vName='Types'&var.vURL='') and type model validation functions.
-
-Get the Schema Markdown type model:
+[Schema Markdown type model](model.html#var.vName='Types'&var.vURL='') - the model of type models -
+and type model validation functions. Validate a type model you did not parse yourself, such as one
+loaded from JSON:
 
 ```bare-script
 include <schemaTypeModel.bare>
 
-typeModel = schemaTypeModel()
+types = schemaTypeModelValidate(jsonParse(systemFetch('model.json')))
 ```
 
-Validate a user type model (for example, one loaded from a JSON resource):
-
-```bare-script
-typesJSON = jsonParse(systemFetch('model.json'))
-types = schemaTypeModelValidate(typesJSON)
-if types == null:
-    markdownPrint('Invalid type model!')
-endif
-```
-
-The [schemaTypeModelValidate](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidate) function
-returns null if validation fails and logs the validation errors in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode). For programmatic access to
-validation errors, use the
-[schemaTypeModelValidateEx](#var.vGroup='schemaTypeModel.bare'&schematypemodelvalidateex) function:
-
-```bare-script
-result = schemaTypeModelValidateEx(typesJSON)
-if objectHas(result, 'errors'):
-    for error in objectGet(result, 'errors'):
-        markdownPrint('', 'Error: ' + markdownEscape(error))
-    endfor
-else:
-    types = objectGet(result, 'result')
-endif
-```
-
-
-### Function Index
-
-- [schemaTypeModel](#var.vPublish=true&var.vSingle=true&schematypemodel)
-- [schemaTypeModelValidate](#var.vPublish=true&var.vSingle=true&schematypemodelvalidate)
-- [schemaTypeModelValidateEx](#var.vPublish=true&var.vSingle=true&schematypemodelvalidateex)
 
 ---
 
 ### schemaTypeModel
+
+`schemaTypeModel()`
 
 Get the [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
@@ -6516,6 +5517,8 @@ The [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model
 ---
 
 ### schemaTypeModelValidate
+
+`schemaTypeModelValidate(types)`
 
 Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 
@@ -6532,6 +5535,8 @@ or null if validation fails
 ---
 
 ### schemaTypeModelValidateEx
+
+`schemaTypeModelValidateEx(types)`
 
 Validate a [Schema Markdown Type Model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
 with programmatic error reporting
@@ -6551,57 +5556,28 @@ On failure, an object with the "errors" key set to the array of error message st
 
 ## tar.bare
 
-The "tar.bare" include library provides functions for creating and extracting tar archives. The
-archive and each file's content are byte value arrays - ordinary arrays of integers 0 to 255, the
-same representation the [stringEncode](#var.vGroup='string'&stringencode) and
-[stringDecode](#var.vGroup='string'&stringdecode) functions use.
-
-To create a tar archive from an array of file objects, each with a "name" (the file path), "bytes"
-(the file content as a byte value array or a string, as UTF-8), and an optional "mtime" (the
-modification datetime; the default is the Unix epoch):
-
-```bare-script
-include <tar.bare>
-
-tarBytes = tarCreate([ \
-    {'name': 'README.md', 'bytes': '# My Project\n'}, \
-    {'name': 'data/values.bin', 'bytes': [0, 128, 255]} \
-])
-```
-
-To extract an archive's regular files:
-
-```bare-script
-files = tarExtract(tarBytes)
-# [{'name': 'README.md', 'bytes': [35, 32, ...], 'mtime': <datetime>}, {'name': 'data/values.bin', ...}]
-```
-
-The [tarExtract](#var.vGroup='tar.bare'&tarextract) function reads USTAR, GNU, and PAX archives,
-skipping directory and link entries. It returns null on invalid data and logs the error in
-[debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-
-Combine with the [gzip.bare](#var.vGroup='gzip.bare') include library to create or read
-".tar.gz" files. In MarkdownUp, the
-[windowURLObject](#var.vGroup='markdownUp.bare'&windowurlobject) function creates a download
-URL for the archive bytes:
+The "tar.bare" include library creates and extracts tar archives, as byte value arrays (arrays of
+integers 0 to 255). Combine it with the [gzip.bare](#var.vGroup='gzip.bare'&_top) include library
+for ".tar.gz" files. In MarkdownUp, [windowURLObject](#var.vGroup='markdownUp.bare'&windowurlobject)
+creates a download URL for the archive:
 
 ```bare-script
 include <gzip.bare>
 include <tar.bare>
 
-tarGzBytes = gzipCompress(tarCreate(files))
+tarGzBytes = gzipCompress(tarCreate([ \
+    {'name': 'README.md', 'bytes': '# My Project\n'}, \
+    {'name': 'data/values.bin', 'bytes': [0, 128, 255]} \
+]))
 downloadURL = windowURLObject(tarGzBytes, 'application/gzip')
 ```
 
 
-### Function Index
-
-- [tarCreate](#var.vPublish=true&var.vSingle=true&tarcreate)
-- [tarExtract](#var.vPublish=true&var.vSingle=true&tarextract)
-
 ---
 
 ### tarCreate
+
+`tarCreate(files)`
 
 Create a tar archive (USTAR format) from an array of regular files. Each file has mode 644,
 and no directory entries are written.
@@ -6621,6 +5597,8 @@ The tar archive byte value array, or null if creation fails
 ---
 
 ### tarExtract
+
+`tarExtract(bytes)`
 
 Extract the regular files of a tar archive (USTAR, GNU, or PAX format). Directory, link,
 and other entries are skipped.
@@ -6650,10 +5628,8 @@ layout is as follows:
     `-- testCode1.bare
 ```
 
-**runTests.md**
-
-The "runTests.md" file is a Markdown document that includes (and executes) the "runTests.bare" unit
-test application.
+**runTests.md** is a Markdown document that runs the unit test application in
+[MarkdownUp](https://github.com/craigahobbs/markdown-up#readme):
 
 ```markdown
 ~~~markdown-script
@@ -6661,35 +5637,24 @@ include 'runTests.bare'
 ~~~
 ```
 
-**runTests.bare**
-
-The "runTests.bare" is the unit test application. It first includes the "unittest.bare" include
-library and then includes (and executes) the unit test include files. There can be any number of
-test include files. It then renders the unit test report using the [unittestReport](#var.vGroup='unittest.bare'&unittestreport)
-function and returns the number of unit test failures.
+**runTests.bare** is the unit test application. It includes the test files, any number of them,
+within coverage start and stop calls, then renders the test report with
+[unittestReport](#var.vGroup='unittest.bare'&unittestreport), returning the number of failures:
 
 ```bare-script
 include <unittest.bare>
 
-# Start coverage
 unittestCoverageStart()
-
-# Test includes
 include 'testCode1.bare'
-
-# Stop coverage
 unittestCoverageStop()
 
-# Test report
 return unittestReport({'coverageMin': 100})
 ```
 
-**testCode1.bare**
-
-The test include files contain unit tests for each code include. The test include files execute
-tests using the [unittestRunTest](#var.vGroup='unittest.bare'&unittestruntest) function. Individual tests assert success and
-failure using the [unittestEqual](#var.vGroup='unittest.bare'&unittestequal) and [unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal)
-functions.
+**testCode1.bare** contains the unit tests for "code1.bare". Each test is a function, run with
+[unittestRunTest](#var.vGroup='unittest.bare'&unittestruntest), that asserts with
+[unittestEqual](#var.vGroup='unittest.bare'&unittestequal) and
+[unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal):
 
 ```bare-script
 include <unittest.bare>
@@ -6701,39 +5666,25 @@ endfunction
 unittestRunTest('testCode1SumNumbers')
 
 function testCode1SumNumberArrays():
-    unittestDeepEqual( \
-        sumNumberArrays([1, 2, 3], [4, 5, 6]), \
-        [6, 15] \
-    )
+    unittestDeepEqual(sumNumberArrays([1, 2, 3], [4, 5, 6]), [6, 15])
 endfunction
 unittestRunTest('testCode1SumNumberArrays')
 ```
 
-## Running Unit Tests on the Command Line
-
-Unit tests may be run on the command line using the
+To run the unit tests on the command line, use the
 [BareScript CLI](https://github.com/craigahobbs/bare-script#the-barescript-command-line-interface-cli)
-and its `-m` argument.
+with the `-m` argument. The command exits with an error status if any test fails:
 
 ```
 bare -m test/runTests.bare
 ```
 
-The "runTests.bare" application returns an error status if there are any failures.
-
-
-### Function Index
-
-- [unittestCoverageStart](#var.vPublish=true&var.vSingle=true&unittestcoveragestart)
-- [unittestCoverageStop](#var.vPublish=true&var.vSingle=true&unittestcoveragestop)
-- [unittestDeepEqual](#var.vPublish=true&var.vSingle=true&unittestdeepequal)
-- [unittestEqual](#var.vPublish=true&var.vSingle=true&unittestequal)
-- [unittestReport](#var.vPublish=true&var.vSingle=true&unittestreport)
-- [unittestRunTest](#var.vPublish=true&var.vSingle=true&unittestruntest)
 
 ---
 
 ### unittestCoverageStart
+
+`unittestCoverageStart()`
 
 Start coverage data collection
 
@@ -6749,6 +5700,8 @@ Nothing
 
 ### unittestCoverageStop
 
+`unittestCoverageStop()`
+
 Stop coverage data collection
 
 #### Arguments
@@ -6762,6 +5715,8 @@ Nothing
 ---
 
 ### unittestDeepEqual
+
+`unittestDeepEqual(actual, expected, description)`
 
 Assert an actual value is *deeply* equal to the expected value
 
@@ -6784,6 +5739,8 @@ Nothing
 
 ### unittestEqual
 
+`unittestEqual(actual, expected, description)`
+
 Assert an actual value is equal to the expected value
 
 #### Arguments
@@ -6805,12 +5762,14 @@ Nothing
 
 ### unittestReport
 
+`unittestReport(options = null)`
+
 Render the unit test report
 
 #### Arguments
 
-**options -**
-Optional (default is null). The unittest report options object. The following options are available:
+**options** (optional, default `null`) **-**
+The unittest report options object. The following options are available:
 - **coverageExclude** - array of script names to exclude from coverage
 - **coverageMin** - verify minimum coverage percent (0 - 100)
 - **links** - the array of page links
@@ -6823,6 +5782,8 @@ The number of unit test failures
 ---
 
 ### unittestRunTest
+
+`unittestRunTest(testName)`
 
 **async** - The calling function must be declared with "async function"
 
@@ -6841,8 +5802,10 @@ Nothing
 
 ## unittestMock.bare
 
-The "unittestMock.bare" include library contains functions for mocking functions for unit testing.
-Consider the following MarkdownUp application:
+The "unittestMock.bare" include library mocks functions for unit testing. Consider the following
+MarkdownUp application, whose
+[documentSetTitle](#var.vGroup='markdownUp.bare'&documentsettitle) and
+[markdownPrint](#var.vGroup='markdownUp.bare'&markdownprint) calls have external side effects:
 
 **app.bare**
 
@@ -6859,36 +5822,12 @@ function appMain(count):
 endfunction
 ```
 
-The
-[documentSetTitle](#var.vGroup='markdownUp.bare'&documentsettitle)
-function and the
-[markdownPrint](#var.vGroup='markdownUp.bare'&markdownprint)
-function have external side-effects that will interfere with running our unit tests.
-
-To test this code, first call the [unittestMockAll](#var.vGroup='unittestMock.bare'&unittestmockall) function at the beginning of
-your test function to mock all
-[BareScript library](https://craigahobbs.github.io/bare-script/library/)
-functions. At the end of the test function, we stop mocking by calling the
-[unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function and check the mocked function calls using the
-[unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal) function.
-
-**runTests.bare**
-
-```bare-script
-include <unittest.bare>
-include <unittestMock.bare>
-
-# Start coverage
-unittestCoverageStart()
-
-# Test includes
-include 'testApp.bare'
-
-# Stop coverage
-unittestCoverageStop()
-
-return unittestReport({'coverageMin': 100})
-```
+To test it, call [unittestMockAll](#var.vGroup='unittestMock.bare'&unittestmockall) at the start
+of the test function to mock all library functions with externalities. At the end of the test, stop
+mocking with [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend), which returns the
+mocked function calls, and check them with
+[unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal). The test file is run by the
+[unit test application](#var.vGroup='unittest.bare'&_top), as usual.
 
 **testApp.bare**
 
@@ -6908,9 +5847,9 @@ function testApp():
         [ \
             ['documentSetTitle', ['My Application']], \
             ['markdownPrint', ['# My Application']], \
-            ['markdownPrint', ['','- 0']], \
-            ['markdownPrint', ['','- 1']], \
-            ['markdownPrint', ['','- 2']] \
+            ['markdownPrint', ['', '- 0']], \
+            ['markdownPrint', ['', '- 1']], \
+            ['markdownPrint', ['', '- 2']] \
         ] \
     )
 endfunction
@@ -6918,24 +5857,36 @@ unittestRunTest('testApp')
 ```
 
 
-### Function Index
-
-- [unittestMockAll](#var.vPublish=true&var.vSingle=true&unittestmockall)
-- [unittestMockEnd](#var.vPublish=true&var.vSingle=true&unittestmockend)
-- [unittestMockOne](#var.vPublish=true&var.vSingle=true&unittestmockone)
-- [unittestMockOneGeneric](#var.vPublish=true&var.vSingle=true&unittestmockonegeneric)
-
 ---
 
 ### unittestMockAll
 
+`unittestMockAll(data = null)`
+
 Start mocking all BareScript and MarkdownUp library functions with externalities.
 To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function.
+Mock data sets the return values of the mocked functions. For example:
+
+```bare-script
+include <unittest.bare>
+include <unittestMock.bare>
+
+function greeting():
+    return 'Hello, ' + documentInputValue('name')
+endfunction
+
+function testGreeting():
+    unittestMockAll({'documentInputValue': {'name': 'Alice'}})
+    unittestEqual(greeting(), 'Hello, Alice')
+    unittestDeepEqual(unittestMockEnd(), [['documentInputValue', ['name']]])
+endfunction
+unittestRunTest('testGreeting')
+```
 
 #### Arguments
 
-**data -**
-Optional (default is null). The map of function name to mock function data.
+**data** (optional, default `null`) **-**
+The map of function name to mock function data.
 The following functions make use of mock data:
 - **documentInputValue** - map of id to return value
 - **systemFetch** - map of URL to response text (or byte value array, for a binary request)
@@ -6947,6 +5898,8 @@ Nothing
 ---
 
 ### unittestMockEnd
+
+`unittestMockEnd()`
 
 Stop all function mocks
 
@@ -6961,6 +5914,8 @@ The array of mock function call tuples of the form (function name, function argu
 ---
 
 ### unittestMockOne
+
+`unittestMockOne(funcName, mockFunc)`
 
 Start a function mock.
 To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function.
@@ -6981,6 +5936,8 @@ Nothing
 
 ### unittestMockOneGeneric
 
+`unittestMockOneGeneric(funcName)`
+
 Start a generic function mock.
 To stop mocking, call the [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function.
 
@@ -6997,10 +5954,9 @@ Nothing
 
 ## url.bare
 
-The "url.bare" include library provides functions for encoding and decoding URLs, URL components,
-and URL query strings.
-
-Encode an object as a query string:
+The "url.bare" include library percent-encodes and decodes URLs and URL components, and encodes and
+decodes query strings. Query string encoding recurses objects and arrays, expressing each member
+key in fully-qualified form:
 
 ```bare-script
 include <url.bare>
@@ -7009,45 +5965,12 @@ queryString = urlEncodeQueryString({'name': 'Alice', 'scores': [90, 85]})
 # name=Alice&scores.0=90&scores.1=85
 ```
 
-Objects and arrays are recursed, with each member key expressed in fully-qualified form. Decode a
-query string back into an object:
-
-```bare-script
-args = urlDecodeQueryString('name=Alice&scores.0=90&scores.1=85')
-# {'name': 'Alice', 'scores': ['90', '85']}
-```
-
-All decoded leaf values are strings. The
-[urlDecodeQueryString](#var.vGroup='url.bare'&urldecodequerystring) function returns null on
-invalid input (invalid key/value pairs, out-of-order array indices, or duplicate keys) and logs
-the error in [debug mode](https://craigahobbs.github.io/markdown-up/#debug-mode).
-
-To percent-encode a URL or URL component, use the
-[urlEncode](#var.vGroup='url.bare'&urlencode) and
-[urlEncodeComponent](#var.vGroup='url.bare'&urlencodecomponent) functions. To decode a
-percent-encoded string component, use the
-[urlDecodeComponent](#var.vGroup='url.bare'&urldecodecomponent) function:
-
-```bare-script
-encoded = urlEncodeComponent('100% great')
-# 100%25%20great
-
-decoded = urlDecodeComponent('100%25%20great')
-# 100% great
-```
-
-
-### Function Index
-
-- [urlDecodeComponent](#var.vPublish=true&var.vSingle=true&urldecodecomponent)
-- [urlDecodeQueryString](#var.vPublish=true&var.vSingle=true&urldecodequerystring)
-- [urlEncode](#var.vPublish=true&var.vSingle=true&urlencode)
-- [urlEncodeComponent](#var.vPublish=true&var.vSingle=true&urlencodecomponent)
-- [urlEncodeQueryString](#var.vPublish=true&var.vSingle=true&urlencodequerystring)
 
 ---
 
 ### urlDecodeComponent
+
+`urlDecodeComponent(string)`
 
 Decode a percent-encoded string component. The plus character is not decoded to a space character.
 
@@ -7064,6 +5987,8 @@ The decoded string, or null if decoding fails
 
 ### urlDecodeQueryString
 
+`urlDecodeQueryString(queryString)`
+
 Decode an object from a query string. Each member key of the query string is expressed in
 fully-qualified form. Array keys are the index into the array, and must be in order.
 
@@ -7074,11 +5999,13 @@ The query string
 
 #### Returns
 
-The decoded object, or null if decoding fails
+The decoded object, or null if decoding fails. All decoded leaf values are strings.
 
 ---
 
 ### urlEncode
+
+`urlEncode(url)`
 
 Encode a URL. Letters, digits, and the characters ";,/?:@&=+$-_.!~*'#" are not
 percent-encoded. Parentheses are percent-encoded (for Markdown links).
@@ -7096,6 +6023,8 @@ The encoded URL string
 
 ### urlEncodeComponent
 
+`urlEncodeComponent(url)`
+
 Encode a URL component. Letters, digits, and the characters "-_.!~*'" are not
 percent-encoded. Parentheses are percent-encoded (for Markdown links).
 
@@ -7111,6 +6040,8 @@ The encoded URL component string
 ---
 
 ### urlEncodeQueryString
+
+`urlEncodeQueryString(obj)`
 
 Encode an object as a query string. Objects and arrays are recursed. Each member key is
 expressed in fully-qualified form. Array keys are the index into the array, and are in order.

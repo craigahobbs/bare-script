@@ -14,7 +14,7 @@
                 {
                     "name": "barescript",
                     "content": "builtin/barescript.md",
-                    "description": "Parse and evaluate BareScript expressions"
+                    "description": "Evaluate BareScript expression models"
                 },
                 {
                     "name": "datetime",
@@ -125,7 +125,7 @@
                 {
                     "name": "elementModel.bare",
                     "content": "include/elementModel-bare.md",
-                    "description": "Render element model to the browser or HTML and SVG"
+                    "description": "Validate element models and render them as HTML or SVG text"
                 },
                 {
                     "name": "forms.bare",
@@ -160,7 +160,7 @@
                 {
                     "name": "markdownUp.bare",
                     "content": "include/markdownUp-bare.md",
-                    "description": "Stub implementations of the MarkdownUp runtime functions"
+                    "description": "The MarkdownUp runtime functions, with stub implementations for the bare CLI"
                 },
                 {
                     "name": "pager.bare",
@@ -210,7 +210,7 @@
                 {
                     "name": "url.bare",
                     "content": "include/url-bare.md",
-                    "description": "Encode and decode URL query strings"
+                    "description": "Encode and decode URLs, URL components, and query strings"
                 }
             ]
         }

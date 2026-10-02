@@ -1,63 +1,20 @@
-The "data.bare" include library contains functions for manipulating and analyzing data arrays. A
-data array is an array of objects where each object represents a row:
+The "data.bare" include library manipulates and analyzes data arrays. A **data array** is an array
+of objects, one per row, with a value for each field:
 
 ```bare-script
+include <data.bare>
+
 data = [ \
     {'name': 'Alice', 'age': 30, 'city': 'New York'}, \
     {'name': 'Bob', 'age': 25, 'city': 'Boston'}, \
     {'name': 'Charlie', 'age': 35, 'city': 'New York'} \
 ]
+newYork = dataFilter(data, 'age > 25 && city == "New York"')
 ```
 
-You can filter data using expressions:
-
-```bare-script
-include <data.bare>
-
-# Filter for people over 25 in New York
-filtered = dataFilter(data, 'age > 25 && city == "New York"')
-```
-
-Sort data by one or more fields:
-
-```bare-script
-# Sort by city ascending, then age descending
-sorted = dataSort(data, [['city', false], ['age', true]])
-```
-
-Add calculated fields to your data:
-
-```bare-script
-# Add a field that combines name and city
-dataCalculatedField(data, 'location', 'name + ", " + city')
-```
-
-Aggregate data to compute summaries:
-
-```bare-script
-aggregation = { \
-    'categories': ['city'], \
-    'measures': [ \
-        {'field': 'age', 'function': 'average', 'name': 'avgAge'}, \
-        {'field': 'city', 'function': 'count', 'name': 'count'} \
-    ] \
-}
-summary = dataAggregate(data, aggregation)
-```
-
-Join two data arrays:
-
-```bare-script
-cities = [ \
-    {'city': 'New York', 'state': 'NY'}, \
-    {'city': 'Boston', 'state': 'MA'} \
-]
-joined = dataJoin(data, cities, 'city')
-```
-
-Parse CSV text into a data array:
-
-```bare-script
-csv = 'name,age,city\nAlice,30,New York\nBob,25,Boston'
-data = dataParseCSV(csv)
-```
+The filter and calculated-field functions take
+[BareScript expressions](https://craigahobbs.github.io/bare-script/language/#expressions), evaluated
+for each row with the row's fields as variables and the
+[expression library](expression.html) functions available. Data arrays are rendered by the
+[dataTable.bare](#var.vGroup='dataTable.bare'&_top) and
+[dataLineChart.bare](#var.vGroup='dataLineChart.bare'&_top) include libraries.

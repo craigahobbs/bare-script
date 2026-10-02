@@ -28,13 +28,11 @@ Each expression function is a short alias of a builtin library function. See
 
 Create arrays
 
-### Function Index
-
-- [arrayNew](#var.vPublish=true&var.vSingle=true&arraynew)
-
 ---
 
 ### arrayNew
+
+`arrayNew(values...)`
 
 Create a new array
 
@@ -53,21 +51,13 @@ The new array
 
 Create and query date/time values
 
-### Function Index
-
-- [date](#var.vPublish=true&var.vSingle=true&date)
-- [day](#var.vPublish=true&var.vSingle=true&day)
-- [hour](#var.vPublish=true&var.vSingle=true&hour)
-- [minute](#var.vPublish=true&var.vSingle=true&minute)
-- [month](#var.vPublish=true&var.vSingle=true&month)
-- [now](#var.vPublish=true&var.vSingle=true&now)
-- [second](#var.vPublish=true&var.vSingle=true&second)
-- [today](#var.vPublish=true&var.vSingle=true&today)
-- [year](#var.vPublish=true&var.vSingle=true&year)
-
 ---
 
 ### date
+
+`date(year, month, day, hour = 0, minute = 0, second = 0, millisecond = 0)`
+
+Alias of the `datetimeNew` builtin function.
 
 Create a new datetime
 
@@ -82,17 +72,17 @@ The month (1-12)
 **day -**
 The day of the month
 
-**hour -**
-Optional (default is 0). The hour (0-23).
+**hour** (optional, default `0`) **-**
+The hour (0-23)
 
-**minute -**
-Optional (default is 0). The minute.
+**minute** (optional, default `0`) **-**
+The minute
 
-**second -**
-Optional (default is 0). The second.
+**second** (optional, default `0`) **-**
+The second
 
-**millisecond -**
-Optional (default is 0). The millisecond.
+**millisecond** (optional, default `0`) **-**
+The millisecond
 
 #### Returns
 
@@ -101,6 +91,10 @@ The new datetime
 ---
 
 ### day
+
+`day(datetime)`
+
+Alias of the `datetimeDay` builtin function.
 
 Get the day of the month of a datetime
 
@@ -117,6 +111,10 @@ The day of the month
 
 ### hour
 
+`hour(datetime)`
+
+Alias of the `datetimeHour` builtin function.
+
 Get the hour of a datetime
 
 #### Arguments
@@ -130,7 +128,30 @@ The hour
 
 ---
 
+### millisecond
+
+`millisecond(datetime)`
+
+Alias of the `datetimeMillisecond` builtin function.
+
+Get the millisecond of a datetime
+
+#### Arguments
+
+**datetime -**
+The datetime
+
+#### Returns
+
+The millisecond
+
+---
+
 ### minute
+
+`minute(datetime)`
+
+Alias of the `datetimeMinute` builtin function.
 
 Get the minute of a datetime
 
@@ -147,6 +168,10 @@ The minute
 
 ### month
 
+`month(datetime)`
+
+Alias of the `datetimeMonth` builtin function.
+
 Get the month (1-12) of a datetime
 
 #### Arguments
@@ -162,6 +187,10 @@ The month
 
 ### now
 
+`now()`
+
+Alias of the `datetimeNow` builtin function.
+
 Get the current datetime
 
 #### Arguments
@@ -175,6 +204,10 @@ The current datetime
 ---
 
 ### second
+
+`second(datetime)`
+
+Alias of the `datetimeSecond` builtin function.
 
 Get the second of a datetime
 
@@ -191,7 +224,11 @@ The second
 
 ### today
 
-Get today's datetime
+`today()`
+
+Alias of the `datetimeToday` builtin function.
+
+Get today's date - the current datetime at midnight, local time
 
 #### Arguments
 
@@ -204,6 +241,10 @@ Today's datetime
 ---
 
 ### year
+
+`year(datetime)`
+
+Alias of the `datetimeYear` builtin function.
 
 Get the full year of a datetime
 
@@ -222,31 +263,13 @@ The full year
 
 Mathematical operations and constants
 
-### Function Index
-
-- [abs](#var.vPublish=true&var.vSingle=true&abs)
-- [acos](#var.vPublish=true&var.vSingle=true&acos)
-- [asin](#var.vPublish=true&var.vSingle=true&asin)
-- [atan](#var.vPublish=true&var.vSingle=true&atan)
-- [atan2](#var.vPublish=true&var.vSingle=true&atan2)
-- [ceil](#var.vPublish=true&var.vSingle=true&ceil)
-- [cos](#var.vPublish=true&var.vSingle=true&cos)
-- [floor](#var.vPublish=true&var.vSingle=true&floor)
-- [ln](#var.vPublish=true&var.vSingle=true&ln)
-- [log](#var.vPublish=true&var.vSingle=true&log)
-- [max](#var.vPublish=true&var.vSingle=true&max)
-- [min](#var.vPublish=true&var.vSingle=true&min)
-- [pi](#var.vPublish=true&var.vSingle=true&pi)
-- [rand](#var.vPublish=true&var.vSingle=true&rand)
-- [round](#var.vPublish=true&var.vSingle=true&round)
-- [sign](#var.vPublish=true&var.vSingle=true&sign)
-- [sin](#var.vPublish=true&var.vSingle=true&sin)
-- [sqrt](#var.vPublish=true&var.vSingle=true&sqrt)
-- [tan](#var.vPublish=true&var.vSingle=true&tan)
-
 ---
 
 ### abs
+
+`abs(x)`
+
+Alias of the `mathAbs` builtin function.
 
 Compute the absolute value of a number
 
@@ -263,6 +286,10 @@ The absolute value of the number
 
 ### acos
 
+`acos(x)`
+
+Alias of the `mathAcos` builtin function.
+
 Compute the arccosine, in radians, of a number
 
 #### Arguments
@@ -277,6 +304,10 @@ The arccosine, in radians, of the number
 ---
 
 ### asin
+
+`asin(x)`
+
+Alias of the `mathAsin` builtin function.
 
 Compute the arcsine, in radians, of a number
 
@@ -293,6 +324,10 @@ The arcsine, in radians, of the number
 
 ### atan
 
+`atan(x)`
+
+Alias of the `mathAtan` builtin function.
+
 Compute the arctangent, in radians, of a number
 
 #### Arguments
@@ -307,6 +342,10 @@ The arctangent, in radians, of the number
 ---
 
 ### atan2
+
+`atan2(y, x)`
+
+Alias of the `mathAtan2` builtin function.
 
 Compute the angle, in radians, between (0, 0) and a point
 
@@ -326,6 +365,10 @@ The angle, in radians
 
 ### ceil
 
+`ceil(x)`
+
+Alias of the `mathCeil` builtin function.
+
 Compute the ceiling of a number (round up to the next highest integer)
 
 #### Arguments
@@ -340,6 +383,10 @@ The ceiling of the number
 ---
 
 ### cos
+
+`cos(x)`
+
+Alias of the `mathCos` builtin function.
 
 Compute the cosine of an angle, in radians
 
@@ -356,6 +403,10 @@ The cosine of the angle
 
 ### floor
 
+`floor(x)`
+
+Alias of the `mathFloor` builtin function.
+
 Compute the floor of a number (round down to the next lowest integer)
 
 #### Arguments
@@ -370,6 +421,10 @@ The floor of the number
 ---
 
 ### ln
+
+`ln(x)`
+
+Alias of the `mathLn` builtin function.
 
 Compute the natural logarithm (base e) of a number
 
@@ -386,6 +441,10 @@ The natural logarithm of the number
 
 ### log
 
+`log(x, base = 10)`
+
+Alias of the `mathLog` builtin function.
+
 Compute the logarithm of a number
 
 #### Arguments
@@ -393,8 +452,8 @@ Compute the logarithm of a number
 **x -**
 The number, greater than 0
 
-**base -**
-Optional (default is 10). The logarithm base, greater than 0 and not 1.
+**base** (optional, default `10`) **-**
+The logarithm base, greater than 0 and not 1
 
 #### Returns
 
@@ -403,6 +462,10 @@ The logarithm of the number
 ---
 
 ### max
+
+`max(values...)`
+
+Alias of the `mathMax` builtin function.
 
 Compute the maximum value
 
@@ -419,6 +482,10 @@ The maximum value
 
 ### min
 
+`min(values...)`
+
+Alias of the `mathMin` builtin function.
+
 Compute the minimum value
 
 #### Arguments
@@ -434,6 +501,10 @@ The minimum value
 
 ### pi
 
+`pi()`
+
+Alias of the `mathPi` builtin function.
+
 Return the number pi
 
 #### Arguments
@@ -447,6 +518,10 @@ The number pi
 ---
 
 ### rand
+
+`rand()`
+
+Alias of the `mathRandom` builtin function.
 
 Compute a random number between 0 and 1, inclusive
 
@@ -462,6 +537,10 @@ A random number
 
 ### round
 
+`round(x, digits = 0)`
+
+Alias of the `mathRound` builtin function.
+
 Round a number to a certain number of decimal places
 
 #### Arguments
@@ -469,8 +548,8 @@ Round a number to a certain number of decimal places
 **x -**
 The number
 
-**digits -**
-Optional (default is 0). The number of decimal digits to round to.
+**digits** (optional, default `0`) **-**
+The number of decimal digits to round to
 
 #### Returns
 
@@ -479,6 +558,10 @@ The rounded number
 ---
 
 ### sign
+
+`sign(x)`
+
+Alias of the `mathSign` builtin function.
 
 Compute the sign of a number
 
@@ -495,6 +578,10 @@ The number
 
 ### sin
 
+`sin(x)`
+
+Alias of the `mathSin` builtin function.
+
 Compute the sine of an angle, in radians
 
 #### Arguments
@@ -510,6 +597,10 @@ The sine of the angle
 
 ### sqrt
 
+`sqrt(x)`
+
+Alias of the `mathSqrt` builtin function.
+
 Compute the square root of a number
 
 #### Arguments
@@ -524,6 +615,10 @@ The square root of the number
 ---
 
 ### tan
+
+`tan(x)`
+
+Alias of the `mathTan` builtin function.
 
 Compute the tangent of an angle, in radians
 
@@ -542,15 +637,13 @@ The tangent of the angle
 
 Parse and format numbers
 
-### Function Index
-
-- [fixed](#var.vPublish=true&var.vSingle=true&fixed)
-- [parseFloat](#var.vPublish=true&var.vSingle=true&parsefloat)
-- [parseInt](#var.vPublish=true&var.vSingle=true&parseint)
-
 ---
 
 ### fixed
+
+`fixed(x, digits = 2, trim = false)`
+
+Alias of the `numberToFixed` builtin function.
 
 Format a number using fixed-point notation
 
@@ -559,11 +652,11 @@ Format a number using fixed-point notation
 **x -**
 The number
 
-**digits -**
-Optional (default is 2). The number of digits to appear after the decimal point.
+**digits** (optional, default `2`) **-**
+The number of digits to appear after the decimal point
 
-**trim -**
-Optional (default is false). If true, trim trailing zeroes and decimal point.
+**trim** (optional, default `false`) **-**
+If true, trim trailing zeroes and decimal point
 
 #### Returns
 
@@ -572,6 +665,10 @@ The fixed-point notation string
 ---
 
 ### parseFloat
+
+`parseFloat(string)`
+
+Alias of the `numberParseFloat` builtin function.
 
 Parse a string as a floating point number
 
@@ -588,6 +685,10 @@ The number
 
 ### parseInt
 
+`parseInt(string, radix = 10)`
+
+Alias of the `numberParseInt` builtin function.
+
 Parse a string as an integer
 
 #### Arguments
@@ -595,8 +696,8 @@ Parse a string as an integer
 **string -**
 The string
 
-**radix -**
-Optional (default is 10). The number base.
+**radix** (optional, default `10`) **-**
+The number base
 
 #### Returns
 
@@ -608,13 +709,11 @@ The integer
 
 Create objects
 
-### Function Index
-
-- [objectNew](#var.vPublish=true&var.vSingle=true&objectnew)
-
 ---
 
 ### objectNew
+
+`objectNew(keyValues...)`
 
 Create a new object
 
@@ -633,26 +732,13 @@ The new object
 
 Search, slice, and transform strings
 
-### Function Index
-
-- [charCodeAt](#var.vPublish=true&var.vSingle=true&charcodeat)
-- [endsWith](#var.vPublish=true&var.vSingle=true&endswith)
-- [fromCharCode](#var.vPublish=true&var.vSingle=true&fromcharcode)
-- [indexOf](#var.vPublish=true&var.vSingle=true&indexof)
-- [lastIndexOf](#var.vPublish=true&var.vSingle=true&lastindexof)
-- [len](#var.vPublish=true&var.vSingle=true&len)
-- [lower](#var.vPublish=true&var.vSingle=true&lower)
-- [replace](#var.vPublish=true&var.vSingle=true&replace)
-- [rept](#var.vPublish=true&var.vSingle=true&rept)
-- [slice](#var.vPublish=true&var.vSingle=true&slice)
-- [startsWith](#var.vPublish=true&var.vSingle=true&startswith)
-- [text](#var.vPublish=true&var.vSingle=true&text)
-- [trim](#var.vPublish=true&var.vSingle=true&trim)
-- [upper](#var.vPublish=true&var.vSingle=true&upper)
-
 ---
 
 ### charCodeAt
+
+`charCodeAt(string, index)`
+
+Alias of the `stringCharCodeAt` builtin function.
 
 Get a string index's character code
 
@@ -672,6 +758,10 @@ The character code
 
 ### endsWith
 
+`endsWith(string, search)`
+
+Alias of the `stringEndsWith` builtin function.
+
 Determine if a string ends with a search string
 
 #### Arguments
@@ -690,6 +780,10 @@ true if the string ends with the search string, false otherwise
 
 ### fromCharCode
 
+`fromCharCode(charCodes...)`
+
+Alias of the `stringFromCharCode` builtin function.
+
 Create a string of characters from character codes
 
 #### Arguments
@@ -705,6 +799,10 @@ The string of characters
 
 ### indexOf
 
+`indexOf(string, search, index = 0)`
+
+Alias of the `stringIndexOf` builtin function.
+
 Find the first index of a search string in a string
 
 #### Arguments
@@ -715,8 +813,8 @@ The string
 **search -**
 The search string
 
-**index -**
-Optional (default is 0). The index at which to start the search.
+**index** (optional, default `0`) **-**
+The index at which to start the search
 
 #### Returns
 
@@ -725,6 +823,10 @@ The first index of the search string; -1 if not found
 ---
 
 ### lastIndexOf
+
+`lastIndexOf(string, search, index = null)`
+
+Alias of the `stringLastIndexOf` builtin function.
 
 Find the last index of a search string in a string
 
@@ -736,8 +838,8 @@ The string
 **search -**
 The search string
 
-**index -**
-Optional (default is the end of the string). The index at which to start the search.
+**index** (optional) **-**
+The index at which to start the search. The default is the end of the string.
 
 #### Returns
 
@@ -746,6 +848,10 @@ The last index of the search string; -1 if not found
 ---
 
 ### len
+
+`len(string)`
+
+Alias of the `stringLength` builtin function.
 
 Get the length of a string
 
@@ -762,6 +868,10 @@ The string's length; zero if not a string
 
 ### lower
 
+`lower(string)`
+
+Alias of the `stringLower` builtin function.
+
 Convert a string to lower-case
 
 #### Arguments
@@ -776,6 +886,10 @@ The lower-case string
 ---
 
 ### replace
+
+`replace(string, substr, newSubstr)`
+
+Alias of the `stringReplace` builtin function.
 
 Replace all instances of a string with another string. For example:
 
@@ -803,6 +917,10 @@ The updated string
 
 ### rept
 
+`rept(string, count)`
+
+Alias of the `stringRepeat` builtin function.
+
 Repeat a string
 
 #### Arguments
@@ -821,6 +939,10 @@ The repeated string
 
 ### slice
 
+`slice(string, start, end = null)`
+
+Alias of the `stringSlice` builtin function.
+
 Copy a portion of a string
 
 #### Arguments
@@ -831,8 +953,8 @@ The string
 **start -**
 The start index of the slice
 
-**end -**
-Optional (default is the end of the string). The end index of the slice.
+**end** (optional) **-**
+The end index of the slice. The default is the end of the string.
 
 #### Returns
 
@@ -841,6 +963,10 @@ The new string slice
 ---
 
 ### startsWith
+
+`startsWith(string, search)`
+
+Alias of the `stringStartsWith` builtin function.
 
 Determine if a string starts with a search string
 
@@ -860,6 +986,10 @@ true if the string starts with the search string, false otherwise
 
 ### text
 
+`text(value)`
+
+Alias of the `stringNew` builtin function.
+
 Create a new string from a value
 
 #### Arguments
@@ -875,6 +1005,10 @@ The new string
 
 ### trim
 
+`trim(string)`
+
+Alias of the `stringTrim` builtin function.
+
 Trim the whitespace from the beginning and end of a string
 
 #### Arguments
@@ -889,6 +1023,10 @@ The trimmed string
 ---
 
 ### upper
+
+`upper(string)`
+
+Alias of the `stringUpper` builtin function.
 
 Convert a string to upper-case
 

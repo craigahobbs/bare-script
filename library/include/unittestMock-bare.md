@@ -1,5 +1,7 @@
-The "unittestMock.bare" include library contains functions for mocking functions for unit testing.
-Consider the following MarkdownUp application:
+The "unittestMock.bare" include library mocks functions for unit testing. Consider the following
+MarkdownUp application, whose
+[documentSetTitle](#var.vGroup='markdownUp.bare'&documentsettitle) and
+[markdownPrint](#var.vGroup='markdownUp.bare'&markdownprint) calls have external side effects:
 
 **app.bare**
 
@@ -16,36 +18,12 @@ function appMain(count):
 endfunction
 ```
 
-The
-[documentSetTitle](#var.vGroup='markdownUp.bare'&documentsettitle)
-function and the
-[markdownPrint](#var.vGroup='markdownUp.bare'&markdownprint)
-function have external side-effects that will interfere with running our unit tests.
-
-To test this code, first call the [unittestMockAll](#var.vGroup='unittestMock.bare'&unittestmockall) function at the beginning of
-your test function to mock all
-[BareScript library](https://craigahobbs.github.io/bare-script/library/)
-functions. At the end of the test function, we stop mocking by calling the
-[unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend) function and check the mocked function calls using the
-[unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal) function.
-
-**runTests.bare**
-
-```bare-script
-include <unittest.bare>
-include <unittestMock.bare>
-
-# Start coverage
-unittestCoverageStart()
-
-# Test includes
-include 'testApp.bare'
-
-# Stop coverage
-unittestCoverageStop()
-
-return unittestReport({'coverageMin': 100})
-```
+To test it, call [unittestMockAll](#var.vGroup='unittestMock.bare'&unittestmockall) at the start
+of the test function to mock all library functions with externalities. At the end of the test, stop
+mocking with [unittestMockEnd](#var.vGroup='unittestMock.bare'&unittestmockend), which returns the
+mocked function calls, and check them with
+[unittestDeepEqual](#var.vGroup='unittest.bare'&unittestdeepequal). The test file is run by the
+[unit test application](#var.vGroup='unittest.bare'&_top), as usual.
 
 **testApp.bare**
 
@@ -65,9 +43,9 @@ function testApp():
         [ \
             ['documentSetTitle', ['My Application']], \
             ['markdownPrint', ['# My Application']], \
-            ['markdownPrint', ['','- 0']], \
-            ['markdownPrint', ['','- 1']], \
-            ['markdownPrint', ['','- 2']] \
+            ['markdownPrint', ['', '- 0']], \
+            ['markdownPrint', ['', '- 1']], \
+            ['markdownPrint', ['', '- 2']] \
         ] \
     )
 endfunction

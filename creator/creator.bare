@@ -98,11 +98,11 @@ endfunction
 # Render the landing page - the introduction, the project types, how it works, and the generation history.
 # If "confirmClear" is true, the history's clear control asks for confirmation.
 function creatorRenderLanding(error, confirmClear):
-    documentSetTitle('BareScript Creator')
+    documentSetTitle('The BareScript Creator')
     markdownPrint( \
-        '# BareScript Creator', \
+        '# The BareScript Creator', \
         '', \
-        'BareScript Creator generates a [BareScript](https://craigahobbs.github.io/bare-script/) project from your ' + \
+        'The BareScript Creator generates a [BareScript](https://craigahobbs.github.io/bare-script/) project from your ' + \
         'specification. Choose a project type, fill in its form, and download the project archive. Its Makefile has ' + \
         '[Claude Code](https://claude.com/product/claude-code#featureTerminal) write the code.' \
     )
@@ -436,6 +436,6 @@ function creatorRenderProject(type, project, url, output):
     markdownPrint( \
         '', \
         'Claude Code asks you to trust the project directory when it starts; exit the session when it finishes. ' + \
-        'See [BareScript Creator](' + argsURL(creatorArguments, {'type': null}) + ') for details.' \
+        'See [The BareScript Creator](' + argsURL(creatorArguments, {'type': null}) + ') for details.' \
     )
 endfunction

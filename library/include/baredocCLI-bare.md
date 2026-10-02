@@ -1,39 +1,31 @@
 The "baredocCLI.bare" include library contains the baredoc command-line interface (CLI), baredocCLI.
-baredocCLI is used to generate a [library model JSON file](model.html#var.vName='BaredocLibrary')
-for consumption by the [baredoc application](#var.vGroup='baredoc.bare'&_top).
+baredocCLI generates a [library model JSON file](model.html#var.vName='BaredocLibrary') for the
+[baredoc application](#var.vGroup='baredoc.bare'&_top) from the documentation comments of its input
+files.
 
-To output the [library model JSON](model.html#var.vName='BaredocLibrary'), include and execute the
-`baredocCLIMain` function from the command line:
-
-```sh
-bare -m -v vFiles "'[\"test.bare\"]'" -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
-```
-
-The baredocCLI input files argument, "vFiles", is the string literal of the JSON-serialized input
-filename array. You can glob the input files argument as follows:
+Run baredocCLI with the `bare` CLI. The "vFiles" argument is the string literal of the JSON array of
+input file names, and the optional "vOutput" argument is the output file (the default is standard
+output). To glob the input files, build the JSON array with a script:
 
 ```sh
+bare -m -v vFiles "'[\"lib/myLib.bare\"]'" -v vOutput '"my-library.json"' \
+    -c 'include <baredocCLI.bare>' -c 'return baredocCLIMain()'
+
 bare -m \
-    -v 'vFiles' "'$(python3 -c 'import json; import sys; print(json.dumps(sys.argv[1:]))' src/bare_script/library.py src/bare_script/include/*.bare)'" \
-    -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
-```
-
-You can specify an output file by using the output argument, "vOutput":
-
-```sh
-bare -m -v vFiles "'[\"test.bare\"]'" -v vOutput '"test.json"' -c 'include <baredocCLI.bare>' -c 'baredocCLIMain()'
+    -v vFiles "'$(python3 -c 'import json, sys; print(json.dumps(sys.argv[1:]))' lib/*.bare)'" \
+    -c 'include <baredocCLI.bare>' -c 'return baredocCLIMain()'
 ```
 
 
-## baredoc Comment Syntax
-
-
-baredoc documentation comments begin with the "$" character, followed immediately by a keyword
-("function", "group", "doc", "arg", "return", "async", or "ignore"), followed by the ":"
-character, followed by the keyword value. The "function" keyword begins every library function
-definition. "$async: true" marks a function as asynchronous (the calling function must be declared
-with "async function"), and "$ignore: true" excludes a function from the documentation. For
-example:
+**baredoc Comment Syntax** - baredoc documentation comments begin with the "$" character, followed
+immediately by a keyword ("function", "group", "doc", "arg", "return", "async", or "ignore"),
+followed by the ":" character, followed by the keyword value. The "function" keyword begins every
+library function definition. The "arg" keyword is followed by the argument name - `[name]` for an
+optional argument, or `[name = value]` for an optional argument with a default value, a BareScript
+literal (a number, string, null, true, false, or an array or object literal of these) - and
+repeating an argument's keyword continues its documentation. "$async: true" marks a function as
+asynchronous (the calling function must be declared with "async function"), and "$ignore: true"
+excludes a function from the documentation. For example:
 
 ```bare-script
 # $function: myFunction
@@ -42,12 +34,12 @@ example:
 # $doc:
 # $doc: More on the function.
 # $arg arg1: The first argument
-# $arg arg2: The second argument.
+# $arg [arg2 = 'Hello']: The second argument.
 # $arg arg2:
 # $arg arg2: More on the second argument.
 # $return: The message
 function myFunction(arg1, arg2):
-    message = 'Hello'
+    message = if(arg2 != null, arg2, 'Hello')
     systemLog(message)
     return message
 endfunction
