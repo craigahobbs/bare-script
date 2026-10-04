@@ -74,6 +74,224 @@
     
 
     
+    <h4 class="name" id=".barescriptLintUnboundGlobals"><span class="type-signature">(static) </span>barescriptLintUnboundGlobals<span class="signature">(model, globals<span class="signature-attributes">opt, nullable</span>)</span><span class="type-signature"> &rarr; {Array.&lt;string>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Compute the unbound global variables of a BareScript script or expression model - the global
+variables and functions it uses that it does not define</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>model</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>The <a href="https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript'">BareScript model</a> or
+<a href="https://craigahobbs.github.io/bare-script/model/#var.vName='Expression'">expression model</a></p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>globals</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                    &lt;nullable><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    null
+                
+                </td>
+            
+
+            <td class="description last"><p>The bound global variables object (name to value), such as the host's built-in functions</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line83">line 83</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The sorted array of unbound global variable names</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;string></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id=".barescriptTypeModel"><span class="type-signature">(static) </span>barescriptTypeModel<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
@@ -126,7 +344,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line78">line 78</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line98">line 98</a>
     </li></ul></dd>
     
 
@@ -285,7 +503,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line90">line 90</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line110">line 110</a>
     </li></ul></dd>
     
 
@@ -456,7 +674,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line106">line 106</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line126">line 126</a>
     </li></ul></dd>
     
 
@@ -627,7 +845,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line126">line 126</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line146">line 146</a>
     </li></ul></dd>
     
 
@@ -789,7 +1007,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line137">line 137</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line157">line 157</a>
     </li></ul></dd>
     
 
@@ -971,7 +1189,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line154">line 154</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line174">line 174</a>
     </li></ul></dd>
     
 
@@ -1257,7 +1475,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line168">line 168</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line188">line 188</a>
     </li></ul></dd>
     
 
@@ -1508,7 +1726,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line181">line 181</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line201">line 201</a>
     </li></ul></dd>
     
 
@@ -1876,7 +2094,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line197">line 197</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line217">line 217</a>
     </li></ul></dd>
     
 
@@ -2127,7 +2345,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line268">line 268</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line288">line 288</a>
     </li></ul></dd>
     
 
@@ -2286,7 +2504,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line280">line 280</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line300">line 300</a>
     </li></ul></dd>
     
 
@@ -2460,7 +2678,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line208">line 208</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line228">line 228</a>
     </li></ul></dd>
     
 
@@ -2642,7 +2860,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line220">line 220</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line240">line 240</a>
     </li></ul></dd>
     
 
@@ -2858,7 +3076,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line301">line 301</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line321">line 321</a>
     </li></ul></dd>
     
 
@@ -3074,7 +3292,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line313">line 313</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line333">line 333</a>
     </li></ul></dd>
     
 
@@ -3233,7 +3451,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line325">line 325</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line345">line 345</a>
     </li></ul></dd>
     
 
@@ -3502,7 +3720,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line233">line 233</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line253">line 253</a>
     </li></ul></dd>
     
 
@@ -3718,7 +3936,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line246">line 246</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line266">line 266</a>
     </li></ul></dd>
     
 
@@ -3954,7 +4172,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line346">line 346</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line366">line 366</a>
     </li></ul></dd>
     
 
@@ -4128,7 +4346,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line358">line 358</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line378">line 378</a>
     </li></ul></dd>
     
 
@@ -4362,7 +4580,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line379">line 379</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line399">line 399</a>
     </li></ul></dd>
     
 
@@ -4521,7 +4739,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line390">line 390</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line410">line 410</a>
     </li></ul></dd>
     
 
@@ -4693,7 +4911,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line54">line 54</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -4887,7 +5105,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line472">line 472</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line492">line 492</a>
     </li></ul></dd>
     
 
@@ -5103,7 +5321,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line484">line 484</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line504">line 504</a>
     </li></ul></dd>
     
 
@@ -5262,7 +5480,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line406">line 406</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line426">line 426</a>
     </li></ul></dd>
     
 
@@ -5421,7 +5639,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line417">line 417</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line437">line 437</a>
     </li></ul></dd>
     
 
@@ -5580,7 +5798,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line428">line 428</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line448">line 448</a>
     </li></ul></dd>
     
 
@@ -5742,7 +5960,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line500">line 500</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line520">line 520</a>
     </li></ul></dd>
     
 
@@ -5901,7 +6119,7 @@ so setting a log function also enables debug logging for the stub function calls
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line439">line 439</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line459">line 459</a>
     </li></ul></dd>
     
 
@@ -6155,7 +6373,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line519">line 519</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line539">line 539</a>
     </li></ul></dd>
     
 
@@ -6314,7 +6532,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line451">line 451</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line471">line 471</a>
     </li></ul></dd>
     
 
@@ -6580,7 +6798,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line537">line 537</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line557">line 557</a>
     </li></ul></dd>
     
 
@@ -6796,7 +7014,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line549">line 549</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line569">line 569</a>
     </li></ul></dd>
     
 
@@ -7047,7 +7265,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line628">line 628</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line648">line 648</a>
     </li></ul></dd>
     
 
@@ -7229,7 +7447,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line566">line 566</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line586">line 586</a>
     </li></ul></dd>
     
 
@@ -7480,7 +7698,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line579">line 579</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line599">line 599</a>
     </li></ul></dd>
     
 
@@ -7662,7 +7880,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line591">line 591</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line611">line 611</a>
     </li></ul></dd>
     
 
@@ -7964,7 +8182,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line649">line 649</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line669">line 669</a>
     </li></ul></dd>
     
 
@@ -8086,7 +8304,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line668">line 668</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line688">line 688</a>
     </li></ul></dd>
     
 
@@ -8246,7 +8464,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line681">line 681</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line701">line 701</a>
     </li></ul></dd>
     
 
@@ -8544,7 +8762,7 @@ link/image reference is rendered. If zero or less, all links/images are rendered
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line606">line 606</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line626">line 626</a>
     </li></ul></dd>
     
 
@@ -8719,7 +8937,7 @@ entries are written.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line705">line 705</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line725">line 725</a>
     </li></ul></dd>
     
 
@@ -8878,7 +9096,7 @@ entries are written.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line717">line 717</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line737">line 737</a>
     </li></ul></dd>
     
 
@@ -9038,7 +9256,7 @@ members, or null if extraction fails</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line733">line 733</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line753">line 753</a>
     </li></ul></dd>
     
 
@@ -9197,7 +9415,7 @@ members, or null if extraction fails</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line744">line 744</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line764">line 764</a>
     </li></ul></dd>
     
 
@@ -9356,7 +9574,7 @@ members, or null if extraction fails</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line755">line 755</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line775">line 775</a>
     </li></ul></dd>
     
 
@@ -9515,7 +9733,7 @@ members, or null if extraction fails</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line766">line 766</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line786">line 786</a>
     </li></ul></dd>
     
 
@@ -9674,7 +9892,7 @@ members, or null if extraction fails</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="include.js.html">include.js</a>, <a href="include.js.html#line777">line 777</a>
+        <a href="include.js.html">include.js</a>, <a href="include.js.html#line797">line 797</a>
     </li></ul></dd>
     
 

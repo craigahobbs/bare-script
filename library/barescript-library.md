@@ -2513,7 +2513,8 @@ The array of errors
 The "barescriptLint.bare" include library statically analyzes
 [BareScript models](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') for
 common mistakes: unused variables, arguments, and labels; variables used before assignment; unknown
-global variables and labels; redefined functions and labels; and pointless statements.
+global variables and labels; redefined functions and labels; and pointless statements. It also
+computes a script's unbound global variables - the inputs its host must provide.
 
 ```bare-script
 include <barescriptLint.bare>
@@ -2548,6 +2549,39 @@ If provided along with globals, the async lint checks are performed.
 #### Returns
 
 The array of lint warning strings
+
+---
+
+### barescriptLintUnboundGlobals
+
+`barescriptLintUnboundGlobals(model, globals = null)`
+
+Compute the unbound global variables of a BareScript script or expression model - the global
+variables and functions it uses that it does not define. A global used before its first assignment
+is unbound, a function's arguments and assigned variables are local, and an included library's
+globals are unknown, so pass them in globals. For example:
+
+```bare-script
+include <barescriptLint.bare>
+include <barescriptParser.bare>
+
+script = barescriptParseScript('function double(n):\n    return n * 2\nendfunction\nreturn double(N)')
+unbound = barescriptLintUnboundGlobals(script)
+# unbound is ['N']
+```
+
+#### Arguments
+
+**model -**
+The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') or
+[expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+
+**globals** (optional, default `null`) **-**
+The bound global variables object (name to value), such as the host's built-in functions
+
+#### Returns
+
+The sorted array of unbound global variable names
 
 ---
 
