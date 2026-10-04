@@ -3,6 +3,7 @@
 
 include '../barescriptLint.bare'
 include '../barescriptModel.bare'
+include '../barescriptParser.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
 
@@ -806,3 +807,73 @@ function testBarescriptLintGlobalPointlessStatement():
     unittestDeepEqual(unittestMockEnd(), [])
 endfunction
 unittestRunTest('testBarescriptLintGlobalPointlessStatement')
+
+
+function testBarescriptLintUnboundGlobals():
+    unittestMockAll()
+    script = barescriptParseScript(arrayJoin([ \
+        '# Double a number', \
+        'function double(n):', \
+        '    return n * 2', \
+        'endfunction', \
+        '', \
+        "return N + ' times 2 is ' + double(N)" \
+    ], '\n'))
+    unittestDeepEqual(barescriptLintUnboundGlobals(script), ['N'])
+    unittestDeepEqual(barescriptLintUnboundGlobals(script, {'N': 10}), [])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptLintUnboundGlobals')
+
+
+function testBarescriptLintUnboundGlobalsExpression():
+    unittestMockAll()
+    expr = barescriptParseExpression('if(a > 0, b * mathMax(c, 1), null) + -d')
+    unittestDeepEqual(barescriptLintUnboundGlobals(expr), ['a', 'b', 'c', 'd', 'mathMax'])
+    unittestDeepEqual(barescriptLintUnboundGlobals(expr, {'mathMax': mathMax}), ['a', 'b', 'c', 'd'])
+    unittestDeepEqual(barescriptLintUnboundGlobals(barescriptParseExpression('true || false')), [])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptLintUnboundGlobalsExpression')
+
+
+function testBarescriptLintUnboundGlobalsAssignment():
+    unittestMockAll()
+    script = barescriptParseScript(arrayJoin([ \
+        'a = 1', \
+        'b = b + a', \
+        'while c < 10:', \
+        '    c = c + 1', \
+        'endwhile', \
+        'return d' \
+    ], '\n'))
+    unittestDeepEqual(barescriptLintUnboundGlobals(script), ['b', 'c', 'd'])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptLintUnboundGlobalsAssignment')
+
+
+function testBarescriptLintUnboundGlobalsFunction():
+    unittestMockAll()
+    script = barescriptParseScript(arrayJoin([ \
+        'x = before()', \
+        '', \
+        'function before():', \
+        '    return 1', \
+        'endfunction', \
+        '', \
+        'function testFn(a, b):', \
+        '    c = a + b + later + unknown', \
+        '    return testFn(c, after())', \
+        'endfunction', \
+        '', \
+        'function after():', \
+        '    return x', \
+        'endfunction', \
+        '', \
+        'later = testFn(1, 2)' \
+    ], '\n'))
+    unittestDeepEqual(barescriptLintUnboundGlobals(script), ['before', 'unknown'])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testBarescriptLintUnboundGlobalsFunction')

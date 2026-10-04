@@ -2,15 +2,18 @@
 // https://github.com/craigahobbs/bare-script/blob/main/LICENSE
 
 import {
-    barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, base64Decode, base64Encode, dataAggregate,
-    dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV, dataSort, dataTableElements,
-    dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString, elementModelValidate, gzipCompress, gzipUncompress,
-    includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape, markdownHeaderId, markdownParagraphText, markdownParse,
-    markdownTitle, markdownToString, markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues,
-    schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel, schemaTypeModelValidate, schemaValidate, tarCreate,
-    tarExtract, urlDecodeComponent, urlDecodeQueryString, urlEncode, urlEncodeComponent, urlEncodeQueryString
+    barescriptLintUnboundGlobals, barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, base64Decode,
+    base64Encode, dataAggregate, dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV,
+    dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString,
+    elementModelValidate, gzipCompress, gzipUncompress, includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape,
+    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownToString, markdownValidate, qrcodeElements,
+    qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse,
+    schemaTypeModel, schemaTypeModelValidate, schemaValidate, tarCreate, tarExtract, urlDecodeComponent, urlDecodeQueryString,
+    urlEncode, urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
+import {barescriptParseExpression, barescriptParseScript} from '../lib/runtime.js';
 import {strict as assert} from 'node:assert';
+import {scriptFunctions} from '../lib/library.js';
 import test from 'node:test';
 
 
@@ -35,6 +38,27 @@ test('includeSetLogFn', () => {
     } finally {
         includeSetLogFn(null);
     }
+});
+
+
+test('barescriptLint, barescriptLintUnboundGlobals', () => {
+    const script = barescriptParseScript(`\
+# Double a number
+function double(n):
+    return n * 2
+endfunction
+
+return N + ' times 2 is ' + double(N)
+`);
+    assert.deepEqual(barescriptLintUnboundGlobals(script), ['N']);
+    assert.deepEqual(barescriptLintUnboundGlobals(script, {'N': 10}), []);
+});
+
+
+test('barescriptLint, barescriptLintUnboundGlobals expression', () => {
+    const expr = barescriptParseExpression('a + mathMax(b, 1)');
+    assert.deepEqual(barescriptLintUnboundGlobals(expr), ['a', 'b', 'mathMax']);
+    assert.deepEqual(barescriptLintUnboundGlobals(expr, scriptFunctions), ['a', 'b']);
 });
 
 

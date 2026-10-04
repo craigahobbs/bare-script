@@ -227,6 +227,77 @@ function barescriptLintScript(script, globals, asyncFunctions):
 endfunction
 
 
+# $function: barescriptLintUnboundGlobals
+# $group: barescriptLint.bare
+# $doc: Compute the unbound global variables of a BareScript script or expression model - the global
+# $doc: variables and functions it uses that it does not define. A global used before its first assignment
+# $doc: is unbound, a function's arguments and assigned variables are local, and an included library's
+# $doc: globals are unknown, so pass them in globals. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: include <barescriptLint.bare>
+# $doc: include <barescriptParser.bare>
+# $doc:
+# $doc: script = barescriptParseScript('function double(n):\n    return n * 2\nendfunction\nreturn double(N)')
+# $doc: unbound = barescriptLintUnboundGlobals(script)
+# $doc: # unbound is ['N']
+# $doc: ```
+# $arg model: The [BareScript model](https://craigahobbs.github.io/bare-script/model/#var.vName='BareScript') or
+# $arg model: [expression model](https://craigahobbs.github.io/bare-script/model/#var.vName='Expression')
+# $arg [globals = null]: The bound global variables object (name to value), such as the host's built-in functions
+# $return: The sorted array of unbound global variable names
+function barescriptLintUnboundGlobals(model, globals):
+    # An expression model is linted as a single-statement script
+    statements = objectGet(model, 'statements', [{'expr': {'expr': model}}])
+
+    # Compute the global variable assignments and uses - a function definition is an assignment
+    varAssigns = {}
+    varUses = {}
+    barescriptLintGetVariableAssignmentsAndUses(statements, varAssigns, varUses)
+    fnGlobalUses = {}
+    for statement, ixStatement in statements:
+        statementFunction = objectGet(statement, 'function')
+        if statementFunction != null:
+            functionName = objectGet(statementFunction, 'name')
+            objectSet(varAssigns, functionName, mathMin(ixStatement, objectGet(varAssigns, functionName, ixStatement)))
+
+            # A function's variable use is global if it is neither an argument nor assigned in the function
+            fnVarAssigns = {}
+            fnVarUses = {}
+            args = objectGet(statementFunction, 'args', [])
+            barescriptLintGetVariableAssignmentsAndUses(objectGet(statementFunction, 'statements'), fnVarAssigns, fnVarUses)
+            for varName in objectKeys(fnVarUses):
+                if !objectHas(fnVarAssigns, varName) && arrayIndexOf(args, varName) == -1:
+                    objectSet(fnGlobalUses, varName, true)
+                endif
+            endfor
+        endif
+    endfor
+
+    # A global is unbound if it's used globally before its assignment, or used in a function and never assigned
+    unbound = {}
+    for varName in objectKeys(varUses):
+        if !objectHas(varAssigns, varName) || objectGet(varUses, varName) <= objectGet(varAssigns, varName):
+            objectSet(unbound, varName, true)
+        endif
+    endfor
+    for varName in objectKeys(fnGlobalUses):
+        if !objectHas(varAssigns, varName):
+            objectSet(unbound, varName, true)
+        endif
+    endfor
+
+    # Exclude the builtin and bound globals
+    unboundNames = []
+    for varName in arraySort(objectKeys(unbound)):
+        if !objectHas(barescriptLintBuiltinGlobals, varName) && (globals == null || !objectHas(globals, varName)):
+            arrayPush(unboundNames, varName)
+        endif
+    endfor
+    return unboundNames
+endfunction
+
+
 # Builtin global variable names
 barescriptLintBuiltinGlobals = {'false': true, 'if': true, 'null': true, 'true': true}
 
