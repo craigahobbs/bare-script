@@ -11,6 +11,7 @@ unittestCoverageStart()
 # Test includes
 include 'testCreator.bare'
 include 'testCreatorFrontend.bare'
+include 'testCreatorFullStack.bare'
 include 'testCreatorUtil.bare'
 
 # Stop coverage

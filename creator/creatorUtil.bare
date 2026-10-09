@@ -28,6 +28,20 @@ function creatorAppId(name):
 endfunction
 
 
+# Validate a project type's application name form value - returns an array of error messages
+function creatorValidateAppName(values):
+    errors = []
+    if !regexMatch(creatorAppIdRegex, creatorAppId(objectGet(values, 'name', ''))):
+        arrayPush(errors, 'The application name must start with a letter (e.g. "Fungus Simulator")')
+    endif
+    return errors
+endfunction
+
+
+# The application identifier regular expression - a lowercase letter followed by letters and digits
+creatorAppIdRegex = regexNew('^[a-z][A-Za-z0-9]*$')
+
+
 # Helper to join a file's lines with a trailing newline
 function creatorText(lines):
     return arrayJoin(lines, '\n') + '\n'
@@ -52,8 +66,10 @@ function creatorEscapeHTML(text):
 endfunction
 
 
-# Create a MarkdownUp page shell HTML file for the given Markdown URL
-function creatorFileIndex(title, description, url):
+# Create a MarkdownUp page shell HTML file for the given Markdown URL. MarkdownUp loads from "markdownUpURL"
+# (default is the MarkdownUp CDN).
+function creatorFileIndex(title, description, url, markdownUpURL):
+    markdownUpURL = if(markdownUpURL != null, markdownUpURL, 'https://craigahobbs.github.io/markdown-up/')
     return creatorText([ \
         '<!DOCTYPE html>', \
         '<html lang="en">', \
@@ -62,16 +78,39 @@ function creatorFileIndex(title, description, url):
         '        <meta charset="utf-8">', \
         '        <meta name="description" content="' + creatorEscapeHTML(description) + '">', \
         '        <meta name="viewport" content="width=device-width, initial-scale=1">', \
-        '        <link rel="stylesheet" href="https://craigahobbs.github.io/markdown-up/app.css">', \
-        '        <link rel="preload" href="https://craigahobbs.github.io/markdown-up/bare-script/static/markdown.css" as="style">', \
-        '        <link rel="modulepreload" href="https://craigahobbs.github.io/markdown-up/lib/appImports.js" as="script">', \
+        '        <link rel="stylesheet" href="' + markdownUpURL + 'app.css">', \
+        '        <link rel="preload" href="' + markdownUpURL + 'bare-script/static/markdown.css" as="style">', \
+        '        <link rel="modulepreload" href="' + markdownUpURL + 'lib/appImports.js" as="script">', \
         '    </head>', \
         '    <script type="module">', \
-        '        import {MarkdownUp} from \'https://craigahobbs.github.io/markdown-up/lib/appImports.js\';', \
+        '        import {MarkdownUp} from \'' + markdownUpURL + 'lib/appImports.js\';', \
         '        const app = new MarkdownUp(window, {\'url\': \'' + url + '\'});', \
         '        app.run();', \
         '    </script>', \
         '</html>' \
+    ])
+endfunction
+
+
+# Create a unit test runner file - starts coverage, includes the test file "test<idTitle>.bare", and
+# requires 100% coverage
+function creatorFileRunTests(idTitle):
+    return creatorText([ \
+        'include <unittest.bare>', \
+        'include <unittestMock.bare>', \
+        '', \
+        '', \
+        '# Start coverage', \
+        'unittestCoverageStart()', \
+        '', \
+        '# Test includes', \
+        'include \'test' + idTitle + '.bare\'', \
+        '', \
+        '# Stop coverage', \
+        'unittestCoverageStop()', \
+        '', \
+        '# Test report', \
+        'return unittestReport({\'coverageExclude\': [\'runTests.bare\'], \'coverageMin\': 100})' \
     ])
 endfunction
 
@@ -203,4 +242,55 @@ function creatorMakefileClaudeRuleLines(target, what):
         '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
         '\ttest -f $@' \
     ]
+endfunction
+
+
+# The application form fields - "nameExample" is the name hint's example and "specHint" the specification hint
+function creatorAppFields(nameExample, specHint):
+    return [ \
+        {'name': 'copyright', 'label': 'Copyright holder'}, \
+        {'name': 'name', 'label': 'Application name', 'hint': 'e.g. "' + nameExample + '"'}, \
+        {'name': 'description', 'label': 'Description', 'hint': 'one sentence'}, \
+        {'name': 'spec', 'label': 'Specification', 'hint': specHint, 'multiline': true} \
+    ]
+endfunction
+
+
+# Create a project model from its [path, text] files - "note" completes the "make run" project note
+function creatorProject(id, name, files, mtime, generated, note):
+    projectFiles = []
+    for file in files:
+        arrayPush(projectFiles, {'name': id + '/' + arrayGet(file, 0), 'bytes': arrayGet(file, 1), 'mtime': mtime})
+    endfor
+    return { \
+        'id': id, \
+        'title': name, \
+        'files': projectFiles, \
+        'generated': generated, \
+        'commands': ['make run'], \
+        'notes': ['The first `make run` has Claude Code generate ' + creatorPathsText(generated) + ' from `SPEC.md`, then ' + note] \
+    }
+endfunction
+
+
+# Format paths as a Markdown code-span list - "`a`", "`a` and `b`", or "`a`, `b`, and `c`"
+function creatorPathsText(paths):
+    count = arrayLength(paths)
+    if count < 3:
+        return '`' + arrayJoin(paths, '` and `') + '`'
+    endif
+    return '`' + arrayJoin(arraySlice(paths, 0, count - 1), '`, `') + '`, and `' + arrayGet(paths, count - 1) + '`'
+endfunction
+
+
+# Create a SPEC.md file - the specification, then the implementation steps "lines" and the closing steps
+function creatorFileSPEC(name, description, spec, lines):
+    text = ['# ' + name, '', description, '', '## Specification', '', spec, '', '## Implementation', '', \
+        'Implement the application described above:', '']
+    arrayExtend(text, lines)
+    arrayExtend(text, [ \
+        '- Run `make commit` and fix every test failure and lint warning until it passes.', \
+        '- Do not run `make run` - it starts a web server that never returns. The user runs it after this session ends.' \
+    ])
+    return creatorText(text)
 endfunction

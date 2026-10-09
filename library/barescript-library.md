@@ -45,6 +45,7 @@ logged for each invalid-argument failure.
 | [elementModel.bare](#var.vPublish=true&var.vSingle=true&elementmodel-bare) | Validate element models and render them as HTML or SVG text |
 | [forms.bare](#var.vPublish=true&var.vSingle=true&forms-bare) | Web forms and controls element model helpers |
 | [gzip.bare](#var.vPublish=true&var.vSingle=true&gzip-bare) | Compress and uncompress gzip data |
+| [hash.bare](#var.vPublish=true&var.vSingle=true&hash-bare) | SHA-256 hashes and HMAC-SHA256 message authentication codes |
 | [markdown.bare](#var.vPublish=true&var.vSingle=true&markdown-bare) | Markdown escaping, header IDs, and utilities |
 | [markdownElements.bare](#var.vPublish=true&var.vSingle=true&markdownelements-bare) | Convert a Markdown model to an element model |
 | [markdownParser.bare](#var.vPublish=true&var.vSingle=true&markdownparser-bare) | Parse Markdown text into a Markdown model |
@@ -60,6 +61,8 @@ logged for each invalid-argument failure.
 | [unittest.bare](#var.vPublish=true&var.vSingle=true&unittest-bare) | Unit test framework |
 | [unittestMock.bare](#var.vPublish=true&var.vSingle=true&unittestmock-bare) | Mock library functions during unit tests |
 | [url.bare](#var.vPublish=true&var.vSingle=true&url-bare) | Encode and decode URLs, URL components, and query strings |
+| [wsgi.bare](#var.vPublish=true&var.vSingle=true&wsgi-bare) | Schema-validated JSON API WSGI applications |
+| [wsgiAPIDoc.bare](#var.vPublish=true&var.vSingle=true&wsgiapidoc-bare) | The API documentation application for wsgi.bare applications |
 
 ---
 
@@ -2064,6 +2067,8 @@ endfunction
 The resource URL, request model, or array of URL and request model.
 The request model is an object with the following members:
 - **url** - the resource URL
+- **method** - the optional HTTP request method, case-insensitive (default is GET, or POST if there's a body).
+  GET and HEAD requests can't have a body.
 - **body** - the optional request body string or byte value array
 - **headers** - the optional request headers (an object of string values)
 - **binary** - if true, the response is a byte value array (default is false)
@@ -4228,6 +4233,108 @@ The uncompressed byte value array, or null if uncompression fails
 
 ---
 
+## hash.bare
+
+The "hash.bare" include library computes SHA-256 hashes and HMAC-SHA256 message authentication codes
+of byte value arrays (arrays of integers 0 to 255) or strings (as UTF-8). Use HMAC-SHA256 to sign and
+verify messages, such as JWT HS256 signatures or signed cookies:
+
+```bare-script
+include <hash.bare>
+
+signature = hashHex(hashHMACSHA256(secretKey, message))
+```
+
+Verify a signature with `hashEqual`, which compares in constant time - `==` stops at the first
+difference, so its timing can reveal how much of a guessed signature is right:
+
+```bare-script
+isValid = hashEqual(hashHex(hashHMACSHA256(secretKey, message)), signature)
+```
+
+The hashes are pure BareScript, so they're fast enough for tokens, signatures, and small documents,
+but not for hashing large data repeatedly. Store passwords with a slow, salted key-derivation
+function rather than a single SHA-256 hash.
+
+
+---
+
+### hashEqual
+
+`hashEqual(left, right)`
+
+Compare two values (e.g. message authentication codes) in constant time - every byte is compared, so the
+time taken doesn't reveal how much of a guessed value is right. Verify a signature with
+`hashEqual(hashHMACSHA256(key, message), signature)` rather than `==`.
+
+#### Arguments
+
+**left -**
+The first byte value array or string
+
+**right -**
+The second byte value array or string
+
+#### Returns
+
+true if the values are equal, false if not, or null if an argument is invalid
+
+---
+
+### hashHMACSHA256
+
+`hashHMACSHA256(key, message)`
+
+Compute the HMAC-SHA256 message authentication code of a message (e.g. a JWT HS256 signature)
+
+#### Arguments
+
+**key -**
+The key byte value array or string
+
+**message -**
+The message byte value array or string
+
+#### Returns
+
+The 32-byte message authentication code byte value array, or null if an argument is invalid
+
+---
+
+### hashHex
+
+`hashHex(bytes)`
+
+Format a byte value array (e.g. a hash) as a lowercase hexadecimal string
+
+#### Arguments
+
+**bytes -**
+The byte value array or string
+
+#### Returns
+
+The hexadecimal string, or null if the argument is invalid
+
+---
+
+### hashSHA256
+
+`hashSHA256(bytes)`
+
+Compute the SHA-256 hash of a byte value array (or a string, as UTF-8)
+
+#### Arguments
+
+**bytes -**
+The byte value array (integers 0 to 255) or string
+
+#### Returns
+
+The 32-byte hash byte value array, or null if the argument is invalid
+
+---
+
 ## markdown.bare
 
 The "markdown.bare" include library contains utility functions for Markdown text and
@@ -6088,3 +6195,239 @@ The object to encode
 #### Returns
 
 The encoded query string
+
+---
+
+## wsgi.bare
+
+The "wsgi.bare" include library creates schema-validated JSON API
+[WSGI](https://peps.python.org/pep-3333/) application functions. Host the application function with
+the Python package's
+[bare_script.wsgi.wsgi_application](https://craigahobbs.github.io/bare-script-py/wsgi.html#bare_script.wsgi.wsgi_application)
+function:
+
+```bare-script
+include <schemaParser.bare>
+include <wsgi.bare>
+
+myappTypes = schemaParse( \
+    'action myappDouble', \
+    '    input', \
+    '        float value', \
+    '    output', \
+    '        float answer' \
+)
+
+function myappDouble(request):
+    return {'answer': 2 * objectGet(request, 'value')}
+endfunction
+
+myappApplication = wsgiCreateAPIApplication(myappTypes, { \
+    'doc': true, \
+    'requests': [ \
+        {'type': 'action', 'name': 'myappDouble', 'path': '/double'}, \
+        {'type': 'request', 'path': '/index.html', 'function': wsgiStatic(systemFetch('frontend/index.html'))} \
+    ] \
+})
+```
+
+
+---
+
+### wsgiActionError
+
+`wsgiActionError(error, message = null, status = null)`
+
+Create an action error return value. Return it from an action function to respond with the error.
+
+#### Arguments
+
+**error -**
+The error code string (e.g. "UnknownID") - one of the action's "errors" enumeration values
+
+**message** (optional, default `null`) **-**
+The error message string
+
+**status** (optional, default `null`) **-**
+The response status string (default is "400 Bad Request")
+
+#### Returns
+
+The action error return value
+
+---
+
+### wsgiContentType
+
+`wsgiContentType(path, binary = false)`
+
+Get a path's content type by its file extension
+
+#### Arguments
+
+**path -**
+The path
+
+**binary** (optional, default `false`) **-**
+If true, the unknown content type is "application/octet-stream" rather than "text/plain"
+
+#### Returns
+
+The content type string
+
+---
+
+### wsgiCreateAPIApplication
+
+`wsgiCreateAPIApplication(types, options = null)`
+
+Create a schema-validated JSON API WSGI application function. The application routes each
+request by method and path to a request object of the options' "requests" array:
+
+- **type** - "action" for a schema-validated JSON API action or "request" for any other request
+- **name** - the action name (required), or the request name (default is the method and path, e.g.
+  "GET /items", or the path if there's no method)
+- **function** - the request function. An action function is called with the validated request
+  object and the WSGI environ object, and returns the output object, an action error
+  ([wsgiActionError](#var.vGroup='wsgi.bare'&wsgiactionerror)), or null. A request function is
+  called with the WSGI environ object and the URL path arguments object, and returns a WSGI
+  response object. An action's function defaults to the global function of the action's name.
+- **path** - the request URL path, matched against the decoded request path (the WSGI environ's
+  "PATH_INFO"). A path segment of the form "{name}" is a URL path argument.
+  An action's paths default to its schema "urls", or "/" + name for the POST method.
+- **method** - the request HTTP method, case-insensitive (default is any method). An action with no
+  "path" defaults to its schema "urls" methods, or "POST" - an action with a "path" accepts any method
+  by default. HEAD requests are served by GET requests, so "HEAD" isn't a valid method.
+- **wsgi** - if true, the action function returns a WSGI response object, or an action error
+- **doc** - the request documentation Markdown string or array of strings (an action's documentation is
+  its schema documentation)
+- **docGroup** - the request documentation group (an action's default is its schema group)
+
+A WSGI response object has a "status" string (e.g. "200 OK"), a "headers" array of
+[key, value] string arrays, and a "content" string or byte value array.
+
+A request that fails (e.g. an action function calls an undefined function) responds with
+"500 Internal Server Error" and the "UnexpectedError" error, as the Python host,
+bare_script.wsgi, responds to any failed request.
+
+#### Arguments
+
+**types -**
+The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+containing the API action types
+
+**options** (optional, default `null`) **-**
+The application options object. The "requests" member is the array of request
+objects. If "doc" is true, the API documentation application
+([wsgiAPIDocMain](#var.vGroup='wsgiAPIDoc.bare'&wsgiapidocmain)) is hosted at "/doc/" - it loads
+the MarkdownUp application from "/markdown-up/", so host those files too.
+If "pretty" is true, JSON responses are indented. If "validateOutput" is true,
+every action's output and error responses are schema-validated - an invalid response
+is a "500 Internal Server Error" response (default is true). Validation accepts a value
+that converts to its member's type (e.g. the string "5" for an int), but the response is
+the action's output as returned, so return values of the declared types - and unit test them.
+
+#### Returns
+
+The WSGI application function, or null if a request object is invalid
+
+---
+
+### wsgiResponseText
+
+`wsgiResponseText(status, text = null)`
+
+Create a plain-text WSGI response object
+
+#### Arguments
+
+**status -**
+The response status string (e.g. "404 Not Found")
+
+**text** (optional, default `null`) **-**
+The response text (default is the status string)
+
+#### Returns
+
+The WSGI response object
+
+---
+
+### wsgiStatic
+
+`wsgiStatic(content, contentType = null)`
+
+Create a static content request function. If the content is null, the request responds with
+"404 Not Found".
+
+#### Arguments
+
+**content -**
+The content string or byte value array
+
+**contentType** (optional, default `null`) **-**
+The content type. By default, the content type is determined by the
+request path's file extension.
+
+#### Returns
+
+The request function
+
+---
+
+### wsgiStaticRequests
+
+`wsgiStaticRequests(statics, srcPrefix = '')`
+
+Create the static request objects for an application's static files - a "GET" request for each file, in
+the "Statics" documentation group, whose content type is the source path's. A text file (a content type
+that starts with "text/") is fetched as text, and any other file as a byte value array. A file that can't
+be fetched responds with "404 Not Found".
+
+#### Arguments
+
+**statics -**
+The map of URL path to source path (e.g. from the Python host's
+[bare_script.wsgi.wsgi_load_statics](https://craigahobbs.github.io/bare-script-py/wsgi.html#bare_script.wsgi.wsgi_load_statics))
+
+**srcPrefix** (optional, default `''`) **-**
+The prefix that makes a source path fetchable from the application script (e.g. "../")
+
+#### Returns
+
+The array of static request objects
+
+---
+
+## wsgiAPIDoc.bare
+
+The "wsgiAPIDoc.bare" include library is the API documentation
+[MarkdownUp](https://github.com/craigahobbs/markdown-up#readme) application for
+[wsgi.bare](#var.vGroup='wsgi.bare'&_top) applications. A `wsgiCreateAPIApplication` application with
+the "doc" option hosts it at "/doc/", with a page that runs:
+
+```bare-script
+include <wsgiAPIDoc.bare>
+
+wsgiAPIDocMain()
+```
+
+
+---
+
+### wsgiAPIDocMain
+
+`wsgiAPIDocMain()`
+
+The API documentation MarkdownUp application, hosted at "/doc/" by a
+[wsgiCreateAPIApplication](#var.vGroup='wsgi.bare'&wsgicreateapiapplication) application with the
+"doc" option. It renders the request index, or the request named by the "name" argument, from the
+application's "docIndex" and "docRequest" APIs.
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing

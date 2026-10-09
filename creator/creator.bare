@@ -9,6 +9,7 @@ include <schema.bare>
 include <schemaParser.bare>
 include <tar.bare>
 include 'creatorFrontend.bare'
+include 'creatorFullStack.bare'
 include 'creatorUtil.bare'
 
 
@@ -25,7 +26,9 @@ creatorArguments = [ \
 
 # The project types
 creatorTypes = [ \
-    creatorFrontendType \
+    creatorFrontendType, \
+    creatorFullStackType, \
+    creatorFullStackBackendType \
 ]
 
 
@@ -121,8 +124,8 @@ function creatorRenderLanding(error, confirmClear):
         '1. Fill in a project type\'s form and click **Create**. Your entries are kept for the browser session, and each', \
         '   project you create is added to the history below.', \
         '2. Extract the archive: `tar xzf <project>.tar.gz`.', \
-        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the `bare`', \
-        '   CLI and MarkdownUp, then runs Claude Code in your terminal:', \
+        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the', \
+        '   project\'s tools, like the `bare` CLI, then runs Claude Code in your terminal:', \
         '', \
         '   ```', \
         '   claude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \

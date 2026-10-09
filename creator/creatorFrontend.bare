@@ -9,20 +9,6 @@ include 'creatorUtil.bare'
 #
 
 
-# Validate the frontend application form values - returns an array of error messages
-function creatorFrontendValidate(values):
-    errors = []
-    if !regexMatch(creatorFrontendIdRegex, creatorAppId(objectGet(values, 'name', ''))):
-        arrayPush(errors, 'The application name must start with a letter (e.g. "Fungus Simulator")')
-    endif
-    return errors
-endfunction
-
-
-# The application identifier regular expression - a lowercase letter followed by letters and digits
-creatorFrontendIdRegex = regexNew('^[a-z][A-Za-z0-9]*$')
-
-
 # Create the frontend application project model - the project directory "id", its "title", its "files" (each with
 # "name", the file path within the project directory, and "bytes", the file's text), the "generated" paths that
 # "make" creates, the "commands" that create the application, and the project page's "notes" Markdown lines
@@ -44,25 +30,11 @@ function creatorFrontendProject(values, skillText, mtime):
         ['SPEC.md', creatorFrontendFileSPEC(name, id, idTitle, description, spec)], \
         ['.claude/skills/bare-script/SKILL.md', skillText], \
         ['test/index.html', creatorFileIndex(name + ' Tests', name + ' unit tests', 'runTests.md')], \
-        ['test/runTests.bare', creatorFrontendFileRunTests(idTitle)], \
+        ['test/runTests.bare', creatorFileRunTests(idTitle)], \
         ['test/runTests.md', creatorFileMarkdownLines(['include \'runTests.bare\''])], \
         ['test/test' + idTitle + '.bare', creatorFrontendFileTest(id, idTitle)] \
     ]
-    projectFiles = []
-    for file in files:
-        arrayPush(projectFiles, {'name': id + '/' + arrayGet(file, 0), 'bytes': arrayGet(file, 1), 'mtime': mtime})
-    endfor
-    return { \
-        'id': id, \
-        'title': name, \
-        'files': projectFiles, \
-        'generated': [id + '.bare'], \
-        'commands': ['make run'], \
-        'notes': [ \
-            'The first `make run` has Claude Code generate `' + id + '.bare` from `SPEC.md`, then serves the ' + \
-            'application in your browser.' \
-        ] \
-    }
+    return creatorProject(id, name, files, mtime, [id + '.bare'], 'serves the application in your browser.')
 endfunction
 
 
@@ -154,48 +126,13 @@ endfunction
 
 
 function creatorFrontendFileSPEC(name, id, idTitle, description, spec):
-    return creatorText([ \
-        '# ' + name, \
-        '', \
-        description, \
-        '', \
-        '## Specification', \
-        '', \
-        spec, \
-        '', \
-        '## Implementation', \
-        '', \
-        'Implement the application described above:', \
-        '', \
+    return creatorFileSPEC(name, description, spec, [ \
         '- First, read the bare-script skill, `.claude/skills/bare-script/SKILL.md`, and `CLAUDE.md`.', \
         '- Implement the application in `' + id + '.bare` with the main function `' + id + 'Main()`, which', \
         '  `' + id + '.md` calls. Escape user-provided text with `markdownEscape` before printing it as Markdown.', \
         '- Write unit tests in `test/test' + idTitle + '.bare` using the skill\'s unittest.bare and unittestMock.bare', \
         '  patterns - a render test per page state, a test for each named handler, and a callback-binding test for', \
-        '  each control - with 100% coverage.', \
-        '- Run `make commit` and fix every test failure and lint warning until it passes.', \
-        '- Do not run `make run` - it starts a web server that never returns. The user runs it after this session ends.' \
-    ])
-endfunction
-
-
-function creatorFrontendFileRunTests(idTitle):
-    return creatorText([ \
-        'include <unittest.bare>', \
-        'include <unittestMock.bare>', \
-        '', \
-        '', \
-        '# Start coverage', \
-        'unittestCoverageStart()', \
-        '', \
-        '# Test includes', \
-        'include \'test' + idTitle + '.bare\'', \
-        '', \
-        '# Stop coverage', \
-        'unittestCoverageStop()', \
-        '', \
-        '# Test report', \
-        'return unittestReport({\'coverageExclude\': [\'runTests.bare\'], \'coverageMin\': 100})' \
+        '  each control - with 100% coverage.' \
     ])
 endfunction
 
@@ -223,12 +160,7 @@ creatorFrontendType = { \
     'title': 'Frontend Application', \
     'description': 'A [MarkdownUp](https://craigahobbs.github.io/markdown-up/) web application (a Markdown page with ' + \
         'embedded BareScript) with unit tests, publishable as-is on GitHub Pages', \
-    'fields': [ \
-        {'name': 'copyright', 'label': 'Copyright holder'}, \
-        {'name': 'name', 'label': 'Application name', 'hint': 'e.g. "Fungus Simulator"'}, \
-        {'name': 'description', 'label': 'Description', 'hint': 'one sentence'}, \
-        {'name': 'spec', 'label': 'Specification', 'hint': 'what the application does and how it behaves', 'multiline': true} \
-    ], \
-    'validate': creatorFrontendValidate, \
+    'fields': creatorAppFields('Fungus Simulator', 'what the application does and how it behaves'), \
+    'validate': creatorValidateAppName, \
     'project': creatorFrontendProject \
 }

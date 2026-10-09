@@ -1,0 +1,505 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include 'creatorUtil.bare'
+
+
+#
+# The full-stack application project type - a schema-validated JSON API backend, served by Python (WSGI), and a
+# MarkdownUp frontend that calls it - and its backend-only option, the backend application project type
+#
+
+
+# Create the full-stack application project model
+function creatorFullStackProject(values, skillText, mtime):
+    return creatorFullStackModel(values, skillText, mtime, true)
+endfunction
+
+
+# Create the backend application project model - the full-stack application without its frontend
+function creatorFullStackBackendProject(values, skillText, mtime):
+    return creatorFullStackModel(values, skillText, mtime, false)
+endfunction
+
+
+# Create a full-stack application project model - with its MarkdownUp frontend if "frontend" is true, otherwise
+# backend-only (see creatorFrontendProject for the project model)
+function creatorFullStackModel(values, skillText, mtime, frontend):
+    name = objectGet(values, 'name')
+    id = creatorAppId(name)
+    idTitle = stringUpper(stringSlice(id, 0, 1)) + stringSlice(id, 1)
+    description = objectGet(values, 'description')
+    testDir = if(frontend, 'test/backend/', 'test/')
+    files = [ \
+        ['.gitignore', creatorText(['/build/', '/Makefile.tool', '__pycache__/'])], \
+        ['CLAUDE.md', creatorFullStackFileCLAUDE(name, id, description, frontend)], \
+        ['LICENSE', creatorFileLICENSE(objectGet(values, 'copyright'), datetimeYear(mtime))], \
+        ['Makefile', creatorFullStackFileMakefile(id, frontend)], \
+        ['SPEC.md', creatorFullStackFileSPEC(name, id, idTitle, description, objectGet(values, 'spec'), frontend)], \
+        ['wsgi.py', creatorFullStackFilePython(name, id, frontend)], \
+        ['.claude/skills/bare-script/SKILL.md', skillText], \
+        [testDir + 'index.html', creatorFileIndex(name + if(frontend, ' Backend Tests', ' Tests'), name + ' backend unit tests', \
+            'runTests.md', if(frontend, '../../', '../') + 'build/markdown-up/')], \
+        [testDir + 'runTests.bare', creatorFileRunTests(idTitle)], \
+        [testDir + 'runTests.md', creatorFileMarkdownLines(['include \'runTests.bare\''])], \
+        [testDir + 'test' + idTitle + '.bare', creatorFullStackFileBackendTest(id, idTitle, frontend)] \
+    ]
+    generated = creatorFullStackGenerated(id, frontend)
+    if frontend:
+        arrayExtend(files, [ \
+            ['frontend/index.html', creatorFileIndex(name, description, id + '.md', './markdown-up/')], \
+            ['frontend/' + id + '.md', creatorFileMarkdownLines(['include \'' + id + '.bare\'', '', id + 'Main()'])], \
+            ['test/frontend/index.html', creatorFileIndex(name + ' Frontend Tests', name + ' frontend unit tests', \
+                'runTests.md', '../../build/markdown-up/')], \
+            ['test/frontend/runTests.bare', creatorFileRunTests(idTitle)], \
+            ['test/frontend/runTests.md', creatorFileMarkdownLines(['include \'runTests.bare\''])], \
+            ['test/frontend/test' + idTitle + '.bare', creatorFullStackFileFrontendTest(id, idTitle)] \
+        ])
+    endif
+    return creatorProject(id, name, files, mtime, generated, 'serves the ' + \
+        if(frontend, 'application at <http://127.0.0.1:8080/>. Its API documentation', 'API. Its documentation') + \
+        ' is at <http://127.0.0.1:8080/doc/>.')
+endfunction
+
+
+# The paths "make" generates
+function creatorFullStackGenerated(id, frontend):
+    return if(frontend, ['backend/' + id + '.bare', 'frontend/' + id + '.bare', 'frontend/' + id + 'Types.bare'], \
+        ['backend/' + id + '.bare'])
+endfunction
+
+
+function creatorFullStackFileCLAUDE(name, id, description, frontend):
+    lines = [ \
+        '# CLAUDE.md', \
+        '', \
+        'Notes for coding agents working in this repository.', \
+        '', \
+        '## Project overview', \
+        '' \
+    ]
+    if frontend:
+        arrayExtend(lines, [ \
+            name + ' is a [BareScript](https://craigahobbs.github.io/bare-script/) web application: a schema-validated JSON', \
+            'API backend, served by Python ([WSGI](https://peps.python.org/pep-3333/)), and a', \
+            '[MarkdownUp](https://craigahobbs.github.io/markdown-up/) frontend that calls it. ' + description \
+        ])
+    else:
+        arrayExtend(lines, [ \
+            name + ' is a schema-validated JSON API, written in [BareScript](https://craigahobbs.github.io/bare-script/)', \
+            'and served by Python ([WSGI](https://peps.python.org/pep-3333/)). ' + description \
+        ])
+    endif
+    arrayExtend(lines, [ \
+        '', \
+        '- `SPEC.md` - the application specification', \
+        '- `backend/' + id + '.bare` - the backend: the API\'s Schema Markdown types, its action functions, and the', \
+        '  `' + id + 'Application` WSGI application function, created by `wsgiCreateAPIApplication` from the `wsgi.bare`', \
+        '  include library. Its API documentation is at `/doc/`.' \
+    ])
+    if frontend:
+        arrayExtend(lines, [ \
+            '- `frontend/' + id + '.bare` - the frontend MarkdownUp application, whose main function `' + id + 'Main()` is', \
+            '  called from `frontend/' + id + '.md`', \
+            '- `frontend/' + id + 'Types.bare` - the API\'s Schema Markdown types, `' + id + 'Types`, shared by the backend and', \
+            '  frontend' \
+        ])
+    endif
+    arrayExtend(lines, [ \
+        '- `wsgi.py` - the WSGI application, which `make run` serves with waitress (named `wsgi`, not `' + id + '`, so it', \
+        '  can\'t collide with a Python module of the same name). It reads the application', \
+        '  source once, at startup - restart the server after editing - and passes the backend the `' + id + 'Statics`', \
+        '  global, a map of URL path to project-relative source path for each static file: ' + \
+            if(frontend, 'the `frontend/` files (at', 'the MarkdownUp'), \
+        if(frontend, '  `/<file>`, and `/` for `frontend/index.html`) and the MarkdownUp application', \
+            '  application'), \
+        '  (downloaded to `build/markdown-up/` by `make run`, at `/markdown-up/<file>`). Configuration and secrets (e.g.', \
+        '  database credentials) come from environment variables - read them in `wsgi.py` and add them to its `globals_`', \
+        '- `test/` - the unit tests' + if(frontend, ', `test/backend/` and `test/frontend/`', '') + ', with a', \
+        '  `runTests.bare` runner and an `index.html` to run them in a browser. The pages load MarkdownUp from', \
+        '  `build/markdown-up/` (downloaded by `make run`), so serve the project root with a static file server (e.g.', \
+        '  `python3 -m http.server`) and open `/test/' + if(frontend, 'backend/` or `/test/frontend/`', '`') + '.', \
+        '', \
+        'The backend\'s includes, and `systemFetch` calls made while it loads, resolve relative to `backend/` - e.g.', \
+        if(frontend, '`\'../frontend/index.html\'`', '`include \'' + id + 'Util.bare\'`') + '. Only the directories `wsgi.py` loads (`backend/`' + \
+            if(frontend, ', `frontend/`,', '') + ' and', \
+        '`build/markdown-up/`) can be read. Read files when the backend loads, as `wsgiStaticRequests` does - a', \
+        '`systemFetch` call made while a request is handled resolves relative to the main script, which is the test runner in', \
+        'the tests.', \
+        '', \
+        'The Makefile includes [python-build](https://github.com/craigahobbs/python-build#readme)\'s `Makefile.tool`,', \
+        'downloaded on first use, which builds a Python virtual environment with bare-script and waitress.', \
+        '' \
+    ])
+    if frontend:
+        arrayExtend(lines, [ \
+            '## Sharing code between the backend and frontend', \
+            '', \
+            'Code shared by the backend and frontend lives in `frontend/` - it is served, so the browser can include it - and', \
+            'the backend includes it from there (`include \'../frontend/<file>.bare\'`). Never the reverse: `backend/` is never', \
+            'served, so backend-only code (and anything private) stays there, and frontend code must not include it. The API\'s', \
+            'types are shared this way - the backend serves the API from `' + id + 'Types` and the frontend validates requests', \
+            'with it (e.g. `schemaValidate(' + id + 'Types, \'myAction_input\', request)`).', \
+            '', \
+            'Shared code is tested in the frontend suite. The backend suite includes it too, so its coverage counts there - if', \
+            'the backend exercises a shared file only partly, add the file to `test/backend/runTests.bare`\'s', \
+            '`coverageExclude` (e.g. `\'frontend/' + id + 'Util.bare\'`).', \
+            '' \
+        ])
+    endif
+    arrayExtend(lines, [ \
+        '## Authoring BareScript code', \
+        '', \
+        'Before writing, modifying, or reviewing BareScript code, read the bare-script skill,', \
+        '`.claude/skills/bare-script/SKILL.md`. It is the reference for the language, the built-in and include', \
+        'libraries (see its "WSGI applications (Python)" section), the MarkdownUp application pattern, and the', \
+        'unit-test and mocking pattern.', \
+        '', \
+        '## Commands', \
+        '', \
+        '- `make commit` - run the unit tests and lint; the gate before committing' \
+    ])
+    if frontend:
+        arrayExtend(lines, [ \
+            '- `make test` - run the unit tests - `make test-backend` and `make test-frontend` run one suite (`TEST=<name>`', \
+            '  runs one test)', \
+            '- `make lint` - lint every script standalone - `make lint-backend` and `make lint-frontend` lint one side' \
+        ])
+    else:
+        arrayExtend(lines, [ \
+            '- `make test` - run the unit tests (`TEST=<name>` runs one test)', \
+            '- `make lint` - lint every script standalone' \
+        ])
+    endif
+    generatedText = creatorPathsText(creatorFullStackGenerated(id, frontend))
+    arrayExtend(lines, [ \
+        if(frontend, \
+            '- `make run` - serve the application at <http://127.0.0.1:8080/> with waitress (for the user, not for a coding', \
+            '- `make run` - serve the API, with its documentation at <http://127.0.0.1:8080/doc/>, with waitress (for the user,' \
+        ), \
+        if(frontend, '  agent - it starts a server that never returns)', '  not for a coding agent - it starts a server that never returns)'), \
+        '- `make clean` - remove the build directory and the downloaded python-build `Makefile.tool`', \
+        '', \
+        '`make commit`, `make test`, and `make lint` depend on ' + generatedText + ', which the Makefile', \
+        'otherwise generates with Claude Code - create ' + if(frontend, 'them', 'it') + ' before running them.', \
+        '', \
+        '## Conventions', \
+        '', \
+        '- The unit tests must pass with 100% coverage - `make test` fails otherwise.', \
+        '- Action functions take the validated request object - `function myAction(request)`; the WSGI environ is an', \
+        '  optional second argument. Omit arguments a function doesn\'t use - the linter warns on them.', \
+        '- Action output is schema-validated, so a response that doesn\'t match the action\'s types is a', \
+        '  `500 InvalidOutput` error.', \
+        '- Backend tests call `' + id + 'Application(environ)` directly with environ objects (`REQUEST_METHOD`,', \
+        '  `PATH_INFO`, `QUERY_STRING`, and `wsgi.input`, the request body string) and compare the response objects.' \
+    ])
+    if frontend:
+        arrayExtend(lines, [ \
+            '- Frontend tests mock `systemFetch`. Each page state has a render test, each named handler has a test, and each', \
+            '  control\'s callback binding is tested.', \
+            '- Escape user-provided text with `markdownEscape` before printing it as Markdown.' \
+        ])
+    endif
+    return creatorText(lines)
+endfunction
+
+
+function creatorFullStackFileMakefile(id, frontend):
+    lines = creatorMakefilePythonBuildLines('bare-script waitress')
+    arrayExtend(lines, [ \
+        '# The application', \
+        'APP := ' + id, \
+        '', \
+        '# The application server host and port', \
+        'HOST ?= 127.0.0.1', \
+        'PORT ?= 8080', \
+        '', \
+        '# The MarkdownUp application tarball', \
+        'MARKDOWN_UP_URL := https://craigahobbs.github.io/markdown-up/markdown-up.tar.gz', \
+        '', \
+        '', \
+        'help:', \
+        '\t@echo "            [' + if(frontend, 'lint-backend|lint-frontend|run|test-backend|test-frontend', 'run') + ']"', \
+        '', \
+        '', \
+        'clean:', \
+        '\trm -rf Makefile.tool __pycache__/', \
+        '', \
+        '' \
+    ])
+    arrayExtend(lines, creatorMakefileClaudeRuleLines('backend/$(APP).bare', 'the application'))
+    if frontend:
+        arrayExtend(lines, [ \
+            '', \
+            '', \
+            '# The frontend and the shared API types are generated with the backend', \
+            'frontend/$(APP).bare frontend/$(APP)Types.bare: backend/$(APP).bare', \
+            '\ttest -f $@', \
+            '', \
+            '', \
+            '# Run the backend and frontend unit tests - separate suites, so "make -j" runs them in parallel', \
+            'test: test-backend test-frontend', \
+            '', \
+            '', \
+            '# Run the backend or frontend unit tests (TEST="testName" runs one test); -d surfaces builtin debug logs,', \
+            '# and -m provides the MarkdownUp runtime function stubs (the frontend and the unittest.bare report use them)', \
+            '.PHONY: test-backend', \
+            'test-backend: $(DEFAULT_VENV_BUILD) backend/$(APP).bare frontend/$(APP)Types.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -d -m test/backend/runTests.bare$(if $(TEST), -v vUnittestTest "\'$(TEST)\'")', \
+            '', \
+            '', \
+            '.PHONY: test-frontend', \
+            'test-frontend: $(DEFAULT_VENV_BUILD) frontend/$(APP).bare frontend/$(APP)Types.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -d -m test/frontend/runTests.bare$(if $(TEST), -v vUnittestTest "\'$(TEST)\'")', \
+            '', \
+            '', \
+            '# Lint the backend and frontend - separate targets, so "make -j" runs them in parallel', \
+            'lint: lint-backend lint-frontend', \
+            '', \
+            '', \
+            '# Lint every script standalone. -x lints and executes (scripts + test files);', \
+            '# -s lints the test runner without executing it (that\'s the test target).', \
+            '.PHONY: lint-backend', \
+            'lint-backend: $(DEFAULT_VENV_BUILD) backend/$(APP).bare frontend/$(APP)Types.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -x backend/$(APP).bare test/backend/test*.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -s -m test/backend/runTests.bare', \
+            '', \
+            '', \
+            '.PHONY: lint-frontend', \
+            'lint-frontend: $(DEFAULT_VENV_BUILD) frontend/$(APP).bare frontend/$(APP)Types.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -x -m frontend/$(APP).bare test/frontend/test*.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -s -m test/frontend/runTests.bare' \
+        ])
+    else:
+        arrayExtend(lines, [ \
+            '', \
+            '', \
+            '# Run the unit tests (TEST="testName" runs one test); -d surfaces builtin debug logs, and -m provides the', \
+            '# MarkdownUp runtime function stubs (the unittest.bare report uses them)', \
+            'test: $(DEFAULT_VENV_BUILD) backend/$(APP).bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -d -m test/runTests.bare$(if $(TEST), -v vUnittestTest "\'$(TEST)\'")', \
+            '', \
+            '', \
+            '# Lint every script standalone. -x lints and executes (scripts + test files);', \
+            '# -s lints the test runner without executing it (that\'s `make test`).', \
+            'lint: $(DEFAULT_VENV_BUILD) backend/$(APP).bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -x backend/$(APP).bare test/test*.bare', \
+            '\t$(DEFAULT_VENV_BIN)/bare -s -m test/runTests.bare' \
+        ])
+    endif
+    arrayExtend(lines, [ \
+        '', \
+        '', \
+        '# Run the application with waitress', \
+        '.PHONY: run', \
+        'run: $(DEFAULT_VENV_BUILD) build/markdown-up/VERSION.txt backend/$(APP).bare' + \
+            if(frontend, ' frontend/$(APP).bare frontend/$(APP)Types.bare', ''), \
+        '\t$(DEFAULT_VENV_BIN)/waitress-serve --host=$(HOST) --port=$(PORT) wsgi:application', \
+        '', \
+        '', \
+        '# Download the MarkdownUp application from the CDN tarball into build/markdown-up/, once. The extraction is', \
+        '# embedded Python, so it works on Windows.', \
+        'build/markdown-up/VERSION.txt: $(DEFAULT_VENV_BUILD)', \
+        '\trm -rf build/markdown-up/', \
+        '\t$(DEFAULT_VENV_PYTHON) -c "$$MARKDOWN_UP_PY"', \
+        '\ttouch $@', \
+        '', \
+        '', \
+        'define MARKDOWN_UP_PY', \
+        'import io', \
+        'import tarfile', \
+        'import urllib.request', \
+        '', \
+        '# The data filter (Python 3.12, and security releases of 3.8 through 3.11) rejects unsafe archive members', \
+        'with urllib.request.urlopen(\'$(MARKDOWN_UP_URL)\') as response:', \
+        '    with tarfile.open(fileobj=io.BytesIO(response.read()), mode=\'r:gz\') as tar:', \
+        '        if hasattr(tarfile, \'data_filter\'):', \
+        '            tar.extractall(\'build\', filter=\'data\')', \
+        '        else:', \
+        '            tar.extractall(\'build\')', \
+        'endef', \
+        'export MARKDOWN_UP_PY' \
+    ])
+    return creatorText(lines)
+endfunction
+
+
+function creatorFullStackFileSPEC(name, id, idTitle, description, spec, frontend):
+    lines = [ \
+        '- First, read the bare-script skill, `.claude/skills/bare-script/SKILL.md` - including its "WSGI applications', \
+        '  (Python)" section - and `CLAUDE.md`.' \
+    ]
+    if frontend:
+        arrayExtend(lines, [ \
+            '- Define the API\'s Schema Markdown types in `frontend/' + id + 'Types.bare` - `' + id + 'Types = schemaParse(...)`,', \
+            '  after `include <schemaParser.bare>`. It is shared code: the backend includes it to serve the API, and the', \
+            '  frontend includes it to validate its requests before calling the API (e.g.', \
+            '  `schemaValidate(' + id + 'Types, \'myAction_input\', request)`). Code shared by the backend and frontend goes in', \
+            '  `frontend/`, which is served - backend code is never served, so the frontend must not include it.', \
+            '- Implement the backend in `backend/' + id + '.bare`: an action function for each of the shared types\' actions,', \
+            '  and the `' + id + 'Application` WSGI application function. Keep this structure - its comments mark what to', \
+            '  fill in, and `wsgiStaticRequests` serves the static files that `wsgi.py` passes in the', \
+            '  `' + id + 'Statics` global:', \
+            '', \
+            '  ~~~ bare-script', \
+            '  include <wsgi.bare>', \
+            '', \
+            '  # The API types - shared with the frontend', \
+            '  include \'../frontend/' + id + 'Types.bare\'', \
+            '' \
+        ])
+    else:
+        arrayExtend(lines, [ \
+            '- Implement the backend in `backend/' + id + '.bare`: the API\'s actions as Schema Markdown types, an action', \
+            '  function for each action, and the `' + id + 'Application` WSGI application function. Keep this structure -', \
+            '  its comments mark what to fill in, and `wsgiStaticRequests` serves the static files that `wsgi.py`', \
+            '  passes in the `' + id + 'Statics` global:', \
+            '', \
+            '  ~~~ bare-script', \
+            '  include <schemaParser.bare>', \
+            '  include <wsgi.bare>', \
+            '', \
+            '  # The API types', \
+            '  ' + id + 'Types = schemaParse( \\', \
+            '      # The API\'s Schema Markdown lines - an action definition for each action', \
+            '  )', \
+            '' \
+        ])
+    endif
+    arrayExtend(lines, [ \
+        '  # The action functions - one for each action, named for the action', \
+        '', \
+        '  # The request objects - the actions (e.g. {\'type\': \'action\', \'name\': \'myAction\', \'path\': \'/myAction\'}), then', \
+        '  # a static request for each static file. The host passes the "' + id + 'Statics" global, a map of URL path to', \
+        '  # source path (relative to the project root).', \
+        '  ' + id + 'Requests = [ \\', \
+        '      # The action request objects', \
+        '  ]', \
+        '  arrayExtend(' + id + 'Requests, wsgiStaticRequests(systemGlobalGet(\'' + id + 'Statics\', {}), \'../\'))', \
+        '', \
+        '  # The WSGI application function', \
+        '  ' + id + 'Application = wsgiCreateAPIApplication(' + id + 'Types, {\'doc\': true, \'requests\': ' + id + 'Requests})', \
+        '  ~~~', \
+        '', \
+        '- If the backend needs configuration or secrets - e.g. a database URL and credentials (see the bare-script', \
+        '  skill\'s "Persistence" section) - read them from environment variables in `wsgi.py` (e.g.', \
+        '  `' + stringUpper(id) + '_COUCH_URL`) and pass them to the backend as globals alongside `' + id + 'Statics`. Never', \
+        '  hard-code credentials.' \
+    ])
+    if frontend:
+        arrayExtend(lines, [ \
+            '- Implement the frontend in `frontend/' + id + '.bare` with the main function `' + id + 'Main()`, which', \
+            '  `frontend/' + id + '.md` calls. It calls the backend\'s actions with `systemFetch` - a request object with a', \
+            '  JSON `\'body\'` is a POST, e.g. `systemFetch({\'url\': \'myAction\', \'body\': jsonStringify(request)})` - and', \
+            '  relative URLs resolve against the server root. Escape user-provided text with `markdownEscape` before printing', \
+            '  it as Markdown.', \
+            '- Write the backend unit tests in `test/backend/test' + idTitle + '.bare` - each action\'s success and error', \
+            '  responses, by calling `' + id + 'Application(environ)` directly - and the frontend unit tests in', \
+            '  `test/frontend/test' + idTitle + '.bare` using the skill\'s unittest.bare and unittestMock.bare patterns, with', \
+            '  `systemFetch` mocked - a render test per page state, a test for each named handler, and a callback-binding', \
+            '  test for each control. Both suites need 100% coverage.' \
+        ])
+    else:
+        arrayExtend(lines, [ \
+            '- Write the unit tests in `test/test' + idTitle + '.bare` - each action\'s success and error responses, by', \
+            '  calling `' + id + 'Application(environ)` directly - with 100% coverage.' \
+        ])
+    endif
+    return creatorFileSPEC(name, description, spec, lines)
+endfunction
+
+
+function creatorFullStackFilePython(name, id, frontend):
+    return creatorText([ \
+        '"""', \
+        'The ' + stringReplace(stringReplace(name, '\\', '\\\\'), '"', '\\"') + ' WSGI application', \
+        '"""', \
+        '', \
+        'from pathlib import Path', \
+        '', \
+        'from bare_script.wsgi import wsgi_application, wsgi_load_source, wsgi_load_statics', \
+        '', \
+        '', \
+        '# Read the application source - the ' + if(frontend, 'backend, frontend,', 'backend') + \
+            ' and MarkdownUp application (downloaded by', \
+        '# "make run") directories', \
+        'ROOT_DIR = Path(__file__).parent', \
+        'APP_SRC = wsgi_load_source(ROOT_DIR, (' + if(frontend, '\'backend\', \'frontend\', ', '\'backend\', ') + \
+            '\'build/markdown-up\'))', \
+        '', \
+        '# The static files, a map of URL path to source path - the backend adds a static request for each', \
+        'APP_STATICS = wsgi_load_statics(ROOT_DIR, {' + if(frontend, '\'/\': \'frontend\', ', '') + \
+            '\'/markdown-up/\': \'build/markdown-up\'})', \
+        '', \
+        '# Create the WSGI application', \
+        'application = wsgi_application(', \
+        '    APP_SRC, \'backend/' + id + '.bare\', \'' + id + 'Application\',', \
+        '    globals_={\'' + id + 'Statics\': APP_STATICS}', \
+        ')' \
+    ])
+endfunction
+
+
+# The backend unit test file - a full-stack project's static files map points at a frontend file, so the backend's
+# static requests are exercised (a backend-only project's static files are only the MarkdownUp files)
+function creatorFullStackFileBackendTest(id, idTitle, frontend):
+    return creatorText([ \
+        'include <unittest.bare>', \
+        '', \
+        '', \
+        '# The static files the host passes to the backend', \
+        id + 'Statics = {' + if(frontend, '\'/index.html\': \'frontend/index.html\'', '') + '}', \
+        '', \
+        '', \
+        'include \'' + if(frontend, '../../', '../') + 'backend/' + id + '.bare\'', \
+        '', \
+        '', \
+        'async function test' + idTitle + 'Application():', \
+        '    response = ' + id + 'Application({\'REQUEST_METHOD\': \'GET\', \'PATH_INFO\': \'/doc/\', \'QUERY_STRING\': \'\', \'wsgi.input\': \'\'})', \
+        '    unittestEqual(objectGet(response, \'status\'), \'200 OK\')', \
+        'endfunction', \
+        'unittestRunTest(\'test' + idTitle + 'Application\')' \
+    ])
+endfunction
+
+
+function creatorFullStackFileFrontendTest(id, idTitle):
+    return creatorText([ \
+        'include <unittest.bare>', \
+        'include <unittestMock.bare>', \
+        'include \'../../frontend/' + id + '.bare\'', \
+        '', \
+        '', \
+        'async function test' + idTitle + 'Main():', \
+        '    unittestMockAll()', \
+        '    ' + id + 'Main()', \
+        '    unittestEqual(arrayLength(unittestMockEnd()) > 0, true)', \
+        'endfunction', \
+        'unittestRunTest(\'test' + idTitle + 'Main\')' \
+    ])
+endfunction
+
+
+# The full-stack application project type
+creatorFullStackType = { \
+    'name': 'fullstack', \
+    'title': 'Full-Stack Application', \
+    'description': 'A web application with a schema-validated JSON API backend, served by Python ' + \
+        '([WSGI](https://peps.python.org/pep-3333/)), and a [MarkdownUp](https://craigahobbs.github.io/markdown-up/) ' + \
+        'frontend that calls it, with API documentation and unit tests', \
+    'fields': creatorAppFields('Fungus Tracker', 'what the application does and how it behaves'), \
+    'validate': creatorValidateAppName, \
+    'project': creatorFullStackProject \
+}
+
+
+# The backend application project type - the full-stack application's backend-only option
+creatorFullStackBackendType = { \
+    'name': 'backend', \
+    'title': 'Backend Application', \
+    'description': 'A schema-validated JSON API, written in BareScript and served by Python ' + \
+        '([WSGI](https://peps.python.org/pep-3333/)), with API documentation and unit tests', \
+    'fields': creatorAppFields('Fungus Tracker', 'what the API does - its actions, and their inputs and outputs'), \
+    'validate': creatorValidateAppName, \
+    'project': creatorFullStackBackendProject \
+}

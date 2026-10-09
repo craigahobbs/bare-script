@@ -711,12 +711,13 @@ To install the [Emacs](https://www.gnu.org/software/emacs/) BareScript mode add 
 your .emacs file:
 
 ```
-(package-initialize)
-
 (unless (package-installed-p 'barescript-mode)
-  (let ((mode-file (make-temp-file "barescript-mode")))
+  (let ((mode-file (make-temp-file "barescript-mode" nil ".el")))
     (url-copy-file "https://craigahobbs.github.io/bare-script/language/barescript-mode.el" mode-file t)
     (package-install-file mode-file)
     (delete-file mode-file)))
-(add-to-list 'auto-mode-alist '("\\.bare\\'" . barescript-mode))
 ```
+
+The mode is used for ".bare" files automatically. Press `C-c C-h` to open the language documentation,
+`C-c C-l` to open the library documentation, and `C-c C-f` to open the library documentation for
+the function at point.
