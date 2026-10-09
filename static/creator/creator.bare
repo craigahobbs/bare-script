@@ -112,10 +112,12 @@ function creatorRenderLanding(error, confirmClear):
     if error != null:
         markdownPrint('', '**Error:** ' + markdownEscape(error))
     endif
-    markdownPrint('', '## Project Types')
+    markdownPrint('', '## Project Types', '', '| Project Type | Description |', '| --- | --- |')
     for type in creatorTypes:
-        markdownPrint('', '- ' + argsLink(creatorArguments, objectGet(type, 'title'), {'type': objectGet(type, 'name')}) + \
-            ' - ' + objectGet(type, 'description'))
+        # Non-breaking spaces and word joiners after hyphens keep each project type link on one line
+        title = stringReplace(stringReplace(objectGet(type, 'title'), ' ', '\u00a0'), '-', '-\u2060')
+        markdownPrint('| ' + argsLink(creatorArguments, title, {'type': objectGet(type, 'name')}) + \
+            ' | ' + objectGet(type, 'description') + ' |')
     endfor
     markdownPrint( \
         '', \

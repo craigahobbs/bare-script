@@ -54,10 +54,13 @@ function testCreatorLandingLogEx(error, history, confirmClear):
     if error != null:
         arrayPush(log, ['markdownPrint', ['', '**Error:** ' + error]])
     endif
-    arrayPush(log, ['markdownPrint', ['', '## Project Types']])
-    arrayPush(log, ['markdownPrint', ['', "- [Frontend Application](#var.vType='frontend') - " + objectGet(creatorFrontendType, 'description')]])
-    arrayPush(log, ['markdownPrint', ['', "- [Full\\-Stack Application](#var.vType='fullstack') - " + objectGet(creatorFullStackType, 'description')]])
-    arrayPush(log, ['markdownPrint', ['', "- [Backend Application](#var.vType='backend') - " + objectGet(creatorFullStackBackendType, 'description')]])
+    arrayPush(log, ['markdownPrint', ['', '## Project Types', '', '| Project Type | Description |', '| --- | --- |']])
+    arrayPush(log, ['markdownPrint', ["| [Frontend\u00a0Application](#var.vType='frontend') | " + \
+        objectGet(creatorFrontendType, 'description') + ' |']])
+    arrayPush(log, ['markdownPrint', ["| [Full\\-\u2060Stack\u00a0Application](#var.vType='fullstack') | " + \
+        objectGet(creatorFullStackType, 'description') + ' |']])
+    arrayPush(log, ['markdownPrint', ["| [Backend\u00a0Application](#var.vType='backend') | " + \
+        objectGet(creatorFullStackBackendType, 'description') + ' |']])
     arrayPush(log, ['markdownPrint', [ \
         '', \
         '## How It Works', \
