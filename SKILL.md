@@ -57,6 +57,18 @@ colors = [ \
 x = 1  # Trailing comments are also fine
 ```
 
+A comment line inside a line continuation needs no trailing `\`:
+
+```bare-script
+colors = [ \
+    # The warm colors
+    'red', \
+    'orange', \
+    # The cool colors
+    'blue' \
+]
+```
+
 ### Values
 
 - `null`, `true`, `false` (special variables; cannot be reassigned)
@@ -446,7 +458,13 @@ include-library functions — `schema.bare`, `schemaParser.bare`, and `schemaTyp
 `systemPartial(fn, args...)` · `systemType(v)`
 
 `systemFetch` is the **only** I/O primitive — and it's async. Any function
-that calls it (directly or transitively) must be `async`.
+that calls it (directly or transitively) must be `async`. A request model
+(`{'url': ..., 'method': ..., 'body': ..., 'headers': {...}}`) sends GET by
+default, POST when it has a `'body'`, or any HTTP method set by `'method'`
+(e.g. `'PUT'`, `'DELETE'`).
+In the CLI, a non-URL request reads the local file (GET), writes it (POST or
+PUT with a `'body'`), or deletes it (DELETE) - any other method fails and
+returns `null`.
 
 ```bare-script
 async function loadDocs():
@@ -458,7 +476,7 @@ endfunction
 the same representation `stringEncode` / `stringDecode` use. A request model's
 `'binary': true` returns the response as a byte value array instead of text,
 and an array `'body'` is sent (or, in the CLI, written to the file) as raw
-bytes. `base64.bare`, `gzip.bare`, and `tar.bare` (Section 3) work on the same
+bytes. `base64.bare`, `gzip.bare`, `hash.bare`, and `tar.bare` (Section 3) work on the same
 arrays. In the CLI, a byte-array body writes a binary file and a binary request reads one:
 
 ```bare-script
@@ -484,6 +502,81 @@ elementModelRender({ \
 
 `systemType` returns one of `'null'`, `'boolean'`, `'number'`, `'string'`,
 `'datetime'`, `'array'`, `'object'`, `'function'`, `'regex'`.
+
+### Persistence - CouchDB by default
+
+When a backend or frontend project needs a database and its specification doesn't name one, use a locally
+installed [CouchDB](https://couchdb.apache.org/) (e.g. `brew install couchdb` on macOS) through its HTTP JSON API
+with `systemFetch` - no driver or other dependency. Assume it is properly set up: running at
+`http://127.0.0.1:5984`, the databases created, an admin user configured, and CORS enabled for a frontend that
+calls it from the browser.
+
+Set the request model's `'method'` for CouchDB's PUT and DELETE requests. Any 2xx response is success; a failure
+(e.g. `404` for a missing document, `409 Conflict` for an update with a stale `_rev`) returns `null`.
+
+| Operation | Request |
+| --- | --- |
+| Get a document | `GET {db}/{id}` |
+| Create or update a document | `PUT {db}/{id}` with the document - to update, with its current `_rev` |
+| Create a document with a CouchDB-assigned ID | `POST {db}` with the document |
+| Delete a document | `DELETE {db}/{id}?rev={rev}` |
+| Find documents | `POST {db}/_find` with a [Mango query](https://docs.couchdb.org/en/stable/api/database/find.html), e.g. `{'selector': {'type': 'item'}}` |
+| List all documents | `GET {db}/_all_docs?include_docs=true` |
+| Create the database | `PUT {db}` - a `412` (it already exists) returns `null` |
+
+Send JSON with a `Content-Type: application/json` header and authenticate with HTTP Basic authentication:
+
+```bare-script
+include <base64.bare>
+include <url.bare>
+
+
+# The CouchDB database URL and request headers - the host passes the URL and credentials ("user:password") as globals
+itemsURL = systemGlobalGet('itemsCouchURL', 'http://127.0.0.1:5984/items')
+itemsHeaders = { \
+    'Content-Type': 'application/json', \
+    'Authorization': 'Basic ' + base64Encode(stringEncode(systemGlobalGet('itemsCouchCredentials', ''))) \
+}
+
+
+# Get an item document - null if it doesn't exist
+async function itemsGet(id):
+    itemJSON = systemFetch({'url': itemsURL + '/' + urlEncodeComponent(id), 'headers': itemsHeaders})
+    return if(itemJSON != null, jsonParse(itemJSON))
+endfunction
+
+
+# Create or update an item document (an update has the current "_rev") - returns the new revision, or null on
+# failure (e.g. a "409 Conflict" for a stale "_rev")
+async function itemsSave(item):
+    url = itemsURL + '/' + urlEncodeComponent(objectGet(item, '_id'))
+    responseJSON = systemFetch({'url': url, 'method': 'PUT', 'headers': itemsHeaders, 'body': jsonStringify(item)})
+    return if(responseJSON != null, objectGet(jsonParse(responseJSON), 'rev'))
+endfunction
+
+
+# Delete an item document - returns true on success
+async function itemsDelete(id, rev):
+    url = itemsURL + '/' + urlEncodeComponent(id) + '?rev=' + urlEncodeComponent(rev)
+    return systemFetch({'url': url, 'method': 'DELETE', 'headers': itemsHeaders}) != null
+endfunction
+
+
+# Find item documents with a Mango selector - null on failure
+async function itemsFind(selector):
+    body = jsonStringify({'selector': selector, 'limit': 100})
+    responseJSON = systemFetch({'url': itemsURL + '/_find', 'headers': itemsHeaders, 'body': body})
+    return if(responseJSON != null, objectGet(jsonParse(responseJSON), 'docs'))
+endfunction
+```
+
+- **Credentials come from the host, never the source.** A WSGI backend gets the database URL and credentials as
+  globals (`wsgi_application(..., globals_={...})`, read from the environment). In a full-stack application the
+  frontend persists through the backend's API, so the browser never sees the credentials. A frontend-only
+  application has no host to hold credentials - assume its database allows the browser's access (CORS enabled, no
+  authentication required) and send no `Authorization` header.
+- **Test with `systemFetch` mocked** - the mock is keyed by URL (`unittestMockAll({'systemFetch': {url:
+  responseJSON}})`), and the call log records each request object, headers and body included.
 
 ### BareScript (`barescript*`)
 
@@ -519,6 +612,7 @@ the `.bare` source.
 | `elementModel.bare` | Validate / stringify element models | `elementModelValidate`, `elementModelToString` |
 | `forms.bare` | Form-control element-model helpers | `formsTextElements`, `formsLinkElements`, `formsLinkButtonElements` |
 | `gzip.bare` | gzip compression of byte value arrays (pure BareScript DEFLATE) | `gzipCompress`, `gzipUncompress` |
+| `hash.bare` | SHA-256 hashes and HMAC-SHA256 message authentication codes of byte value arrays or strings | `hashSHA256`, `hashHMACSHA256`, `hashEqual` (a constant-time compare - verify signatures with it, not `==`), `hashHex` |
 | `markdown.bare` | Markdown utilities | `markdownEscape`, `markdownHeaderId`, `markdownTitle`, `markdownParagraphText`, `markdownValidate` |
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
 | `markdownString.bare` | Markdown model → Markdown text | `markdownToString` |
@@ -534,6 +628,8 @@ the `.bare` source.
 | `unittest.bare` | Unit-test framework | `unittestRunTest`, `unittestEqual`, `unittestDeepEqual`, `unittestCoverageStart`, `unittestCoverageStop`, `unittestReport` |
 | `unittestMock.bare` | Mock library functions during tests | `unittestMockAll`, `unittestMockOne`, `unittestMockOneGeneric`, `unittestMockEnd` |
 | `url.bare` | Encode/decode URLs and URL query strings | `urlEncode`, `urlEncodeComponent`, `urlEncodeQueryString`, `urlDecodeQueryString`, `urlDecodeComponent` |
+| `wsgi.bare` | Schema-validated JSON API WSGI applications (hosted by Python's `bare_script.wsgi` — Section 6) | `wsgiCreateAPIApplication`, `wsgiActionError`, `wsgiStatic`, `wsgiStaticRequests`, `wsgiResponseText`, `wsgiContentType` |
+| `wsgiAPIDoc.bare` | The `/doc/` API documentation MarkdownUp application for `wsgi.bare` applications | `wsgiAPIDocMain` |
 | `baredoc.bare` / `baredocCLI.bare` | Generate library model JSON from doc comments | `baredocMain`, `baredocCLIMain` |
 
 (`markdownHighlight.bare`, `dataUtil.bare`, and `schemaUtil.bare` are internal
@@ -899,11 +995,11 @@ appMain()
 ```bare-script
 include <pager.bare>
 
-function pageHello(args):
+function pageHello():
     markdownPrint('# Hello', '', 'On the Hello page.')
 endfunction
 
-function pageAbout(args):
+function pageAbout():
     markdownPrint('# About', '', 'This is an example.')
 endfunction
 
@@ -1099,10 +1195,6 @@ ship a 100% coverage frontend test suite (Section 5).
   `schemaDoc.bare` + `markdown.bare` (this skill's own library reference).
   [App](https://craigahobbs.github.io/bare-script/library/) ·
   [Source](https://github.com/craigahobbs/bare-script/blob/main/lib/include/baredoc.bare)
-- **Chisel Documentation Viewer** — smallest example (~90 lines): renders API
-  schema docs via `schemaDoc.bare`.
-  [App](https://craigahobbs.github.io/chisel/example/#var.vName='chisel_doc_request') ·
-  [Source](https://github.com/craigahobbs/chisel/blob/main/src/chisel/static/chiselDoc.bare)
 
 ---
 
@@ -1592,11 +1684,59 @@ print(execute_script(script, {'globals': {'N': 21}}))  # 42
 ```
 
 Scripts that fetch or use URL includes need a fetch function in the options —
-`{'fetch_fn': fetch_http}`, or `fetch_read_only` / `fetch_read_write` for local
+`{'fetchFn': fetch_http}`, or `fetch_read_only` / `fetch_read_write` for local
 files. The Python implementation has a single synchronous API — there is no
 separate async runtime; `execute_script` runs scripts that use `systemFetch`
 and non-system includes directly. See the
 [`bare-script` Python package](https://github.com/craigahobbs/bare-script-py#readme).
+
+#### WSGI applications (Python)
+
+`bare_script.wsgi.wsgi_application(src, script_name, function_name)` hosts a BareScript function as
+a WSGI application. `src` maps project-relative POSIX paths to file content (text or bytes) -
+`wsgi_load_source(root_dir, ['backend', 'frontend'])` reads directories into one, skipping hidden
+files; every `include` and `systemFetch` reads from it, relative to the script. The script runs
+once, then each request calls the function with a copy of the WSGI environ (string, number, and
+boolean values; the request body is the `wsgi.input` string) and returns `{'status': '200 OK',
+'headers': [[key, value], ...], 'content': textOrBytes}`. Build JSON APIs with `wsgi.bare`:
+
+```bare-script
+include <schemaParser.bare>
+include <wsgi.bare>
+
+myappTypes = schemaParse( \
+    'action myappDouble', \
+    '    input', \
+    '        float value', \
+    '    output', \
+    '        float answer' \
+)
+
+# Action functions take the validated request (the WSGI environ is an optional 2nd argument)
+function myappDouble(request):
+    return {'answer': 2 * objectGet(request, 'value')}
+endfunction
+
+myappApplication = wsgiCreateAPIApplication(myappTypes, { \
+    'doc': true, \
+    'requests': [ \
+        {'type': 'action', 'name': 'myappDouble', 'path': '/double'}, \
+        {'type': 'request', 'path': '/index.html', 'function': wsgiStatic(systemFetch('frontend/index.html'))} \
+    ] \
+})
+```
+
+An action request **must** have a `'name'` (BareScript can't recover a function's name); its
+function defaults to the global of that name. Return `wsgiActionError(error, message?, status?)` for
+an error response; a request that fails with a runtime error (e.g. an undefined function) responds
+`500` with `{"error": "UnexpectedError"}`. `'doc': true` hosts the API documentation at `/doc/`,
+which loads MarkdownUp from `/markdown-up/`. Host static files with `wsgiStaticRequests(statics, srcPrefix?)`, which creates
+a `GET` request per file - text fetched as text, anything else as bytes. `src` can't be listed from
+BareScript, so the host passes the URL-path-to-source-path map as a global -
+`wsgi_load_statics(root_dir, {'/': 'frontend', '/markdown-up/': 'build/markdown-up'})` builds it -
+and a backend in `backend/` adds `arrayExtend(requests, wsgiStaticRequests(statics, '../'))`. Test the
+application function directly by calling it with an environ object. Every action's output and
+error responses are schema-validated unless `'validateOutput': false`.
 
 ---
 
@@ -1722,7 +1862,7 @@ most commonly produce when writing BareScript for the first time.
       — there is no `await` keyword). If a function calls `systemFetch` or
       any other async function, it must be `async function fn(...)`.
 - [ ] **Multiline continuation uses trailing `\`**, including inside object
-      and array literals.
+      and array literals — but not on a comment line within the continuation.
 - [ ] **Strings are concatenated with `+`** — no f-strings, no `${...}`.
 - [ ] **Invalid arguments return `null`**, not an exception. Defensively check
       `if x == null:` before chaining.
@@ -1742,6 +1882,9 @@ most commonly produce when writing BareScript for the first time.
       A `'<function>'` in the render log is not enough.
 - [ ] **Use `for value, ixValue in items:`** to get both value and index;
       don't reinvent with `while`.
+- [ ] **Persist to a local CouchDB by default** (unless the spec names a database)
+      with `systemFetch` - `'method'` for PUT and DELETE, and a `null`
+      response on any failure (see Section 2, Persistence).
 
 ---
 

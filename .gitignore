@@ -4,4 +4,5 @@
 /eslint.config.js
 /jsdoc.json
 /package-lock.json
+*.elc
 .DS_Store

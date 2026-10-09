@@ -271,11 +271,15 @@ function baredocCLIIsLiteral(expr):
     if variable != null:
         return variable == 'null' || variable == 'true' || variable == 'false'
     endif
-    funcName = objectGet(objectGet(expr, 'function'), 'name')
+    func = objectGet(expr, 'function')
+    if func == null:
+        return false
+    endif
+    funcName = objectGet(func, 'name')
     if funcName != 'arrayNew' && funcName != 'objectNew':
         return false
     endif
-    for arg, ixArg in objectGet(objectGet(expr, 'function'), 'args'):
+    for arg, ixArg in objectGet(func, 'args'):
         isKey = funcName == 'objectNew' && ixArg % 2 == 0
         if !if(isKey, objectHas(arg, 'string'), baredocCLIIsLiteral(arg)):
             return false

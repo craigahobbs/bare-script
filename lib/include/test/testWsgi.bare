@@ -1,0 +1,698 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../schemaParser.bare'
+include '../schemaTypeModel.bare'
+include '../wsgi.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+# Test API types
+testWsgiTypes = schemaParse( \
+    'group "Test"', \
+    '', \
+    '# Double a number', \
+    'action testWsgiDouble', \
+    '    input', \
+    '        float value', \
+    '    output', \
+    '        float answer', \
+    '', \
+    'action testWsgiSum', \
+    '    urls', \
+    '        GET /sum/{a}', \
+    '        GET /sum/{a}/{b}', \
+    '    path', \
+    '        int a', \
+    '        optional int b', \
+    '    query', \
+    '        optional int c', \
+    '    output', \
+    '        int sum', \
+    '    errors', \
+    '        Negative', \
+    '', \
+    'action testWsgiEmpty', \
+    '    urls', \
+    '        GET', \
+    '', \
+    'struct testWsgiStruct', \
+    '    int value' \
+)
+
+
+# Test action functions
+function testWsgiDouble(request):
+    return {'answer': 2 * objectGet(request, 'value')}
+endfunction
+
+function testWsgiSum(request):
+    sum = objectGet(request, 'a') + objectGet(request, 'b', 0) + objectGet(request, 'c', 0)
+    if sum < 0:
+        return wsgiActionError('Negative', 'The sum is negative')
+    endif
+    return {'sum': sum}
+endfunction
+
+function testWsgiEmpty():
+endfunction
+
+function testWsgiArgs(environ, urlArgs):
+    unittestEqual(systemType(environ), 'object')
+    return wsgiResponseText('200 OK', jsonStringify(urlArgs))
+endfunction
+
+function testWsgiOutputInvalid(request):
+    return {'answer': 'x' + objectGet(request, 'value')}
+endfunction
+
+function testWsgiErrorStatus():
+    return wsgiActionError('Unknown', null, '404 Not Found')
+endfunction
+
+function testWsgiErrorConflict():
+    return wsgiActionError('Negative', null, '409 Conflict')
+endfunction
+
+function testWsgiOutputNumber():
+    return 7
+endfunction
+
+function testWsgiCustom(request, environ):
+    return wsgiResponseText('200 OK', 'Custom ' + jsonStringify(request) + ' ' + objectGet(environ, 'PATH_INFO'))
+endfunction
+
+
+# Test helper to create a WSGI environ object
+function testWsgiEnviron(method, path, queryString, content):
+    return { \
+        'REQUEST_METHOD': method, \
+        'PATH_INFO': path, \
+        'QUERY_STRING': if(queryString != null, queryString, ''), \
+        'wsgi.input': if(content != null, content, '') \
+    }
+endfunction
+
+
+# Test helper to create a JSON response object
+function testWsgiJSON(status, value):
+    return {'status': status, 'headers': [['Content-Type', 'application/json']], 'content': jsonStringify(value)}
+endfunction
+
+
+# Test helper to create a plain-text response object
+function testWsgiText(status, text):
+    return {'status': status, 'headers': [['Content-Type', 'text/plain; charset=utf-8']], 'content': text}
+endfunction
+
+
+# Test helper to create a "405 Method Not Allowed" response object
+function testWsgiNotAllowed(allow):
+    return { \
+        'status': '405 Method Not Allowed', \
+        'headers': [['Content-Type', 'text/plain; charset=utf-8'], ['Allow', allow]], \
+        'content': '405 Method Not Allowed' \
+    }
+endfunction
+
+
+#
+# wsgiCreateAPIApplication tests
+#
+
+
+async function testWsgiCreateAPIApplication():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiDouble}, \
+        {'type': 'action', 'name': 'testWsgiSum', 'function': testWsgiSum}, \
+        {'type': 'action', 'name': 'testWsgiEmpty'}, \
+        {'type': 'request', 'path': '/hello', 'method': 'GET', 'function': wsgiStatic('Hello!')}, \
+        {'type': 'request', 'name': 'testWsgiArgs', 'path': '/args/{id}', 'function': testWsgiArgs} \
+    ]})
+
+    # Actions
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/double', '', '{"value": 3}')), \
+        testWsgiJSON('200 OK', {'answer': 6}) \
+    )
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/sum/1')), testWsgiJSON('200 OK', {'sum': 1}))
+    unittestDeepEqual(app(testWsgiEnviron('get', '/sum/1/2', 'c=3')), testWsgiJSON('200 OK', {'sum': 6}))
+    unittestDeepEqual(app(testWsgiEnviron('HEAD', '/sum/1/2')), testWsgiJSON('200 OK', {'sum': 3}))
+    unittestDeepEqual(app({'PATH_INFO': '/testWsgiEmpty'}), testWsgiJSON('200 OK', {}))
+
+    # Requests
+    unittestDeepEqual(app({}), testWsgiText('404 Not Found', '404 Not Found'))
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/hello')), testWsgiText('200 OK', 'Hello!'))
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/hello')), testWsgiNotAllowed('GET, HEAD'))
+    unittestDeepEqual(app(testWsgiEnviron('PUT', '/args/a b')), testWsgiText('200 OK', '{"id":"a b"}'))
+    unittestDeepEqual(app(testWsgiEnviron('PUT', '/args/100%')), testWsgiText('200 OK', '{"id":"100%"}'))
+    unittestDeepEqual(app(testWsgiEnviron('PUT', '/args/a%2520b')), testWsgiText('200 OK', '{"id":"a%2520b"}'))
+
+    # Not found
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/unknown')), testWsgiText('404 Not Found', '404 Not Found'))
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/sum/1/2/3')), testWsgiText('404 Not Found', '404 Not Found'))
+
+    # Method not allowed
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/sum/1')), testWsgiNotAllowed('GET, HEAD'))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiCreateAPIApplication')
+
+
+async function testWsgiCreateAPIApplication_methods():
+    unittestMockAll()
+    types = schemaParse( \
+        'action testWsgiEmpty', \
+        '    urls', \
+        '        get /empty' \
+    )
+    app = wsgiCreateAPIApplication(types, {'doc': true, 'requests': [ \
+        {'type': 'action', 'name': 'testWsgiEmpty'}, \
+        {'type': 'request', 'path': '/items', 'method': 'get', 'function': wsgiStatic('Get items')}, \
+        {'type': 'request', 'path': '/items', 'method': 'Post', 'function': wsgiStatic('Post items')}, \
+        {'type': 'request', 'path': '/items/{id}', 'method': 'delete', 'function': testWsgiArgs} \
+    ]})
+
+    # Request methods are case-insensitive
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/empty')), testWsgiJSON('200 OK', {}))
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/items')), testWsgiText('200 OK', 'Get items'))
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/items')), testWsgiText('200 OK', 'Post items'))
+    unittestDeepEqual(app(testWsgiEnviron('PUT', '/items')), testWsgiNotAllowed('GET, HEAD, POST'))
+    unittestDeepEqual(app(testWsgiEnviron('PUT', '/items/1')), testWsgiNotAllowed('DELETE'))
+
+    # An action's method applies to its default URLs
+    appMethod = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'action', 'name': 'testWsgiDouble', 'method': 'put'}]})
+    unittestDeepEqual(appMethod(testWsgiEnviron('PUT', '/testWsgiDouble', '', '{"value": 3}')), testWsgiJSON('200 OK', {'answer': 6}))
+    unittestDeepEqual(appMethod(testWsgiEnviron('POST', '/testWsgiDouble', '', '{"value": 3}')), testWsgiNotAllowed('PUT'))
+
+    # An action's method overrides schema URLs that differ only by method
+    appOverride = wsgiCreateAPIApplication(schemaParse('action testWsgiEmpty', '    urls', '        GET /a', '        POST /a'), \
+        {'requests': [{'type': 'action', 'name': 'testWsgiEmpty', 'method': 'GET'}]})
+    unittestDeepEqual(appOverride(testWsgiEnviron('GET', '/a')), testWsgiJSON('200 OK', {}))
+    unittestDeepEqual(appOverride(testWsgiEnviron('POST', '/a')), testWsgiNotAllowed('GET, HEAD'))
+
+    # A request's default name is its method and path
+    groups = objectGet(jsonParse(objectGet(app(testWsgiEnviron('GET', '/doc/docIndex')), 'content')), 'groups')
+    unittestDeepEqual(objectGet(groups, 'Uncategorized'), ['DELETE /items/{id}', 'GET /items', 'POST /items', 'testWsgiEmpty'])
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/doc/docRequest', 'name=' + urlEncodeComponent('POST /items'))), \
+        testWsgiJSON('200 OK', {'name': 'POST /items', 'urls': [{'method': 'POST', 'path': '/items'}]}) \
+    )
+    unittestDeepEqual( \
+        objectGet(jsonParse(objectGet(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=testWsgiEmpty')), 'content')), 'urls'), \
+        [{'method': 'GET', 'path': '/empty'}] \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiCreateAPIApplication_methods')
+
+
+async function testWsgiCreateAPIApplication_options():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes)
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/double')), testWsgiText('404 Not Found', '404 Not Found'))
+
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'action', 'name': 'testWsgiDouble'}]})
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/testWsgiDouble', '', '{"value": 3}')), \
+        testWsgiJSON('200 OK', {'answer': 6}) \
+    )
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/testWsgiDouble')), \
+        testWsgiNotAllowed('POST') \
+    )
+
+    app = wsgiCreateAPIApplication(testWsgiTypes, { \
+        'pretty': true, \
+        'requests': [{'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiDouble}] \
+    })
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/double', '', '{"value": 3}')), { \
+        'status': '200 OK', \
+        'headers': [['Content-Type', 'application/json']], \
+        'content': '{\n    "answer": 6\n}' \
+    })
+
+    # Output validation off
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'validateOutput': false, 'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiOutputInvalid} \
+    ]})
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/double', '', '{"value": 3}')), testWsgiJSON('200 OK', {'answer': 'x3'}))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiCreateAPIApplication_options')
+
+
+#
+# wsgiCreateAPIApplication request object error tests
+#
+
+
+function testWsgiCreateAPIApplication_requestErrors():
+    unittestMockAll()
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'action'}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'action', 'name': 'testWsgiStruct'}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'request', 'function': testWsgiArgs}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'unknown'}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [{'type': 'request', 'path': '/a'}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'name': 'a', 'path': '/a', 'function': testWsgiArgs}, \
+        {'type': 'request', 'name': 'a', 'path': '/b', 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'path': '/a', 'function': testWsgiArgs}, \
+        {'type': 'request', 'name': 'b', 'path': '/a', 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'name': 'a', 'path': '/a/{id}', 'function': testWsgiArgs}, \
+        {'type': 'request', 'name': 'b', 'path': '/a/{name}', 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'path': '/a/{id}/{id}', 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'path': '/a/x{id}', 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'path': '/a', 'method': 7, 'function': testWsgiArgs} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'request', 'path': '/a', 'method': 'head', 'function': testWsgiArgs} \
+    ]}), null)
+    headTypes = schemaParse('action testWsgiEmpty', '    urls', '        HEAD /x')
+    unittestEqual(wsgiCreateAPIApplication(headTypes, {'requests': [{'type': 'action', 'name': 'testWsgiEmpty'}]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiSum', 'path': '/sum'} \
+    ]}), null)
+    unittestEqual(wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double/{x}'} \
+    ]}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', ['wsgi.bare: Unknown action "null"']], \
+        ['systemLog', ['wsgi.bare: Unknown action "testWsgiStruct"']], \
+        ['systemLog', ['wsgi.bare: Invalid request path "null"']], \
+        ['systemLog', ['wsgi.bare: Invalid request type "unknown"']], \
+        ['systemLog', ['wsgi.bare: Invalid function for request "/a"']], \
+        ['systemLog', ['wsgi.bare: Redefinition of request "a"']], \
+        ['systemLog', ['wsgi.bare: Redefinition of request URL "/a"']], \
+        ['systemLog', ['wsgi.bare: Redefinition of request URL "/a/{name}"']], \
+        ['systemLog', ['wsgi.bare: Duplicate URL argument "{id}" in URL "/a/{id}/{id}"']], \
+        ['systemLog', ['wsgi.bare: Invalid URL argument "x{id}" in URL "/a/x{id}"']], \
+        ['systemLog', ['wsgi.bare: Invalid request method "7"']], \
+        ['systemLog', ['wsgi.bare: Invalid method "HEAD" in URL "/a" - HEAD requests are served by GET requests']], \
+        ['systemLog', ['wsgi.bare: Invalid method "HEAD" in URL "/x" - HEAD requests are served by GET requests']], \
+        ['systemLog', ['wsgi.bare: Missing URL argument "{a}" in URL "/sum"']], \
+        ['systemLog', ['wsgi.bare: Unknown URL argument "{x}" in URL "/double/{x}"']] \
+    ])
+endfunction
+unittestRunTest('testWsgiCreateAPIApplication_requestErrors')
+
+
+async function testWsgiCreateAPIApplication_typedefPath():
+    unittestMockAll()
+
+    # A hand-written type model whose action path section is a typedef of a struct
+    types = { \
+        'testWsgiTypedefPath': {'action': { \
+            'name': 'testWsgiTypedefPath', \
+            'urls': [{'method': 'GET', 'path': '/item/{id}'}], \
+            'path': 'testWsgiTypedefPath_path' \
+        }}, \
+        'testWsgiTypedefPath_path': {'typedef': {'name': 'testWsgiTypedefPath_path', 'type': {'user': 'testWsgiItemPath'}}}, \
+        'testWsgiItemPath': {'struct': {'name': 'testWsgiItemPath', 'members': [{'name': 'id', 'type': {'builtin': 'int'}}]}} \
+    }
+    unittestEqual(objectHas(schemaTypeModelValidateEx(types), 'error'), false)
+    app = wsgiCreateAPIApplication(types, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiTypedefPath', 'wsgi': true, 'function': testWsgiCustom} \
+    ]})
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/item/5')), testWsgiText('200 OK', 'Custom {"id":5} /item/5'))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiCreateAPIApplication_typedefPath')
+
+
+#
+# Action tests
+#
+
+
+async function testWsgiAction_invalidInput():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiDouble}, \
+        {'type': 'action', 'name': 'testWsgiSum', 'function': testWsgiSum} \
+    ]})
+
+    # Invalid JSON content
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/double', '', 'null')), \
+        testWsgiJSON('400 Bad Request', {'error': 'InvalidInput', 'message': 'Invalid request JSON'}) \
+    )
+
+    # Invalid content
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/double', '', '{"value": "abc"}')), \
+        testWsgiJSON('400 Bad Request', { \
+            'error': 'InvalidInput', \
+            'member': 'value', \
+            'message': 'Invalid value "abc" (type "string") for member "value", expected type "float" (content)' \
+        }) \
+    )
+
+    # Invalid query string
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/sum/1', 'c=%')), \
+        testWsgiJSON('400 Bad Request', {'error': 'InvalidInput', 'message': 'Invalid query string'}) \
+    )
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/sum/1', 'c=abc')), \
+        testWsgiJSON('400 Bad Request', { \
+            'error': 'InvalidInput', \
+            'member': 'c', \
+            'message': 'Invalid value "abc" (type "string") for member "c", expected type "int" (query string)' \
+        }) \
+    )
+
+    # Invalid path
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/sum/abc')), \
+        testWsgiJSON('400 Bad Request', { \
+            'error': 'InvalidInput', \
+            'member': 'a', \
+            'message': 'Invalid value "abc" (type "string") for member "a", expected type "int" (path)' \
+        }) \
+    )
+    unittestDeepEqual(unittestMockEnd(), [['systemLogDebug', ["url.bare: Invalid percent-encoding '%'"]]])
+endfunction
+unittestRunTest('testWsgiAction_invalidInput')
+
+
+async function testWsgiAction_error():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiSum', 'function': testWsgiSum}, \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/status', 'function': testWsgiErrorStatus} \
+    ]})
+    unittestDeepEqual( \
+        app(testWsgiEnviron('GET', '/sum/-1')), \
+        testWsgiJSON('400 Bad Request', {'error': 'Negative', 'message': 'The sum is negative'}) \
+    )
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/status', '', '{"value": 1}')), \
+        testWsgiJSON('500 Internal Server Error', { \
+            'error': 'InvalidOutput', \
+            'member': 'error', \
+            'message': 'Invalid value "Unknown" (type "string") for member "error", expected type "testWsgiDouble_errors"' \
+        }) \
+    )
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiSum', 'path': '/conflict/{a}', 'function': testWsgiErrorConflict} \
+    ]})
+    unittestDeepEqual(app(testWsgiEnviron('POST', '/conflict/1')), testWsgiJSON('409 Conflict', {'error': 'Negative'}))
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', [ \
+            'wsgi.bare: Invalid output returned from action "testWsgiDouble": ' + \
+                'Invalid value "Unknown" (type "string") for member "error", expected type "testWsgiDouble_errors"' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testWsgiAction_error')
+
+
+async function testWsgiAction_invalidOutput():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiOutputInvalid}, \
+        {'type': 'action', 'name': 'testWsgiEmpty', 'path': '/empty', 'function': testWsgiOutputNumber} \
+    ]})
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/double', '', '{"value": 3}')), \
+        testWsgiJSON('500 Internal Server Error', { \
+            'error': 'InvalidOutput', \
+            'member': 'answer', \
+            'message': 'Invalid value "x3" (type "string") for member "answer", expected type "float"' \
+        }) \
+    )
+    unittestDeepEqual( \
+        app(testWsgiEnviron('POST', '/empty')), \
+        testWsgiJSON('500 Internal Server Error', { \
+            'error': 'InvalidOutput', \
+            'message': 'Invalid value 7 (type "number"), expected type "testWsgiEmpty_output"' \
+        }) \
+    )
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLog', [ \
+            'wsgi.bare: Invalid output returned from action "testWsgiDouble": ' + \
+                'Invalid value "x3" (type "string") for member "answer", expected type "float"' \
+        ]], \
+        ['systemLog', [ \
+            'wsgi.bare: Invalid output returned from action "testWsgiEmpty": ' + \
+                'Invalid value 7 (type "number"), expected type "testWsgiEmpty_output"' \
+        ]] \
+    ])
+endfunction
+unittestRunTest('testWsgiAction_invalidOutput')
+
+
+async function testWsgiAction_wsgi():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'requests': [ \
+        {'type': 'action', 'name': 'testWsgiEmpty', 'path': '/empty', 'wsgi': true, 'function': testWsgiCustom}, \
+        {'type': 'action', 'name': 'testWsgiSum', 'wsgi': true, 'function': testWsgiErrorConflict} \
+    ]})
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/empty')), testWsgiText('200 OK', 'Custom {} /empty'))
+
+    # An action error is an action error response
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/sum/1')), testWsgiJSON('409 Conflict', {'error': 'Negative'}))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiAction_wsgi')
+
+
+#
+# wsgiActionError tests
+#
+
+
+function testWsgiActionError():
+    unittestMockAll()
+    unittestDeepEqual(wsgiActionError('Error'), {'wsgiActionError': {'error': 'Error'}})
+    unittestDeepEqual( \
+        wsgiActionError('Error', 'Message', '404 Not Found'), \
+        {'wsgiActionError': {'error': 'Error', 'message': 'Message', 'status': '404 Not Found'}} \
+    )
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiActionError')
+
+
+#
+# wsgiResponseText tests
+#
+
+
+function testWsgiResponseText():
+    unittestMockAll()
+    unittestDeepEqual(wsgiResponseText('404 Not Found'), testWsgiText('404 Not Found', '404 Not Found'))
+    unittestDeepEqual(wsgiResponseText('200 OK', 'Hello'), testWsgiText('200 OK', 'Hello'))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiResponseText')
+
+
+#
+# wsgiStatic tests
+#
+
+
+function testWsgiStatic():
+    unittestMockAll()
+    staticFn = wsgiStatic('Hello')
+    unittestDeepEqual(staticFn({'PATH_INFO': '/index.html'}), { \
+        'status': '200 OK', \
+        'headers': [['Content-Type', 'text/html; charset=utf-8']], \
+        'content': 'Hello' \
+    })
+    unittestDeepEqual(staticFn({}), testWsgiText('200 OK', 'Hello'))
+
+    staticFn = wsgiStatic([1, 2, 3], 'image/png')
+    unittestDeepEqual(staticFn({'PATH_INFO': '/index.html'}), { \
+        'status': '200 OK', \
+        'headers': [['Content-Type', 'image/png']], \
+        'content': [1, 2, 3] \
+    })
+
+    staticFn = wsgiStatic(null)
+    unittestDeepEqual(staticFn({}), testWsgiText('404 Not Found', '404 Not Found'))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiStatic')
+
+
+#
+# wsgiStaticRequests tests
+#
+
+
+function testWsgiStaticRequestsCall(request):
+    requestFn = objectGet(request, 'function')
+    return requestFn({})
+endfunction
+
+
+async function testWsgiStaticRequests():
+    unittestMockAll({'systemFetch': { \
+        '../frontend/index.html': '<html></html>', \
+        '../frontend/logo.png': [137, 80, 78, 71] \
+    }})
+    requests = wsgiStaticRequests( \
+        {'/index.html': 'frontend/index.html', '/': 'frontend/index.html', '/logo.png': 'frontend/logo.png', '/x.bin': 'x.bin'}, \
+        '../' \
+    )
+
+    # The request objects, in URL path order
+    summaries = []
+    for request in requests:
+        arrayPush(summaries, [objectGet(request, 'method'), objectGet(request, 'path'), objectGet(request, 'docGroup')])
+    endfor
+    unittestDeepEqual(summaries, [ \
+        ['GET', '/', 'Statics'], \
+        ['GET', '/index.html', 'Statics'], \
+        ['GET', '/logo.png', 'Statics'], \
+        ['GET', '/x.bin', 'Statics'] \
+    ])
+
+    # Text files are fetched as text, other files as byte value arrays, and a missing file is not found
+    htmlResponse = { \
+        'status': '200 OK', 'headers': [['Content-Type', 'text/html; charset=utf-8']], 'content': '<html></html>' \
+    }
+    unittestDeepEqual(testWsgiStaticRequestsCall(arrayGet(requests, 0)), htmlResponse)
+    unittestDeepEqual(testWsgiStaticRequestsCall(arrayGet(requests, 1)), htmlResponse)
+    unittestDeepEqual( \
+        testWsgiStaticRequestsCall(arrayGet(requests, 2)), \
+        {'status': '200 OK', 'headers': [['Content-Type', 'image/png']], 'content': [137, 80, 78, 71]} \
+    )
+    unittestDeepEqual(testWsgiStaticRequestsCall(arrayGet(requests, 3)), testWsgiText('404 Not Found', '404 Not Found'))
+
+    # The static files are fetched in one request
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [[ \
+            {'url': '../frontend/index.html', 'binary': false}, \
+            {'url': '../frontend/index.html', 'binary': false}, \
+            {'url': '../frontend/logo.png', 'binary': true}, \
+            {'url': '../x.bin', 'binary': true} \
+        ]]] \
+    ])
+
+    # No source prefix
+    unittestMockAll({'systemFetch': {'frontend/index.html': '<html></html>'}})
+    requests = wsgiStaticRequests({'/index.html': 'frontend/index.html'})
+    unittestDeepEqual(testWsgiStaticRequestsCall(arrayGet(requests, 0)), htmlResponse)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', [[{'url': 'frontend/index.html', 'binary': false}]]] \
+    ])
+endfunction
+unittestRunTest('testWsgiStaticRequests')
+
+
+#
+# wsgiContentType tests
+#
+
+
+function testWsgiContentType():
+    unittestMockAll()
+    unittestEqual(wsgiContentType('/index.html'), 'text/html; charset=utf-8')
+    unittestEqual(wsgiContentType('/images/logo.PNG', true), 'image/png')
+    unittestEqual(wsgiContentType('/file.unknown'), 'text/plain; charset=utf-8')
+    unittestEqual(wsgiContentType('/file.unknown', true), 'application/octet-stream')
+    unittestEqual(wsgiContentType('/a.b/file'), 'text/plain; charset=utf-8')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testWsgiContentType')
+
+
+#
+# Documentation application tests
+#
+
+
+async function testWsgiAPIDoc():
+    unittestMockAll()
+    app = wsgiCreateAPIApplication(testWsgiTypes, {'doc': true, 'requests': [ \
+        {'type': 'action', 'name': 'testWsgiDouble', 'path': '/double', 'function': testWsgiDouble}, \
+        {'type': 'action', 'name': 'testWsgiSum', 'docGroup': 'Math', 'function': testWsgiSum}, \
+        {'type': 'action', 'name': 'testWsgiEmpty', 'wsgi': true, 'function': testWsgiCustom}, \
+        {'type': 'request', 'path': '/hello', 'function': wsgiStatic('Hello!')}, \
+        {'type': 'request', 'path': '/lines', 'doc': ['Line 1', 'Line 2'], 'function': wsgiStatic('Lines!')} \
+    ]})
+
+    # Redirect
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc')), { \
+        'status': '301 Moved Permanently', \
+        'headers': [['Content-Type', 'text/plain; charset=utf-8'], ['Location', 'doc/']], \
+        'content': '/doc/' \
+    })
+
+    # Application HTML - runs the wsgiAPIDoc.bare include library's application
+    response = app(testWsgiEnviron('GET', '/doc/'))
+    unittestDeepEqual(objectGet(response, 'headers'), [['Content-Type', 'text/html; charset=utf-8']])
+    unittestEqual(stringStartsWith(objectGet(response, 'content'), '<!DOCTYPE html>\n'), true)
+    unittestEqual(stringIndexOf(objectGet(response, 'content'), 'include <wsgiAPIDoc.bare>\\n\\nwsgiAPIDocMain()') != -1, true)
+
+    # Index
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docIndex')), testWsgiJSON('200 OK', { \
+        'title': 'API Documentation', \
+        'groups': { \
+            'Documentation': ['wsgiAPIDoc', 'wsgiAPIDocIndex', 'wsgiAPIDocRedirect', 'wsgiAPIDocRequest'], \
+            'Math': ['testWsgiSum'], \
+            'Test': ['testWsgiDouble', 'testWsgiEmpty'], \
+            'Uncategorized': ['/hello', '/lines'] \
+        } \
+    }))
+    environ = testWsgiEnviron('GET', '/doc/docIndex')
+    objectSet(environ, 'SERVER_NAME', 'localhost')
+    unittestEqual(objectGet(jsonParse(objectGet(app(environ), 'content')), 'title'), 'localhost')
+    objectSet(environ, 'HTTP_HOST', 'localhost:8080')
+    unittestEqual(objectGet(jsonParse(objectGet(app(environ), 'content')), 'title'), 'localhost:8080')
+
+    # Action requests
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=testWsgiDouble')), testWsgiJSON('200 OK', { \
+        'name': 'testWsgiDouble', \
+        'urls': [{'path': '/double'}], \
+        'types': schemaGetReferencedTypes(testWsgiTypes, 'testWsgiDouble') \
+    }))
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=testWsgiEmpty')), testWsgiJSON('200 OK', { \
+        'name': 'testWsgiEmpty', \
+        'urls': [{'method': 'GET', 'path': '/testWsgiEmpty'}], \
+        'types': schemaGetReferencedTypes(testWsgiTypes, 'testWsgiEmpty'), \
+        'custom': true \
+    }))
+
+    # Non-action requests
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=/hello')), testWsgiJSON('200 OK', { \
+        'name': '/hello', \
+        'urls': [{'path': '/hello'}] \
+    }))
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=/lines')), testWsgiJSON('200 OK', { \
+        'name': '/lines', \
+        'urls': [{'path': '/lines'}], \
+        'doc': ['Line 1', 'Line 2'] \
+    }))
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=wsgiAPIDoc')), testWsgiJSON('200 OK', { \
+        'name': 'wsgiAPIDoc', \
+        'urls': [{'method': 'GET', 'path': '/doc/'}], \
+        'doc': ['The API documentation application HTML'] \
+    }))
+
+    # Unknown requests
+    unknownName = testWsgiJSON('400 Bad Request', {'error': 'UnknownName'})
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=unknown')), unknownName)
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest')), unknownName)
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name.0=a')), unknownName)
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', '0=a')), unknownName)
+    unittestDeepEqual(app(testWsgiEnviron('GET', '/doc/docRequest', 'name=%')), unknownName)
+    unittestDeepEqual(unittestMockEnd(), [['systemLogDebug', ["url.bare: Invalid percent-encoding '%'"]]])
+endfunction
+unittestRunTest('testWsgiAPIDoc')

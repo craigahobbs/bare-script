@@ -56,6 +56,8 @@ function testCreatorLandingLogEx(error, history, confirmClear):
     endif
     arrayPush(log, ['markdownPrint', ['', '## Project Types']])
     arrayPush(log, ['markdownPrint', ['', "- [Frontend Application](#var.vType='frontend') - " + objectGet(creatorFrontendType, 'description')]])
+    arrayPush(log, ['markdownPrint', ['', "- [Full\\-Stack Application](#var.vType='fullstack') - " + objectGet(creatorFullStackType, 'description')]])
+    arrayPush(log, ['markdownPrint', ['', "- [Backend Application](#var.vType='backend') - " + objectGet(creatorFullStackBackendType, 'description')]])
     arrayPush(log, ['markdownPrint', [ \
         '', \
         '## How It Works', \
@@ -63,8 +65,8 @@ function testCreatorLandingLogEx(error, history, confirmClear):
         '1. Fill in a project type\'s form and click **Create**. Your entries are kept for the browser session, and each', \
         '   project you create is added to the history below.', \
         '2. Extract the archive: `tar xzf <project>.tar.gz`.', \
-        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the `bare`', \
-        '   CLI and MarkdownUp, then runs Claude Code in your terminal:', \
+        '3. In the project directory, run `make run`. The first run builds a Python virtual environment with the', \
+        '   project\'s tools, like the `bare` CLI, then runs Claude Code in your terminal:', \
         '', \
         '   ```', \
         '   claude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
@@ -320,14 +322,14 @@ unittestRunTest('testCreatorMainLandingUnknownType')
 function testCreatorHistorySeed():
     localStorageSet('creator.history', jsonStringify([ \
         {'type': 'frontend', 'title': 'My App', 'date': '2026-09-29T12:00:00+00:00', 'values': testCreatorValues}, \
-        {'type': 'backend', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
+        {'type': 'retired', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
     ]))
 endfunction
 
 
 testCreatorHistoryDisplay = [ \
     {'display': '2026-09-29 12:00 - Frontend Application - ', 'title': 'My App'}, \
-    {'display': '2026-09-28 08:30 - Unknown project type "backend" - ', 'title': 'Old Service', 'unknown': true} \
+    {'display': '2026-09-28 08:30 - Unknown project type "retired" - ', 'title': 'Old Service', 'unknown': true} \
 ]
 
 
@@ -392,7 +394,7 @@ function testCreatorOnHistoryRemove():
     calls = unittestMockEnd()
     arrayDelete(calls, 0)
     expected = [['localStorageSet', ['creator.history', jsonStringify([ \
-        {'type': 'backend', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
+        {'type': 'retired', 'title': 'Old Service', 'date': '2026-09-28T08:30:00+00:00', 'values': {'name': 'Old Service'}} \
     ])]]]
     arrayExtend(expected, testCreatorLandingLog(null, arraySlice(testCreatorHistoryDisplay, 1)))
     unittestDeepEqual(calls, expected)
@@ -546,7 +548,7 @@ unittestRunTest('testCreatorOnReset')
 
 
 async function testCreatorResetBinding():
-    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, testCreatorValues, null), 'Reset', \
+    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, testCreatorValues, []), 'Reset', \
         systemPartial(creatorOnReset, creatorFrontendType), null)
 endfunction
 unittestRunTest('testCreatorResetBinding')
@@ -732,7 +734,7 @@ unittestRunTest('testCreatorMainOutputError')
 
 
 async function testCreatorCreateBinding():
-    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, {}, null), 'Create', \
+    testVerifyClick(systemPartial(creatorRenderForm, creatorFrontendType, {}, []), 'Create', \
         systemPartial(creatorOnCreate, creatorFrontendType), testCreatorData)
 endfunction
 unittestRunTest('testCreatorCreateBinding')

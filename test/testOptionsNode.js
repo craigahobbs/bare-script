@@ -96,6 +96,70 @@ test('fetchReadWrite, file write', async () => {
 });
 
 
+test('fetchReadWrite, file method', async () => {
+    const calls = [];
+    const mockReadFile = (...args) => {
+        calls.push(['readFile', args]);
+        return 'Hello';
+    };
+    const mockWriteFile = (...args) => calls.push(['writeFile', args]);
+
+    // A GET request reads
+    let response = await fetchReadWrite('test.txt', {'method': 'GET'}, null, mockReadFile, mockWriteFile);
+    assert.equal(response.ok, true);
+    assert.equal(await response.text(), 'Hello');
+
+    // A POST or PUT request with a body writes
+    for (const method of ['POST', 'PUT']) {
+        response = await fetchReadWrite('test.txt', {method, 'body': 'Hello'}, null, mockReadFile, mockWriteFile);
+        assert.equal(response.ok, true);
+        assert.equal(await response.text(), '{}');
+    }
+
+    // Any other request fails
+    response = await fetchReadWrite('test.txt', {'method': 'HEAD'}, null, mockReadFile, mockWriteFile);
+    assert.equal(response.ok, false);
+    response = await fetchReadWrite('test.txt', {'method': 'PUT'}, null, mockReadFile, mockWriteFile);
+    assert.equal(response.ok, false);
+    response = await fetchReadWrite('test.txt', {'method': 'PATCH', 'body': 'Hello'}, null, mockReadFile, mockWriteFile);
+    assert.equal(response.ok, false);
+
+    assert.deepEqual(calls, [
+        ['readFile', ['test.txt', 'utf-8']],
+        ['writeFile', ['test.txt', 'Hello']],
+        ['writeFile', ['test.txt', 'Hello']]
+    ]);
+});
+
+
+test('fetchReadWrite, file delete', async () => {
+    const calls = [];
+    const mockUnlink = (...args) => calls.push(['unlink', args]);
+
+    let response = await fetchReadWrite('test.txt', {'method': 'DELETE'}, null, null, null, mockUnlink);
+    assert.equal(response.ok, true);
+    assert.equal(await response.text(), '{}');
+    response = await fetchReadWrite('test.bin', {'method': 'DELETE'}, null, null, null, mockUnlink);
+    assert.equal(response.ok, true);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [123, 125]);
+
+    // A delete with a body fails
+    response = await fetchReadWrite('test.txt', {'method': 'DELETE', 'body': 'Hello'}, null, null, null, mockUnlink);
+    assert.equal(response.ok, false);
+
+    assert.deepEqual(calls, [
+        ['unlink', ['test.txt']],
+        ['unlink', ['test.bin']]
+    ]);
+});
+
+
+test('fetchReadOnly, file delete', async () => {
+    const response = await fetchReadOnly('test.txt', {'method': 'DELETE'}, null, null);
+    assert.equal(response.ok, false);
+});
+
+
 test('fetchReadWrite, file read binary', async () => {
     const calls = [];
     const mockReadFile = (...args) => {

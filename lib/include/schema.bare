@@ -123,7 +123,10 @@ endfunction
 
 
 # Regular expressions used by schemaValidateTypeHelper
-schemaValidateRegexDate = regexNew('^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})$')
+schemaValidateRegexDate = regexNew( \
+    '^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})' + \
+    '(?:T00:00(?::00(?:\\.0+)?)?(?:Z|(?<tzhour>[+-][0-9]{2}):(?<tzminute>[0-9]{2})))?$' \
+)
 schemaValidateRegexDatetime = regexNew( \
     '^(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})' + \
     'T(?<hour>[0-9]{2}):(?<minute>[0-9]{2})(?::(?<second>[0-9]{2})(?:\\.(?<fraction>[0-9]+))?)?' + \
@@ -192,7 +195,7 @@ function schemaValidateTypeHelper(types, type, value, memberFqn, error):
 
         # date?
         elif builtin == 'date':
-            # Convert string?
+            # Convert string? A date, or a datetime at midnight in its own offset - the date is the string's date.
             if valueType == 'string':
                 mDate = regexMatch(schemaValidateRegexDate, value)
                 if mDate == null:
@@ -202,15 +205,19 @@ function schemaValidateTypeHelper(types, type, value, memberFqn, error):
                 year = numberParseInt(objectGet(groups, 'year'))
                 month = numberParseInt(objectGet(groups, 'month'))
                 day = numberParseInt(objectGet(groups, 'day'))
+                tzHour = objectGet(groups, 'tzhour')
+                tzMinute = objectGet(groups, 'tzminute')
                 valueNew = if(year >= 100, datetimeNew(year, month, day))
-                # datetimeNew rolls an out-of-range month/day over (e.g. Feb 30 -> Mar 1), always changing the month; reject that
-                if valueNew == null || datetimeMonth(valueNew) != month:
+                # datetimeNew rolls an out-of-range month/day over (e.g. Feb 30 -> Mar 1), always changing the month; reject that,
+                # and an invalid offset
+                if valueNew == null || datetimeMonth(valueNew) != month || \
+                        (tzHour != null && (mathAbs(numberParseInt(tzHour)) > 23 || numberParseInt(tzMinute) > 59)):
                     return schemaMemberError(error, type, value, memberFqn, null)
                 endif
 
-            # Not a date, or a date with a time-of-day?
-            elif valueType != 'datetime' || \
-                    datetimeHour(value) + datetimeMinute(value) + datetimeSecond(value) + datetimeMillisecond(value) != 0:
+            # Not a date - a datetime at the start of its day? A day's start is its local midnight, or its first time when a
+            # timezone change skips midnight.
+            elif valueType != 'datetime' || datetimeNew(datetimeYear(value), datetimeMonth(value), datetimeDay(value)) != value:
                 return schemaMemberError(error, type, value, memberFqn, null)
             endif
 

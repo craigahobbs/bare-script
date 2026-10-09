@@ -19,6 +19,7 @@ include <draw.bare>
 include <elementModel.bare>
 include <forms.bare>
 include <gzip.bare>
+include <hash.bare>
 include <markdown.bare>
 include <markdownElements.bare>
 include <markdownHighlight.bare>
@@ -35,6 +36,8 @@ include <tar.bare>
 include <unittest.bare>
 include <unittestMock.bare>
 include <url.bare>
+include <wsgi.bare>
+include <wsgiAPIDoc.bare>
 
 # Start coverage
 unittestCoverageStart()
@@ -56,6 +59,7 @@ include '../draw.bare'
 include '../elementModel.bare'
 include '../forms.bare'
 include '../gzip.bare'
+include '../hash.bare'
 include '../markdown.bare'
 include '../markdownElements.bare'
 include '../markdownHighlight.bare'
@@ -72,6 +76,8 @@ include '../tar.bare'
 include '../unittest.bare'
 include '../unittestMock.bare'
 include '../url.bare'
+include '../wsgi.bare'
+include '../wsgiAPIDoc.bare'
 
 # Run markdownUp include library unit tests
 include 'testArgs.bare'
@@ -90,6 +96,7 @@ include 'testDraw.bare'
 include 'testElementModel.bare'
 include 'testForms.bare'
 include 'testGzip.bare'
+include 'testHash.bare'
 include 'testMarkdown.bare'
 include 'testMarkdownElements.bare'
 include 'testMarkdownHighlight.bare'
@@ -109,6 +116,8 @@ include 'testTar.bare'
 include 'testUnittest.bare'
 include 'testUnittestMock.bare'
 include 'testUrl.bare'
+include 'testWsgi.bare'
+include 'testWsgiAPIDoc.bare'
 
 # Stop coverage
 unittestCoverageStop()

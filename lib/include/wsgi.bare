@@ -1,0 +1,728 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <schema.bare>
+include <url.bare>
+
+
+# $function: wsgiCreateAPIApplication
+# $group: wsgi.bare
+# $doc: Create a schema-validated JSON API WSGI application function. The application routes each
+# $doc: request by method and path to a request object of the options' "requests" array:
+# $doc:
+# $doc: - **type** - "action" for a schema-validated JSON API action or "request" for any other request
+# $doc: - **name** - the action name (required), or the request name (default is the method and path, e.g.
+# $doc:   "GET /items", or the path if there's no method)
+# $doc: - **function** - the request function. An action function is called with the validated request
+# $doc:   object and the WSGI environ object, and returns the output object, an action error
+# $doc:   ([wsgiActionError](#var.vGroup='wsgi.bare'&wsgiactionerror)), or null. A request function is
+# $doc:   called with the WSGI environ object and the URL path arguments object, and returns a WSGI
+# $doc:   response object. An action's function defaults to the global function of the action's name.
+# $doc: - **path** - the request URL path, matched against the decoded request path (the WSGI environ's
+# $doc:   "PATH_INFO"). A path segment of the form "{name}" is a URL path argument.
+# $doc:   An action's paths default to its schema "urls", or "/" + name for the POST method.
+# $doc: - **method** - the request HTTP method, case-insensitive (default is any method). An action with no
+# $doc:   "path" defaults to its schema "urls" methods, or "POST" - an action with a "path" accepts any method
+# $doc:   by default. HEAD requests are served by GET requests, so "HEAD" isn't a valid method.
+# $doc: - **wsgi** - if true, the action function returns a WSGI response object, or an action error
+# $doc: - **doc** - the request documentation Markdown string or array of strings (an action's documentation is
+# $doc:   its schema documentation)
+# $doc: - **docGroup** - the request documentation group (an action's default is its schema group)
+# $doc:
+# $doc: A WSGI response object has a "status" string (e.g. "200 OK"), a "headers" array of
+# $doc: [key, value] string arrays, and a "content" string or byte value array.
+# $doc:
+# $doc: A request that fails (e.g. an action function calls an undefined function) responds with
+# $doc: "500 Internal Server Error" and the "UnexpectedError" error, as the Python host,
+# $doc: bare_script.wsgi, responds to any failed request.
+# $arg types: The [type model](https://craigahobbs.github.io/bare-script/model/#var.vName='Types'&var.vURL='')
+# $arg types: containing the API action types
+# $arg [options = null]: The application options object. The "requests" member is the array of request
+# $arg [options = null]: objects. If "doc" is true, the API documentation application
+# $arg [options = null]: ([wsgiAPIDocMain](#var.vGroup='wsgiAPIDoc.bare'&wsgiapidocmain)) is hosted at "/doc/" - it loads
+# $arg [options = null]: the MarkdownUp application from "/markdown-up/", so host those files too.
+# $arg [options = null]: If "pretty" is true, JSON responses are indented. If "validateOutput" is true,
+# $arg [options = null]: every action's output and error responses are schema-validated - an invalid response
+# $arg [options = null]: is a "500 Internal Server Error" response (default is true). Validation accepts a value
+# $arg [options = null]: that converts to its member's type (e.g. the string "5" for an int), but the response is
+# $arg [options = null]: the action's output as returned, so return values of the declared types - and unit test them.
+# $return: The WSGI application function, or null if a request object is invalid
+function wsgiCreateAPIApplication(types, options):
+    options = if(options != null, options, {})
+    app = { \
+        'types': types, \
+        'pretty': objectGet(options, 'pretty', false), \
+        'validateOutput': objectGet(options, 'validateOutput', true), \
+        'requests': {}, \
+        'urls': {}, \
+        'paths': {}, \
+        'regexes': [], \
+        'urlKeys': {} \
+    }
+
+    # Add the requests
+    requests = arrayCopy(objectGet(options, 'requests', []))
+    if objectGet(options, 'doc'):
+        arrayExtend(requests, wsgiAPIDocRequests(app))
+    endif
+    for request in requests:
+        if !wsgiAPIAddRequest(app, request):
+            return null
+        endif
+    endfor
+
+    return systemPartial(wsgiAPIHandler, app)
+endfunction
+
+
+# Helper to add a request object to an API application - returns false if the request is invalid
+function wsgiAPIAddRequest(app, config):
+    type = objectGet(config, 'type')
+    name = objectGet(config, 'name')
+    fn = objectGet(config, 'function')
+    path = objectGet(config, 'path')
+    method = objectGet(config, 'method')
+    if method != null:
+        if systemType(method) != 'string':
+            return wsgiAPIRequestError('Invalid request method "' + method + '"')
+        endif
+        method = stringUpper(method)
+    endif
+    request = { \
+        'type': type, \
+        'wsgi': objectGet(config, 'wsgi', false), \
+        'doc': objectGet(config, 'doc'), \
+        'docGroup': objectGet(config, 'docGroup') \
+    }
+    urls = [{'method': method, 'path': path}]
+
+    # Action request?
+    if type == 'action':
+        types = objectGet(app, 'types')
+        userType = if(systemType(name) == 'string', objectGet(types, name))
+        model = if(userType != null, objectGet(userType, 'action'))
+        if model == null:
+            return wsgiAPIRequestError('Unknown action "' + name + '"')
+        endif
+        fn = if(fn != null, fn, systemGlobalGet(name))
+
+        # Compute the action's URLs - the request's method overrides the schema URLs' methods, which can make URLs the same
+        if path == null:
+            urls = []
+            actionURLKeys = {}
+            for url in objectGet(model, 'urls', [{'method': 'POST'}]):
+                actionMethod = if(method != null, method, objectGet(url, 'method'))
+                actionMethod = if(actionMethod != null, stringUpper(actionMethod))
+                actionPath = objectGet(url, 'path', '/' + name)
+                actionURLKey = (actionMethod || '') + ' ' + actionPath
+                if !objectHas(actionURLKeys, actionURLKey):
+                    objectSet(actionURLKeys, actionURLKey, true)
+                    arrayPush(urls, {'method': actionMethod, 'path': actionPath})
+                endif
+            endfor
+        endif
+
+        # Compute the action's section types
+        if objectGet(request, 'docGroup') == null:
+            objectSet(request, 'docGroup', objectGet(model, 'docGroup'))
+        endif
+        objectSet(request, 'input', wsgiAPISectionType(types, model, 'input'))
+        objectSet(request, 'query', wsgiAPISectionType(types, model, 'query'))
+        objectSet(request, 'pathArgs', wsgiAPISectionType(types, model, 'path'))
+        objectSet(request, 'output', wsgiAPISectionType(types, model, 'output'))
+        objectSet(request, 'error', wsgiAPIErrorType(types, model))
+
+    # Non-action request
+    elif type == 'request':
+        if systemType(path) != 'string':
+            return wsgiAPIRequestError('Invalid request path "' + path + '"')
+        endif
+        name = if(name != null, name, if(method != null, method + ' ' + path, path))
+    else:
+        return wsgiAPIRequestError('Invalid request type "' + type + '"')
+    endif
+
+    # Validate the request function and name
+    if systemType(fn) != 'function':
+        return wsgiAPIRequestError('Invalid function for request "' + name + '"')
+    endif
+    appRequests = objectGet(app, 'requests')
+    if objectHas(appRequests, name):
+        return wsgiAPIRequestError('Redefinition of request "' + name + '"')
+    endif
+    objectSet(request, 'name', name)
+    objectSet(request, 'function', fn)
+    objectSet(request, 'urls', urls)
+
+    # Add the request's URLs
+    appURLKeys = objectGet(app, 'urlKeys')
+    for url in urls:
+        methodKey = objectGet(url, 'method') || ''
+        urlPath = objectGet(url, 'path')
+
+        # HEAD requests are served by GET requests
+        if methodKey == 'HEAD':
+            return wsgiAPIRequestError('Invalid method "HEAD" in URL "' + urlPath + '" - HEAD requests are served by GET requests')
+        endif
+
+        # Parse the path's URL arguments
+        argNames = []
+        regexSegments = []
+        for segment in stringSplit(urlPath, '/'):
+            matchArg = regexMatch(wsgiRegexURLArg, segment)
+            if matchArg != null:
+                argName = objectGet(objectGet(matchArg, 'groups'), '1')
+                if arrayIndexOf(argNames, argName) != -1:
+                    return wsgiAPIRequestError('Duplicate URL argument "' + segment + '" in URL "' + urlPath + '"')
+                endif
+                arrayPush(argNames, argName)
+                arrayPush(regexSegments, '([^/]+)')
+            elif stringIndexOf(segment, '{') != -1 || stringIndexOf(segment, '}') != -1:
+                return wsgiAPIRequestError('Invalid URL argument "' + segment + '" in URL "' + urlPath + '"')
+            else:
+                arrayPush(regexSegments, regexEscape(segment))
+            endif
+        endfor
+        urlArgsError = wsgiAPIURLArgsError(request, urlPath, argNames)
+        if urlArgsError != null:
+            return wsgiAPIRequestError(urlArgsError)
+        endif
+
+        # URL argument URLs match regardless of argument names
+        urlKey = methodKey + ' ' + regexReplace(wsgiRegexURLArgs, urlPath, '{}')
+        if objectHas(appURLKeys, urlKey):
+            return wsgiAPIRequestError('Redefinition of request URL "' + urlPath + '"')
+        endif
+        objectSet(appURLKeys, urlKey, true)
+
+        # Path with URL arguments?
+        if arrayLength(argNames):
+            arrayPush(objectGet(app, 'regexes'), [methodKey, regexNew('^' + arrayJoin(regexSegments, '/') + '$'), request, argNames])
+
+        # Exact path
+        else:
+            objectSet(objectGet(app, 'urls'), urlKey, request)
+
+            # Record the exact path's methods, for "405 Method Not Allowed" responses
+            if methodKey != '':
+                appPaths = objectGet(app, 'paths')
+                if !objectHas(appPaths, urlPath):
+                    objectSet(appPaths, urlPath, [])
+                endif
+                arrayPush(objectGet(appPaths, urlPath), methodKey)
+            endif
+        endif
+    endfor
+
+    objectSet(appRequests, name, request)
+    return true
+endfunction
+
+
+# URL argument regular expressions
+wsgiRegexURLArg = regexNew('^\\{([A-Za-z][A-Za-z0-9_]*)\\}$')
+wsgiRegexURLArgs = regexNew('\\{[A-Za-z][A-Za-z0-9_]*\\}')
+
+
+# Helper to log a request object error - always returns false
+function wsgiAPIRequestError(message):
+    systemLog('wsgi.bare: ' + message)
+    return false
+endfunction
+
+
+# Helper to compute an action section's [types, typeName, emptyValid] - an absent section is an empty
+# struct. "emptyValid" is true if an empty object is valid, so validating one can be skipped.
+function wsgiAPISectionType(types, model, section):
+    sectionTypeName = objectGet(model, section)
+    if sectionTypeName == null:
+        sectionTypeName = objectGet(model, 'name') + '_' + section
+        types = objectNew(sectionTypeName, {'struct': {'name': sectionTypeName}})
+    endif
+    return [types, sectionTypeName, !objectHas(schemaValidateEx(types, sectionTypeName, {}), 'error')]
+endfunction
+
+
+# Helper to compute an action's error response [types, typeName]
+function wsgiAPIErrorType(types, model):
+    actionName = objectGet(model, 'name')
+    errorTypeName = objectGet(model, 'errors')
+    if errorTypeName != null:
+        errorTypes = schemaGetReferencedTypes(types, errorTypeName)
+    else:
+        errorTypeName = actionName + '_errors'
+        errorTypes = objectNew(errorTypeName, {'enum': {'name': errorTypeName}})
+    endif
+    outputTypeName = actionName + '_output_error'
+    objectSet(errorTypes, outputTypeName, {'struct': { \
+        'name': outputTypeName, \
+        'members': [ \
+            {'name': 'error', 'type': {'user': errorTypeName}}, \
+            {'name': 'message', 'type': {'builtin': 'string'}, 'optional': true} \
+        ] \
+    }})
+    return [errorTypes, outputTypeName, false]
+endfunction
+
+
+# The API application request handler - wsgiCreateAPIApplication binds it to the application
+async function wsgiAPIHandler(app, environ):
+    # HEAD requests are handled as GET requests
+    method = stringUpper(objectGet(environ, 'REQUEST_METHOD', 'GET'))
+    method = if(method == 'HEAD', 'GET', method)
+
+    # Match the request by method and path
+    path = objectGet(environ, 'PATH_INFO', '/')
+    match = wsgiAPIMatch(app, method, path)
+    if match == null:
+        # The path's methods - if none, the path isn't found
+        allowMethods = arrayCopy(objectGet(objectGet(app, 'paths'), path, []))
+        for regexInfo in objectGet(app, 'regexes'):
+            regexMethod = arrayGet(regexInfo, 0)
+            if regexMethod != '' && arrayIndexOf(allowMethods, regexMethod) == -1 && \
+                    regexMatch(arrayGet(regexInfo, 1), path) != null:
+                arrayPush(allowMethods, regexMethod)
+            endif
+        endfor
+        if !arrayLength(allowMethods):
+            return wsgiResponseText('404 Not Found')
+        endif
+
+        # A path with GET also allows HEAD
+        if arrayIndexOf(allowMethods, 'GET') != -1:
+            arrayPush(allowMethods, 'HEAD')
+        endif
+        response = wsgiResponseText('405 Method Not Allowed')
+        arrayPush(objectGet(response, 'headers'), ['Allow', arrayJoin(arraySort(allowMethods), ', ')])
+        return response
+    endif
+    request = arrayGet(match, 0)
+    urlArgs = arrayGet(match, 1)
+
+    # Action request?
+    if objectGet(request, 'type') == 'action':
+        return wsgiAPIAction(app, request, environ, method, urlArgs)
+    endif
+
+    # Non-action request
+    requestFn = objectGet(request, 'function')
+    return requestFn(environ, urlArgs)
+endfunction
+
+
+# Helper to check an action URL's arguments against the action's path members - every URL argument must be a path
+# member, and every required path member a URL argument. Returns the error message, or null if the URL is valid.
+function wsgiAPIURLArgsError(request, urlPath, argNames):
+    pathArgs = objectGet(request, 'pathArgs')
+    if pathArgs == null:
+        return null
+    endif
+    pathTypes = arrayGet(pathArgs, 0)
+
+    # The path type may be a typedef of a struct (in a hand-written type model)
+    pathUserType = objectGet(pathTypes, arrayGet(pathArgs, 1))
+    while objectHas(pathUserType, 'typedef'):
+        pathUserType = objectGet(pathTypes, objectGet(objectGet(objectGet(pathUserType, 'typedef'), 'type'), 'user'))
+    endwhile
+
+    memberNames = []
+    for member in schemaGetStructMembers(pathTypes, objectGet(pathUserType, 'struct')):
+        memberName = objectGet(member, 'name')
+        arrayPush(memberNames, memberName)
+        if !objectGet(member, 'optional') && arrayIndexOf(argNames, memberName) == -1:
+            return 'Missing URL argument "{' + memberName + '}" in URL "' + urlPath + '"'
+        endif
+    endfor
+    for argName in argNames:
+        if arrayIndexOf(memberNames, argName) == -1:
+            return 'Unknown URL argument "{' + argName + '}" in URL "' + urlPath + '"'
+        endif
+    endfor
+    return null
+endfunction
+
+
+# Helper to match a request by method and path - returns [request, urlArgs] or null. Requests for the
+# method match before requests for any method, and exact paths before URL argument paths.
+function wsgiAPIMatch(app, method, path):
+    for methodKey in [method, '']:
+        request = objectGet(objectGet(app, 'urls'), methodKey + ' ' + path)
+        if request != null:
+            return [request, {}]
+        endif
+        for regexInfo in objectGet(app, 'regexes'):
+            matchPath = if(arrayGet(regexInfo, 0) == methodKey, regexMatch(arrayGet(regexInfo, 1), path))
+            if matchPath != null:
+                groups = objectGet(matchPath, 'groups')
+                urlArgs = {}
+                for argName, ixArg in arrayGet(regexInfo, 3):
+                    objectSet(urlArgs, argName, objectGet(groups, stringNew(ixArg + 1)))
+                endfor
+                return [arrayGet(regexInfo, 2), urlArgs]
+            endif
+        endfor
+    endfor
+    return null
+endfunction
+
+
+# Helper to handle an action request
+async function wsgiAPIAction(app, request, environ, method, urlArgs):
+    # Parse the JSON request content
+    content = if(method != 'GET', objectGet(environ, 'wsgi.input'))
+    body = {}
+    if content:
+        body = jsonParse(content)
+        if body == null:
+            return wsgiAPIActionError(app, '400 Bad Request', 'InvalidInput', 'Invalid request JSON')
+        endif
+    endif
+
+    # Validate the request content
+    validated = wsgiAPIValidate(objectGet(request, 'input'), body)
+    if objectHas(validated, 'error'):
+        return wsgiAPIActionInvalidInput(app, validated, 'content')
+    endif
+    body = objectGet(validated, 'result')
+
+    # Decode and validate the query string
+    queryString = objectGet(environ, 'QUERY_STRING', '')
+    query = if(queryString != '', urlDecodeQueryString(queryString), {})
+    if query == null:
+        return wsgiAPIActionError(app, '400 Bad Request', 'InvalidInput', 'Invalid query string')
+    endif
+    validated = wsgiAPIValidate(objectGet(request, 'query'), query)
+    if objectHas(validated, 'error'):
+        return wsgiAPIActionInvalidInput(app, validated, 'query string')
+    endif
+    query = objectGet(validated, 'result')
+
+    # Validate the URL path arguments
+    validated = wsgiAPIValidate(objectGet(request, 'pathArgs'), urlArgs)
+    if objectHas(validated, 'error'):
+        return wsgiAPIActionInvalidInput(app, validated, 'path')
+    endif
+
+    # Copy the URL path arguments and query string members to the request
+    objectAssign(body, objectGet(validated, 'result'))
+    objectAssign(body, query)
+
+    # Call the action function
+    actionFn = objectGet(request, 'function')
+    response = actionFn(body, environ)
+    actionError = if(systemType(response) == 'object', objectGet(response, 'wsgiActionError'))
+    if objectGet(request, 'wsgi') && actionError == null:
+        return response
+    endif
+    response = if(response != null, response, {})
+
+    # Action error?
+    status = '200 OK'
+    outputType = objectGet(request, 'output')
+    if actionError != null:
+        status = objectGet(actionError, 'status', '400 Bad Request')
+        response = {'error': objectGet(actionError, 'error')}
+        if objectHas(actionError, 'message'):
+            objectSet(response, 'message', objectGet(actionError, 'message'))
+        endif
+        outputType = objectGet(request, 'error')
+    endif
+
+    # Validate the response?
+    if objectGet(app, 'validateOutput'):
+        validated = wsgiAPIValidate(outputType, response)
+        if objectHas(validated, 'error'):
+            message = objectGet(validated, 'error')
+            systemLog('wsgi.bare: Invalid output returned from action "' + objectGet(request, 'name') + '": ' + message)
+            return wsgiAPIActionError( \
+                app, '500 Internal Server Error', 'InvalidOutput', message, objectGet(validated, 'memberFqn') \
+            )
+        endif
+    endif
+
+    return wsgiAPIResponseJSON(app, status, response)
+endfunction
+
+
+# Helper to schema-validate a value using a [types, typeName, emptyValid] section type
+function wsgiAPIValidate(sectionType, value):
+    if arrayGet(sectionType, 2) && systemType(value) == 'object' && arrayLength(objectKeys(value)) == 0:
+        return {'result': value}
+    endif
+    return schemaValidateEx(arrayGet(sectionType, 0), arrayGet(sectionType, 1), value)
+endfunction
+
+
+# Helper to create an action invalid input error response
+function wsgiAPIActionInvalidInput(app, validated, sectionDesc):
+    return wsgiAPIActionError( \
+        app, '400 Bad Request', 'InvalidInput', \
+        objectGet(validated, 'error') + ' (' + sectionDesc + ')', objectGet(validated, 'memberFqn') \
+    )
+endfunction
+
+
+# Helper to create an action error response
+function wsgiAPIActionError(app, status, error, message, member):
+    response = {'error': error}
+    if message != null:
+        objectSet(response, 'message', message)
+    endif
+    if member != null:
+        objectSet(response, 'member', member)
+    endif
+    return wsgiAPIResponseJSON(app, status, response)
+endfunction
+
+
+# Helper to create a JSON response
+function wsgiAPIResponseJSON(app, status, value):
+    return { \
+        'status': status, \
+        'headers': [['Content-Type', 'application/json']], \
+        'content': jsonStringify(value, if(objectGet(app, 'pretty'), 4)) \
+    }
+endfunction
+
+
+# $function: wsgiActionError
+# $group: wsgi.bare
+# $doc: Create an action error return value. Return it from an action function to respond with the error.
+# $arg error: The error code string (e.g. "UnknownID") - one of the action's "errors" enumeration values
+# $arg [message = null]: The error message string
+# $arg [status = null]: The response status string (default is "400 Bad Request")
+# $return: The action error return value
+function wsgiActionError(error, message, status):
+    actionError = {'error': error}
+    if message != null:
+        objectSet(actionError, 'message', message)
+    endif
+    if status != null:
+        objectSet(actionError, 'status', status)
+    endif
+    return {'wsgiActionError': actionError}
+endfunction
+
+
+# $function: wsgiResponseText
+# $group: wsgi.bare
+# $doc: Create a plain-text WSGI response object
+# $arg status: The response status string (e.g. "404 Not Found")
+# $arg [text = null]: The response text (default is the status string)
+# $return: The WSGI response object
+function wsgiResponseText(status, text):
+    return { \
+        'status': status, \
+        'headers': [['Content-Type', 'text/plain; charset=utf-8']], \
+        'content': if(text != null, text, status) \
+    }
+endfunction
+
+
+# $function: wsgiStatic
+# $group: wsgi.bare
+# $doc: Create a static content request function. If the content is null, the request responds with
+# $doc: "404 Not Found".
+# $arg content: The content string or byte value array
+# $arg [contentType = null]: The content type. By default, the content type is determined by the
+# $arg [contentType = null]: request path's file extension.
+# $return: The request function
+function wsgiStatic(content, contentType):
+    return systemPartial(wsgiStaticResponse, content, contentType)
+endfunction
+
+
+# Helper to create a static content response
+function wsgiStaticResponse(content, contentType, environ):
+    if content == null:
+        return wsgiResponseText('404 Not Found')
+    endif
+    if contentType == null:
+        contentType = wsgiContentType(objectGet(environ, 'PATH_INFO', ''), systemType(content) == 'array')
+    endif
+    return {'status': '200 OK', 'headers': [['Content-Type', contentType]], 'content': content}
+endfunction
+
+
+# $function: wsgiStaticRequests
+# $group: wsgi.bare
+# $doc: Create the static request objects for an application's static files - a "GET" request for each file, in
+# $doc: the "Statics" documentation group, whose content type is the source path's. A text file (a content type
+# $doc: that starts with "text/") is fetched as text, and any other file as a byte value array. A file that can't
+# $doc: be fetched responds with "404 Not Found".
+# $arg statics: The map of URL path to source path (e.g. from the Python host's
+# $arg statics: [bare_script.wsgi.wsgi_load_statics](https://craigahobbs.github.io/bare-script-py/wsgi.html#bare_script.wsgi.wsgi_load_statics))
+# $arg [srcPrefix = '']: The prefix that makes a source path fetchable from the application script (e.g. "../")
+# $return: The array of static request objects
+async function wsgiStaticRequests(statics, srcPrefix):
+    # Fetch the static files
+    paths = arraySort(objectKeys(statics))
+    contentTypes = []
+    fetchRequests = []
+    for path in paths:
+        source = objectGet(statics, path)
+        contentType = wsgiContentType(source, true)
+        arrayPush(contentTypes, contentType)
+        arrayPush(fetchRequests, {'url': (srcPrefix || '') + source, 'binary': !stringStartsWith(contentType, 'text/')})
+    endfor
+    contents = systemFetch(fetchRequests)
+
+    # Create the static request objects
+    requests = []
+    for path, ixPath in paths:
+        arrayPush(requests, { \
+            'type': 'request', \
+            'method': 'GET', \
+            'path': path, \
+            'function': wsgiStatic(arrayGet(contents, ixPath), arrayGet(contentTypes, ixPath)), \
+            'docGroup': 'Statics' \
+        })
+    endfor
+    return requests
+endfunction
+
+
+# $function: wsgiContentType
+# $group: wsgi.bare
+# $doc: Get a path's content type by its file extension
+# $arg path: The path
+# $arg [binary = false]: If true, the unknown content type is "application/octet-stream" rather than "text/plain"
+# $return: The content type string
+function wsgiContentType(path, binary):
+    matchExtension = regexMatch(wsgiRegexExtension, path)
+    contentType = if(matchExtension != null, \
+        objectGet(wsgiContentTypes, stringLower(objectGet(objectGet(matchExtension, 'groups'), '1'))))
+    if contentType != null:
+        return contentType
+    endif
+    return if(binary, 'application/octet-stream', 'text/plain; charset=utf-8')
+endfunction
+
+
+# The file extension regular expression
+wsgiRegexExtension = regexNew('\\.([^./]+)$')
+
+
+# The file extension content types
+wsgiContentTypes = { \
+    'bare': 'text/plain; charset=utf-8', \
+    'css': 'text/css; charset=utf-8', \
+    'gif': 'image/gif', \
+    'gz': 'application/gzip', \
+    'html': 'text/html; charset=utf-8', \
+    'ico': 'image/x-icon', \
+    'jpeg': 'image/jpeg', \
+    'jpg': 'image/jpeg', \
+    'js': 'text/javascript; charset=utf-8', \
+    'json': 'application/json', \
+    'md': 'text/markdown; charset=utf-8', \
+    'pdf': 'application/pdf', \
+    'png': 'image/png', \
+    'svg': 'image/svg+xml', \
+    'txt': 'text/plain; charset=utf-8' \
+}
+
+
+# Helper to create the API documentation application request objects
+function wsgiAPIDocRequests(app):
+    return [ \
+        wsgiAPIDocRequestObject('wsgiAPIDocRedirect', '/doc', wsgiAPIDocRedirect, 'Redirect to the API documentation application'), \
+        wsgiAPIDocRequestObject('wsgiAPIDoc', '/doc/', wsgiStatic(arrayJoin(wsgiAPIDocHTML, '\n') + '\n', 'text/html; charset=utf-8'), \
+            'The API documentation application HTML'), \
+        wsgiAPIDocRequestObject('wsgiAPIDocIndex', '/doc/docIndex', systemPartial(wsgiAPIDocIndex, app), 'The API documentation index'), \
+        wsgiAPIDocRequestObject('wsgiAPIDocRequest', '/doc/docRequest', systemPartial(wsgiAPIDocRequest, app), \
+            'The API documentation request') \
+    ]
+endfunction
+
+
+# Helper to create an API documentation application request object
+function wsgiAPIDocRequestObject(name, path, fn, doc):
+    return {'type': 'request', 'name': name, 'method': 'GET', 'path': path, 'function': fn, 'doc': doc, 'docGroup': 'Documentation'}
+endfunction
+
+
+# The API documentation redirect request function
+function wsgiAPIDocRedirect():
+    return { \
+        'status': '301 Moved Permanently', \
+        'headers': [['Content-Type', 'text/plain; charset=utf-8'], ['Location', 'doc/']], \
+        'content': '/doc/' \
+    }
+endfunction
+
+
+# The API documentation index request function
+function wsgiAPIDocIndex(app, environ):
+    groups = {}
+    requests = objectGet(app, 'requests')
+    for name in objectKeys(requests):
+        group = objectGet(objectGet(requests, name), 'docGroup') || 'Uncategorized'
+        groupNames = objectGet(groups, group)
+        if groupNames == null:
+            groupNames = []
+            objectSet(groups, group, groupNames)
+        endif
+        arrayPush(groupNames, name)
+    endfor
+    for group in objectKeys(groups):
+        arraySort(objectGet(groups, group))
+    endfor
+    title = objectGet(environ, 'HTTP_HOST') || objectGet(environ, 'SERVER_NAME') || 'API Documentation'
+    return wsgiAPIResponseJSON(app, '200 OK', {'title': title, 'groups': groups})
+endfunction
+
+
+# The API documentation request request function
+function wsgiAPIDocRequest(app, environ):
+    query = urlDecodeQueryString(objectGet(environ, 'QUERY_STRING', ''))
+    name = if(systemType(query) == 'object', objectGet(query, 'name'))
+    request = if(systemType(name) == 'string', objectGet(objectGet(app, 'requests'), name))
+    if request == null:
+        return wsgiAPIResponseJSON(app, '400 Bad Request', {'error': 'UnknownName'})
+    endif
+
+    # Request URLs
+    urls = []
+    for url in objectGet(request, 'urls'):
+        method = objectGet(url, 'method')
+        arrayPush(urls, if(method != null, {'method': method, 'path': objectGet(url, 'path')}, {'path': objectGet(url, 'path')}))
+    endfor
+    response = {'name': name, 'urls': urls}
+
+    # Action request?
+    doc = objectGet(request, 'doc')
+    if objectGet(request, 'type') == 'action':
+        objectSet(response, 'types', schemaGetReferencedTypes(objectGet(app, 'types'), name))
+        if objectGet(request, 'wsgi'):
+            objectSet(response, 'custom', true)
+        endif
+    elif doc != null:
+        objectSet(response, 'doc', if(systemType(doc) == 'array', doc, [doc]))
+    endif
+
+    return wsgiAPIResponseJSON(app, '200 OK', response)
+endfunction
+
+
+# The API documentation application HTML
+wsgiAPIDocHTML = [ \
+    '<!DOCTYPE html>', \
+    '<html lang="en">', \
+    '    <head>', \
+    '        <title>API Documentation</title>', \
+    '        <meta charset="UTF-8">', \
+    '        <meta name="viewport" content="width=device-width, initial-scale=1">', \
+    '        <link rel="stylesheet" href="../markdown-up/app.css">', \
+    '        <link rel="preload" href="../markdown-up/bare-script/static/markdown.css" as="style">', \
+    '        <link rel="modulepreload" href="../markdown-up/lib/appImports.js" as="script">', \
+    '    </head>', \
+    '    <script type="module">', \
+    "        import {MarkdownUp} from '../markdown-up/lib/appImports.js';", \
+    '        const app = new MarkdownUp(window, {', \
+    "            'markdownText': \"~~~ markdown-script\\ninclude <wsgiAPIDoc.bare>\\n\\nwsgiAPIDocMain()\\n~~~\\n\"", \
+    '        });', \
+    '        app.run();', \
+    '    </script>', \
+    '</html>' \
+]

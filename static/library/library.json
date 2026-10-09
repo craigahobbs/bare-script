@@ -138,6 +138,11 @@
                     "description": "Compress and uncompress gzip data"
                 },
                 {
+                    "name": "hash.bare",
+                    "content": "include/hash-bare.md",
+                    "description": "SHA-256 hashes and HMAC-SHA256 message authentication codes"
+                },
+                {
                     "name": "markdown.bare",
                     "content": "include/markdown-bare.md",
                     "description": "Markdown escaping, header IDs, and utilities"
@@ -211,6 +216,16 @@
                     "name": "url.bare",
                     "content": "include/url-bare.md",
                     "description": "Encode and decode URLs, URL components, and query strings"
+                },
+                {
+                    "name": "wsgi.bare",
+                    "content": "include/wsgi-bare.md",
+                    "description": "Schema-validated JSON API WSGI applications"
+                },
+                {
+                    "name": "wsgiAPIDoc.bare",
+                    "content": "include/wsgiAPIDoc-bare.md",
+                    "description": "The API documentation application for wsgi.bare applications"
                 }
             ]
         }

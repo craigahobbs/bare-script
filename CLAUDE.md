@@ -17,7 +17,7 @@ This is a [javascript-build](https://github.com/craigahobbs/javascript-build#rea
 Local Makefile overrides:
 
 - `ESLINT_ARGS` — also `bin/` and `perf/`
-- `commit` also depends on `test-include` and `test-creator`
+- `commit` also depends on `test-include`, `test-creator`, and `test-emacs`
 
 Package-specific targets:
 
@@ -48,8 +48,15 @@ Package-specific targets:
   the bare-script skill, and a `SPEC.md` from which `make` has Claude Code write the code) as a `.tar.gz` archive
   built with `tar.bare` and `gzip.bare`. `creator.bare` is the app (landing page, a form engine driven by a project
   type's field list, session-storage form values, a localStorage generation history); each project type is its own
-  file (`creatorFrontend.bare`) exporting a type object (`name`, `title`, `description`, `fields`, `validate`,
-  `project`) registered in `creatorTypes`; `creatorUtil.bare` holds the shared file generators
+  file (`creatorFrontend.bare`, `creatorFullStack.bare`) exporting a type object (`name`, `title`, `description`,
+  `fields`, `validate`, `project`) registered in `creatorTypes`; `creatorUtil.bare` holds the shared file generators
+  and name validation. `creatorFullStack.bare` is the full-stack template - a WSGI application modeled on
+  bare-script-py's `wsgi.py` / `wsgi.bare` (a `backend/` JSON API, a `wsgi.py` WSGI entry point run by waitress, and a
+  MarkdownUp `frontend/`) - and exports two types: the full-stack application and its backend-only option, the backend
+  application
+- `make test-emacs` — run the Emacs BareScript mode's unit tests (`static/language/test/barescript-mode-test.el`)
+  in batch mode; `TEST=<regexp>` selects tests by ERT name. Skipped, with a message, when Emacs (`EMACS`, default
+  `emacs`) isn't installed, so `make commit` doesn't require it
 - `make sync` — push `lib/include/` and `static/` to the Python repo
 
 `make perf` benchmarks the runtime itself. For optimizing an individual include file, write a throwaway `.bare` harness under `perf/` and run with `node bin/bare.js perf/<file>.bare` — `perf/` is outside the shipped package and isn't synced cross-repo, so harnesses can live there until you're done and then be removed (regenerate as needed).
@@ -129,6 +136,13 @@ documents it; most do. Builtin `$doc` changes in `lib/library.js` need the same 
 - The `.bare` include library is held to 100% too, by a separate mechanism: the include-test runners pass
   `'coverageMin': 100`, so a change that adds an unreached branch fails `make test-include` — not `make cover`.
   Either cover the new path with a test or drop it; the same dead-defensive-check caution below applies.
+- The include test runners run in debug mode (`bare -d`), which logs every built-in function error (e.g.
+  `Function "objectGet" failed with error: Invalid "object" argument value, null`) even though the call returns
+  null and the tests pass. Check the top of the `make test-include` output after a change: the only lines before
+  each report should be errors a test expects, each announced by a
+  `systemLogDebug('NOTICE: The following "<function>" error is expected:')` line. Any other error line is a bug.
+  Fix the code rather than adding a NOTICE - usually a guard before a nested call such as
+  `objectGet(objectGet(expr, 'function'), 'name')`, whose inner call returns null for some inputs.
 - All `lib/` code must keep coverage at 100% (c8 `--100`). New code without tests will fail `make commit`. Beware: defensive checks that become unreachable after a refactor (e.g. a `continue` guard left in place when the surrounding logic now guarantees its condition is false) will break coverage. Either remove the dead check and rely on the proven invariant, or add a test that exercises the defensive path.
 - The sync runtime (`lib/runtime.js`) must remain non-async; only `lib/runtimeAsync.js` may use `await` (the generated `lib/includeSource.js` top-level `await` is module-load only and doesn't count). The two interpreters are kept structurally parallel — when changing one, mirror the change in the other. Exception: perf-only machinery is sync-only (e.g. the intrinsics fast path, the `evaluateExpressionHelper` globals-threading split). `evaluateExpressionAsync` delegates non-async expressions to the sync evaluator, the async statement loop evaluates a statement's non-async expression synchronously (no `await`, which would cost a microtask even on a plain value), and non-`async` script functions execute through the sync interpreter, so runtime optimization work targets `lib/runtime.js`; mirror semantic changes (e.g. the statement loop) into `lib/runtimeAsync.js`, not perf-only structure. `isAsyncExpr` caches each expression's called function names in a `WeakMap`, so its per-statement check is a name lookup, not a tree walk.
 - BareScript literals: write objects as `{}` / `{'key': value}` and arrays as `[]` / `[a, b]` — never `objectNew()`

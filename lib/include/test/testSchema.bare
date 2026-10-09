@@ -908,6 +908,41 @@ endfunction
 unittestRunTest('testSchemaValidateDateStringDatetime')
 
 
+function testSchemaValidateDateStringDatetimeMidnight():
+    unittestMockAll()
+
+    # A datetime at midnight in its own offset is the string's date
+    unittestDeepEqual(testSchemaValidateHelper({'builtin': 'date'}, '2013-05-26T00:00:00-07:00'), datetimeNew(2013, 5, 26))
+    unittestDeepEqual(testSchemaValidateHelper({'builtin': 'date'}, '2013-05-26T00:00Z'), datetimeNew(2013, 5, 26))
+    unittestDeepEqual(testSchemaValidateHelper({'builtin': 'date'}, '2013-05-26T00:00:00.000+09:00'), datetimeNew(2013, 5, 26))
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testSchemaValidateDateStringDatetimeMidnight')
+
+
+function testSchemaValidateDateStringDatetimeMidnightInvalid():
+    unittestMockAll()
+    unittestDeepEqual([ \
+        testSchemaValidateExHelper({'builtin': 'date'}, '2013-05-26T00:00:00.001Z'), \
+        testSchemaValidateExHelper({'builtin': 'date'}, '2013-05-26T00:00:00'), \
+        testSchemaValidateExHelper({'builtin': 'date'}, '2013-05-26T00:00:00+24:00'), \
+        testSchemaValidateExHelper({'builtin': 'date'}, '2013-05-26T00:00:00+05:60'), \
+        testSchemaValidateExHelper({'builtin': 'date'}, '2013-05-26T00:00:00+' + stringFromCharCode(1632, 1637) + ':00') \
+    ], [ \
+        {'error': 'Invalid value "2013-05-26T00:00:00.001Z" (type "string"), expected type "date"', 'memberFqn': null}, \
+        {'error': 'Invalid value "2013-05-26T00:00:00" (type "string"), expected type "date"', 'memberFqn': null}, \
+        {'error': 'Invalid value "2013-05-26T00:00:00+24:00" (type "string"), expected type "date"', 'memberFqn': null}, \
+        {'error': 'Invalid value "2013-05-26T00:00:00+05:60" (type "string"), expected type "date"', 'memberFqn': null}, \
+        { \
+            'error': 'Invalid value "2013-05-26T00:00:00+' + stringFromCharCode(1632, 1637) + ':00" (type "string"), expected type "date"', \
+            'memberFqn': null \
+        } \
+    ])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testSchemaValidateDateStringDatetimeMidnightInvalid')
+
+
 function testSchemaValidateDateStringError():
     unittestMockAll()
     unittestDeepEqual( \

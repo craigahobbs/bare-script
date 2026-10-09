@@ -21,6 +21,16 @@ endfunction
 unittestRunTest('testCreatorAppId')
 
 
+function testCreatorValidateAppName():
+    unittestDeepEqual(creatorValidateAppName({'name': 'My App'}), [])
+    unittestDeepEqual(creatorValidateAppName({'name': '3D Viewer'}), \
+        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
+    unittestDeepEqual(creatorValidateAppName({}), \
+        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
+endfunction
+unittestRunTest('testCreatorValidateAppName')
+
+
 function testCreatorText():
     unittestEqual(creatorText(['a', 'b']), 'a\nb\n')
     unittestEqual(creatorText([]), '\n')
@@ -47,12 +57,29 @@ function testCreatorFileIndex():
     unittestEqual(stringIndexOf(text, '<meta name="description" content="A test application">') >= 0, true)
     unittestEqual(stringIndexOf(text, "new MarkdownUp(window, {'url': 'myApp.md'})") >= 0, true)
 
+    unittestEqual(stringIndexOf(text, "import {MarkdownUp} from 'https://craigahobbs.github.io/markdown-up/lib/appImports.js';") >= 0, true)
+
     # Escaped title and description
     text = creatorFileIndex('A & B', 'Says "hi"', 'ab.md')
     unittestEqual(stringIndexOf(text, '<title>A &amp; B</title>') >= 0, true)
     unittestEqual(stringIndexOf(text, '<meta name="description" content="Says &quot;hi&quot;">') >= 0, true)
+
+    # Local MarkdownUp application
+    text = creatorFileIndex('My App', 'A test application', 'myApp.md', './markdown-up/')
+    unittestEqual(stringIndexOf(text, '<link rel="stylesheet" href="./markdown-up/app.css">') >= 0, true)
+    unittestEqual(stringIndexOf(text, '<link rel="preload" href="./markdown-up/bare-script/static/markdown.css" as="style">') >= 0, true)
+    unittestEqual(stringIndexOf(text, "import {MarkdownUp} from './markdown-up/lib/appImports.js';") >= 0, true)
 endfunction
 unittestRunTest('testCreatorFileIndex')
+
+
+function testCreatorFileRunTests():
+    unittestEqual(creatorFileRunTests('MyApp'), \
+        'include <unittest.bare>\ninclude <unittestMock.bare>\n\n\n# Start coverage\nunittestCoverageStart()\n\n' + \
+        "# Test includes\ninclude 'testMyApp.bare'\n\n# Stop coverage\nunittestCoverageStop()\n\n" + \
+        "# Test report\nreturn unittestReport({'coverageExclude': ['runTests.bare'], 'coverageMin': 100})\n")
+endfunction
+unittestRunTest('testCreatorFileRunTests')
 
 
 function testCreatorFileLICENSE():

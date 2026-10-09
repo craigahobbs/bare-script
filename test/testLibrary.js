@@ -2850,6 +2850,8 @@ test('library, regexNew', () => {
     assert.equal(match('^b', 'm', 'a\rb'), 'b');
     assert.equal(match('a$', 'm', 'a\u2029b'), 'a');
     assert.equal(match('a$', null, 'a\n'), null);
+    assert.equal(match('a\\$[$\\]]\\\\$', null, 'a$$\\'), 'a$$\\');
+    assert.equal(match('a\\$[$\\]]\\\\$', null, 'a$$\\\n'), null);
     assert.equal(match('\u00e9', 'i', 'x\u00c9'), '\u00c9');
     assert.equal(match('[\u00e0-\u00ff]', 'i', '\u00c0'), '\u00c0');
     assert.equal(match('\u03c3', 'i', '\u03c2'), '\u03c2');
@@ -3180,6 +3182,11 @@ test('library, stringDecode', () => {
 
 test('library, stringEncode', () => {
     assert.deepEqual(scriptFunctions.stringEncode(['foo'], null), [102, 111, 111]);
+
+    // Unpaired surrogates are encoded as the replacement character
+    assert.deepEqual(scriptFunctions.stringEncode(['a\ud800b'], null), [97, 239, 191, 189, 98]);
+    assert.deepEqual(scriptFunctions.stringEncode(['\udc00\ud800'], null), [239, 191, 189, 239, 191, 189]);
+    assert.deepEqual(scriptFunctions.stringEncode(['\ud83d\ude00'], null), [240, 159, 152, 128]);
 
     // Non-string value
     assert.throws(
@@ -3960,6 +3967,14 @@ test('library, systemFetch', async () => {
     );
     assert.deepEqual(logs, []);
 
+    // Method
+    logs = [];
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.txt', 'method': 'PUT', 'body': 'abc'}], options), 'PUT test.txt - abc');
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.txt', 'method': 'DELETE'}], options), 'DELETE test.txt');
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.txt', 'method': 'patch'}], options), 'PATCH test.txt');
+    assert.equal(await scriptFunctions.systemFetch([{'url': 'test.txt', 'method': null, 'body': 'abc'}], options), 'POST test.txt - abc');
+    assert.deepEqual(logs, []);
+
     // Empty array
     logs = [];
     assert.deepEqual(await scriptFunctions.systemFetch([[]], options), []);
@@ -4116,6 +4131,38 @@ test('library, systemFetch', async () => {
         }
     );
     assert.deepEqual(logs, []);
+
+    // Invalid request model method
+    logs = [];
+    await assert.rejects(
+        async () => {
+            await scriptFunctions.systemFetch([{'url': 'test.txt', 'method': 7}], options);
+            /* c8 ignore next */
+        },
+        {
+            'name': 'ValueArgsError',
+            'message': 'Invalid "url" argument value, {"method":7,"url":"test.txt"}',
+            'returnValue': null
+        }
+    );
+    assert.deepEqual(logs, []);
+
+    // Invalid request model GET or HEAD body
+    for (const method of ['GET', 'get', 'HEAD']) {
+        logs = [];
+        await assert.rejects(
+            async () => {
+                await scriptFunctions.systemFetch([{'url': 'test.txt', method, 'body': 'abc'}], options);
+                /* c8 ignore next */
+            },
+            {
+                'name': 'ValueArgsError',
+                'message': `Invalid "url" argument value, {"body":"abc","method":"${method}","url":"test.txt"}`,
+                'returnValue': null
+            }
+        );
+        assert.deepEqual(logs, []);
+    }
 
     // Invalid request model headers
     logs = [];

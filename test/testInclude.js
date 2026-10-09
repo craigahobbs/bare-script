@@ -3,13 +3,14 @@
 
 import {
     barescriptLintUnboundGlobals, barescriptTypeModel, barescriptValidateExpression, barescriptValidateScript, base64Decode,
-    base64Encode, dataAggregate, dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate, dataParseCSV,
-    dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop, dataValidate, elementModelToString,
-    elementModelValidate, gzipCompress, gzipUncompress, includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape,
-    markdownHeaderId, markdownParagraphText, markdownParse, markdownTitle, markdownToString, markdownValidate, qrcodeElements,
-    qrcodeMatrix, schemaDocMarkdown, schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse,
-    schemaTypeModel, schemaTypeModelValidate, schemaValidate, tarCreate, tarExtract, urlDecodeComponent, urlDecodeQueryString,
-    urlEncode, urlEncodeComponent, urlEncodeQueryString
+    base64Encode, dataAggregate, dataCalculatedField, dataFilter, dataJoin, dataLineChartElements, dataLineChartValidate,
+    dataParseCSV, dataSort, dataTableElements, dataTableMarkdown, dataTableValidate, dataTop, dataValidate,
+    elementModelToString, elementModelValidate, gzipCompress, gzipUncompress, hashEqual, hashHMACSHA256, hashHex, hashSHA256,
+    includeSetLogFn, markdownElements, markdownElementsAsync, markdownEscape, markdownHeaderId, markdownParagraphText,
+    markdownParse, markdownTitle, markdownToString, markdownValidate, qrcodeElements, qrcodeMatrix, schemaDocMarkdown,
+    schemaGetEnumValues, schemaGetReferencedTypes, schemaGetStructMembers, schemaParse, schemaTypeModel,
+    schemaTypeModelValidate, schemaValidate, tarCreate, tarExtract, urlDecodeComponent, urlDecodeQueryString, urlEncode,
+    urlEncodeComponent, urlEncodeQueryString
 } from '../lib/include.js';
 import {barescriptParseExpression, barescriptParseScript} from '../lib/runtime.js';
 import {strict as assert} from 'node:assert';
@@ -443,6 +444,35 @@ test('gzip, gzipCompress', () => {
 test('gzip, gzipUncompress', () => {
     assert.deepEqual(gzipUncompress(base64Decode('H4sIAAAAAAAC/8tIzcnJBwCGphA2BQAAAA==')), [104, 101, 108, 108, 111]);
     assert.equal(gzipUncompress([1, 2, 3]), null);
+});
+
+
+test('hash, hashEqual', () => {
+    assert.equal(hashEqual('abc', [97, 98, 99]), true);
+    assert.equal(hashEqual('abc', 'abd'), false);
+    assert.equal(hashEqual(null, 'abc'), null);
+});
+
+
+test('hash, hashHex', () => {
+    assert.equal(hashHex([0, 15, 16, 255]), '000f10ff');
+    assert.equal(hashHex([256]), null);
+});
+
+
+test('hash, hashHMACSHA256', () => {
+    assert.equal(
+        hashHex(hashHMACSHA256('Jefe', 'what do ya want for nothing?')),
+        '5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843'
+    );
+    assert.equal(hashHMACSHA256(null, 'message'), null);
+});
+
+
+test('hash, hashSHA256', () => {
+    assert.equal(hashHex(hashSHA256('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    assert.equal(hashSHA256([0, 128, 255]).length, 32);
+    assert.equal(hashSHA256(null), null);
 });
 
 

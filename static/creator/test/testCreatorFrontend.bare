@@ -3,43 +3,42 @@
 
 include <unittest.bare>
 include '../creatorFrontend.bare'
+include 'testCreator.bare'
 
 
-testCreatorFrontendValues = { \
-    'copyright': 'Jane Doe', \
-    'name': 'My App', \
-    'description': 'A test application', \
-    'spec': 'Show a list of items.\nLet the user add items.' \
-}
+# Helper to get a project's file texts by file name
+function testCreatorTexts(project):
+    texts = {}
+    for file in objectGet(project, 'files'):
+        objectSet(texts, objectGet(file, 'name'), objectGet(file, 'bytes'))
+    endfor
+    return texts
+endfunction
 
 
-function testCreatorFrontendType():
-    unittestEqual(objectGet(creatorFrontendType, 'name'), 'frontend')
-    unittestEqual(objectGet(creatorFrontendType, 'title'), 'Frontend Application')
+# Helper to test a project type object
+function testCreatorTypeObject(type, name, title, projectFn):
+    unittestEqual(objectGet(type, 'name'), name)
+    unittestEqual(objectGet(type, 'title'), title)
     fieldNames = []
-    for field in objectGet(creatorFrontendType, 'fields'):
+    for field in objectGet(type, 'fields'):
         arrayPush(fieldNames, objectGet(field, 'name'))
     endfor
     unittestDeepEqual(fieldNames, ['copyright', 'name', 'description', 'spec'])
-    unittestEqual(objectGet(creatorFrontendType, 'validate'), creatorFrontendValidate)
-    unittestEqual(objectGet(creatorFrontendType, 'project'), creatorFrontendProject)
+    unittestEqual(objectGet(type, 'validate'), creatorValidateAppName)
+    unittestEqual(objectGet(type, 'project'), projectFn)
+endfunction
+
+
+function testCreatorFrontendType():
+    testCreatorTypeObject(creatorFrontendType, 'frontend', 'Frontend Application', creatorFrontendProject)
 endfunction
 unittestRunTest('testCreatorFrontendType')
 
 
-function testCreatorFrontendValidate():
-    unittestDeepEqual(creatorFrontendValidate(testCreatorFrontendValues), [])
-    unittestDeepEqual(creatorFrontendValidate({'name': '3D Viewer'}), \
-        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
-    unittestDeepEqual(creatorFrontendValidate({}), \
-        ['The application name must start with a letter (e.g. "Fungus Simulator")'])
-endfunction
-unittestRunTest('testCreatorFrontendValidate')
-
-
 function testCreatorFrontendProject():
     mtime = datetimeISOParse('2026-09-29T12:00:00Z')
-    project = creatorFrontendProject(testCreatorFrontendValues, '# Skill\n', mtime)
+    project = creatorFrontendProject(testCreatorValues, '# Skill\n', mtime)
     unittestEqual(objectGet(project, 'id'), 'myApp')
     unittestEqual(objectGet(project, 'title'), 'My App')
     unittestDeepEqual(objectGet(project, 'generated'), ['myApp.bare'])
@@ -68,10 +67,7 @@ function testCreatorFrontendProject():
         'myApp/test/runTests.md', \
         'myApp/test/testMyApp.bare' \
     ])
-    texts = {}
-    for file in files:
-        objectSet(texts, objectGet(file, 'name'), objectGet(file, 'bytes'))
-    endfor
+    texts = testCreatorTexts(project)
 
     # .gitignore and .nojekyll
     unittestEqual(objectGet(texts, 'myApp/.gitignore'), '/build/\n/Makefile.tool\n')

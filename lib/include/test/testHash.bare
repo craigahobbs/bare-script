@@ -1,0 +1,165 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../hash.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+#
+# hashSHA256 tests
+#
+
+
+function testHashSHA256():
+    unittestMockAll()
+
+    # The NIST test vectors
+    unittestEqual(hashHex(hashSHA256('')), 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+    unittestEqual(hashHex(hashSHA256('abc')), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
+    unittestEqual(hashHex(hashSHA256('abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq')), \
+        '248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1')
+    unittestEqual( \
+        hashHex(hashSHA256('abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu')), \
+        'cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1' \
+    )
+
+    # The hash is a byte value array
+    unittestDeepEqual(hashSHA256('abc'), [ \
+        186, 120, 22, 191, 143, 1, 207, 234, 65, 65, 64, 222, 93, 174, 34, 35, \
+        176, 3, 97, 163, 150, 23, 122, 156, 180, 16, 255, 97, 242, 0, 21, 173 \
+    ])
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testHashSHA256')
+
+
+function testHashSHA256_padding():
+    unittestMockAll()
+
+    # Messages at the padding boundaries - 55 bytes is the longest that pads within one block
+    unittestEqual(hashHex(hashSHA256(stringRepeat('a', 55))), '9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318')
+    unittestEqual(hashHex(hashSHA256(stringRepeat('a', 56))), 'b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a')
+    unittestEqual(hashHex(hashSHA256(stringRepeat('a', 63))), '7d3e74a05d7db15bce4ad9ec0658ea98e3f06eeecf16b4c6fff2da457ddc2f34')
+    unittestEqual(hashHex(hashSHA256(stringRepeat('a', 64))), 'ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testHashSHA256_padding')
+
+
+function testHashSHA256_bytes():
+    unittestMockAll()
+
+    # A string is hashed as UTF-8, and a byte value array as its bytes
+    unittestEqual(hashHex(hashSHA256('héllo')), '3c48591d8d098a4538f5e013dfcf406e948eac4d3277b10bf614e295d6068179')
+    unittestEqual(hashHex(hashSHA256([0, 128, 255])), '5240672d7b51756b829ad0ef8d9468b7a078afa2f410484fd3892dab47becb72')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testHashSHA256_bytes')
+
+
+function testHashSHA256_invalid():
+    unittestMockAll()
+    unittestEqual(hashSHA256(null), null)
+    unittestEqual(hashSHA256([256]), null)
+    unittestEqual(hashSHA256([1.5]), null)
+    unittestEqual(hashSHA256({}), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['hash.bare: hashSHA256 - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['hash.bare: hashSHA256 - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['hash.bare: hashSHA256 - Invalid "bytes" argument']], \
+        ['systemLogDebug', ['hash.bare: hashSHA256 - Invalid "bytes" argument']] \
+    ])
+endfunction
+unittestRunTest('testHashSHA256_invalid')
+
+
+#
+# hashHMACSHA256 tests
+#
+
+
+function testHashHMACSHA256():
+    unittestMockAll()
+
+    # The RFC 4231 test cases 1 and 2
+    unittestEqual(hashHex(hashHMACSHA256(arrayNewSize(20, 11), 'Hi There')), \
+        'b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7')
+    unittestEqual(hashHex(hashHMACSHA256('Jefe', 'what do ya want for nothing?')), \
+        '5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843')
+
+    # The RFC 4231 test case 6 - a key longer than the block is hashed first
+    unittestEqual(hashHex(hashHMACSHA256(arrayNewSize(131, 170), 'Test Using Larger Than Block-Size Key - Hash Key First')), \
+        '60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54')
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testHashHMACSHA256')
+
+
+function testHashHMACSHA256_invalid():
+    unittestMockAll()
+    unittestEqual(hashHMACSHA256(null, 'message'), null)
+    unittestEqual(hashHMACSHA256('key', [256]), null)
+    unittestEqual(hashHMACSHA256(1, 2), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['hash.bare: hashHMACSHA256 - Invalid "key" argument']], \
+        ['systemLogDebug', ['hash.bare: hashHMACSHA256 - Invalid "message" argument']], \
+        ['systemLogDebug', ['hash.bare: hashHMACSHA256 - Invalid "key" argument']], \
+        ['systemLogDebug', ['hash.bare: hashHMACSHA256 - Invalid "message" argument']] \
+    ])
+endfunction
+unittestRunTest('testHashHMACSHA256_invalid')
+
+
+#
+# hashEqual tests
+#
+
+
+function testHashEqual():
+    unittestMockAll()
+    mac = hashHMACSHA256('Jefe', 'what do ya want for nothing?')
+    unittestEqual(hashEqual(mac, hashHMACSHA256('Jefe', 'what do ya want for nothing?')), true)
+    unittestEqual(hashEqual(mac, hashHMACSHA256('Jefe', 'what do ya want for something?')), false)
+
+    # Strings are compared as UTF-8, and values of different lengths are not equal
+    unittestEqual(hashEqual('héllo', stringEncode('héllo')), true)
+    unittestEqual(hashEqual('abc', 'abd'), false)
+    unittestEqual(hashEqual('abc', 'abcd'), false)
+    unittestEqual(hashEqual([], ''), true)
+    unittestDeepEqual(unittestMockEnd(), [])
+endfunction
+unittestRunTest('testHashEqual')
+
+
+function testHashEqual_invalid():
+    unittestMockAll()
+    unittestEqual(hashEqual(null, 'b'), null)
+    unittestEqual(hashEqual('a', [256]), null)
+    unittestEqual(hashEqual(1, 2), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['hash.bare: hashEqual - Invalid "left" argument']], \
+        ['systemLogDebug', ['hash.bare: hashEqual - Invalid "right" argument']], \
+        ['systemLogDebug', ['hash.bare: hashEqual - Invalid "left" argument']], \
+        ['systemLogDebug', ['hash.bare: hashEqual - Invalid "right" argument']] \
+    ])
+endfunction
+unittestRunTest('testHashEqual_invalid')
+
+
+#
+# hashHex tests
+#
+
+
+function testHashHex():
+    unittestMockAll()
+    unittestEqual(hashHex([0, 15, 16, 160, 255]), '000f10a0ff')
+    unittestEqual(hashHex([]), '')
+    unittestEqual(hashHex('AB'), '4142')
+    unittestEqual(hashHex([-1]), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['hash.bare: hashHex - Invalid "bytes" argument']] \
+    ])
+endfunction
+unittestRunTest('testHashHex')

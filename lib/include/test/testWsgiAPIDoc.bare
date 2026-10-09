@@ -1,0 +1,177 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include '../args.bare'
+include '../schemaDoc.bare'
+include '../schemaParser.bare'
+include '../wsgiAPIDoc.bare'
+include '../unittest.bare'
+include '../unittestMock.bare'
+
+
+# Test API types
+testWsgiAPIDocTypes = schemaParse( \
+    '# Double a number', \
+    'action testWsgiAPIDocDouble', \
+    '    input', \
+    '        float value', \
+    '    output', \
+    '        float answer' \
+)
+
+
+#
+# wsgiAPIDocMain index page tests
+#
+
+
+async function testWsgiAPIDocMain_index():
+    unittestMockAll({'systemFetch': {'docIndex': jsonStringify({ \
+        'title': 'localhost:8080', \
+        'groups': { \
+            'Documentation': ['wsgiAPIDocIndex', 'wsgiAPIDoc'], \
+            'API': ['testWsgiAPIDocDouble'] \
+        } \
+    })}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docIndex']], \
+        ['documentSetTitle', ['localhost:8080']], \
+        ['markdownPrint', ['# localhost:8080']], \
+        ['markdownPrint', ['', '## API']], \
+        ['markdownPrint', ['', argsLink(wsgiAPIDocArguments, 'testWsgiAPIDocDouble', {'name': 'testWsgiAPIDocDouble'}, false, '_top')]], \
+        ['markdownPrint', ['', '## Documentation']], \
+        ['markdownPrint', ['', argsLink(wsgiAPIDocArguments, 'wsgiAPIDoc', {'name': 'wsgiAPIDoc'}, false, '_top')]], \
+        ['markdownPrint', ['', argsLink(wsgiAPIDocArguments, 'wsgiAPIDocIndex', {'name': 'wsgiAPIDocIndex'}, false, '_top')]] \
+    ])
+endfunction
+unittestRunTest('testWsgiAPIDocMain_index')
+
+
+async function testWsgiAPIDocMain_indexError():
+    unittestMockAll()
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docIndex']], \
+        ['markdownPrint', ['**Error:** Failed to fetch the documentation index API "docIndex"']] \
+    ])
+endfunction
+unittestRunTest('testWsgiAPIDocMain_indexError')
+
+
+#
+# wsgiAPIDocMain request page tests
+#
+
+
+async function testWsgiAPIDocMain_action():
+    systemGlobalSet('vName', 'testWsgiAPIDocDouble')
+    urls = [{'method': 'POST', 'path': '/double'}]
+    unittestMockAll({'systemFetch': {'docRequest?name=testWsgiAPIDocDouble': jsonStringify({ \
+        'name': 'testWsgiAPIDocDouble', \
+        'urls': urls, \
+        'types': testWsgiAPIDocTypes \
+    })}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=testWsgiAPIDocDouble']], \
+        ['documentSetTitle', ['testWsgiAPIDocDouble']], \
+        ['markdownPrint', [argsLink(wsgiAPIDocArguments, 'Index', {'name': null})]], \
+        ['markdownPrint', [schemaDocMarkdown(testWsgiAPIDocTypes, 'testWsgiAPIDocDouble', {'actionURLs': urls, 'actionCustom': false})]] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_action')
+
+
+async function testWsgiAPIDocMain_actionCustom():
+    systemGlobalSet('vName', 'testWsgiAPIDocDouble')
+    urls = [{'path': '/double'}]
+    unittestMockAll({'systemFetch': {'docRequest?name=testWsgiAPIDocDouble': jsonStringify({ \
+        'name': 'testWsgiAPIDocDouble', \
+        'urls': urls, \
+        'types': testWsgiAPIDocTypes, \
+        'custom': true \
+    })}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=testWsgiAPIDocDouble']], \
+        ['documentSetTitle', ['testWsgiAPIDocDouble']], \
+        ['markdownPrint', [argsLink(wsgiAPIDocArguments, 'Index', {'name': null})]], \
+        ['markdownPrint', [schemaDocMarkdown(testWsgiAPIDocTypes, 'testWsgiAPIDocDouble', {'actionURLs': urls, 'actionCustom': true})]] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_actionCustom')
+
+
+async function testWsgiAPIDocMain_request():
+    systemGlobalSet('vName', '/index.html')
+    unittestMockAll({'systemFetch': {'docRequest?name=%2Findex.html': jsonStringify({ \
+        'name': '/index.html', \
+        'urls': [{'method': 'GET', 'path': '/index.html'}], \
+        'doc': ['The application HTML'] \
+    })}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=%2Findex.html']], \
+        ['documentSetTitle', ['/index.html']], \
+        ['markdownPrint', [argsLink(wsgiAPIDocArguments, 'Index', {'name': null})]], \
+        ['markdownPrint', ['', '# /index.html']], \
+        ['markdownPrint', ['', ['The application HTML']]], \
+        ['markdownPrint', ['', '**Note:** The request is exposed at the following URL:']], \
+        ['markdownPrint', ['', '&nbsp;&nbsp;[GET /index.html](/index.html)']] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_request')
+
+
+async function testWsgiAPIDocMain_requestURLs():
+    systemGlobalSet('vName', 'multiple')
+    unittestMockAll({'systemFetch': {'docRequest?name=multiple': jsonStringify({ \
+        'name': 'multiple', \
+        'urls': [{'method': 'GET', 'path': '/a'}, {'path': '/b'}, {'method': 'GET', 'path': '/my photo (1).png'}] \
+    })}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=multiple']], \
+        ['documentSetTitle', ['multiple']], \
+        ['markdownPrint', [argsLink(wsgiAPIDocArguments, 'Index', {'name': null})]], \
+        ['markdownPrint', ['', '# multiple']], \
+        ['markdownPrint', ['', '**Note:** The request is exposed at the following URLs:']], \
+        ['markdownPrint', ['', '&nbsp;&nbsp;[GET /a](/a)']], \
+        ['markdownPrint', ['', '&nbsp;&nbsp;[/b](/b)']], \
+        ['markdownPrint', ['', '&nbsp;&nbsp;[GET /my photo \\(1\\).png](/my%20photo%20%281%29.png)']] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_requestURLs')
+
+
+async function testWsgiAPIDocMain_requestNoURLs():
+    systemGlobalSet('vName', 'none')
+    unittestMockAll({'systemFetch': {'docRequest?name=none': jsonStringify({'name': 'none', 'urls': []})}})
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=none']], \
+        ['documentSetTitle', ['none']], \
+        ['markdownPrint', [argsLink(wsgiAPIDocArguments, 'Index', {'name': null})]], \
+        ['markdownPrint', ['', '# none']] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_requestNoURLs')
+
+
+async function testWsgiAPIDocMain_requestError():
+    systemGlobalSet('vName', 'unknown')
+    unittestMockAll()
+    wsgiAPIDocMain()
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemFetch', ['docRequest?name=unknown']], \
+        ['markdownPrint', ['**Error:** Failed to fetch the documentation request API "docRequest?name=unknown"']] \
+    ])
+    systemGlobalSet('vName', null)
+endfunction
+unittestRunTest('testWsgiAPIDocMain_requestError')

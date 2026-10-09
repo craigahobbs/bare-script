@@ -1,0 +1,301 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <unittest.bare>
+include '../creatorFullStack.bare'
+include 'testCreatorFrontend.bare'
+
+
+# Helper to test if a text contains a substring
+function testCreatorFullStackHas(text, substring):
+    unittestEqual(stringIndexOf(text, substring) >= 0, true, substring)
+endfunction
+
+
+function testCreatorFullStackType():
+    testCreatorTypeObject(creatorFullStackType, 'fullstack', 'Full-Stack Application', creatorFullStackProject)
+endfunction
+unittestRunTest('testCreatorFullStackType')
+
+
+function testCreatorFullStackProject():
+    mtime = datetimeISOParse('2026-09-29T12:00:00Z')
+    project = creatorFullStackProject(testCreatorValues, '# Skill\n', mtime)
+    unittestEqual(objectGet(project, 'id'), 'myApp')
+    unittestEqual(objectGet(project, 'title'), 'My App')
+    unittestDeepEqual(objectGet(project, 'generated'), ['backend/myApp.bare', 'frontend/myApp.bare', 'frontend/myAppTypes.bare'])
+    unittestDeepEqual(objectGet(project, 'commands'), ['make run'])
+    unittestDeepEqual(objectGet(project, 'notes'), [ \
+        'The first `make run` has Claude Code generate `backend/myApp.bare`, `frontend/myApp.bare`, and `frontend/myAppTypes.bare` ' + \
+            'from `SPEC.md`, ' + \
+            'then serves the application at <http://127.0.0.1:8080/>. Its API documentation is at <http://127.0.0.1:8080/doc/>.' \
+    ])
+    names = []
+    for file in objectGet(project, 'files'):
+        arrayPush(names, objectGet(file, 'name'))
+        unittestEqual(objectGet(file, 'mtime'), mtime)
+    endfor
+    unittestDeepEqual(names, [ \
+        'myApp/.gitignore', \
+        'myApp/CLAUDE.md', \
+        'myApp/LICENSE', \
+        'myApp/Makefile', \
+        'myApp/SPEC.md', \
+        'myApp/wsgi.py', \
+        'myApp/.claude/skills/bare-script/SKILL.md', \
+        'myApp/test/backend/index.html', \
+        'myApp/test/backend/runTests.bare', \
+        'myApp/test/backend/runTests.md', \
+        'myApp/test/backend/testMyApp.bare', \
+        'myApp/frontend/index.html', \
+        'myApp/frontend/myApp.md', \
+        'myApp/test/frontend/index.html', \
+        'myApp/test/frontend/runTests.bare', \
+        'myApp/test/frontend/runTests.md', \
+        'myApp/test/frontend/testMyApp.bare' \
+    ])
+    texts = testCreatorTexts(project)
+
+    # CLAUDE.md
+    claude = objectGet(texts, 'myApp/CLAUDE.md')
+    testCreatorFullStackHas(claude, '  database credentials) come from environment variables - read them in `wsgi.py` and add them to its `globals_`\n')
+    testCreatorFullStackHas(claude, '  `python3 -m http.server`) and open `/test/backend/` or `/test/frontend/`.\n')
+    testCreatorFullStackHas(claude, 'My App is a [BareScript](https://craigahobbs.github.io/bare-script/) web application: a schema-validated JSON\n')
+    testCreatorFullStackHas(claude, '- `make run` - serve the application at <http://127.0.0.1:8080/> with waitress (for the user, not for a coding\n' + \
+        '  agent - it starts a server that never returns)\n')
+    testCreatorFullStackHas(claude, 'frontend that calls it. A test application\n')
+    testCreatorFullStackHas(claude, '- `frontend/myApp.bare` - the frontend MarkdownUp application, whose main function `myAppMain()` is\n')
+    testCreatorFullStackHas(claude, '- `wsgi.py` - the WSGI application, which `make run` serves with waitress (named `wsgi`, not `myApp`, so it\n')
+    testCreatorFullStackHas(claude, 'static file: the `frontend/` files (at\n  `/<file>`, and `/` for `frontend/index.html`) and the MarkdownUp application\n')
+    testCreatorFullStackHas(claude, "`'../frontend/index.html'`. Only the directories `wsgi.py` loads (`backend/`, `frontend/`, and\n")
+    testCreatorFullStackHas(claude, '`make test-backend` and `make test-frontend` run one suite')
+    testCreatorFullStackHas(claude, '`make lint-backend` and `make lint-frontend` lint one side')
+    testCreatorFullStackHas(claude, 'depend on `backend/myApp.bare`, `frontend/myApp.bare`, and `frontend/myAppTypes.bare`, which the Makefile\n' + \
+        'otherwise generates with Claude Code - create them before')
+    testCreatorFullStackHas(claude, '- Frontend tests mock `systemFetch`.')
+    testCreatorFullStackHas(claude, "- `frontend/myAppTypes.bare` - the API's Schema Markdown types, `myAppTypes`, shared by the backend and\n")
+    testCreatorFullStackHas(claude, '## Sharing code between the backend and frontend\n')
+    testCreatorFullStackHas(claude, "the backend includes it from there (`include '../frontend/<file>.bare'`). Never the reverse: `backend/` is never\n")
+    testCreatorFullStackHas(claude, "`coverageExclude` (e.g. `'frontend/myAppUtil.bare'`).\n")
+
+    # Makefile
+    makefile = objectGet(texts, 'myApp/Makefile')
+    testCreatorFullStackHas(makefile, 'help:\n\t@echo "            [lint-backend|lint-frontend|run|test-backend|test-frontend]"\n')
+    testCreatorFullStackHas(makefile, 'frontend/$(APP).bare frontend/$(APP)Types.bare: backend/$(APP).bare\n\ttest -f $@\n')
+    testCreatorFullStackHas(makefile, 'test: test-backend test-frontend\n')
+    testCreatorFullStackHas(makefile, 'test-backend: $(DEFAULT_VENV_BUILD) backend/$(APP).bare frontend/$(APP)Types.bare\n' + \
+        '\t$(DEFAULT_VENV_BIN)/bare -d -m test/backend/runTests.bare')
+    testCreatorFullStackHas(makefile, 'test-frontend: $(DEFAULT_VENV_BUILD) frontend/$(APP).bare frontend/$(APP)Types.bare\n' + \
+        '\t$(DEFAULT_VENV_BIN)/bare -d -m test/frontend/runTests.bare')
+    testCreatorFullStackHas(makefile, 'lint: lint-backend lint-frontend\n')
+    testCreatorFullStackHas(makefile, '\t$(DEFAULT_VENV_BIN)/bare -x -m frontend/$(APP).bare test/frontend/test*.bare\n')
+    testCreatorFullStackHas(makefile, 'lint-backend: $(DEFAULT_VENV_BUILD) backend/$(APP).bare frontend/$(APP)Types.bare\n')
+    testCreatorFullStackHas(makefile, 'lint-frontend: $(DEFAULT_VENV_BUILD) frontend/$(APP).bare frontend/$(APP)Types.bare\n')
+    testCreatorFullStackHas(makefile, 'run: $(DEFAULT_VENV_BUILD) build/markdown-up/VERSION.txt backend/$(APP).bare frontend/$(APP).bare ' + \
+        'frontend/$(APP)Types.bare\n')
+    testCreatorFullStackHas(makefile, "        if hasattr(tarfile, 'data_filter'):\n" + \
+        "            tar.extractall('build', filter='data')\n" + \
+        "        else:\n" + \
+        "            tar.extractall('build')\n")
+
+    # SPEC.md
+    spec = objectGet(texts, 'myApp/SPEC.md')
+    testCreatorFullStackHas(spec, '  `MYAPP_COUCH_URL`) and pass them to the backend as globals alongside `myAppStatics`. Never\n')
+    testCreatorFullStackHas(spec, "- Define the API's Schema Markdown types in `frontend/myAppTypes.bare` - `myAppTypes = schemaParse(...)`,\n")
+    testCreatorFullStackHas(spec, "- Implement the backend in `backend/myApp.bare`: an action function for each of the shared types' actions,\n")
+    testCreatorFullStackHas(spec, "  ~~~ bare-script\n  include <wsgi.bare>\n\n  # The API types - shared with the frontend\n" + \
+        "  include '../frontend/myAppTypes.bare'\n")
+    testCreatorFullStackHas(spec, "  arrayExtend(myAppRequests, wsgiStaticRequests(systemGlobalGet('myAppStatics', {}), '../'))\n")
+    testCreatorFullStackHas(spec, '- Implement the frontend in `frontend/myApp.bare` with the main function `myAppMain()`, which\n')
+    testCreatorFullStackHas(spec, '- Write the backend unit tests in `test/backend/testMyApp.bare`')
+    testCreatorFullStackHas(spec, 'test for each control. Both suites need 100% coverage.\n')
+
+    # wsgi.py
+    python = objectGet(texts, 'myApp/wsgi.py')
+    testCreatorFullStackHas(python, '# Read the application source - the backend, frontend, and MarkdownUp application (downloaded by\n')
+    testCreatorFullStackHas(python, "APP_SRC = wsgi_load_source(ROOT_DIR, ('backend', 'frontend', 'build/markdown-up'))\n")
+    testCreatorFullStackHas(python, "APP_STATICS = wsgi_load_statics(ROOT_DIR, {'/': 'frontend', '/markdown-up/': 'build/markdown-up'})\n")
+
+    # The frontend
+    testCreatorFullStackHas(objectGet(texts, 'myApp/frontend/index.html'), "new MarkdownUp(window, {'url': 'myApp.md'})")
+    testCreatorFullStackHas(objectGet(texts, 'myApp/frontend/index.html'), "import {MarkdownUp} from './markdown-up/lib/appImports.js';")
+    unittestEqual(objectGet(texts, 'myApp/frontend/myApp.md'), "~~~ markdown-script\ninclude 'myApp.bare'\n\nmyAppMain()\n~~~\n")
+
+    # The tests
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/backend/index.html'), '<title>My App Backend Tests</title>')
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/backend/index.html'), "from '../../build/markdown-up/lib/appImports.js';")
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/backend/testMyApp.bare'), "myAppStatics = {'/index.html': 'frontend/index.html'}\n")
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/backend/testMyApp.bare'), "include '../../backend/myApp.bare'\n")
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/frontend/index.html'), '<title>My App Frontend Tests</title>')
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/frontend/runTests.bare'), "include 'testMyApp.bare'\n")
+    unittestEqual(objectGet(texts, 'myApp/test/frontend/runTests.md'), "~~~ markdown-script\ninclude 'runTests.bare'\n~~~\n")
+    unittestEqual(objectGet(texts, 'myApp/test/frontend/testMyApp.bare'), creatorText([ \
+        'include <unittest.bare>', \
+        'include <unittestMock.bare>', \
+        "include '../../frontend/myApp.bare'", \
+        '', \
+        '', \
+        'async function testMyAppMain():', \
+        '    unittestMockAll()', \
+        '    myAppMain()', \
+        '    unittestEqual(arrayLength(unittestMockEnd()) > 0, true)', \
+        'endfunction', \
+        "unittestRunTest('testMyAppMain')" \
+    ]))
+endfunction
+unittestRunTest('testCreatorFullStackProject')
+
+
+#
+# The backend application project type - the full-stack application's backend-only option
+#
+
+
+testCreatorFullStackBackendValues = { \
+    'copyright': 'Jane Doe', \
+    'name': 'My App', \
+    'description': 'A test API', \
+    'spec': 'An action that doubles a number.\nAn action that halves a number.' \
+}
+
+
+function testCreatorFullStackBackendType():
+    testCreatorTypeObject(creatorFullStackBackendType, 'backend', 'Backend Application', creatorFullStackBackendProject)
+endfunction
+unittestRunTest('testCreatorFullStackBackendType')
+
+
+function testCreatorFullStackBackendProject():
+    mtime = datetimeISOParse('2026-09-29T12:00:00Z')
+    project = creatorFullStackBackendProject(testCreatorFullStackBackendValues, '# Skill\n', mtime)
+    unittestEqual(objectGet(project, 'id'), 'myApp')
+    unittestEqual(objectGet(project, 'title'), 'My App')
+    unittestDeepEqual(objectGet(project, 'generated'), ['backend/myApp.bare'])
+    unittestDeepEqual(objectGet(project, 'commands'), ['make run'])
+    unittestDeepEqual(objectGet(project, 'notes'), [ \
+        'The first `make run` has Claude Code generate `backend/myApp.bare` from `SPEC.md`, then serves the API. ' + \
+            'Its documentation is at <http://127.0.0.1:8080/doc/>.' \
+    ])
+    names = []
+    for file in objectGet(project, 'files'):
+        arrayPush(names, objectGet(file, 'name'))
+        unittestEqual(objectGet(file, 'mtime'), mtime)
+    endfor
+    unittestDeepEqual(names, [ \
+        'myApp/.gitignore', \
+        'myApp/CLAUDE.md', \
+        'myApp/LICENSE', \
+        'myApp/Makefile', \
+        'myApp/SPEC.md', \
+        'myApp/wsgi.py', \
+        'myApp/.claude/skills/bare-script/SKILL.md', \
+        'myApp/test/index.html', \
+        'myApp/test/runTests.bare', \
+        'myApp/test/runTests.md', \
+        'myApp/test/testMyApp.bare' \
+    ])
+    texts = testCreatorTexts(project)
+
+    # .gitignore, LICENSE, and the skill
+    unittestEqual(objectGet(texts, 'myApp/.gitignore'), '/build/\n/Makefile.tool\n__pycache__/\n')
+    unittestEqual(arrayGet(stringSplitLines(objectGet(texts, 'myApp/LICENSE')), 2), 'Copyright (c) 2026 Jane Doe')
+    unittestEqual(objectGet(texts, 'myApp/.claude/skills/bare-script/SKILL.md'), '# Skill\n')
+
+    # CLAUDE.md
+    claude = objectGet(texts, 'myApp/CLAUDE.md')
+    testCreatorFullStackHas(claude, '  `python3 -m http.server`) and open `/test/`.\n')
+    testCreatorFullStackHas(claude, '- `make run` - serve the API, with its documentation at <http://127.0.0.1:8080/doc/>, with waitress ' + \
+        '(for the user,\n  not for a coding agent - it starts a server that never returns)\n')
+    testCreatorFullStackHas(claude, 'My App is a schema-validated JSON API, written in [BareScript]')
+    testCreatorFullStackHas(claude, '([WSGI](https://peps.python.org/pep-3333/)). A test API\n')
+    testCreatorFullStackHas(claude, '`myAppApplication` WSGI application function, created by `wsgiCreateAPIApplication`')
+    testCreatorFullStackHas(claude, 'global, a map of URL path to project-relative source path for each static file: the MarkdownUp\n')
+    testCreatorFullStackHas(claude, "`include 'myAppUtil.bare'`. Only the directories `wsgi.py` loads (`backend/` and\n" + \
+        "`build/markdown-up/`) can be read.")
+    testCreatorFullStackHas(claude, '- `make test` - run the unit tests (`TEST=<name>` runs one test)\n')
+    testCreatorFullStackHas(claude, 'depend on `backend/myApp.bare`, which the Makefile\notherwise generates with Claude Code - create it before')
+    testCreatorFullStackHas(claude, 'Backend tests call `myAppApplication(environ)` directly')
+    unittestEqual(stringIndexOf(claude, 'frontend'), -1)
+
+    # Makefile
+    makefile = objectGet(texts, 'myApp/Makefile')
+    testCreatorFullStackHas(makefile, 'TESTS_REQUIRE := bare-script waitress\n')
+    testCreatorFullStackHas(makefile, 'APP := myApp\n')
+    testCreatorFullStackHas(makefile, 'help:\n\t@echo "            [run]"\n')
+    testCreatorFullStackHas(makefile, 'backend/$(APP).bare: | $(DEFAULT_VENV_BUILD)\n')
+    testCreatorFullStackHas(makefile, 'test: $(DEFAULT_VENV_BUILD) backend/$(APP).bare\n\t$(DEFAULT_VENV_BIN)/bare -d -m test/runTests.bare')
+    testCreatorFullStackHas(makefile, '\t$(DEFAULT_VENV_BIN)/bare -x backend/$(APP).bare test/test*.bare\n')
+    testCreatorFullStackHas(makefile, 'run: $(DEFAULT_VENV_BUILD) build/markdown-up/VERSION.txt backend/$(APP).bare\n' + \
+        '\t$(DEFAULT_VENV_BIN)/waitress-serve --host=$(HOST) --port=$(PORT) wsgi:application\n')
+    testCreatorFullStackHas(makefile, "with urllib.request.urlopen('$(MARKDOWN_UP_URL)') as response:\n")
+    unittestEqual(stringIndexOf(makefile, 'frontend'), -1)
+
+    # SPEC.md
+    spec = objectGet(texts, 'myApp/SPEC.md')
+    testCreatorFullStackHas(spec, '  `MYAPP_COUCH_URL`) and pass them to the backend as globals alongside `myAppStatics`. Never\n')
+    testCreatorFullStackHas(spec, '# My App\n\nA test API\n\n## Specification\n\nAn action that doubles a number.\nAn action that halves a number.\n')
+    testCreatorFullStackHas(spec, "  arrayExtend(myAppRequests, wsgiStaticRequests(systemGlobalGet('myAppStatics', {}), '../'))\n")
+    testCreatorFullStackHas(spec, "  myAppApplication = wsgiCreateAPIApplication(myAppTypes, {'doc': true, 'requests': myAppRequests})\n")
+    testCreatorFullStackHas(spec, "  ~~~ bare-script\n  include <schemaParser.bare>\n  include <wsgi.bare>\n\n  # The API types\n" + \
+        "  myAppTypes = schemaParse( \\\n")
+    testCreatorFullStackHas(spec, '- Write the unit tests in `test/testMyApp.bare`')
+    unittestEqual(stringIndexOf(spec, 'frontend'), -1)
+
+    # wsgi.py
+    unittestEqual(objectGet(texts, 'myApp/wsgi.py'), creatorText([ \
+        '"""', \
+        'The My App WSGI application', \
+        '"""', \
+        '', \
+        'from pathlib import Path', \
+        '', \
+        'from bare_script.wsgi import wsgi_application, wsgi_load_source, wsgi_load_statics', \
+        '', \
+        '', \
+        '# Read the application source - the backend and MarkdownUp application (downloaded by', \
+        '# "make run") directories', \
+        'ROOT_DIR = Path(__file__).parent', \
+        "APP_SRC = wsgi_load_source(ROOT_DIR, ('backend', 'build/markdown-up'))", \
+        '', \
+        '# The static files, a map of URL path to source path - the backend adds a static request for each', \
+        "APP_STATICS = wsgi_load_statics(ROOT_DIR, {'/markdown-up/': 'build/markdown-up'})", \
+        '', \
+        '# Create the WSGI application', \
+        'application = wsgi_application(', \
+        "    APP_SRC, 'backend/myApp.bare', 'myAppApplication',", \
+        "    globals_={'myAppStatics': APP_STATICS}", \
+        ')' \
+    ]))
+
+    # The tests
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/index.html'), '<title>My App Tests</title>')
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/index.html'), "import {MarkdownUp} from '../build/markdown-up/lib/appImports.js';")
+    testCreatorFullStackHas(objectGet(texts, 'myApp/test/runTests.bare'), "include 'testMyApp.bare'\n")
+    unittestEqual(objectGet(texts, 'myApp/test/runTests.md'), "~~~ markdown-script\ninclude 'runTests.bare'\n~~~\n")
+    unittestEqual(objectGet(texts, 'myApp/test/testMyApp.bare'), creatorText([ \
+        'include <unittest.bare>', \
+        '', \
+        '', \
+        '# The static files the host passes to the backend', \
+        "myAppStatics = {}", \
+        '', \
+        '', \
+        "include '../backend/myApp.bare'", \
+        '', \
+        '', \
+        'async function testMyAppApplication():', \
+        "    response = myAppApplication({'REQUEST_METHOD': 'GET', 'PATH_INFO': '/doc/', 'QUERY_STRING': '', 'wsgi.input': ''})", \
+        "    unittestEqual(objectGet(response, 'status'), '200 OK')", \
+        'endfunction', \
+        "unittestRunTest('testMyAppApplication')" \
+    ]))
+endfunction
+unittestRunTest('testCreatorFullStackBackendProject')
+
+
+function testCreatorFullStackFilePythonName():
+    # The application name's backslashes and quotes are escaped in the docstring
+    python = creatorFullStackFilePython('Sales\\North "Tracker"', 'salesNorthTracker', false)
+    unittestEqual(arrayGet(stringSplitLines(python), 1), 'The Sales\\\\North \\"Tracker\\" WSGI application')
+endfunction
+unittestRunTest('testCreatorFullStackFilePythonName')

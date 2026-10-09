@@ -1,0 +1,90 @@
+# Licensed under the MIT License
+# https://github.com/craigahobbs/bare-script/blob/main/LICENSE
+
+include <args.bare>
+include <schemaDoc.bare>
+include <url.bare>
+
+
+# $function: wsgiAPIDocMain
+# $group: wsgiAPIDoc.bare
+# $doc: The API documentation MarkdownUp application, hosted at "/doc/" by a
+# $doc: [wsgiCreateAPIApplication](#var.vGroup='wsgi.bare'&wsgicreateapiapplication) application with the
+# $doc: "doc" option. It renders the request index, or the request named by the "name" argument, from the
+# $doc: application's "docIndex" and "docRequest" APIs.
+async function wsgiAPIDocMain():
+    args = argsParse(wsgiAPIDocArguments)
+    name = objectGet(args, 'name')
+    if name != null:
+        wsgiAPIDocRequestPage(name)
+    else:
+        wsgiAPIDocIndexPage()
+    endif
+endfunction
+
+
+# The API documentation application arguments
+wsgiAPIDocArguments = argsValidate([{'name': 'name'}])
+
+
+# Render the API documentation application index page
+async function wsgiAPIDocIndexPage():
+    indexURL = 'docIndex'
+    docIndexJSON = systemFetch(indexURL)
+    docIndex = if(docIndexJSON != null, jsonParse(docIndexJSON))
+    if docIndex == null:
+        markdownPrint('**Error:** Failed to fetch the documentation index API "' + indexURL + '"')
+        return
+    endif
+    title = objectGet(docIndex, 'title')
+    groups = objectGet(docIndex, 'groups')
+
+    documentSetTitle(title)
+    markdownPrint('# ' + markdownEscape(title))
+    for groupName in arraySort(objectKeys(groups)):
+        markdownPrint('', '## ' + markdownEscape(groupName))
+        for requestName in arraySort(objectGet(groups, groupName)):
+            markdownPrint('', argsLink(wsgiAPIDocArguments, requestName, {'name': requestName}, false, '_top'))
+        endfor
+    endfor
+endfunction
+
+
+# Render the API documentation application request page
+async function wsgiAPIDocRequestPage(requestName):
+    requestURL = 'docRequest?name=' + urlEncodeComponent(requestName)
+    docRequestJSON = systemFetch(requestURL)
+    docRequest = if(docRequestJSON != null, jsonParse(docRequestJSON))
+    if docRequest == null:
+        markdownPrint('**Error:** Failed to fetch the documentation request API "' + requestURL + '"')
+        return
+    endif
+    doc = objectGet(docRequest, 'doc')
+    urls = objectGet(docRequest, 'urls')
+    types = objectGet(docRequest, 'types')
+    custom = objectGet(docRequest, 'custom', false)
+
+    documentSetTitle(requestName)
+    markdownPrint(argsLink(wsgiAPIDocArguments, 'Index', {'name': null}))
+
+    # Action request?
+    if types != null:
+        markdownPrint(schemaDocMarkdown(types, requestName, {'actionURLs': urls, 'actionCustom': custom}))
+        return
+    endif
+
+    # Non-action request
+    markdownPrint('', '# ' + markdownEscape(requestName))
+    if doc != null:
+        markdownPrint('', doc)
+    endif
+    if urls != null && arrayLength(urls) > 0:
+        markdownPrint('', '**Note:** The request is exposed at the following ' + if(arrayLength(urls) == 1, 'URL:', 'URLs:'))
+        for url in urls:
+            method = objectGet(url, 'method')
+            path = objectGet(url, 'path')
+            text = if(method != null, markdownEscape(method) + ' ', '') + markdownEscape(path)
+            markdownPrint('', '&nbsp;&nbsp;[' + text + '](' + urlEncode(path) + ')')
+        endfor
+    endif
+endfunction
