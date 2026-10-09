@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.2.0 (2026-10-09)
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - add the wsgi.bare include library - schema-validated JSON API WSGI applications, with static files and API documentation \(wsgiAPIDoc.bare\), hosted by bare-script-py's wsgi.py
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - add the Full-Stack Application and Backend Application BareScript Creator project types
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - add hash.bare - SHA-256 hashes, HMAC-SHA256 message authentication codes, constant-time comparison, and hexadecimal formatting
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - add the systemFetch request "method" member - the CLI's local file fetch reads with GET, writes with POST or PUT, and deletes with DELETE
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - a Schema Markdown date member also accepts a datetime string at midnight in its own timezone
+
+- [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - barescript-mode.el 1.0, and make test-emacs \(run by make commit\) tests it
+
 ## 5.1.17 (2026-10-04)
 
 - [05145b6](https://github.com/craigahobbs/bare-script/commit/05145b6) - add barescriptLintUnboundGlobals - compute a script or expression model's unbound global variables
