@@ -484,9 +484,9 @@ endfunction
 creatorFullStackType = { \
     'name': 'fullstack', \
     'title': 'Full-Stack Application', \
-    'description': 'A web application with a schema-validated JSON API backend, served by Python ' + \
-        '([WSGI](https://peps.python.org/pep-3333/)), and a [MarkdownUp](https://craigahobbs.github.io/markdown-up/) ' + \
-        'frontend that calls it, with API documentation and unit tests', \
+    'description': 'A web application with a schema-validated JSON API backend in BareScript, served by Python ' + \
+        '([WSGI](https://peps.python.org/pep-3333/)), and a BareScript ' + \
+        '[MarkdownUp](https://craigahobbs.github.io/markdown-up/) frontend that calls it, with API documentation and unit tests', \
     'fields': creatorAppFields('Fungus Tracker', 'what the application does and how it behaves'), \
     'validate': creatorValidateAppName, \
     'project': creatorFullStackProject \
