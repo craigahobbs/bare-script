@@ -158,8 +158,8 @@ endfunction
 creatorFrontendType = { \
     'name': 'frontend', \
     'title': 'Frontend Application', \
-    'description': 'A [MarkdownUp](https://craigahobbs.github.io/markdown-up/) web application (a Markdown page with ' + \
-        'embedded BareScript) with unit tests, publishable as-is on GitHub Pages', \
+    'description': 'A BareScript [MarkdownUp](https://craigahobbs.github.io/markdown-up/) web application with unit tests, ' + \
+        'publishable as-is on GitHub Pages', \
     'fields': creatorAppFields('Fungus Simulator', 'what the application does and how it behaves'), \
     'validate': creatorValidateAppName, \
     'project': creatorFrontendProject \
