@@ -1821,6 +1821,12 @@ And a trap worth naming: memoizing is not free. A memo keyed by
 `jsonStringify(value)` can cost more than recomputing the thing it caches, and a
 per-call memo only pays when one call does repeated work.
 
+Another: exploiting incidental order. A data array's row order and an object's
+key order are properties of the input, not guarantees. Taking a maximum from the
+last row, or running a sliding window without sorting, is fast exactly until the
+input changes order - and then silently wrong. Scan, or sort explicitly; a fast
+path may check the order and fall back, but must not depend on it.
+
 ### The simplification loop
 
 The aim is less code, more consistency, and clearer expression - nothing else.
@@ -1882,6 +1888,10 @@ most commonly produce when writing BareScript for the first time.
       A `'<function>'` in the render log is not enough.
 - [ ] **Use `for value, ixValue in items:`** to get both value and index;
       don't reinvent with `while`.
+- [ ] **No assumptions about row or key order.** Sort explicitly before
+      order-dependent work (sliding windows, first/last as min/max), and don't
+      depend on `objectKeys` order. (`dataLineChart` sorts its own rows by x,
+      so chart input order doesn't matter.)
 - [ ] **Persist to a local CouchDB by default** (unless the spec names a database)
       with `systemFetch` - `'method'` for PUT and DELETE, and a `null`
       response on any failure (see Section 2, Persistence).
