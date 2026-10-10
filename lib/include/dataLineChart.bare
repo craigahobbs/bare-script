@@ -46,10 +46,12 @@ dataLineChartTypes = schemaParse( \
     '', \
     "    # The color encoding field. Each line is drawn in its own color - the first ten of Tableau's", \
     '    # twenty - and past the tenth line the colors repeat with a dash pattern. The color legend', \
-    '    # lists the lines in the order they end, top to bottom.', \
+    '    # lists the lines in the order they end, top to bottom, and the colors are assigned in legend', \
+    '    # order, so the dash patterns go to the lines at the bottom of the legend.', \
     '    optional string color', \
     '', \
-    '    # The color encoding value order. It orders the color assignment, not the legend.', \
+    '    # The color encoding value order (default is legend order). It orders the color assignment, not', \
+    "    # the legend - use it to keep each value's color fixed as the data changes.", \
     '    optional string[len > 0] colorOrder', \
     '', \
     '    # The X-axis scale (default is "linear")', \
@@ -413,14 +415,22 @@ function drawLineChart(data, lineChart, x, y, width, height, options):
         endif
 
         # Add the points
-        for colorValue, ixColorValue in colorValues:
-            points = objectGet(pointsMap, colorValue)
-            arrayPush(linePoints, { \
-                'label': colorValue, \
-                'color': dataLineChartSeriesColor(ixColorValue), \
-                'dash': dataLineChartSeriesDash(ixColorValue), \
-                'points': points \
-            })
+        for colorValue in colorValues:
+            arrayPush(linePoints, {'label': colorValue, 'points': objectGet(pointsMap, colorValue)})
+        endfor
+
+        # Without a color order, the lines are put in legend order - by where each line ends, topmost
+        # first - so the colors are assigned top to bottom and the dash patterns go to the lines at the
+        # bottom of the legend. The sort is stable, so tied lines stay in color value order, and the
+        # legend's own sort of the same lines leaves them as they are.
+        if colorOrder == null:
+            arraySort(linePoints, dataLineChartLegendCompare)
+        endif
+
+        # Assign the line colors
+        for linePoint, ixLinePoint in linePoints:
+            objectSet(linePoint, 'color', dataLineChartSeriesColor(ixLinePoint))
+            objectSet(linePoint, 'dash', dataLineChartSeriesDash(ixLinePoint))
         endfor
     else:
         # Create a line for each y-field. The rows are walked once rather than once per y-field, so

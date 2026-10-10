@@ -4064,7 +4064,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 35.67800000 17.50000000 L 529.44000000 160.57000000', \
+                    'd': 'M 35.67800000 65.19000000 L 529.44000000 255.95000000', \
                     'fill': 'none', \
                     'stroke': '#d62728', \
                     'stroke-dasharray': 'none', \
@@ -4074,7 +4074,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 35.67800000 208.26000000 L 529.44000000 112.88000000', \
+                    'd': 'M 35.67800000 112.88000000 L 529.44000000 208.26000000', \
                     'fill': 'none', \
                     'stroke': '#2ca02c', \
                     'stroke-dasharray': 'none', \
@@ -4084,7 +4084,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 35.67800000 112.88000000 L 529.44000000 208.26000000', \
+                    'd': 'M 35.67800000 17.50000000 L 529.44000000 160.57000000', \
                     'fill': 'none', \
                     'stroke': '#ff7f0e', \
                     'stroke-dasharray': 'none', \
@@ -4094,7 +4094,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
             }, \
             { \
                 'attr': { \
-                    'd': 'M 35.67800000 65.19000000 L 529.44000000 255.95000000', \
+                    'd': 'M 35.67800000 208.26000000 L 529.44000000 112.88000000', \
                     'fill': 'none', \
                     'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
@@ -4106,7 +4106,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
                 'attr': { \
                     'd': 'M 537.44000000 25.50000000 H 569.44000000', \
                     'fill': 'none', \
-                    'stroke': '#2ca02c', \
+                    'stroke': '#1f77b4', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -4116,7 +4116,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
                 'attr': { \
                     'd': 'M 537.44000000 47.10000000 H 569.44000000', \
                     'fill': 'none', \
-                    'stroke': '#d62728', \
+                    'stroke': '#ff7f0e', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -4126,7 +4126,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
                 'attr': { \
                     'd': 'M 537.44000000 68.70000000 H 569.44000000', \
                     'fill': 'none', \
-                    'stroke': '#ff7f0e', \
+                    'stroke': '#2ca02c', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -4136,7 +4136,7 @@ function testDataLineChartElements_colorFieldMultipleFields():
                 'attr': { \
                     'd': 'M 537.44000000 90.30000000 H 569.44000000', \
                     'fill': 'none', \
-                    'stroke': '#1f77b4', \
+                    'stroke': '#d62728', \
                     'stroke-dasharray': 'none', \
                     'stroke-width': 3 \
                 }, \
@@ -5159,6 +5159,51 @@ function testDataLineChartElements_colorFieldMultipleFieldsOrder():
     })
 endfunction
 unittestRunTest('testDataLineChartElements_colorFieldMultipleFieldsOrder')
+
+
+function testDataLineChartElements_colorLegendOrder():
+    # Twelve lines, "a" through "l" - each ends above the one before it, except "a" and "b", which tie
+    data = []
+    for colorValue, ixColorValue in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']:
+        arrayPush(data, {'X': 1, 'Y': 1, 'C': colorValue})
+        arrayPush(data, {'X': 2, 'Y': mathMax(2, ixColorValue + 1), 'C': colorValue})
+    endfor
+    lineChart = dataLineChartValidate({'x': 'X', 'y': ['Y'], 'color': 'C'})
+
+    # Collect the legend labels and the legend line samples, top to bottom
+    legendLabels = []
+    legendSamples = []
+    for element in objectGet(dataLineChartElements(data, lineChart), 'elem'):
+        attr = objectGet(element, 'attr')
+        if objectGet(element, 'svg') == 'text':
+            text = objectGet(objectGet(element, 'elem'), 'text')
+            if regexMatch(regexNew('^[a-l]$'), text):
+                arrayPush(legendLabels, text)
+            endif
+        elif objectGet(attr, 'stroke-width') == 3 && stringIndexOf(objectGet(attr, 'd'), ' H ') != -1:
+            arrayPush(legendSamples, [objectGet(attr, 'stroke'), objectGet(attr, 'stroke-dasharray')])
+        endif
+    endfor
+
+    # The colors are assigned in legend order - the dash patterns go to the bottom lines, and the
+    # tied lines stay in color value order
+    unittestDeepEqual(legendLabels, ['l', 'k', 'j', 'i', 'h', 'g', 'f', 'e', 'd', 'c', 'a', 'b'])
+    unittestDeepEqual(legendSamples, [ \
+        ['#1f77b4', 'none'], \
+        ['#ff7f0e', 'none'], \
+        ['#2ca02c', 'none'], \
+        ['#d62728', 'none'], \
+        ['#9467bd', 'none'], \
+        ['#8c564b', 'none'], \
+        ['#e377c2', 'none'], \
+        ['#7f7f7f', 'none'], \
+        ['#bcbd22', 'none'], \
+        ['#17becf', 'none'], \
+        ['#1f77b4', '12,6'], \
+        ['#ff7f0e', '12,6'] \
+    ])
+endfunction
+unittestRunTest('testDataLineChartElements_colorLegendOrder')
 
 function testDataLineChartElements_lines():
     data = [ \
