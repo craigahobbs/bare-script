@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.2.2 (2026-10-10)
+
+- [6fd945d](https://github.com/craigahobbs/bare-script/commit/6fd945d) - bare CLI - exit once stdout is flushed, so output piped to another program isn't truncated
+
+- [da6b26a](https://github.com/craigahobbs/bare-script/commit/da6b26a) - bare-script skill - don't rely on incidental data row or object key order
+
 ## 5.2.1 (2026-10-10)
 
 - [d59195b](https://github.com/craigahobbs/bare-script/commit/d59195b) - dataLineChart.bare - assign the color field colors in legend order by default, so the dash patterns go to the lines at the bottom of the legend
