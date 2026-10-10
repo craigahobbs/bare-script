@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.2.1 (2026-10-10)
+
+- [d59195b](https://github.com/craigahobbs/bare-script/commit/d59195b) - dataLineChart.bare - assign the color field colors in legend order by default, so the dash patterns go to the lines at the bottom of the legend
+
+- [1528d18](https://github.com/craigahobbs/bare-script/commit/1528d18) - BareScript Creator - say BareScript in the Frontend and Full-Stack Application descriptions
+
+- [179548f](https://github.com/craigahobbs/bare-script/commit/179548f) - BareScript Creator - show the project types as a table with unbreakable link titles
+
 ## 5.2.0 (2026-10-09)
 
 - [be291ea](https://github.com/craigahobbs/bare-script/commit/be291ea) - add the wsgi.bare include library - schema-validated JSON API WSGI applications, with static files and API documentation \(wsgiAPIDoc.bare\), hosted by bare-script-py's wsgi.py
