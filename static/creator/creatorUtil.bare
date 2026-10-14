@@ -226,20 +226,34 @@ function creatorMakefilePythonBuildLines(testsRequire):
 endfunction
 
 
-# The Makefile rule lines that generate "target" from SPEC.md with Claude Code - "what" names the generated
-# code in the rule's comment (e.g. "the application")
+# The Makefile lines that generate "target" from SPEC.md with a coding agent - Claude Code by default -
+# "what" names the generated code in the rule's comment (e.g. "the application")
 function creatorMakefileClaudeRuleLines(target, what):
     return [ \
-        '# Generate ' + what + ' from its specification, if it doesn\'t exist. Claude Code runs interactively with', \
-        '# file edits pre-approved - exit the session when it finishes', \
+        '# The coding agent - Claude Code, Claude Code with an Ollama model (OLLAMA="model"), or Grok Build (GROK=1)', \
+        'ifneq ($(GROK),)', \
+        'AGENT := Grok Build', \
+        'AGENT_CMD := grok --effort high', \
+        'else ifneq ($(OLLAMA),)', \
+        'AGENT := Claude Code with $(OLLAMA)', \
+        'AGENT_CMD := ollama launch claude --model $(OLLAMA) --yes --', \
+        'else', \
+        'AGENT := Claude Code', \
+        'AGENT_CMD := claude --model opus --effort high', \
+        'endif', \
+        '', \
+        '', \
+        '# Generate ' + what + ' from its specification, if it doesn\'t exist. The coding agent runs interactively', \
+        '# with file edits pre-approved - exit the session when it finishes', \
         target + ': | $(DEFAULT_VENV_BUILD)', \
-        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }', \
+        '\t@test -z "$$CLAUDECODE$$GROK_AGENT" || ' + \
+            '{ echo "$@ does not exist - create it first (it is not generated inside a coding agent)"; exit 1; }', \
         '\t@echo', \
         '\t@echo "========================================================================"', \
-        '\t@echo "  Generating $@ from SPEC.md with Claude Code..."', \
+        '\t@echo "  Generating $@ from SPEC.md with $(AGENT)..."', \
         '\t@echo "========================================================================"', \
         '\t@echo', \
-        '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md', \
+        '\t$(AGENT_CMD) --permission-mode acceptEdits @SPEC.md', \
         '\ttest -f $@' \
     ]
 endfunction

@@ -94,12 +94,17 @@ function testCreatorFrontendProject():
     unittestEqual(stringIndexOf(makefile, 'include Makefile.tool\n') >= 0, true)
     unittestEqual(stringIndexOf(makefile, 'TESTS_REQUIRE := bare-script markdown-up\n') >= 0, true)
     unittestEqual(stringIndexOf(makefile, 'APP := myApp\n') >= 0, true)
+    agent = 'ifneq ($(GROK),)\nAGENT := Grok Build\nAGENT_CMD := grok --effort high\n' + \
+        'else ifneq ($(OLLAMA),)\nAGENT := Claude Code with $(OLLAMA)\nAGENT_CMD := ollama launch claude --model $(OLLAMA) --yes --\n' + \
+        'else\nAGENT := Claude Code\nAGENT_CMD := claude --model opus --effort high\nendif\n'
+    unittestEqual(stringIndexOf(makefile, agent) >= 0, true)
     rule = '$(APP).bare: | $(DEFAULT_VENV_BUILD)\n' + \
-        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }\n' + \
+        '\t@test -z "$$CLAUDECODE$$GROK_AGENT" || ' + \
+        '{ echo "$@ does not exist - create it first (it is not generated inside a coding agent)"; exit 1; }\n' + \
         '\t@echo\n\t@echo "========================================================================"\n' + \
-        '\t@echo "  Generating $@ from SPEC.md with Claude Code..."\n' + \
+        '\t@echo "  Generating $@ from SPEC.md with $(AGENT)..."\n' + \
         '\t@echo "========================================================================"\n\t@echo\n' + \
-        '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md\n\ttest -f $@\n'
+        '\t$(AGENT_CMD) --permission-mode acceptEdits @SPEC.md\n\ttest -f $@\n'
     unittestEqual(stringIndexOf(makefile, rule) >= 0, true)
     unittestEqual(stringIndexOf(makefile, 'test: $(DEFAULT_VENV_BUILD) $(APP).bare\n') >= 0, true)
     unittestEqual(stringIndexOf(makefile, 'run: $(DEFAULT_VENV_BUILD) $(APP).bare\n\t$(DEFAULT_VENV_BIN)/markdown-up $(APP).md\n') >= 0, true)
