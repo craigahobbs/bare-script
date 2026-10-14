@@ -27,6 +27,7 @@ return fibonacci(10)
 - [BareScript for JavaScript](https://github.com/craigahobbs/bare-script#readme)
 - [BareScript for Python](https://github.com/craigahobbs/bare-script-py#readme)
 - [The BareScript Library](../library/)
+- [The BareScript Creator](../creator/)
 
 
 ## Table of Contents
@@ -49,7 +50,6 @@ return fibonacci(10)
   - [Jump and Label Statements](#jump-and-label-statements)
   - [Include Statements](#include-statements)
   - [Multiline Statements](#multiline-statements)
-  - [The BareScript Library](#the-barescript-library)
 - [Expressions](#expressions)
   - [Number Expressions](#number-expressions)
   - [String Expressions](#string-expressions)
@@ -58,6 +58,7 @@ return fibonacci(10)
   - [Binary Operator Expressions](#binary-operator-expressions)
   - [Unary Operator Expressions](#unary-operator-expressions)
   - [Group Expressions](#group-expressions)
+- [The BareScript Library](#the-barescript-library)
 - [Errors and Limits](#errors-and-limits)
 - [Emacs Mode](#emacs-mode)
 
@@ -80,11 +81,20 @@ Run a script file (BareScript files use the ".bare" extension) or evaluate code 
 bare script.bare
 bare -c 'systemLog("Hello, World!")'
 bare -v vName "'World'" script.bare    # set the global variable "vName" to an expression value
+bare -d script.bare                    # debug mode - log library function errors and execution time
+bare -s script.bare                    # static analysis only - report warnings without executing
 ```
+
+A script's return value sets the exit status: an integer from 0 to 255 is used as-is, and any other
+truthy value exits with status 1. A script that stops with an error also exits with status 1.
 
 BareScript can also be embedded within applications — see the
 [JavaScript](https://github.com/craigahobbs/bare-script#readme) and
 [Python](https://github.com/craigahobbs/bare-script-py#readme) implementation documentation.
+
+To start a new project, use [The BareScript Creator](../creator/). It generates a ready-to-build
+BareScript project — a Makefile, a unit test suite, and a specification you write — from which
+Claude Code writes the code and its tests.
 
 
 ## Value Types
@@ -184,8 +194,11 @@ The equality operators (`==`, `!=`) and ordering operators (`<`, `<=`, `>`, `>=`
 
 ## Statements
 
-A BareScript script consists of one or more statements. The following sections describe the
-different types of statements.
+A BareScript script consists of one or more statements, one per line. There are no statement
+separators (`a = 1; b = 2` is a syntax error) — use [line continuation](#multiline-statements) to
+split a long statement across lines. Compound statements, such as `if` and `while`, end with a
+closing keyword (`endif`, `endwhile`), so indentation is not significant. By convention, blocks are
+indented four spaces. The following sections describe the different types of statements.
 
 
 ### Expression and Assignment Statements
@@ -251,7 +264,9 @@ return a + 1  # Return the value of "a" plus 1
 Functions are defined using `function` statements. A function statement consists of the function
 name and its argument names within parentheses. Until the `endfunction` statement, all statements
 that follow belong to the function. When the function executes, its arguments are available as local
-variables. For example:
+variables. A function called with fewer arguments than it declares receives `null` for the missing
+arguments, and extra arguments are ignored. A function without a return statement returns `null`.
+For example:
 
 ```bare-script
 function getMinMax(a, b, c, d):
@@ -261,8 +276,10 @@ endfunction
 return getMinMax(1, 2, 3, 5)
 ```
 
-A function that makes any **asynchronous** function call (e.g.,
-[systemFetch](../library/#var.vGroup='system'&systemfetch)) must be defined as asynchronous. For example:
+In the JavaScript implementation, a function that makes any **asynchronous** function call (e.g.,
+[systemFetch](../library/#var.vGroup='system'&systemfetch)) must be defined with the `async` keyword —
+calling an asynchronous function from a non-async function is a runtime error. The Python
+implementation executes all functions synchronously and ignores the `async` keyword. For example:
 
 ```bare-script
 async function getLibraryCount(url):
@@ -292,8 +309,10 @@ return labelValues('sizes', 1, 2, 3)
 
 ### Return Statements
 
-Return statements return from the current program scope. If there is a return
-[expression](#expressions), it is evaluated, and the result is returned. For example:
+Return statements return from the current function. If there is a return
+[expression](#expressions), it is evaluated, and the result is returned. Otherwise, the return value
+is `null`. A return statement at the global scope ends the script, and its value is the script's
+result. For example:
 
 ```bare-script
 function addNumbers(a, b):
@@ -306,7 +325,9 @@ return addNumbers(0, 1)
 
 ### If-Then Statements
 
-If-then statements allow you to execute a sequence of statements conditionally. For example:
+If-then statements allow you to execute a sequence of statements conditionally. An `if` statement
+may be followed by any number of `elif` statements and an optional `else` statement (there is no
+`else if`). For example:
 
 ```bare-script
 if a < 0:
@@ -361,10 +382,20 @@ The array expression and its length are evaluated once, before the loop starts �
 the array during iteration are not visited. Iterating a non-array value is a no-op (zero
 iterations). The loop variables remain set after the loop completes.
 
+To loop over an object's keys, iterate the array returned by the `objectKeys` library function:
+
+```bare-script
+counts = {'a': 1, 'b': 2}
+total = 0
+for key in objectKeys(counts):
+    total = total + objectGet(counts, key)
+endfor
+```
+
 
 ### Break and Continue Statements
 
-To stop a while-do loop or a foreach loop using a break statement. For example:
+A break statement stops the innermost while-do or foreach loop. For example:
 
 ```bare-script
 i = 0
@@ -376,7 +407,8 @@ while i < 10:
 endwhile
 ```
 
-To skip the remaining statements in an iteration using a continue statement. For example:
+A continue statement skips the remaining statements in the current iteration of the innermost
+loop. For example:
 
 ```bare-script
 values = [1, -2, 3]
@@ -389,11 +421,13 @@ for value, ixValue in values:
 endfor
 ```
 
+A break or continue statement outside of a loop is a syntax error.
+
 
 ### Jump and Label Statements
 
 A `jump` statement sets the current program statement to a label. A `jumpif` statement jumps only if
-its test [expression](#expressions) evaluates to true. Labels are defined by specifying the label
+its parenthesized test [expression](#expressions) is true. Labels are defined by specifying the label
 name followed by a colon.
 
 The example below uses `jump`, `jumpif`, and label statements to sum the values of an array:
@@ -415,7 +449,8 @@ valueLoopDone:
 ### Include Statements
 
 Include statements load and evaluate a script file in the global scope, making its functions and
-global variables available. For example:
+global variables available. The include path is a single-quoted string, and a relative path is
+resolved relative to the including script. For example:
 
 ```bare-script
 include 'util.bare'
@@ -462,19 +497,6 @@ colors = [ \
 ]
 return arrayJoin(colors, ', ')
 ```
-
-
-### The BareScript Library
-
-The [BareScript Library](../library/) is a set of built-in, general-purpose global functions
-available to all BareScript scripts. The library contains functions for creating and manipulating
-objects, arrays, datetimes, regular expressions, and strings. There are also functions for
-parsing/serializing JSON, standard math operations, parsing/formatting numbers, and
-[systemFetch](../library/#var.vGroup='system'&systemfetch).
-
-Library functions validate their arguments and will return `null` (or a specified default value) if
-given invalid arguments. When debug logging is enabled, library functions log detailed error
-messages for invalid arguments.
 
 
 ## Expressions
@@ -694,15 +716,40 @@ Group expressions provide control over expression evaluation order. For example:
 ```
 
 
+## The BareScript Library
+
+[The BareScript Library](../library/) has two parts:
+
+- **Built-in functions** - global functions available to every script, for creating and
+  manipulating objects, arrays, datetimes, regular expressions, and strings, parsing and
+  serializing JSON, math, parsing and formatting numbers, and system operations such as
+  [systemFetch](../library/#var.vGroup='system'&systemfetch) and
+  [systemLog](../library/#var.vGroup='system'&systemlog)
+- **Include libraries** - BareScript libraries bundled with the runtime and loaded with
+  [system include statements](#system-include-statements), for argument parsing, data tables and
+  charts, drawing, Markdown, Schema Markdown, unit testing, and more
+
+Standalone expressions (see [Variable Lookup Expressions](#variable-lookup-expressions)) have access
+to [The BareScript Expression Library](../library/expression.html), a subset of the built-in
+functions, some under shorter names.
+
+
 ## Errors and Limits
 
 BareScript has no exceptions and no try/catch. Errors are handled as follows:
 
 - **Undefined variables** evaluate to `null`.
 - **Calling an undefined function** stops the script with a runtime error.
+- **Calling a value that is not a function** (e.g., `x = 5` then `x()`) returns `null`.
 - **Library functions** validate their arguments and return `null` (or a documented default
-  value) when given invalid arguments. When debug logging is enabled, they log detailed error
+  value) when given invalid arguments. In debug mode (`bare -d`), they log detailed error
   messages.
+- **Syntax errors** report the line and column of the error. A script with a syntax error does not
+  run, and an include with a syntax error stops the including script.
+
+To guard against runaway loops, a script that executes more than one billion statements stops with
+a runtime error. Applications that embed BareScript can change the limit with the `maxStatements`
+execution option (0 for no limit).
 
 
 ## Emacs Mode
