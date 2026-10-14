@@ -121,11 +121,26 @@ unittestRunTest('testCreatorMakefilePythonBuildLines')
 
 function testCreatorMakefileClaudeRuleLines():
     lines = creatorMakefileClaudeRuleLines('service.py', 'the service')
-    unittestEqual(arrayGet(lines, 0), "# Generate the service from its specification, if it doesn't exist. Claude Code runs interactively with")
-    unittestEqual(arrayGet(lines, 2), 'service.py: | $(DEFAULT_VENV_BUILD)')
-    unittestEqual(arrayGet(lines, 3), \
-        '\t@test -z "$$CLAUDECODE" || { echo "$@ does not exist - create it first (it is not generated inside Claude Code)"; exit 1; }')
+    unittestDeepEqual(arraySlice(lines, 0, 13), [ \
+        '# The coding agent - Claude Code, Claude Code with an Ollama model (OLLAMA="model"), or Grok Build (GROK=1)', \
+        'ifneq ($(GROK),)', \
+        'AGENT := Grok Build', \
+        'AGENT_CMD := grok --effort high', \
+        'else ifneq ($(OLLAMA),)', \
+        'AGENT := Claude Code with $(OLLAMA)', \
+        'AGENT_CMD := ollama launch claude --model $(OLLAMA) --yes --', \
+        'else', \
+        'AGENT := Claude Code', \
+        'AGENT_CMD := claude --model opus --effort high', \
+        'endif', \
+        '', \
+        '' \
+    ])
+    unittestEqual(arrayGet(lines, 13), "# Generate the service from its specification, if it doesn't exist. The coding agent runs interactively")
+    unittestEqual(arrayGet(lines, 15), 'service.py: | $(DEFAULT_VENV_BUILD)')
+    unittestEqual(arrayGet(lines, 16), '\t@test -z "$$CLAUDECODE$$GROK_AGENT" || ' + \
+        '{ echo "$@ does not exist - create it first (it is not generated inside a coding agent)"; exit 1; }')
     unittestEqual(arrayGet(lines, arrayLength(lines) - 1), '\ttest -f $@')
-    unittestEqual(arrayIndexOf(lines, '\tclaude --model opus --effort high --permission-mode acceptEdits @SPEC.md') > 0, true)
+    unittestEqual(arrayIndexOf(lines, '\t$(AGENT_CMD) --permission-mode acceptEdits @SPEC.md') > 0, true)
 endfunction
 unittestRunTest('testCreatorMakefileClaudeRuleLines')

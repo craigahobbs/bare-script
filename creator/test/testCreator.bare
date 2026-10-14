@@ -80,6 +80,9 @@ function testCreatorLandingLogEx(error, history, confirmClear):
         '   tests, and runs `make commit` until they pass. File edits are pre-approved. When it finishes, exit the', \
         '   session and `make run` serves the application.', \
         '   [Claude Code](https://claude.com/product/claude-code#featureTerminal) must be installed and signed in.', \
+        '   Run `make run OLLAMA=<model>` to use Claude Code with an', \
+        '   [Ollama model](https://docs.ollama.com/integrations/claude-code), or `make run GROK=1` to use', \
+        '   [Grok Build](https://docs.x.ai/build/overview) instead.', \
         '4. To improve the result, load the project from the history, refine the specification, and create it again -', \
         '   or edit the project\'s `SPEC.md`, delete the generated code, and run `make run` again.', \
         '', \
