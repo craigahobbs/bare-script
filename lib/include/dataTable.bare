@@ -219,7 +219,13 @@ function dataTableMarkdown(data, model):
                 skip = isCategory && systemCompare(objectGet(rowRaw, field), objectGet(rowPrevRaw, field)) == 0
             endif
 
-            arrayPush(parts, dataTableMarkdownField(if(skip, '', objectGet(row, field)), width, align, ' '))
+            # Pad the value to the field width (most fields are left-aligned)
+            value = if(skip, '', objectGet(row, field))
+            if align == 'right' || align == 'center':
+                arrayPush(parts, dataTableMarkdownField(value, width, align, ' '))
+            else:
+                arrayPush(parts, value + stringRepeat(' ', width - stringLength(value)))
+            endif
         endfor
         arrayPush(lines, '| ' + arrayJoin(parts, ' | ') + ' |')
     endfor
@@ -237,12 +243,13 @@ dataTableMarkdownRegexSingleNewline = regexNew('\r?\n')
 function dataTableComputeFields(data, categories):
     fieldNames = {}
     for row in data:
-        for field in objectKeys(row):
-            if !categories || arrayIndexOf(categories, field) == -1:
-                objectSet(fieldNames, field, null)
-            endif
-        endfor
+        objectAssign(fieldNames, row)
     endfor
+    if categories != null:
+        for category in categories:
+            objectDelete(fieldNames, category)
+        endfor
+    endif
     return objectKeys(fieldNames)
 endfunction
 
@@ -350,7 +357,8 @@ function dataTableElements(data, dataTable):
                 'attr': fieldAttr, \
                 'elem': if(skip, null, if(isMarkdown, \
                     markdownElements(markdownParse(stringNew(value))), \
-                    {'text': dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim)})) \
+                    {'text': if(systemType(value) == 'string', value, \
+                        dataUtilFormatValue(value, formatPrecision, formatDatetime, formatTrim))})) \
             })
         endfor
         arrayPush(resultRows, {'html': 'tr', 'elem': fieldRowElements})

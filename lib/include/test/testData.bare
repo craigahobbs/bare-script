@@ -374,6 +374,21 @@ endfunction
 unittestRunTest('testDataValidate_numberErrorCSV')
 
 
+function testDataValidate_numberErrorBoolCSV():
+    unittestMockAll()
+    data = [ \
+        {'A': '1'}, \
+        {'A': true} \
+    ]
+    unittestEqual(dataValidate(data, true), null)
+    unittestDeepEqual(data, [{'A': 1}, {'A': true}])
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['systemLogDebug', ['data.bare: dataValidate - Invalid "A" field value true, expected type number']] \
+    ])
+endfunction
+unittestRunTest('testDataValidate_numberErrorBoolCSV')
+
+
 function testDataValidate_datetimeError():
     unittestMockAll()
     data = [ \

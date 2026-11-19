@@ -480,15 +480,21 @@ endfunction
 # Helper function to render a text span's words
 function markdownStringText(text, state):
     # Escape the span once, then split - whitespace is not escaped
-    text = markdownStringEscape(text)
-    for token, ixToken in regexSplit(markdownStringRegexSpace, text):
-        if ixToken || token == '':
-            objectSet(state, 'closed', true)
-        endif
-        if token != '':
-            markdownStringWordsAppend(state, token)
-        endif
-    endfor
+    tokens = regexSplit(markdownStringRegexSpace, markdownStringEscape(text))
+    ixLast = arrayLength(tokens) - 1
+    tokenFirst = arrayGet(tokens, 0)
+    tokenLast = arrayGet(tokens, ixLast)
+
+    # The first token continues the current word - an empty one is the text's leading whitespace
+    if tokenFirst != '':
+        markdownStringWordsAppend(state, tokenFirst)
+    endif
+
+    # Each token that follows is a new word - an empty last one is the text's trailing whitespace
+    if ixLast > 0:
+        arrayExtend(objectGet(state, 'words'), arraySlice(tokens, 1, if(tokenLast == '', ixLast, ixLast + 1)))
+    endif
+    objectSet(state, 'closed', tokenLast == '')
 endfunction
 
 

@@ -292,6 +292,15 @@ test('library, arrayIndexOf', () => {
     assert.equal(scriptFunctions.arrayIndexOf([array, 2, 2], null), 3);
     assert.equal(scriptFunctions.arrayIndexOf([array, 2, 2.], null), 3);
 
+    // String value
+    const arrayStr = ['a', 'b', 1, null, 'b'];
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, 'a'], null), 0);
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, 'b'], null), 1);
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, 'b', 2], null), 4);
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, 'c'], null), -1);
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, '1'], null), -1);
+    assert.equal(scriptFunctions.arrayIndexOf([arrayStr, 'a', 1], null), -1);
+
     // Match function
     function valueFn(args, valueOptions) {
         assert.equal(args.length, 1);

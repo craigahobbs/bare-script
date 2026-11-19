@@ -33,6 +33,12 @@ function dataParseCSV(text):
             continue
         endif
 
+        # A line with no quoted fields is its comma-separated fields
+        if stringIndexOf(line, '"') == -1:
+            arrayPush(rows, stringSplit(line, ','))
+            continue
+        endif
+
         # Parse the line into fields
         row = []
         linePart = line
@@ -116,10 +122,16 @@ endfunction
 # $return: On success, an object with the "result" key set to the map of field name to field type.
 # $return: On failure, an object with the "error" key set to the validation error message.
 function dataValidateEx(data, csv):
-    # Determine field types
+    # Determine field types - a row with the fields of a row whose field types are all determined is skipped
     types = {}
+    fieldsTyped = null
     for row in data:
-        for field in objectKeys(row):
+        fields = objectKeys(row)
+        if fields == fieldsTyped:
+            continue
+        endif
+        isTyped = true
+        for field in fields:
             if !objectGet(types, field):
                 value = objectGet(row, field)
                 valueType = systemType(value)
@@ -149,8 +161,12 @@ function dataValidateEx(data, csv):
                         objectSet(types, field, 'string')
                     endif
                 endif
+                isTyped = isTyped && objectGet(types, field) != null
             endif
         endfor
+        if isTyped:
+            fieldsTyped = fields
+        endif
     endfor
 
     # Set the type for fields with undetermined type
@@ -163,37 +179,56 @@ function dataValidateEx(data, csv):
 
     # Validate field values (typeKeys ensures fieldType is always set by the fix-up pass above)
     typeKeys = objectKeys(types)
+    if !csv:
+        for row in data:
+            for field in typeKeys:
+                value = objectGet(row, field)
+                if value != null && systemType(value) != objectGet(types, field):
+                    return dataValidateError(field, value, objectGet(types, field))
+                endif
+            endfor
+        endfor
+        return {'result': types}
+    endif
+
+    # Validate CSV field values, parsing the value strings
     for row in data:
         for field in typeKeys:
             value = objectGet(row, field)
             fieldType = objectGet(types, field)
-            valueType = systemType(value)
 
-            # Null string?
-            if csv && value == 'null':
-                objectSet(row, field, null)
+            # Not a string?
+            if systemType(value) != 'string':
+                if value != null && systemType(value) != fieldType:
+                    return dataValidateError(field, value, fieldType)
+                endif
 
-            # Parse a CSV string value for a typed (non-string) field
-            elif csv && valueType == 'string' && fieldType != 'string':
-                if value == '':
-                    parsedValue = null
-                else:
-                    parsedValue = if(fieldType == 'number', numberParseFloat(value), \
-                        if(fieldType == 'datetime', datetimeISOParse(value), if(value == 'true', true, if(value == 'false', false))))
-                    if parsedValue == null:
-                        return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType}
-                    endif
+            # String field? Only the null string is parsed
+            elif fieldType == 'string':
+                if value == 'null':
+                    objectSet(row, field, null)
+                endif
+
+            # Parse the value string of a typed (non-string) field
+            else:
+                isNull = value == '' || value == 'null'
+                parsedValue = if(isNull, null, if(fieldType == 'number', numberParseFloat(value), \
+                    if(fieldType == 'datetime', datetimeISOParse(value), if(value == 'true', true, if(value == 'false', false)))))
+                if parsedValue == null && !isNull:
+                    return dataValidateError(field, value, fieldType)
                 endif
                 objectSet(row, field, parsedValue)
-
-            # Invalid value type?
-            elif value != null && valueType != fieldType:
-                return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType}
             endif
         endfor
     endfor
 
     return {'result': types}
+endfunction
+
+
+# Helper to create the dataValidateEx field value error result
+function dataValidateError(field, value, fieldType):
+    return {'error': 'Invalid "' + field + '" field value ' + jsonStringify(value) + ', expected type ' + fieldType}
 endfunction
 
 
@@ -223,16 +258,12 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     # Compute the map of right field name to joined row field name (handle collisions)
     leftNames = {}
     for leftRow in leftData:
-        for fieldName in objectKeys(leftRow):
-            objectSet(leftNames, fieldName, fieldName)
-        endfor
+        objectAssign(leftNames, leftRow)
     endfor
 
     rightNamesRaw = {}
     for rightRow in rightData:
-        for fieldName in objectKeys(rightRow):
-            objectSet(rightNamesRaw, fieldName, fieldName)
-        endfor
+        objectAssign(rightNamesRaw, rightRow)
     endfor
 
     rightNames = {}
@@ -256,7 +287,7 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
     leftExprParsed = barescriptParseExpression(joinExpr, null, null, false)
     rightExprParsed = if(rightExpr != null, barescriptParseExpression(rightExpr, null, null, false), leftExprParsed)
 
-    # Bucket the right rows by their expression value
+    # Bucket the right rows, with their fields renamed, by their expression value
     rightCategoryRows = {}
     for rightRow in rightData:
         rightRowVars = if(variables != null, objectAssign(objectCopy(rightRow), variables), rightRow)
@@ -266,7 +297,11 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
             rightRows = []
             objectSet(rightCategoryRows, categoryKey, rightRows)
         endif
-        arrayPush(rightRows, rightRow)
+        rightRowJoin = {}
+        for rightFieldName in objectKeys(rightRow):
+            objectSet(rightRowJoin, objectGet(rightNames, rightFieldName), objectGet(rightRow, rightFieldName))
+        endfor
+        arrayPush(rightRows, rightRowJoin)
     endfor
 
     # Join the left with the right
@@ -275,12 +310,8 @@ function dataJoin(leftData, rightData, joinExpr, rightExpr, isLeftJoin, variable
         leftRowVars = if(variables != null, objectAssign(objectCopy(leftRow), variables), leftRow)
         categoryKey = jsonStringify(barescriptEvaluateExpression(leftExprParsed, leftRowVars))
         if objectHas(rightCategoryRows, categoryKey):
-            for rightRow in objectGet(rightCategoryRows, categoryKey):
-                joinRow = objectCopy(leftRow)
-                for rightFieldName in objectKeys(rightRow):
-                    objectSet(joinRow, objectGet(rightNames, rightFieldName), objectGet(rightRow, rightFieldName))
-                endfor
-                arrayPush(resultData, joinRow)
+            for rightRowJoin in objectGet(rightCategoryRows, categoryKey):
+                arrayPush(resultData, objectAssign(objectCopy(leftRow), rightRowJoin))
             endfor
         elif !isLeftJoin:
             arrayPush(resultData, objectCopy(leftRow))
@@ -430,19 +461,18 @@ function dataAggregate(data, aggregation):
                     objectSet(aggregateRow, categoryField, arrayGet(categoryValues, ixCat))
                 endfor
             endif
+            for meta in measureMeta:
+                if objectGet(aggregateRow, arrayGet(meta, 0)) == null:
+                    objectSet(aggregateRow, arrayGet(meta, 0), [])
+                endif
+            endfor
         endif
 
         # Accumulate measure values
         for meta in measureMeta:
-            measureName = arrayGet(meta, 0)
             measureValue = objectGet(row, arrayGet(meta, 1))
-            measureValues = objectGet(aggregateRow, measureName)
-            if measureValues == null:
-                measureValues = []
-                objectSet(aggregateRow, measureName, measureValues)
-            endif
             if measureValue != null:
-                arrayPush(measureValues, measureValue)
+                arrayPush(objectGet(aggregateRow, arrayGet(meta, 0)), measureValue)
             endif
         endfor
     endfor
@@ -571,23 +601,26 @@ dataAggregationTypes = schemaParse( \
 # $arg sorts: ascending).
 # $return: The sorted data array
 function dataSort(data, sorts):
-    return arraySort(data, systemPartial(dataSortCompare, sorts))
+    # Split the sort tuples into their fields and descending flags
+    fields = []
+    descendings = []
+    for sort in sorts:
+        arrayPush(fields, arrayGet(sort, 0))
+        arrayPush(descendings, arrayLength(sort) >= 2 && arrayGet(sort, 1))
+    endfor
+    return arraySort(data, systemPartial(dataSortCompare, fields, descendings))
 endfunction
 
 
 # Helper function for dataSort
-function dataSortCompare(sorts, row1, row2):
-    result = 0
-    for sort in sorts:
-        field = arrayGet(sort, 0)
-        result = if(arrayLength(sort) >= 2 && arrayGet(sort, 1), \
-            systemCompare(objectGet(row2, field), objectGet(row1, field)), \
-            systemCompare(objectGet(row1, field), objectGet(row2, field)))
+function dataSortCompare(fields, descendings, row1, row2):
+    for field, ixField in fields:
+        result = systemCompare(objectGet(row1, field), objectGet(row2, field))
         if result != 0:
-            break
+            return if(arrayGet(descendings, ixField), -result, result)
         endif
     endfor
-    return result
+    return 0
 endfunction
 
 

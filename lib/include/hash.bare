@@ -3,10 +3,14 @@
 
 
 #
-# A 32-bit word is two 16-bit halves (high and low), so every intermediate value stays below 2^31 and each result
-# is masked to 16 bits - every runtime's bitwise operators then agree (JavaScript's are 32-bit, Python's are not).
-# A high half's terms are left unmasked where only its masked sum is kept, since addition carries only upward -
-# bits above 15 can't reach the sum's low 16 bits.
+# The runtimes' bitwise operators agree on a result's low 32 bits but not on what lies above them - JavaScript's
+# wrap to a signed 32-bit integer and Python's are unbounded. So a 32-bit word here is any integer equal to it
+# modulo 2^32 (in JavaScript, a negative one when bit 31 is set), and each operation is written to hold in both:
+#
+# - "&", "|", and "^" need nothing
+# - a right shift is masked to the bits it keeps, which clears JavaScript's sign extension
+# - a left shift's operand is first masked to the bits that stay, so Python's result fits in 32 bits
+# - a sum is masked with 2^32 - 1, which wraps it in both
 #
 
 
@@ -130,12 +134,9 @@ function hashSHA256Bytes(bytes):
     arrayExtend(message, lengthBytes)
 
     # Process each 64-byte block
-    hashHi = arrayCopy(hashInitHi)
-    hashLo = arrayCopy(hashInitLo)
-    kHi = hashKHi
-    kLo = hashKLo
-    wHi = arrayNewSize(64, 0)
-    wLo = arrayNewSize(64, 0)
+    hash = arrayCopy(hashInit)
+    k = hashK
+    w = arrayNewSize(64, 0)
     messageLength = arrayLength(message)
     offset = 0
     while offset < messageLength:
@@ -143,127 +144,86 @@ function hashSHA256Bytes(bytes):
         t = 0
         while t < 16:
             ix = offset + t * 4
-            arraySet(wHi, t, (arrayGet(message, ix) << 8) | arrayGet(message, ix + 1))
-            arraySet(wLo, t, (arrayGet(message, ix + 2) << 8) | arrayGet(message, ix + 3))
+            arraySet(w, t, (arrayGet(message, ix) << 24) | (arrayGet(message, ix + 1) << 16) | \
+                (arrayGet(message, ix + 2) << 8) | arrayGet(message, ix + 3))
             t = t + 1
         endwhile
         while t < 64:
-            # sigma0(W[t - 15]) - ROTR 7, ROTR 18, and SHR 3 (the high half, unmasked, feeds only a masked sum)
-            xh = arrayGet(wHi, t - 15)
-            xl = arrayGet(wLo, t - 15)
-            s0h = ((xh >> 7) | (xl << 9)) ^ ((xl >> 2) | (xh << 14)) ^ (xh >> 3)
-            s0l = (((xl >> 7) | (xh << 9)) ^ ((xh >> 2) | (xl << 14)) ^ ((xl >> 3) | (xh << 13))) & 65535
-
-            # sigma1(W[t - 2]) - ROTR 17, ROTR 19, and SHR 10 (the high half, unmasked, feeds only a masked sum)
-            xh = arrayGet(wHi, t - 2)
-            xl = arrayGet(wLo, t - 2)
-            s1h = ((xl >> 1) | (xh << 15)) ^ ((xl >> 3) | (xh << 13)) ^ (xh >> 10)
-            s1l = (((xh >> 1) | (xl << 15)) ^ ((xh >> 3) | (xl << 13)) ^ ((xl >> 10) | (xh << 6))) & 65535
-
-            # W[t] = sigma1 + W[t - 7] + sigma0 + W[t - 16]
-            sum = s1l + arrayGet(wLo, t - 7) + s0l + arrayGet(wLo, t - 16)
-            arraySet(wHi, t, (s1h + arrayGet(wHi, t - 7) + s0h + arrayGet(wHi, t - 16) + (sum >> 16)) & 65535)
-            arraySet(wLo, t, sum & 65535)
+            # W[t] = sigma1(W[t - 2]) + W[t - 7] + sigma0(W[t - 15]) + W[t - 16], where sigma1 is ROTR 17, ROTR 19,
+            # and SHR 10, and sigma0 is ROTR 7, ROTR 18, and SHR 3
+            w2 = arrayGet(w, t - 2)
+            w15 = arrayGet(w, t - 15)
+            arraySet(w, t, ( \
+                ((((w2 >> 17) & 32767) | ((w2 & 131071) << 15)) ^ \
+                    (((w2 >> 19) & 8191) | ((w2 & 524287) << 13)) ^ \
+                    ((w2 >> 10) & 4194303)) + \
+                arrayGet(w, t - 7) + \
+                ((((w15 >> 7) & 33554431) | ((w15 & 127) << 25)) ^ \
+                    (((w15 >> 18) & 16383) | ((w15 & 262143) << 14)) ^ \
+                    ((w15 >> 3) & 536870911)) + \
+                arrayGet(w, t - 16) \
+            ) & 4294967295)
             t = t + 1
         endwhile
 
         # The 64 compression rounds over the working variables a through h
-        ah = arrayGet(hashHi, 0)
-        al = arrayGet(hashLo, 0)
-        bh = arrayGet(hashHi, 1)
-        bl = arrayGet(hashLo, 1)
-        ch = arrayGet(hashHi, 2)
-        cl = arrayGet(hashLo, 2)
-        dh = arrayGet(hashHi, 3)
-        dl = arrayGet(hashLo, 3)
-        eh = arrayGet(hashHi, 4)
-        el = arrayGet(hashLo, 4)
-        fh = arrayGet(hashHi, 5)
-        fl = arrayGet(hashLo, 5)
-        gh = arrayGet(hashHi, 6)
-        gl = arrayGet(hashLo, 6)
-        hh = arrayGet(hashHi, 7)
-        hl = arrayGet(hashLo, 7)
+        a = arrayGet(hash, 0)
+        b = arrayGet(hash, 1)
+        c = arrayGet(hash, 2)
+        d = arrayGet(hash, 3)
+        e = arrayGet(hash, 4)
+        f = arrayGet(hash, 5)
+        g = arrayGet(hash, 6)
+        h = arrayGet(hash, 7)
         t = 0
         while t < 64:
             # T1 = h + Sigma1(e) + Ch(e, f, g) + K[t] + W[t], where Sigma1 is ROTR 6, ROTR 11, and ROTR 25, and
-            # Ch(e, f, g) = g ^ (e & (f ^ g)). T1's halves are left as raw sums - its carry is added with the
-            # carries of e = d + T1 and a = T1 + T2.
-            t1h = hh + (((eh >> 6) | (el << 10)) ^ ((eh >> 11) | (el << 5)) ^ ((el >> 9) | (eh << 7))) + \
-                (gh ^ (eh & (fh ^ gh))) + arrayGet(kHi, t) + arrayGet(wHi, t)
-            t1l = hl + ((((el >> 6) | (eh << 10)) ^ ((el >> 11) | (eh << 5)) ^ ((eh >> 9) | (el << 7))) & 65535) + \
-                (gl ^ (el & (fl ^ gl))) + arrayGet(kLo, t) + arrayGet(wLo, t)
+            # Ch(e, f, g) = g ^ (e & (f ^ g))
+            t1 = h + \
+                ((((e >> 6) & 67108863) | ((e & 63) << 26)) ^ \
+                    (((e >> 11) & 2097151) | ((e & 2047) << 21)) ^ \
+                    (((e >> 25) & 127) | ((e & 33554431) << 7))) + \
+                (g ^ (e & (f ^ g))) + \
+                arrayGet(k, t) + \
+                arrayGet(w, t)
 
             # T2 = Sigma0(a) + Maj(a, b, c), where Sigma0 is ROTR 2, ROTR 13, and ROTR 22, and
             # Maj(a, b, c) = (a & b) | (c & (a | b))
-            t2h = (((ah >> 2) | (al << 14)) ^ ((ah >> 13) | (al << 3)) ^ ((al >> 6) | (ah << 10))) + \
-                ((ah & bh) | (ch & (ah | bh)))
-            t2l = ((((al >> 2) | (ah << 14)) ^ ((al >> 13) | (ah << 3)) ^ ((ah >> 6) | (al << 10))) & 65535) + \
-                ((al & bl) | (cl & (al | bl)))
+            t2 = ((((a >> 2) & 1073741823) | ((a & 3) << 30)) ^ \
+                    (((a >> 13) & 524287) | ((a & 8191) << 19)) ^ \
+                    (((a >> 22) & 1023) | ((a & 4194303) << 10))) + \
+                ((a & b) | (c & (a | b)))
 
             # Rotate the working variables - e = d + T1 and a = T1 + T2
-            hh = gh
-            hl = gl
-            gh = fh
-            gl = fl
-            fh = eh
-            fl = el
-            sum = dl + t1l
-            eh = (dh + t1h + (sum >> 16)) & 65535
-            el = sum & 65535
-            dh = ch
-            dl = cl
-            ch = bh
-            cl = bl
-            bh = ah
-            bl = al
-            sum = t1l + t2l
-            ah = (t1h + t2h + (sum >> 16)) & 65535
-            al = sum & 65535
+            h = g
+            g = f
+            f = e
+            e = (d + t1) & 4294967295
+            d = c
+            c = b
+            b = a
+            a = (t1 + t2) & 4294967295
             t = t + 1
         endwhile
 
         # Add the working variables to the hash
-        hashSHA256Add(hashHi, hashLo, 0, ah, al)
-        hashSHA256Add(hashHi, hashLo, 1, bh, bl)
-        hashSHA256Add(hashHi, hashLo, 2, ch, cl)
-        hashSHA256Add(hashHi, hashLo, 3, dh, dl)
-        hashSHA256Add(hashHi, hashLo, 4, eh, el)
-        hashSHA256Add(hashHi, hashLo, 5, fh, fl)
-        hashSHA256Add(hashHi, hashLo, 6, gh, gl)
-        hashSHA256Add(hashHi, hashLo, 7, hh, hl)
+        arraySet(hash, 0, (arrayGet(hash, 0) + a) & 4294967295)
+        arraySet(hash, 1, (arrayGet(hash, 1) + b) & 4294967295)
+        arraySet(hash, 2, (arrayGet(hash, 2) + c) & 4294967295)
+        arraySet(hash, 3, (arrayGet(hash, 3) + d) & 4294967295)
+        arraySet(hash, 4, (arrayGet(hash, 4) + e) & 4294967295)
+        arraySet(hash, 5, (arrayGet(hash, 5) + f) & 4294967295)
+        arraySet(hash, 6, (arrayGet(hash, 6) + g) & 4294967295)
+        arraySet(hash, 7, (arrayGet(hash, 7) + h) & 4294967295)
         offset = offset + 64
     endwhile
 
     # The hash's big-endian bytes
     digest = []
-    ix = 0
-    while ix < 8:
-        wordHi = arrayGet(hashHi, ix)
-        wordLo = arrayGet(hashLo, ix)
-        arrayPush(digest, wordHi >> 8, wordHi & 255, wordLo >> 8, wordLo & 255)
-        ix = ix + 1
-    endwhile
-    return digest
-endfunction
-
-
-# Helper to add a word to a hash word, modulo 2^32
-function hashSHA256Add(hashHi, hashLo, ix, wordHi, wordLo):
-    sum = arrayGet(hashLo, ix) + wordLo
-    arraySet(hashHi, ix, (arrayGet(hashHi, ix) + wordHi + (sum >> 16)) & 65535)
-    arraySet(hashLo, ix, sum & 65535)
-endfunction
-
-
-# Helper to split 32-bit words into their high and low 16-bit halves - with arithmetic, since a word can exceed
-# the bitwise operators' range
-function hashWordHalves(words, high):
-    halves = []
-    for word in words:
-        arrayPush(halves, if(high, mathFloor(word / 65536), word % 65536))
+    for word in hash:
+        arrayPush(digest, (word >> 24) & 255, (word >> 16) & 255, (word >> 8) & 255, word & 255)
     endfor
-    return halves
+    return digest
 endfunction
 
 
@@ -271,8 +231,6 @@ endfunction
 hashInit = [ \
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 \
 ]
-hashInitHi = hashWordHalves(hashInit, true)
-hashInitLo = hashWordHalves(hashInit, false)
 
 
 # The SHA-256 round constants - the fractional parts of the cube roots of the first 64 primes
@@ -286,8 +244,6 @@ hashK = [ \
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, \
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 \
 ]
-hashKHi = hashWordHalves(hashK, true)
-hashKLo = hashWordHalves(hashK, false)
 
 
 # The two-digit lowercase hexadecimal strings of the byte values

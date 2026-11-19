@@ -67,30 +67,27 @@ function diffLines(left, right):
         endif
 
         # Find consecutive identical lines
-        identicalLines = []
+        ixIdentical = ixLeft
         while ixLeft < leftLength && ixRight < rightLength && arrayGet(leftLines, ixLeft) == arrayGet(rightLines, ixRight):
-            arrayPush(identicalLines, arrayGet(leftLines, ixLeft))
             ixLeft = ixLeft + 1
             ixRight = ixRight + 1
         endwhile
-        if identicalLines:
-            arrayPush(diffs, {'type': 'Identical', 'lines': identicalLines})
+        if ixLeft > ixIdentical:
+            arrayPush(diffs, {'type': 'Identical', 'lines': arraySlice(leftLines, ixIdentical, ixLeft)})
             continue
         endif
 
-        # Look ahead to find next matching point
+        # Look ahead to find next matching point - the first remaining left line that is also a remaining right line
         matchIxLeft = null
         matchIxRight = null
         ixLeftTmp = ixLeft
-        while ixLeftTmp < leftLength && matchIxLeft == null:
-            ixRightTmp = ixRight
-            while ixRightTmp < rightLength && matchIxLeft == null:
-                if arrayGet(leftLines, ixLeftTmp) == arrayGet(rightLines, ixRightTmp):
-                    matchIxLeft = ixLeftTmp
-                    matchIxRight = ixRightTmp
-                endif
-                ixRightTmp = ixRightTmp + 1
-            endwhile
+        while ixLeftTmp < leftLength:
+            ixRightTmp = arrayIndexOf(rightLines, arrayGet(leftLines, ixLeftTmp), ixRight)
+            if ixRightTmp != -1:
+                matchIxLeft = ixLeftTmp
+                matchIxRight = ixRightTmp
+                break
+            endif
             ixLeftTmp = ixLeftTmp + 1
         endwhile
 
