@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.2.3 (2026-11-18)
+
+- [9da8f89](https://github.com/craigahobbs/bare-script/commit/9da8f89) - optimize data.bare, dataTable.bare, diff.bare, hash.bare, and markdownString.bare
+
+- [5c8f501](https://github.com/craigahobbs/bare-script/commit/5c8f501) - language reference - document the CLI exit status, line-based statements, function argument and return rules, include paths, and statement limits; add the BareScript Creator link
+
+- [164e4e1](https://github.com/craigahobbs/bare-script/commit/164e4e1) - BareScript Creator - generated Makefiles take OLLAMA="model" to run Claude Code with an Ollama model, or GROK=1 to run Grok Build
+
 ## 5.2.2 (2026-10-10)
 
 - [6fd945d](https://github.com/craigahobbs/bare-script/commit/6fd945d) - bare CLI - exit once stdout is flushed, so output piped to another program isn't truncated
