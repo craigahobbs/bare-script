@@ -807,6 +807,30 @@ test('ValueArgsError, non-finite', () => {
 });
 
 
+test('valueArgsValidate, conversion and missing arguments', () => {
+    // A boolean argument conversion takes the general validation, which adds the missing arguments
+    const fnArgs = valueArgsModel([
+        {'name': 'bool', 'type': 'boolean'},
+        {'name': 'num', 'type': 'number', 'default': 5},
+        {'name': 'bool2', 'type': 'boolean'},
+        {'name': 'any'}
+    ]);
+    assert.deepEqual(valueArgsValidate(fnArgs, [1]), [true, 5, false, null]);
+    assert.deepEqual(valueArgsValidate(fnArgs, [true]), [true, 5, false, null]);
+    assert.deepEqual(valueArgsValidate(fnArgs, [false, 6, true, 'abc']), [false, 6, true, 'abc']);
+
+    // A non-literal default value
+    const fnArgs2 = valueArgsModel([
+        {'name': 'array', 'type': 'array', 'default': []}
+    ]);
+    assert.deepEqual(valueArgsValidate(fnArgs2, []), [[]]);
+    assert.deepEqual(valueArgsValidate(fnArgs2, [[1]]), [[1]]);
+
+    // An arguments model without a validator
+    assert.deepEqual(valueArgsValidate([...fnArgs], [1]), [true, 5, false, null]);
+});
+
+
 test('valueArgsModel', () => {
     const fnArgs = [
         {'name': 'str', 'type': 'string'},

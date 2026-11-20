@@ -77,6 +77,79 @@ The runtime is split so the synchronous path stays free of `async`:
 - `lib/options.js` — runtime option typedefs and the `urlFileRelative` URL resolver (platform-neutral).
 - `lib/optionsNode.js` — Node-only `fetchFn` implementations (`fetchReadOnly`, `fetchReadWrite`) and `logStdout`. The browser/embedded use case skips this file.
 
+### The compiler (`lib/runtimeCompile.js`) - experimental, JS only
+
+An experiment on `feature/fast` in how fast the JS runtime can be. It has no Python counterpart, so the
+parity rules below do not apply to it, nor to the JS-only changes made with it: the generated argument
+validators (`valueArgsFast`), `valueCodegen`, and the `valueParseInteger` regex array in `lib/value.js`; the
+per-regex match model
+(`regexMatchGroups`), the `*Valid` exports, and the `stringEncode` loop in `lib/library.js`; and in
+`lib/runtime.js` the shared system include models (`systemIncludeScript`), the extracted
+`executeFunctionStatement` / `executeIncludeStatement`, and `executeStatementsResume`. The compiler is also
+the one module besides `lib/runtimeAsync.js` that uses `async` / `await` - it creates the async script
+function wrapper and generates async functions - but it calls the async interpreter only through the
+functions `runtimeAsync.js` gives it (`compileAsyncRuntime`), so the sync runtime still does not import the
+async one. `lib/runtime.js` remains the reference interpreter; the compiler is a tier above it that
+generates a JavaScript function (`new Function`) for a script function's statements:
+
+- **Tiers.** `defineScriptFunction` gives a function statement's global an `(args, options)` wrapper plus a
+  direct entry point `$d(options, ...args)` that compiled call sites call without an arguments array. A
+  function is interpreted until its second call (or its first, if it loops), then compiled. The state is
+  keyed on the function *model* (a `WeakMap` per runtime - the sync runtime defines an `async` function as
+  a sync function, so the two must not share compiled code), and system include models are parsed once and
+  shared (`systemIncludeScript`), so a re-run with new globals starts compiled. A model must not be mutated
+  after it first executes.
+- **Function errors.** The interpreter catches any error but a runtime error at the function call, logs
+  it, and returns null. A direct entry point does not throw such an error: it returns the `directError`
+  value and the call site handles it, so there is no try/catch per call. The `(args, options)` wrapper
+  turns it back into a throw.
+- **Fallbacks to the interpreter**: statement coverage recording (checked on function entry, as the
+  interpreter does), a globals object whose prototype is not `Object.prototype` or null, irreducible
+  jumps (a jump into a loop), an async function containing a function or include statement, and an
+  environment that forbids `new Function` (a CSP without `unsafe-eval`).
+- **Code generation.** Locals are JavaScript variables (a definite-assignment analysis removes the
+  "unassigned local reads the global" test where it can); the parser's jumps and labels become labeled
+  blocks and loops; arithmetic trees are fused into one JavaScript expression with a single finite test
+  and an operator-at-a-time fallback; 40 library functions have inline fast paths (`intrinsicTemplates`)
+  whose failure case calls the real library function.
+- **The statement counter** is charged a run at a time (to the next label, jump, return, or function
+  call) - counting each statement measured 3-9% slower, 30% on `mandelbrot`. Passing `maxStatements` bails
+  out to the interpreter at the run's first statement, so the limit is exact, with one exception: a
+  function error that ends a function mid-run leaves the rest of that run counted.
+- **Async functions** compile to async functions: a statement that calls an async function (tested when
+  it executes) is evaluated by the async interpreter, everything else by compiled code.
+- **`BARESCRIPT_COMPILE`** (environment variable): `off` interprets only - the A/B baseline; `all`
+  compiles everything on first use; `force` does so even under coverage, which is how to run a test suite
+  through the compiler. A BareScript suite's test results must not change under `force` (its coverage report
+  is wrong). In `test/*.js`, four tests fail under `all` or `force` by design: the two `coverage` tests
+  (`force` only) and the two `function args model mutation` tests, which mutate a model after it executes -
+  they pass by default only because the function compiles on its second call, after the mutation. An
+  integer sets the call threshold. Any other value is ignored.
+
+Known differences from the interpreter, all deliberate:
+
+- The intrinsic fast paths test `object.constructor === Object` rather than the object's prototype
+  (`Object.getPrototypeOf` is a builtin call - 36% of `schemaValidate`). They differ only for an object
+  with the object prototype further up its chain, which only a host application can create.
+- The fast paths assume the intrinsic globals are the library's. They are validated for every
+  `executeScript` and whenever a function is called with a different options object, and every
+  script-level write (`compileGlobalWrite`: top-level assignment, function definition, `systemGlobalSet`)
+  is tracked. A host application that replaces one while a script is running, or between direct function
+  calls that reuse one options object, is not.
+- An undefined value (a regex match's unmatched group) reads as null. The interpreter's `objectGet` and
+  `arrayGet` fast paths used to return it as-is, which made a local variable assigned from it read as
+  unassigned; both tiers now return null, as the library functions always did.
+- Any error thrown while compiling (a stack overflow on a very deep expression, an invalid model the
+  interpreter tolerates) means the function is interpreted, permanently.
+- An intrinsic call inside a fused arithmetic expression (`mathFloor(a) * 2 + b`) is fused only when the
+  expression has no other call and no global read - the fused form evaluates the operands first, which
+  would otherwise reorder calls.
+- `test/testRuntimeCompile.js` runs a corpus through both tiers and asserts identical results, logs,
+  statement counts, and errors. Add to it when changing the compiler.
+
+The compiler executes roughly a billion statements in two seconds, so a long computation reaches the
+default `maxStatements` (1e9) far sooner than it did interpreted.
+
 ### CLI
 
 `bin/bare.js` is a thin shim around `lib/bare.js#main` that wires in `fetchReadWrite` + `logStdout`. `lib/bare.js` implements the `bare` CLI: argument parsing, `-c`/`-m`/`-d`/`-v`/`-s`/`-x` flags, HTML/MarkdownUp render modes, and the `-s`/`-x` lint modes (`-s` parse+lint only, `-x` lint with execution).

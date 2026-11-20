@@ -2720,6 +2720,17 @@ test('library, regexEscape', () => {
 });
 
 
+test('library, regexMatch global', () => {
+    // A global regex's match is the array of all match strings (only a host application can create one)
+    assert.deepEqual(scriptFunctions.regexMatch([/b(?<name>c)?/g, 'abcb'], null), {
+        'index': undefined,
+        'input': undefined,
+        'groups': {'0': 'bc', '1': 'b'}
+    });
+    assert.equal(scriptFunctions.regexMatch([/z/g, 'abcb'], null), null);
+});
+
+
 test('library, regexMatch', () => {
     assert.deepEqual(
         scriptFunctions.regexMatch([/foo/, 'foo bar'], null),
