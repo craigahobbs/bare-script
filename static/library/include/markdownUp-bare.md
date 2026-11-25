@@ -1,6 +1,6 @@
 `markdownUp.bare` implements the [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme)
-runtime functions - `markdownPrint`, `elementModelRender`, and the `document*`, `window*`, and
-`*Storage*` functions - so that many MarkdownUp applications run on plain
+runtime functions - `markdownPrint`, `elementModelRender`, and the `document*`, `voice*`, `window*`,
+and `*Storage*` functions - so that many MarkdownUp applications run on plain
 [BareScript](https://github.com/craigahobbs/bare-script#readme).
 
 **Do not `include <markdownUp.bare>` from application code.** Two reasons:

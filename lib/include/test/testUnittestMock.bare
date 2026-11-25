@@ -60,6 +60,21 @@ async function testUnittestMockAll():
     systemLog('Hello')
     systemLogDebug('Hello Debug')
 
+    # Voice
+    unittestEqual(voiceState(), null)
+    voiceSetText('Hello.', true)
+    voiceSpeak('Hello.')
+    unittestDeepEqual(voiceState(), {'key': null, 'playing': true})
+    voiceSpeak('Hello.', false, 'key1')
+    unittestDeepEqual(voiceState(), {'key': 'key1', 'playing': true})
+    voiceSetText('Hello. Goodbye.', true)
+    voiceClose()
+    unittestEqual(voiceState(), null)
+    voiceLoad()
+    unittestEqual(voiceReady(), true)
+    voiceSay('Go!', 'sarah', 'shouting')
+    unittestEqual(voiceState(), null)
+
     # Window
     unittestEqual(windowClipboardRead(), '')
     windowClipboardWrite('Hello!')
@@ -94,6 +109,13 @@ async function testUnittestMockAll():
         ['systemFetch', ['test.json']], \
         ['systemLog', ['Hello']], \
         ['systemLogDebug', ['Hello Debug']], \
+        ['voiceSetText', ['Hello.', true]], \
+        ['voiceSpeak', ['Hello.']], \
+        ['voiceSpeak', ['Hello.', false, 'key1']], \
+        ['voiceSetText', ['Hello. Goodbye.', true]], \
+        ['voiceClose', []], \
+        ['voiceLoad', []], \
+        ['voiceSay', ['Go!', 'sarah', 'shouting']], \
         ['windowClipboardWrite', ['Hello!']], \
         ['windowSetLocation', ['test.html']], \
         ['windowSetResize', [null]], \
@@ -149,6 +171,38 @@ async function testUnittestMockAll_systemFetch_request_model():
     ])
 endfunction
 unittestRunTest('testUnittestMockAll_systemFetch_request_model')
+
+
+function testUnittestMockAll_voiceState():
+    # The voice playback state mock data
+    unittestMockAll({'voiceState': {'key': 'key1', 'playing': false}})
+    unittestDeepEqual(voiceState(), {'key': 'key1', 'playing': false})
+    voiceClose()
+    unittestEqual(voiceState(), null)
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['voiceClose', []] \
+    ])
+
+    # The voice lines' audio mock data
+    unittestMockAll({'voiceReady': false})
+    unittestEqual(voiceReady(), false)
+    unittestDeepEqual(unittestMockEnd(), [])
+    unittestMockAll({})
+    unittestEqual(voiceReady(), true)
+    unittestDeepEqual(unittestMockEnd(), [])
+
+    # Mock-session voice playback state must not leak into the next mock session
+    unittestMockAll()
+    voiceSpeak('Hello.')
+    unittestDeepEqual(unittestMockEnd(), [ \
+        ['voiceSpeak', ['Hello.']] \
+    ])
+    unittestMockAll({})
+    voice = voiceState()
+    unittestDeepEqual(unittestMockEnd(), [])
+    unittestEqual(voice, null)
+endfunction
+unittestRunTest('testUnittestMockAll_voiceState')
 
 
 function testUnittestMockAll_stateIsolation():

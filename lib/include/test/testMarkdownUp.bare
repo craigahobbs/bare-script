@@ -132,6 +132,39 @@ endfunction
 unittestRunTest('testMarkdownUp_windowURLObject')
 
 
+function testMarkdownUp_voice():
+    unittestEqual(voiceState(), null)
+    unittestEqual(voiceSetText('Hello.'), null)
+    unittestEqual(voiceClose(), null)
+    unittestEqual(voiceState(), null)
+
+    # Start a voice playback
+    unittestEqual(voiceSpeak('Hello.'), null)
+    unittestDeepEqual(voiceState(), {'key': null, 'playing': true})
+    unittestEqual(voiceSetText('Hello. Goodbye.', true), null)
+    unittestDeepEqual(voiceState(), {'key': null, 'playing': true})
+
+    # Start a voice playback with a key
+    unittestEqual(voiceSpeak('Hello.', false, {'id': 1}), null)
+    unittestDeepEqual(voiceState(), {'key': {'id': 1}, 'playing': true})
+
+    # Close the voice playback
+    unittestEqual(voiceClose(), null)
+    unittestEqual(voiceState(), null)
+endfunction
+unittestRunTest('testMarkdownUp_voice')
+
+
+function testMarkdownUp_voiceSay():
+    unittestEqual(voiceLoad(), null)
+    unittestEqual(voiceReady(), true)
+    unittestEqual(voiceSay('Hello.'), null)
+    unittestEqual(voiceSay('Hello!', 'sarah', 'shouting', 1.2), null)
+    unittestEqual(voiceState(), null)
+endfunction
+unittestRunTest('testMarkdownUp_voiceSay')
+
+
 function testMarkdownUp_windowClipboardRead():
     unittestEqual(windowClipboardRead(), '')
     windowClipboardWrite('Hello!')

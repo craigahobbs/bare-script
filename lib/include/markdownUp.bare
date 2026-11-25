@@ -8,13 +8,13 @@ include <url.bare>
 
 #
 # Stub implementations of the MarkdownUp runtime functions (markdownPrint,
-# elementModelRender, document*, window*, *Storage*) for use under the plain
-# `bare` CLI.
+# elementModelRender, document*, voice*, window*, *Storage*) for use under the
+# plain `bare` CLI.
 #
 # DO NOT `include <markdownUp.bare>` from application or test code:
 #
 #   - In the real MarkdownUp browser runtime, markdownPrint, elementModelRender,
-#     and the document*/window*/*Storage* functions are built-in. Including
+#     and the document*/voice*/window*/*Storage* functions are built-in. Including
 #     this file would OVERWRITE the built-ins with the logging stubs, and the
 #     app would silently stop rendering.
 #   - Under the `bare` CLI, the `-m` / `-l` flags prepend this include for
@@ -33,6 +33,7 @@ markdownUpWindowWidth = 1024
 markdownUpState = { \
     'localStorage': {}, \
     'sessionStorage': {}, \
+    'voice': null, \
     'windowClipboard': '' \
 }
 
@@ -295,6 +296,132 @@ endfunction
 # $arg value: The value string
 function sessionStorageSet(key, value):
     objectSet(objectGet(markdownUpState, 'sessionStorage'), key, value)
+endfunction
+
+
+#
+# Voice functions
+#
+
+
+# $function: voiceClose
+# $group: markdownUp.bare
+# $doc: Close the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), if any, and stop
+# $doc: the voice lines started by [voiceSay](#var.vGroup='markdownUp.bare'&voicesay)
+function voiceClose():
+    objectSet(markdownUpState, 'voice', null)
+endfunction
+
+
+# $function: voiceLoad
+# $group: markdownUp.bare
+# $doc: Load the speech synthesizer, so that the first [voiceSay](#var.vGroup='markdownUp.bare'&voicesay) voice line
+# $doc: (or [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak) voice playback) starts without delay. Otherwise,
+# $doc: it's loaded when it's first used. Call it when the page is rendered.
+function voiceLoad():
+endfunction
+
+
+# $function: voiceReady
+# $group: markdownUp.bare
+# $doc: Test whether voice lines can be heard. A browser may not let audio start until the user interacts with the
+# $doc: page (a click or a key press), and [voiceSay](#var.vGroup='markdownUp.bare'&voicesay) drops a line that can't
+# $doc: be heard. An application that says lines on its own (e.g., a film that plays when the page loads) can wait to
+# $doc: start until this is true.
+# $return: true if the browser has let the voice lines' audio start, false otherwise
+function voiceReady():
+    return true
+endfunction
+
+
+# $function: voiceSay
+# $group: markdownUp.bare
+# $doc: Say a line of text aloud in a voice and a speaking style - a performance cue, like a film's line of dialogue.
+# $doc: Unlike [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), the text is plain text, there is no voice
+# $doc: playback bar, and a line plays over any other lines (and over the voice playback). The lines stop when
+# $doc: [voiceClose](#var.vGroup='markdownUp.bare'&voiceclose) is called and when the page is rendered anew. A line
+# $doc: that can't be heard (a browser may not let audio start until the user interacts with the page - see
+# $doc: [voiceReady](#var.vGroup='markdownUp.bare'&voiceready)) is dropped. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: function myAppOnClick():
+# $doc:     voiceSay('Go for ignition.', 'james')
+# $doc:     voiceSay('Ignition!', 'sarah', 'shouting')
+# $doc: endfunction
+# $doc: ```
+# $doc:
+# $doc: The voices are "michael" (the default), "sarah", "male", "female", "james", "helen", "robert", "amy",
+# $doc: "david", "kate", "thomas", and "grace".
+# $doc:
+# $doc: The speaking styles are "neutral" (the default), the emotions "angry", "happy", "sad", "fearful", and
+# $doc: "disgusted", and the modes "whisper", "soft", "shouting", "dialogue", and "exclaim".
+# $arg text: The text to say
+# $arg [voice = null]: The voice. An unknown voice is the default voice.
+# $arg [style = "neutral"]: The speaking style. An unknown style is the default style.
+# $arg [rate = 1]: The speaking rate, from 0.5 to 2
+function voiceSay():
+endfunction
+
+
+# $function: voiceSetText
+# $group: markdownUp.bare
+# $doc: Set the text of the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), if
+# $doc: any. A playback's text may grow as it plays (e.g., a response that's still being generated). If the words
+# $doc: that have already played change, the playback starts again at the beginning.
+# $arg text: The Markdown text to read aloud
+# $arg [final = true]: If false, more text is coming. The text's last sentence is held back, and playback pauses at
+# $arg [final = true]: the end of the text.
+function voiceSetText():
+endfunction
+
+
+# $function: voiceSpeak
+# $group: markdownUp.bare
+# $doc: Start reading Markdown text aloud, closing any voice playback. Call it in an event handler (e.g., a click),
+# $doc: so the browser lets the audio start. MarkdownUp shows its voice playback bar (play and pause, rewind, skip
+# $doc: back and forward by section, voice, and speaking rate) at the bottom of the window - or, if the page has an
+# $doc: element with the ID "markdownUpVoice", in that element. The text's top-level headers start its sections.
+# $doc: Code blocks and images aren't read. For example:
+# $doc:
+# $doc: ```bare-script
+# $doc: function myAppMain():
+# $doc:     lines = ['# Hello', '', 'This text is read aloud.']
+# $doc:     markdownPrint(lines)
+# $doc:     elementModelRender({ \
+# $doc:         'html': 'p', \
+# $doc:         'elem': { \
+# $doc:             'html': 'a', \
+# $doc:             'attr': {'style': 'cursor: pointer;'}, \
+# $doc:             'elem': {'text': 'Read Aloud'}, \
+# $doc:             'callback': {'click': systemPartial(myAppOnReadAloud, arrayJoin(lines, '\n'))} \
+# $doc:         } \
+# $doc:     })
+# $doc: endfunction
+# $doc:
+# $doc: function myAppOnReadAloud(text):
+# $doc:     voiceSpeak(text)
+# $doc: endfunction
+# $doc:
+# $doc: myAppMain()
+# $doc: ```
+# $arg text: The Markdown text to read aloud
+# $arg [final = true]: If false, more text is coming (see [voiceSetText](#var.vGroup='markdownUp.bare'&voicesettext))
+# $arg [key = null]: The playback's key value, returned by [voiceState](#var.vGroup='markdownUp.bare'&voicestate)
+function voiceSpeak(args...):
+    key = if(arrayLength(args) > 2, arrayGet(args, 2))
+    objectSet(markdownUpState, 'voice', {'key': key, 'playing': true})
+endfunction
+
+
+# $function: voiceState
+# $group: markdownUp.bare
+# $doc: Get the state of the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak)
+# $return: The voice playback state object, or null if there is no voice playback. The state object has the
+# $return: following members:
+# $return: - `key` - The playback's key value
+# $return: - `playing` - If true, the playback is playing (not paused)
+function voiceState():
+    return objectGet(markdownUpState, 'voice')
 endfunction
 
 

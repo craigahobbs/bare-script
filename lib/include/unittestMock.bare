@@ -17,6 +17,7 @@ function unittestMockStateNew():
     return { \
         'localStorage': {}, \
         'sessionStorage': {}, \
+        'voice': null, \
         'windowClipboard': '' \
     }
 endfunction
@@ -53,6 +54,8 @@ unittestMockState = unittestMockStateNew()
 # $arg data: The following functions make use of mock data:
 # $arg data: - **documentInputValue** - map of id to return value
 # $arg data: - **systemFetch** - map of URL to response text (or byte value array, for a binary request)
+# $arg data: - **voiceReady** - false if voice lines can't be heard (the default is true)
+# $arg data: - **voiceState** - the voice playback state object, if there is a voice playback
 function unittestMockAll(data):
     # Document
     unittestMockOne('documentFontSize', unittestMock_documentFontSize)
@@ -85,6 +88,16 @@ function unittestMockAll(data):
     unittestMockOne('systemFetch', systemPartial(unittestMock_systemFetch, if(data != null, objectGet(data, 'systemFetch'))))
     unittestMockOneGeneric('systemLog')
     unittestMockOneGeneric('systemLogDebug')
+
+    # Voice
+    objectSet(unittestMockState, 'voice', if(data != null, objectGet(data, 'voiceState')))
+    unittestMockOne('voiceClose', unittestMock_voiceClose)
+    unittestMockOneGeneric('voiceLoad')
+    unittestMockOne('voiceReady', systemPartial(unittestMock_voiceReady, if(data != null, objectGet(data, 'voiceReady', true), true)))
+    unittestMockOneGeneric('voiceSay')
+    unittestMockOneGeneric('voiceSetText')
+    unittestMockOne('voiceSpeak', unittestMock_voiceSpeak)
+    unittestMockOne('voiceState', unittestMock_voiceState)
 
     # Window
     unittestMockOne('windowClipboardRead', unittestMock_windowClipboardRead)
@@ -250,6 +263,40 @@ function unittestMock_windowURLObject(data, contentType):
         dataText = if(stringLength(data) < 20, data, stringSlice(data, 0, 20))
     endif
     return 'blob:' + urlEncode(contentType) + '-' + urlEncode(dataText)
+endfunction
+
+
+#
+# Voice functions
+#
+
+
+function unittestMock_voiceClose(args...):
+    # Record the mocked function call
+    arrayPush(unittestMockCalls, ['voiceClose', args])
+
+    # Update the mock state
+    objectSet(unittestMockState, 'voice', null)
+endfunction
+
+
+function unittestMock_voiceReady(ready):
+    return ready
+endfunction
+
+
+function unittestMock_voiceSpeak(args...):
+    # Record the mocked function call
+    arrayPush(unittestMockCalls, ['voiceSpeak', args])
+
+    # Update the mock state
+    key = if(arrayLength(args) > 2, arrayGet(args, 2))
+    objectSet(unittestMockState, 'voice', {'key': key, 'playing': true})
+endfunction
+
+
+function unittestMock_voiceState():
+    return objectGet(unittestMockState, 'voice')
 endfunction
 
 
