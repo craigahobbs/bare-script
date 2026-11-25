@@ -617,7 +617,7 @@ the `.bare` source.
 | `markdownParser.bare` | Markdown text → Markdown model | `markdownParse` |
 | `markdownString.bare` | Markdown model → Markdown text | `markdownToString` |
 | `markdownElements.bare` | Markdown model → element model | `markdownElements`, `markdownElementsAsync` |
-| `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear` |
+| `markdownUp.bare` | Stub implementations of the MarkdownUp runtime functions. **Loaded automatically by `bare -m` / `-l`; never `include` it yourself** — see Section 4. | `markdownPrint`, `elementModelRender`, `documentSetTitle`, `documentInputValue`, `documentURL`, `documentSetFocus`, `documentSetKeyDown`, `documentSetReset`, `documentFontSize`, `windowWidth`, `windowHeight`, `windowKeyState`, `windowPlaySound`, `windowSetLocation`, `windowSetResize`, `windowSetTimeout`, `windowURLObject`, `windowClipboardRead`, `windowClipboardWrite`, `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear`, `voiceSpeak`, `voiceSetText`, `voiceState`, `voiceClose`, `voiceSay`, `voiceLoad`, `voiceReady` |
 | `pager.bare` | Multi-page MarkdownUp app shell | `pagerMain`, `pagerValidate` |
 | `qrcode.bare` | Render QR codes | `qrcodeDraw`, `qrcodeElements`, `qrcodeMatrix` |
 | `schema.bare` | Validate values with Schema Markdown type models | `schemaValidate`, `schemaValidateEx`, `schemaGetReferencedTypes`, `schemaGetStructMembers`, `schemaGetEnumValues` |
@@ -865,7 +865,7 @@ target that renders frames with `bare -l` and rasterizes them headless (Section 
 ### The runtime functions you have
 
 When code runs inside MarkdownUp, these "document" / "window"
-/ "storage" functions are provided by the runtime:
+/ "storage" / "voice" functions are provided by the runtime:
 
 - **Output:** `markdownPrint(line1, line2, ...)` — print Markdown lines
   (empty string = blank line / paragraph break);
@@ -879,6 +879,9 @@ When code runs inside MarkdownUp, these "document" / "window"
   `windowKeyState(code, ctrl?, shift?, alt?, meta?)`,
   `windowPlaySound(name)`.
 - **Storage:** `localStorageGet/Set/Remove/Clear`, `sessionStorageGet/Set/Remove/Clear`.
+- **Voice:** `voiceSpeak(text, final?, key?)`, `voiceSetText(text, final?)`,
+  `voiceState()`, `voiceClose()`, `voiceSay(text, voice?, style?, rate?)`,
+  `voiceLoad()`, `voiceReady()`.
 
 Notes on a few of these:
 
@@ -901,6 +904,35 @@ Notes on a few of these:
   scrolls. To fit exactly, subtract the border — 1.5em each side, i.e.
   `3 * documentFontSize()` — from each dimension:
   `width = windowWidth() - 3 * documentFontSize()` (and likewise for height).
+- `voiceSpeak(text, final?, key?)` — reads **Markdown text** aloud with in-browser
+  speech synthesis; call it from an event handler (a click) so the browser lets
+  the audio start. MarkdownUp owns the playback bar (play/pause, rewind, skip by
+  section — the text's top-level headers — voice, and speaking rate): it's shown
+  at the bottom of the window, or in the page's element with the ID
+  `markdownUpVoice` if the app renders one (e.g. an empty `div` positioned above
+  a fixed footer). There is one playback at a time. For text that's still growing
+  (a streaming response), pass `final` = `false` and call
+  `voiceSetText(text, final)` on each re-render — a no-op when there's no
+  playback. `voiceState()` returns `{'key': key, 'playing': bool}` (or `null`),
+  so `key` identifies *what* is being read; `voiceClose()` closes it. These see
+  only a playback the app started — not the page read aloud from MarkdownUp's
+  menu.
+- `voiceSay(text, voice?, style?, rate?)` — says one **plain-text** line as a
+  performance cue (a film's dialogue, a game character): no playback bar, and
+  lines **overlap** — each plays over the others, so fire them from the tick like
+  `windowPlaySound` cues. Voices: `michael` (default), `sarah`, `male`, `female`,
+  `james`, `helen`, `robert`, `amy`, `david`, `kate`, `thomas`, `grace`. Styles:
+  `neutral` (default), `angry`, `happy`, `sad`, `fearful`, `disgusted`,
+  `whisper`, `soft`, `shouting`, `dialogue`, `exclaim`; any style goes with any
+  voice, and an unknown voice or style falls back to the default. `voiceClose()`
+  stops the lines (call it when the animation pauses), and so does a full page
+  render. A browser may block audio until the user interacts with the page — a
+  line that can't be heard is dropped, not queued. Call `voiceLoad()` when the
+  page renders so the first line isn't late: the synthesizer is otherwise loaded
+  on first use. `voiceReady()` is `true` once the browser has
+  let the audio start — an app that says lines on its own from page load (a film
+  that autoplays) should hold on a "Click to play" prompt and poll it from its
+  tick, starting when it turns `true` (any click or key press unblocks audio).
 - `windowPlaySound(name)` — built-in SFX, sourced from `markdownUp.bare`:
   - **UI:** `beep`, `click`, `error`, `success`, `warning`
   - **Arcade:** `coin`, `jump`, `laser`, `explosion`, `powerup`,
@@ -1356,9 +1388,13 @@ Patterns:
 - **`unittestMockAll(data?)` at the top of the test** — mocks every MarkdownUp
   runtime function and `systemFetch`/`systemLog`. Recorded calls (unless noted
   below) are `[name, [args...]]`. The optional `data` argument supplies
-  per-function mock inputs; the two supported keys are:
+  per-function mock inputs; the four supported keys are:
   - `'documentInputValue'`: object mapping input element id → value
   - `'systemFetch'`: object mapping URL → response text
+  - `'voiceState'`: the voice playback state object `voiceState()` returns
+    (e.g. `{'key': 'k', 'playing': true}`) — omit it for no playback
+  - `'voiceReady'`: `false` to make `voiceReady()` return `false` (audio
+    blocked); it returns `true` by default
   Example: `unittestMockAll({'systemFetch': {'data.json': '{"a": 1}'}})`.
   `systemFetch` also accepts an **array** of URLs and returns an array of
   responses (a batched, parallel fetch), recorded as
@@ -1384,6 +1420,8 @@ Patterns:
 - **Not everything is in the log.** Layout getters
   (`documentFontSize` = 16, `windowWidth` = 1024, `windowHeight` = 768),
   `documentURL` (identity), `localStorageGet` / `sessionStorageGet`,
+  `voiceState` (the mock playback: `voiceSpeak` starts it, `voiceClose` ends it;
+  `voiceSay` and `voiceLoad` are recorded and don't change it), `voiceReady`,
   `windowClipboardRead`, and `windowURLObject` (returns
   `'blob:' + urlEncode(type) + '-' + urlEncode(first 20 chars)`, or the first
   8 bytes comma-joined for a byte value array) are mocked

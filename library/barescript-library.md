@@ -4605,8 +4605,8 @@ The Markdown text
 ## markdownUp.bare
 
 `markdownUp.bare` implements the [MarkdownUp](https://github.com/craigahobbs/markdown-up#readme)
-runtime functions - `markdownPrint`, `elementModelRender`, and the `document*`, `window*`, and
-`*Storage*` functions - so that many MarkdownUp applications run on plain
+runtime functions - `markdownPrint`, `elementModelRender`, and the `document*`, `voice*`, `window*`,
+and `*Storage*` functions - so that many MarkdownUp applications run on plain
 [BareScript](https://github.com/craigahobbs/bare-script#readme).
 
 **Do not `include <markdownUp.bare>` from application code.** Two reasons:
@@ -4959,6 +4959,195 @@ The value string
 #### Returns
 
 Nothing
+
+---
+
+### voiceClose
+
+`voiceClose()`
+
+Close the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), if any, and stop
+the voice lines started by [voiceSay](#var.vGroup='markdownUp.bare'&voicesay)
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### voiceLoad
+
+`voiceLoad()`
+
+Load the speech synthesizer, so that the first [voiceSay](#var.vGroup='markdownUp.bare'&voicesay) voice line
+(or [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak) voice playback) starts without delay. Otherwise,
+it's loaded when it's first used. Call it when the page is rendered.
+
+#### Arguments
+
+None
+
+#### Returns
+
+Nothing
+
+---
+
+### voiceReady
+
+`voiceReady()`
+
+Test whether voice lines can be heard. A browser may not let audio start until the user interacts with the
+page (a click or a key press), and [voiceSay](#var.vGroup='markdownUp.bare'&voicesay) drops a line that can't
+be heard. An application that says lines on its own (e.g., a film that plays when the page loads) can wait to
+start until this is true.
+
+#### Arguments
+
+None
+
+#### Returns
+
+true if the browser has let the voice lines' audio start, false otherwise
+
+---
+
+### voiceSay
+
+`voiceSay(text, voice = null, style = "neutral", rate = 1)`
+
+Say a line of text aloud in a voice and a speaking style - a performance cue, like a film's line of dialogue.
+Unlike [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), the text is plain text, there is no voice
+playback bar, and a line plays over any other lines (and over the voice playback). The lines stop when
+[voiceClose](#var.vGroup='markdownUp.bare'&voiceclose) is called and when the page is rendered anew. A line
+that can't be heard (a browser may not let audio start until the user interacts with the page - see
+[voiceReady](#var.vGroup='markdownUp.bare'&voiceready)) is dropped. For example:
+
+```bare-script
+function myAppOnClick():
+    voiceSay('Go for ignition.', 'james')
+    voiceSay('Ignition!', 'sarah', 'shouting')
+endfunction
+```
+
+The voices are "michael" (the default), "sarah", "male", "female", "james", "helen", "robert", "amy",
+"david", "kate", "thomas", and "grace".
+
+The speaking styles are "neutral" (the default), the emotions "angry", "happy", "sad", "fearful", and
+"disgusted", and the modes "whisper", "soft", "shouting", "dialogue", and "exclaim".
+
+#### Arguments
+
+**text -**
+The text to say
+
+**voice** (optional, default `null`) **-**
+The voice. An unknown voice is the default voice.
+
+**style** (optional, default `"neutral"`) **-**
+The speaking style. An unknown style is the default style.
+
+**rate** (optional, default `1`) **-**
+The speaking rate, from 0.5 to 2
+
+#### Returns
+
+Nothing
+
+---
+
+### voiceSetText
+
+`voiceSetText(text, final = true)`
+
+Set the text of the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak), if
+any. A playback's text may grow as it plays (e.g., a response that's still being generated). If the words
+that have already played change, the playback starts again at the beginning.
+
+#### Arguments
+
+**text -**
+The Markdown text to read aloud
+
+**final** (optional, default `true`) **-**
+If false, more text is coming. The text's last sentence is held back, and playback pauses at
+the end of the text.
+
+#### Returns
+
+Nothing
+
+---
+
+### voiceSpeak
+
+`voiceSpeak(text, final = true, key = null)`
+
+Start reading Markdown text aloud, closing any voice playback. Call it in an event handler (e.g., a click),
+so the browser lets the audio start. MarkdownUp shows its voice playback bar (play and pause, rewind, skip
+back and forward by section, voice, and speaking rate) at the bottom of the window - or, if the page has an
+element with the ID "markdownUpVoice", in that element. The text's top-level headers start its sections.
+Code blocks and images aren't read. For example:
+
+```bare-script
+function myAppMain():
+    lines = ['# Hello', '', 'This text is read aloud.']
+    markdownPrint(lines)
+    elementModelRender({ \
+        'html': 'p', \
+        'elem': { \
+            'html': 'a', \
+            'attr': {'style': 'cursor: pointer;'}, \
+            'elem': {'text': 'Read Aloud'}, \
+            'callback': {'click': systemPartial(myAppOnReadAloud, arrayJoin(lines, '\n'))} \
+        } \
+    })
+endfunction
+
+function myAppOnReadAloud(text):
+    voiceSpeak(text)
+endfunction
+
+myAppMain()
+```
+
+#### Arguments
+
+**text -**
+The Markdown text to read aloud
+
+**final** (optional, default `true`) **-**
+If false, more text is coming (see [voiceSetText](#var.vGroup='markdownUp.bare'&voicesettext))
+
+**key** (optional, default `null`) **-**
+The playback's key value, returned by [voiceState](#var.vGroup='markdownUp.bare'&voicestate)
+
+#### Returns
+
+Nothing
+
+---
+
+### voiceState
+
+`voiceState()`
+
+Get the state of the voice playback started by [voiceSpeak](#var.vGroup='markdownUp.bare'&voicespeak)
+
+#### Arguments
+
+None
+
+#### Returns
+
+The voice playback state object, or null if there is no voice playback. The state object has the
+following members:
+- `key` - The playback's key value
+- `playing` - If true, the playback is playing (not paused)
 
 ---
 
@@ -6031,6 +6220,8 @@ The map of function name to mock function data.
 The following functions make use of mock data:
 - **documentInputValue** - map of id to return value
 - **systemFetch** - map of URL to response text (or byte value array, for a binary request)
+- **voiceReady** - false if voice lines can't be heard (the default is true)
+- **voiceState** - the voice playback state object, if there is a voice playback
 
 #### Returns
 
