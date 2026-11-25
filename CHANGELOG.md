@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.0 (2026-11-25)
+
+- [912b21b](https://github.com/craigahobbs/bare-script/commit/912b21b) - add markdownUp.bare voice functions - voiceSpeak, voiceSetText, voiceState, voiceClose, voiceSay, voiceLoad, and voiceReady - and their unittestMock.bare mocks
+
 ## 5.2.3 (2026-11-18)
 
 - [9da8f89](https://github.com/craigahobbs/bare-script/commit/9da8f89) - optimize data.bare, dataTable.bare, diff.bare, hash.bare, and markdownString.bare
